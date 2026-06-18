@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum SubscriptionTier {
+  free
+  basic
+  pro
+}
+
+enum TipoFactura {
+  ingreso
+  gasto
+}
+
+enum ConfianzaIa {
+  alta
+  media
+  baja
+}
+
+model Perfil {
+  id                  String           @id
+  email               String           @unique
+  nombre              String?
+  subscriptionTier    SubscriptionTier @default(free)
+  stripeCustomerId    String?          @unique
+  paypalEmail         String?
+  esAutonomo          Boolean          @default(false)
+  tieneEmpleadas      Boolean          @default(false)
+  tieneAlquiler       Boolean          @default(false)
+  provinciaFiscal     String?
+  situacionLaboral    String?
+  notificacionesEmail Boolean          @default(true)
+  notificacionesPush  Boolean          @default(true)
+  creadoEn            DateTime         @default(now())
+  actualizadoEn       DateTime         @updatedAt
+
+  facturas       Factura[]
+  documentos     Documento[]
+  suscripciones  Suscripcion[]
+  notificaciones Notificacion[]
+
+  @@map("perfiles")
+}
+
+model Factura {
+  id              String        @id @default(cuid())
+  usuarioId       String
+  usuario         Perfil        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tipo            TipoFactura
+  categoria       String?
+  concepto        String
+  importe         Int
+  iva             Int
+  importeIva      Int
+  importeTotal    Int
+  fecha           DateTime
+  numeroFactura   String?
+  proveedorNombre String?
+  proveedorNif    String?
+  archivoUrl      String?
+  procesadoPorIa  Boolean       @default(false)
+  confianzaIa     ConfianzaIa?
+  deducible       Boolean       @default(true)
+  trimestre       Int
+  anyo             Int
+  creadoEn        DateTime      @default(now())
+  actualizadoEn   DateTime      @updatedAt
+
+  @@index([usuarioId, anyo, trimestre])
+  @@index([usuarioId, tipo])
+  @@map("facturas")
+}
+
+model Documento {
+  id             String    @id @default(cuid())
+  usuarioId      String
+  usuario        Perfil    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  nombre         String
+  archivoUrl     String
+  tipoArchivo    String
+  tamanoBytes    Int?
+  resumen        String?
+  conceptosClave Json?
+  creadoEn       DateTime  @default(now())
+
+  examenes Examen[]
+
+  @@map("documentos")
+}
+
+model Examen {
+  id          String    @id @default(cuid())
+  documentoId String
+  documento   Documento @relation(fields: [documentoId], references: [id], onDelete: Cascade)
+  titulo      String
+  preguntas   Json
+  dificultad  String
+  puntuacion  Int?
+  completado  Boolean   @default(false)
+  creadoEn    DateTime  @default(now())
+
+  @@map("examenes")
+}
+
+model Suscripcion {
+  id                      String           @id @default(cuid())
+  usuarioId               String
+  usuario                 Perfil           @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tier                    SubscriptionTier
+  proveedorPago           String
+  proveedorSuscripcionId  String           @unique
+  estado                  String
+  fechaInicio             DateTime
+  fechaFin                DateTime?
+  creadoEn                DateTime         @default(now())
+
+  @@map("suscripciones")
+}
+
+model Notificacion {
+  id        String   @id @default(cuid())
+  usuarioId String
+  usuario   Perfil   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  titulo    String
+  cuerpo    String
+  url       String?
+  leida     Boolean  @default(false)
+  tipo      String
+  creadoEn  DateTime @default(now())
+
+  @@index([usuarioId, leida])
+  @@map("notificaciones")
+}
