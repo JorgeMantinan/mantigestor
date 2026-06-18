@@ -1,10 +1,18 @@
-import { type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { FacturaSchema } from '@mantigestor/utils'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
+import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
 export async function GET(req: NextRequest) {
   try {
+    const { success } = rateLimitByIp(req)
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },
+        { status: 429 }
+      )
+    }
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
@@ -56,6 +64,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const { success } = rateLimitByIp(req)
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },
+        { status: 429 }
+      )
+    }
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 

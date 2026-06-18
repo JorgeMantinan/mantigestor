@@ -1,5 +1,11 @@
+import type { Metadata } from 'next'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
+
+export const metadata: Metadata = {
+  title: 'Panel - MantiGestor',
+  description: 'Gestión inteligente para autónomos españoles.',
+}
 
 export default function DashboardLayout({
   children,
