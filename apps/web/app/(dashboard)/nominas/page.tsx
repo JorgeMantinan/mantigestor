@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Users, Plus, Calendar } from 'lucide-react'
+import { FileUpload } from '@/components/upload/FileUpload'
 
 const MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -27,7 +28,17 @@ interface Nomina {
 export default function NominasPage() {
   const [nominas, setNominas] = useState<Nomina[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const getSupabase = useCallback(() => createClient(), [])
+
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await getSupabase().auth.getUser()
+      if (user) setUserId(user.id)
+    }
+    init()
+  }, [getSupabase])
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -50,9 +61,11 @@ export default function NominasPage() {
       irpf,
       seguridadSocial,
       neto,
+      pdfUrl: pdfUrl || null,
     })
 
     setShowForm(false)
+    setPdfUrl(null)
   }
 
   const formatMoney = (cents: number) =>
@@ -111,6 +124,14 @@ export default function NominasPage() {
                   <Input id="seguridadSocial" name="seguridadSocial" type="number" step="0.01" required placeholder="50.00" />
                 </div>
               </div>
+              <FileUpload
+                bucket="documentos"
+                path={userId ?? ''}
+                tipo="nomina"
+                accept=".pdf"
+                buttonText="Subir nómina PDF"
+                onUploadComplete={(url) => setPdfUrl(url)}
+              />
               <div className="flex gap-4 pt-2">
                 <Button type="submit" className="flex-1">Guardar nómina</Button>
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="flex-1">Cancelar</Button>

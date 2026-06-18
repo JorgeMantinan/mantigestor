@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -42,6 +45,18 @@ const planes = [
 ]
 
 export default function PreciosPage() {
+  const [loading, setLoading] = useState(false)
+
+  async function handleProCheckout() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      if (!res.ok) { setLoading(false); return }
+      const data = await res.json()
+      if (data.url) { window.location.href = data.url }
+    } catch { setLoading(false) }
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
@@ -113,15 +128,23 @@ export default function PreciosPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Link href={plan.href} className="w-full">
+                  {plan.tier === 'pro' ? (
                     <Button
-                      variant={plan.destacado ? 'default' : 'outline'}
+                      onClick={handleProCheckout}
+                      variant="default"
                       size="lg"
                       className="w-full"
+                      disabled={loading}
                     >
-                      {plan.cta}
+                      {loading ? 'Redirigiendo...' : plan.cta}
                     </Button>
-                  </Link>
+                  ) : (
+                    <Link href={plan.href} className="w-full">
+                      <Button variant="outline" size="lg" className="w-full">
+                        {plan.cta}
+                      </Button>
+                    </Link>
+                  )}
                 </CardFooter>
               </Card>
             ))}

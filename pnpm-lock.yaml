@@ -77,6 +77,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.1.0
         version: 1.2.10(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@stripe/stripe-js':
+        specifier: ^9.8.0
+        version: 9.8.0
       '@supabase/ssr':
         specifier: ^0.5.0
         version: 0.5.2(@supabase/supabase-js@2.108.2)
@@ -1497,6 +1500,10 @@ packages:
 
   '@sinclair/typebox@0.27.10':
     resolution: {integrity: sha512-MTBk/3jGLNB2tVxv6uLlFh1iu64iYOQ2PbdOSK3NW8JZsmlaOh2q6sdtKowBhfw8QFLmYNzTW4/oK4uATIi6ZA==}
+
+  '@stripe/stripe-js@9.8.0':
+    resolution: {integrity: sha512-DHJpol/98VKyojNSYmpkB5vOMnlf87hPe0wPxyaYTNiTMk5QjKMXDfSZLwGctYIXAgAWDFeRABc8lFAj0BELyw==}
+    engines: {node: '>=12.16'}
 
   '@supabase/auth-js@2.108.2':
     resolution: {integrity: sha512-tNaQmBgodDZwgB40mRwVbxFy8IDYwjdpcZ0BYrWiwlULCSQoJj4QoG4zgJT7QRPXcqipefNOzvO/qAu4dF98ag==}
@@ -5199,6 +5206,8 @@ snapshots:
   '@rushstack/eslint-patch@1.16.1': {}
 
   '@sinclair/typebox@0.27.10': {}
+
+  '@stripe/stripe-js@9.8.0': {}
 
   '@supabase/auth-js@2.108.2':
     dependencies:

@@ -4,8 +4,9 @@ import { useState, useCallback, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { FileText, Upload, GraduationCap, Trash2, ArrowUpRight } from 'lucide-react'
+import { FileText, GraduationCap, Trash2, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
+import { FileUpload } from '@/components/upload/FileUpload'
 
 interface Documento {
   id: string
@@ -18,13 +19,14 @@ interface Documento {
 export default function AlumnosPage() {
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
 
   const getSupabase = useCallback(() => createClient(), [])
 
   const fetchDocumentos = useCallback(async () => {
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) { setLoading(false); return }
+    setUserId(user.id)
     const { data } = await getSupabase()
       .from('documentos')
       .select('*')
@@ -35,39 +37,6 @@ export default function AlumnosPage() {
   }, [getSupabase])
 
   useEffect(() => { fetchDocumentos() }, [fetchDocumentos])
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-
-    const { data: { user } } = await getSupabase().auth.getUser()
-    if (!user) { setUploading(false); return }
-
-    const fileExt = file.name.split('.').pop()
-    const filePath = `${user.id}/${Date.now()}.${fileExt}`
-
-    const { error: uploadError } = await getSupabase().storage
-      .from('documentos')
-      .upload(filePath, file)
-
-    if (uploadError) { setUploading(false); return }
-
-    const { data: { publicUrl } } = getSupabase().storage
-      .from('documentos')
-      .getPublicUrl(filePath)
-
-    await getSupabase().from('documentos').insert({
-      perfilId: user.id,
-      tipo: 'alumno',
-      nombre: file.name,
-      tamanoBytes: file.size,
-      url: publicUrl,
-    })
-
-    setUploading(false)
-    fetchDocumentos()
-  }
 
   const eliminar = async (id: string) => {
     if (!confirm('¿Eliminar este documento?')) return
@@ -90,18 +59,16 @@ export default function AlumnosPage() {
           <p className="text-muted-foreground">Documentos y materiales para tus estudiantes</p>
         </div>
         <div className="flex gap-2">
-          <label>
-            <Button variant="outline" disabled={uploading} className="relative cursor-pointer">
-              <Upload className="mr-2 h-4 w-4" />
-              {uploading ? 'Subiendo...' : 'Subir documento'}
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.txt,.md"
-                className="absolute inset-0 cursor-pointer opacity-0"
-                onChange={handleUpload}
-              />
-            </Button>
-          </label>
+          {userId && (
+            <FileUpload
+              bucket="documentos"
+              path={userId}
+              tipo="alumno"
+              accept=".pdf,.doc,.docx,.txt,.md"
+              buttonText="Subir documento"
+              onUploadComplete={() => fetchDocumentos()}
+            />
+          )}
           <Link href="/dashboard/alumnos/examenes">
             <Button variant="secondary">
               <GraduationCap className="mr-2 h-4 w-4" />

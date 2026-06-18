@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { NotificationDropdown } from '@/components/notifications/NotificationDropdown'
 import { LogOut, User, Settings, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -31,6 +32,7 @@ export function Header() {
       <div className="flex-1" />
 
       <div className="flex items-center gap-2">
+        {user && <NotificationDropdown />}
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

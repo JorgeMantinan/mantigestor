@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ChevronLeft } from 'lucide-react'
+import { FileUpload } from '@/components/upload/FileUpload'
 import Link from 'next/link'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
@@ -16,8 +17,14 @@ export default function NuevaFacturaPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
 
   const getSupabase = useCallback(() => createClient(), [])
+
+  useEffect(() => {
+    getSupabase().auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null))
+  }, [getSupabase])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -49,6 +56,7 @@ export default function NuevaFacturaPage() {
       iva,
       total,
       estado: 'pendiente',
+      pdfUrl: pdfUrl || null,
     })
 
     if (insertError) {
@@ -163,6 +171,23 @@ export default function NuevaFacturaPage() {
               </Button>
             </div>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Documento adjunto</CardTitle>
+          <CardDescription>Sube el PDF de la factura (opcional)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FileUpload
+            bucket="documentos"
+            path={userId ?? ''}
+            tipo="factura"
+            accept=".pdf"
+            buttonText="Subir factura PDF"
+            onUploadComplete={(url) => setPdfUrl(url)}
+          />
         </CardContent>
       </Card>
     </div>

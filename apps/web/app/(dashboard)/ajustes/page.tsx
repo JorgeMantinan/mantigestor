@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { createClient } from '@/lib/supabase/client'
 
 type Tab = 'perfil' | 'suscripcion' | 'apariencia'
 
@@ -98,6 +99,55 @@ function PerfilTab() {
 }
 
 function SuscripcionTab() {
+  const [loading, setLoading] = useState<'checkout' | 'portal' | null>(null)
+  const [subscription, setSubscription] = useState<{
+    tier: string
+    estado: string
+    currentPeriodEnd: string
+  } | null>(null)
+  const [subLoading, setSubLoading] = useState(true)
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setSubLoading(false); return }
+
+      const { data } = await supabase
+        .from('suscripciones')
+        .select('tier, estado, currentPeriodEnd')
+        .eq('perfilId', user.id)
+        .single()
+
+      setSubscription(data)
+      setSubLoading(false)
+    }
+    load()
+  }, [])
+
+  async function handleCheckout() {
+    setLoading('checkout')
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      if (!res.ok) { setLoading(null); return }
+      const data = await res.json()
+      if (data.url) { window.location.href = data.url }
+    } catch { setLoading(null) }
+  }
+
+  async function handlePortal() {
+    setLoading('portal')
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      if (!res.ok) { setLoading(null); return }
+      const data = await res.json()
+      if (data.url) { window.location.href = data.url }
+    } catch { setLoading(null) }
+  }
+
+  const isPro = subscription?.tier === 'PRO'
+  const isActive = subscription?.estado === 'active'
+
   return (
     <Card>
       <CardHeader>
@@ -110,26 +160,50 @@ function SuscripcionTab() {
             <div>
               <p className="font-medium">Plan actual</p>
               <p className="text-sm text-muted-foreground">
-                Disfrutas de un periodo de prueba PRO gratuito
+                {subLoading
+                  ? 'Cargando...'
+                  : isPro && isActive
+                    ? 'Plan PRO activo'
+                    : isPro && !isActive
+                      ? 'Tu suscripción ha caducado'
+                      : 'Plan BASIC gratuito'}
               </p>
             </div>
             <div className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-              PRO · PRUEBA
+              {subLoading ? '...' : isPro ? 'PRO' : 'BASIC'}
             </div>
           </div>
         </div>
         <div className="space-y-2">
           <Label>Método de pago</Label>
           <div className="flex gap-4">
-            <Button variant="outline" className="flex-1" disabled>
-              Stripe
-            </Button>
+            {isPro && isActive ? (
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handlePortal}
+                disabled={loading === 'portal'}
+              >
+                {loading === 'portal' ? 'Cargando...' : 'Gestionar suscripción'}
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleCheckout}
+                disabled={loading === 'checkout'}
+              >
+                {loading === 'checkout' ? 'Redirigiendo...' : 'Stripe'}
+              </Button>
+            )}
             <Button variant="outline" className="flex-1" disabled>
               PayPal
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Podrás configurar el pago al finalizar el periodo de prueba
+            {isPro && isActive
+              ? 'Gestiona tu suscripción y método de pago desde el portal de Stripe'
+              : 'Al contratar disfrutarás de 30 días de prueba gratuita del plan PRO'}
           </p>
         </div>
       </CardContent>

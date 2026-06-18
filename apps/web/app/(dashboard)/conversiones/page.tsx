@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -75,6 +75,39 @@ export default function ConversionesPage() {
   const [from, setFrom] = useState('EUR')
   const [to, setTo] = useState('USD')
   const [resultado, setResultado] = useState<string | null>(null)
+  const [tasas, setTasas] = useState<Record<string, Record<string, number>>>({})
+  const [cargandoTasas, setCargandoTasas] = useState(true)
+
+  useEffect(() => {
+    const fetchTasas = async () => {
+      try {
+        const res = await fetch('https://api.frankfurter.dev/latest?from=EUR&to=USD,GBP,CHF,MXN,ARS,COP')
+        if (!res.ok) throw new Error('Failed to fetch')
+        const data = await res.json()
+        const eurRates = data.rates as Record<string, number>
+
+        const newTasas: Record<string, Record<string, number>> = { EUR: { ...eurRates } }
+
+        for (const from of ['USD', 'GBP', 'CHF', 'MXN', 'ARS', 'COP']) {
+          newTasas[from] = {}
+          for (const to of ['EUR', 'USD', 'GBP', 'CHF', 'MXN', 'ARS', 'COP']) {
+            if (from === to) continue
+            if (to === 'EUR') {
+              newTasas[from][to] = 1 / (eurRates[from] ?? 1)
+            } else {
+              newTasas[from][to] = (eurRates[to] ?? 1) / (eurRates[from] ?? 1)
+            }
+          }
+        }
+
+        setTasas(newTasas)
+      } catch {
+      }
+      setCargandoTasas(false)
+    }
+
+    fetchTasas()
+  }, [])
 
   const tabs: { value: ConversionType; label: string }[] = [
     { value: 'moneda', label: 'Moneda' },
@@ -101,7 +134,7 @@ export default function ConversionesPage() {
     switch (tipo) {
       case 'moneda': {
         if (from === to) { res = val; break }
-        const tasa = TASAS_CAMBIO_APROX[from]?.[to]
+        const tasa = (Object.keys(tasas).length > 0 ? tasas : TASAS_CAMBIO_APROX)[from]?.[to]
         if (!tasa) { setResultado(null); return }
         res = val * tasa
         break
@@ -132,7 +165,7 @@ export default function ConversionesPage() {
 
     const decimals = tipo === 'moneda' ? 2 : 4
     setResultado(res.toFixed(decimals))
-  }, [tipo, cantidad, from, to])
+  }, [tipo, cantidad, from, to, tasas])
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -161,7 +194,7 @@ export default function ConversionesPage() {
         <CardHeader>
           <CardTitle>Conversor de {tipo === 'moneda' ? 'moneda' : tipo === 'longitud' ? 'longitud' : tipo === 'peso' ? 'peso' : 'temperatura'}</CardTitle>
           <CardDescription>
-            {tipo === 'moneda' && 'Tasas de cambio aproximadas (no vinculantes)'}
+            {tipo === 'moneda' && (cargandoTasas ? 'Actualizando tasas...' : 'Tasas de cambio en tiempo real (Frankfurter API)')}
             {tipo === 'temperatura' && 'Celsius, Fahrenheit y Kelvin'}
           </CardDescription>
         </CardHeader>
