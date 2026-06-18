@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { createCheckoutSession } from '@/lib/stripe/helpers'
-import { PRO_PRICE_ID } from '@/lib/stripe/server'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
 export async function POST(req: Request) {
@@ -12,6 +10,11 @@ export async function POST(req: Request) {
       { status: 429 }
     )
   }
+
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+    return NextResponse.json({ error: 'Stripe no configurado', disponible: false }, { status: 503 })
+  }
+
   const supabase = createServerClient()
   const { data: { user }, error } = await supabase.auth.getUser()
 
@@ -19,10 +22,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
 
-  if (!PRO_PRICE_ID) {
-    return NextResponse.json({ error: 'Stripe no configurado' }, { status: 500 })
+  const { createCheckoutSession } = await import('@/lib/stripe/helpers')
+
+  if (!process.env.STRIPE_PRO_PRICE_ID) {
+    return NextResponse.json({ error: 'Stripe no configurado', disponible: false }, { status: 503 })
   }
 
-  const session = await createCheckoutSession(user.id, user.email!, PRO_PRICE_ID)
+  const session = await createCheckoutSession(user.id, user.email!, process.env.STRIPE_PRO_PRICE_ID)
   return NextResponse.json({ url: session.url })
 }

@@ -48,12 +48,14 @@ const planes = [
 export default function PreciosPage() {
   const [loading, setLoading] = useState(false)
 
+  const [stripeOk, setStripeOk] = useState(true)
+
   async function handleProCheckout() {
     setLoading(true)
     try {
       const res = await fetch('/api/stripe/checkout', { method: 'POST' })
-      if (!res.ok) { setLoading(false); return }
       const data = await res.json()
+      if (data.disponible === false) { setStripeOk(false); setLoading(false); return }
       if (data.url) { window.location.href = data.url }
     } catch { setLoading(false) }
   }
@@ -137,7 +139,7 @@ export default function PreciosPage() {
                       className="w-full"
                       disabled={loading}
                     >
-                      {loading ? 'Redirigiendo...' : plan.cta}
+                      {loading ? 'Redirigiendo...' : stripeOk ? plan.cta : 'Próximamente'}
                     </Button>
                   ) : (
                     <Link href={plan.href} className="w-full">

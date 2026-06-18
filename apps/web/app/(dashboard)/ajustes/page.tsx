@@ -101,6 +101,7 @@ function PerfilTab() {
 
 function SuscripcionTab() {
   const [loading, setLoading] = useState<'checkout' | 'portal' | null>(null)
+  const [stripeOk, setStripeOk] = useState(true)
   const [subscription, setSubscription] = useState<{
     tier: string
     estado: string
@@ -130,8 +131,8 @@ function SuscripcionTab() {
     setLoading('checkout')
     try {
       const res = await fetch('/api/stripe/checkout', { method: 'POST' })
-      if (!res.ok) { setLoading(null); return }
       const data = await res.json()
+      if (data.disponible === false) { setStripeOk(false); setLoading(null); return }
       if (data.url) { window.location.href = data.url }
     } catch { setLoading(null) }
   }
@@ -140,8 +141,8 @@ function SuscripcionTab() {
     setLoading('portal')
     try {
       const res = await fetch('/api/stripe/portal', { method: 'POST' })
-      if (!res.ok) { setLoading(null); return }
       const data = await res.json()
+      if (data.disponible === false) { setStripeOk(false); setLoading(null); return }
       if (data.url) { window.location.href = data.url }
     } catch { setLoading(null) }
   }
@@ -185,7 +186,7 @@ function SuscripcionTab() {
                 onClick={handlePortal}
                 disabled={loading === 'portal'}
               >
-                {loading === 'portal' ? 'Cargando...' : 'Gestionar suscripción'}
+                {loading === 'portal' ? 'Cargando...' : stripeOk ? 'Gestionar suscripción' : 'Próximamente'}
               </Button>
             ) : (
               <Button
@@ -194,7 +195,7 @@ function SuscripcionTab() {
                 onClick={handleCheckout}
                 disabled={loading === 'checkout'}
               >
-                {loading === 'checkout' ? 'Redirigiendo...' : 'Stripe'}
+                {loading === 'checkout' ? 'Redirigiendo...' : stripeOk ? 'Stripe' : 'Próximamente'}
               </Button>
             )}
             <Button variant="outline" className="flex-1" disabled>
@@ -202,9 +203,11 @@ function SuscripcionTab() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            {isPro && isActive
-              ? 'Gestiona tu suscripción y método de pago desde el portal de Stripe'
-              : 'Al contratar disfrutarás de 30 días de prueba gratuita del plan PRO'}
+            {!stripeOk
+              ? 'Los pagos online estarán disponibles pronto.'
+              : isPro && isActive
+                ? 'Gestiona tu suscripción y método de pago desde el portal de Stripe'
+                : 'Al contratar disfrutarás de 30 días de prueba gratuita del plan PRO'}
           </p>
         </div>
       </CardContent>
