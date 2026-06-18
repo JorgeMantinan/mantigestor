@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, ScanLine } from 'lucide-react'
 import { FileUpload } from '@/components/upload/FileUpload'
 import Link from 'next/link'
+import type { OcrResult } from '@/lib/ocr'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -20,12 +21,47 @@ export default function NuevaFacturaPage() {
   const [error, setError] = useState('')
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const [escanendo, setEscanendo] = useState(false)
+
+  const formRef = useRef<HTMLFormElement>(null)
 
   const getSupabase = useCallback(() => createClient(), [])
 
   useEffect(() => {
     getSupabase().auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null))
   }, [getSupabase])
+
+  async function escanearFactura() {
+    if (!pdfUrl) return
+    setEscanendo(true)
+    setError('')
+    try {
+      const res = await fetch('/api/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdfUrl }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        setError(err.error || 'Error al escanear la factura')
+        setEscanendo(false)
+        return
+      }
+      const data: OcrResult = await res.json()
+      if (!formRef.current) { setEscanendo(false); return }
+      const f = formRef.current
+      if (data.tipo) (f.elements.namedItem('tipo') as HTMLSelectElement).value = data.tipo
+      if (data.numero) (f.elements.namedItem('numero') as HTMLInputElement).value = data.numero
+      if (data.emisorReceptor) (f.elements.namedItem('emisorReceptor') as HTMLInputElement).value = data.emisorReceptor
+      if (data.nifContraparte) (f.elements.namedItem('nifContraparte') as HTMLInputElement).value = data.nifContraparte
+      if (data.fechaEmision) (f.elements.namedItem('fechaEmision') as HTMLInputElement).value = data.fechaEmision
+      if (data.baseImponible !== null) (f.elements.namedItem('baseImponible') as HTMLInputElement).value = data.baseImponible.toString()
+      if (data.iva !== null) (f.elements.namedItem('iva') as HTMLSelectElement).value = data.iva.toString()
+    } catch {
+      setError('Error al conectar con el servicio de OCR')
+    }
+    setEscanendo(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -89,7 +125,7 @@ export default function NuevaFacturaPage() {
           <CardDescription>Rellena todos los campos obligatorios</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="tipo">Tipo</Label>
@@ -180,7 +216,7 @@ export default function NuevaFacturaPage() {
           <CardTitle>Documento adjunto</CardTitle>
           <CardDescription>Sube el PDF de la factura (opcional)</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <FileUpload
             bucket="documentos"
             path={userId ?? ''}
@@ -189,6 +225,17 @@ export default function NuevaFacturaPage() {
             buttonText="Subir factura PDF"
             onUploadComplete={(url) => setPdfUrl(url)}
           />
+          {pdfUrl && (
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={escanearFactura}
+              disabled={escanendo}
+            >
+              <ScanLine className="mr-2 h-4 w-4" />
+              {escanendo ? 'Escaneando...' : 'Escanear factura con IA'}
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>
