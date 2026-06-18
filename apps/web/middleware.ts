@@ -42,14 +42,17 @@ export async function middleware(req: NextRequest) {
   }
 
   if (user && (RUTAS_SOLO_PRO.some(r => ruta.startsWith(r)) || RUTAS_BASIC_PLUS.some(r => ruta.startsWith(r)))) {
-    const { data: perfil } = await supabase
-      .from('perfiles')
-      .select('subscription_tier')
-      .eq('id', user.id)
+    const { data: suscripcion } = await supabase
+      .from('suscripciones')
+      .select('tier')
+      .eq('perfilId', user.id)
+      .eq('estado', 'active')
+      .order('currentPeriodStart', { ascending: false })
+      .limit(1)
       .single()
 
-    const esPro = perfil?.subscription_tier === 'pro'
-    const esBasicPlus = perfil?.subscription_tier === 'basic' || esPro
+    const esPro = suscripcion?.tier === 'PRO'
+    const esBasicPlus = suscripcion?.tier === 'BASIC' || esPro
 
     if (RUTAS_SOLO_PRO.some(r => ruta.startsWith(r)) && !esPro) {
       return NextResponse.redirect(new URL('/precios?requiere=pro', req.url))
