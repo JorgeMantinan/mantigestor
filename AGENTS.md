@@ -112,15 +112,26 @@
 - Tests E2E: `apps/web/e2e/` (6 archivos Playwright: auth, navigation, public-pages, conversiones, visual)
 - Coverage configurado en vitest.config.ts raíz
 
+## Deploy (Vercel)
+- **Repositorio**: `github.com/JorgeMantinan/mantigestor`
+- **Vercel Project**: conectado a GitHub, auto-deploy en cada push a master
+- **Root Directory**: `apps/web` (configurado en Dashboard, no en vercel.json)
+- **Build Command**: `cd ../.. && npx turbo build --filter=web`
+- **Output Directory**: `.next`
+- **Install Command**: `cd ../.. && pnpm install`
+- **Env vars**: todas las del `.env.local` configuradas en Vercel (Production)
+- Sin vercel.json en repo (se configuró vía Dashboard para evitar errores de parsing)
+
 ## Comandos útiles
 ```bash
 pnpm dev              # Arrancar todo en dev
-pnpm --filter=web build   # Build producción web (27 rutas, 0 errores)
+pnpm --filter=web build   # Build producción web (29 rutas, 0 errores)
 pnpm --filter=utils test  # Tests unitarios
 pnpm db:push          # Push schema a Supabase
 pnpm db:generate      # Regenerar Prisma client
 pnpm typecheck        # TypeScript check global
 pnpm --filter=web lint    # Lint web
+git add -A; git commit -m "msg"; git push origin master  # Deploy a Vercel
 ```
 
 ## Enlaces Supabase
@@ -129,7 +140,7 @@ pnpm --filter=web lint    # Lint web
 - Todas las credenciales en `.env.local` raíz ✅
 
 ## Estado del proyecto
-- **27 rutas, 0 errores de build.** Prácticamente todo el MVP implementado.
+- **29 rutas, 0 errores de build.** Prácticamente todo el MVP implementado.
 - Stripe integrado (checkout, portal, webhook) — opcional, si faltan env vars muestra "Próximamente"
 - OCR de facturas con Anthropic Claude API — botón "Escanear factura con IA" auto-rellena formulario
 - Subida de archivos con dropzone + validación + progreso
@@ -139,6 +150,10 @@ pnpm --filter=web lint    # Lint web
 - SEO metadata en layouts y root page
 - Rate limiting en todas las API routes (in-memory, sin Redis)
 - Middleware con graceful fallback si faltan NEXT_PUBLIC_SUPABASE_URL/KEY
+- **Deploy en Vercel funcional** (Root Directory: apps/web)
+- **Generación de exámenes con IA** desde documentos de alumno (requiere API key de Anthropic con crédito)
+- **Todos los inserts corregidos**: id explícito con `crypto.randomUUID()` en todas las tablas Prisma-managed
+- **Registro de perfil fijo**: ahora incluye `userId` para que las consultas por `userId` funcionen correctamente
 ## NOTA IMPORTANTE
 - No hacer llamadas a createClient() o createServerClient() durante SSR/prerenderizado de Next.js. Usar lazy initialization (useCallback o dynamic imports) en componentes cliente que renderizan en servidor.
 - Middleware usa `createServerClient` de `@supabase/ssr` con guard check de env vars para evitar crash en build/dev

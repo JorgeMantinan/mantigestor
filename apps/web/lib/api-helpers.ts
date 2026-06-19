@@ -13,8 +13,8 @@ export async function getAuthenticatedUser(req: NextRequest) {
       },
     }
   )
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.user ?? null
 }
 
 export function unauthorized() {
