@@ -9,9 +9,10 @@ export function createServerClient() {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll().map(({ name, value }) => ({ name, value }))
+          const all = cookieStore.getAll()
+          return Array.isArray(all) ? all.map((c: { name: string; value: string }) => ({ name: c.name, value: c.value })) : []
         },
-        setAll(cookiesToSet, headers) {
+        setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => cookieStore.set({ name, value, ...options }))
           } catch {}

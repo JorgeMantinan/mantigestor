@@ -7,7 +7,10 @@ export async function getAuthenticatedUser(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll: () => req.cookies.getAll().map(({ name, value }) => ({ name, value })),
+        getAll: () => {
+          const cookies = req.cookies.getAll()
+          return Array.isArray(cookies) ? cookies.map((c: { name: string; value: string }) => ({ name: c.name, value: c.value })) : []
+        },
       },
     }
   )
