@@ -90,18 +90,11 @@ export async function POST(req: NextRequest) {
     const parsed = FacturaSchema.safeParse(body)
     if (!parsed.success) return badRequest(parsed.error.flatten().fieldErrors)
 
-    const { fecha, ...rest } = parsed.data
-
     const { data, error } = await supabase.from('facturas').insert({
+      id: crypto.randomUUID(),
       perfilId: user.id,
-      numero: `F-${Date.now()}`,
-      fechaEmision: fecha.toISOString(),
-      emisorReceptor: rest.proveedorNombre ?? '',
-      nifContraparte: rest.proveedorNif ?? '',
-      baseImponible: rest.importe,
-      iva: rest.iva,
-      total: rest.importe + Math.round(rest.importe * rest.iva / 100),
-      estado: 'pendiente',
+      ...parsed.data,
+      fechaEmision: parsed.data.fechaEmision.toISOString(),
     }).select().single()
 
     if (error) throw error

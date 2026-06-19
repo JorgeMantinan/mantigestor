@@ -23,6 +23,7 @@ interface Factura {
 export default function FacturasPage() {
   const [facturas, setFacturas] = useState<Factura[]>([])
   const [loading, setLoading] = useState(true)
+  const [filtro, setFiltro] = useState<'todas' | 'ingreso' | 'gasto'>('todas')
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -61,7 +62,7 @@ export default function FacturasPage() {
           <h1 className="text-3xl font-heading font-bold tracking-tight">Facturas</h1>
           <p className="text-muted-foreground">Gestiona tus facturas emitidas y recibidas</p>
         </div>
-        <Link href="/dashboard/gestoria/facturas/nueva">
+        <Link href="/gestoria/facturas/nueva">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Nueva factura
@@ -70,34 +71,37 @@ export default function FacturasPage() {
       </div>
 
       <div className="flex gap-2">
-        <Button variant="secondary" size="sm">
+        <Button variant={filtro === 'todas' ? 'secondary' : 'outline'} size="sm" onClick={() => setFiltro('todas')}>
           Todas
         </Button>
-        <Button variant="outline" size="sm">
+        <Button variant={filtro === 'ingreso' ? 'secondary' : 'outline'} size="sm" onClick={() => setFiltro('ingreso')}>
           Ingresos
         </Button>
-        <Button variant="outline" size="sm">
+        <Button variant={filtro === 'gasto' ? 'secondary' : 'outline'} size="sm" onClick={() => setFiltro('gasto')}>
           Gastos
         </Button>
       </div>
 
-      {loading ? (
+      {(() => {
+        const visibles = filtro === 'todas' ? facturas : facturas.filter((f) => f.tipo === filtro)
+
+      return loading ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             Cargando facturas...
           </CardContent>
         </Card>
-      ) : facturas.length === 0 ? (
+      ) : visibles.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <Receipt className="h-12 w-12 text-muted-foreground" />
             <div className="text-center">
-              <p className="font-medium">No hay facturas</p>
+              <p className="font-medium">No hay {filtro !== 'todas' ? `facturas de tipo "${filtro}"` : 'facturas'}</p>
               <p className="text-sm text-muted-foreground">
-                Crea tu primera factura para empezar
+                {filtro !== 'todas' ? 'Cambia el filtro o crea una nueva factura' : 'Crea tu primera factura para empezar'}
               </p>
             </div>
-            <Link href="/dashboard/gestoria/facturas/nueva">
+            <Link href="/gestoria/facturas/nueva">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Crear factura
@@ -123,7 +127,7 @@ export default function FacturasPage() {
                 </tr>
               </thead>
               <tbody>
-                {facturas.map((f) => (
+                {visibles.map((f) => (
                   <tr key={f.id} className="border-b last:border-0 hover:bg-muted/30">
                     <td className="px-4 py-3 font-medium">{f.numero}</td>
                     <td className="px-4 py-3 capitalize">{f.tipo === 'ingreso' ? 'Emitida' : 'Recibida'}</td>
@@ -141,7 +145,7 @@ export default function FacturasPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
-                        <Link href={`/dashboard/gestoria/facturas/${f.id}`}>
+                        <Link href={`/gestoria/facturas/${f.id}`}>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
                             <ArrowUpRight className="h-4 w-4" />
                           </Button>
@@ -162,7 +166,7 @@ export default function FacturasPage() {
             </table>
           </div>
         </div>
-      )}
+      )})()}
     </div>
   )
 }

@@ -1,14 +1,13 @@
-import type { Metadata } from 'next'
+import { createServerClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export const metadata: Metadata = {
-  title: 'MantiGestor - Gestión inteligente para autónomos',
-}
+export default async function LandingPage() {
+  const supabase = createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
@@ -20,12 +19,20 @@ export default function LandingPage() {
             <span className="text-xl font-heading font-semibold">MantiGestor</span>
           </div>
           <nav className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Iniciar sesión</Button>
-            </Link>
-            <Link href="/register">
-              <Button>Crear cuenta</Button>
-            </Link>
+            {user ? (
+              <Link href="/dashboard">
+                <Button>Ir al dashboard</Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost">Iniciar sesión</Button>
+                </Link>
+                <Link href="/register">
+                  <Button>Crear cuenta</Button>
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -41,12 +48,20 @@ export default function LandingPage() {
             y gestiona tus alumnos. Todo en un solo lugar, con inteligencia artificial.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
-            <Link href="/register">
-              <Button size="lg">Empezar gratis</Button>
-            </Link>
-            <Link href="/login">
-              <Button variant="outline" size="lg">Iniciar sesión</Button>
-            </Link>
+            {user ? (
+              <Link href="/dashboard">
+                <Button size="lg">Ir al dashboard</Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/register">
+                  <Button size="lg">Empezar gratis</Button>
+                </Link>
+                <Link href="/login">
+                  <Button variant="outline" size="lg">Iniciar sesión</Button>
+                </Link>
+              </>
+            )}
           </div>
         </section>
 

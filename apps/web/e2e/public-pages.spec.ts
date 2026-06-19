@@ -10,7 +10,7 @@ test.describe('Public pages', () => {
     await page.goto('/login')
     await expect(page.getByText('Iniciar sesión').first()).toBeVisible()
     await expect(page.getByLabel('Email')).toBeVisible()
-    await expect(page.getByLabel('Contraseña')).toBeVisible()
+    await expect(page.getByLabel('Contraseña', { exact: true })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Iniciar sesión' })).toBeVisible()
   })
 
@@ -19,12 +19,12 @@ test.describe('Public pages', () => {
     await expect(page.getByText('Crear cuenta').first()).toBeVisible()
     await expect(page.getByLabel('Nombre')).toBeVisible()
     await expect(page.getByLabel('Email')).toBeVisible()
-    await expect(page.getByLabel('Contraseña')).toBeVisible()
+    await expect(page.getByLabel('Contraseña', { exact: true })).toBeVisible()
   })
 
   test('precios page mentions plans', async ({ page }) => {
     await page.goto('/precios')
-    await expect(page.getByText('BASIC')).toBeVisible()
-    await expect(page.getByText('PRO')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'BASIC' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'PRO' })).toBeVisible()
   })
 })

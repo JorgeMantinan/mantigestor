@@ -118,7 +118,7 @@ export default function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Últimas facturas</CardTitle>
-              <Link href="/dashboard/gestoria/facturas">
+              <Link href="/gestoria/facturas">
                 <Button variant="ghost" size="sm">Ver todas</Button>
               </Link>
             </div>
@@ -132,7 +132,7 @@ export default function DashboardPage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   Aún no has añadido ninguna factura.
                 </p>
-                <Link href="/dashboard/gestoria/facturas/nueva">
+                <Link href="/gestoria/facturas/nueva">
                   <Button variant="outline" size="sm" className="mt-3">
                     Añadir primera factura
                   </Button>
@@ -143,7 +143,7 @@ export default function DashboardPage() {
                 {facturas.slice(0, 5).map((f) => (
                   <Link
                     key={f.id}
-                    href={`/dashboard/gestoria/facturas/${f.id}`}
+                    href={`/gestoria/facturas/${f.id}`}
                     className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
                   >
                     <div className="flex items-center gap-3">

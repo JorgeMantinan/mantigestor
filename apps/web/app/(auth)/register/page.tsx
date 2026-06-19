@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [cargando, setCargando] = useState(false)
   const router = useRouter()
@@ -28,6 +29,12 @@ export default function RegisterPage() {
 
     if (password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres')
+      setCargando(false)
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden')
       setCargando(false)
       return
     }
@@ -46,31 +53,48 @@ export default function RegisterPage() {
       return
     }
 
-    if (data.user) {
-      await getSupabase().from('perfiles').insert({
-        id: data.user.id,
-        email: data.user.email,
-        nombre,
-        subscription_tier: 'free',
-      })
-    }
+    if (data.session) {
+      const { error: perfilError } = await getSupabase()
+        .from('perfiles')
+        .upsert({ id: data.session.user.id, userId: data.session.user.id, email, nombre })
 
-    router.push('/dashboard')
+      if (perfilError) {
+        console.error('Error creating perfil:', perfilError)
+      }
+
+      router.push('/dashboard')
+    } else {
+      setError('Revisa tu correo electrónico para confirmar la cuenta antes de iniciar sesión.')
+      setCargando(false)
+    }
   }
 
   const handleOAuthRegister = async (provider: 'google' | 'azure') => {
     setCargando(true)
     setError(null)
 
-    const { error: authError } = await getSupabase().auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
+    try {
+      const { error: authError, data } = await getSupabase().auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
 
-    if (authError) {
-      setError(authError.message)
+      if (authError) {
+        console.error('OAuth error:', authError)
+        setError(authError.message)
+        setCargando(false)
+        return
+      }
+
+      if (data?.url) {
+        window.location.href = data.url
+      }
+    } catch (err) {
+      console.error('OAuth exception:', err)
+      const msg = err instanceof Error ? err.message : 'Error al conectar con el proveedor'
+      setError(msg)
       setCargando(false)
     }
   }
@@ -79,6 +103,15 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <Link
+            href="/"
+            className="mb-2 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+            Volver al inicio
+          </Link>
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
             <span className="text-xl font-bold text-primary-foreground">M</span>
           </div>
@@ -161,6 +194,17 @@ export default function RegisterPage() {
                 placeholder="Mínimo 8 caracteres"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Repite la contraseña"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </div>

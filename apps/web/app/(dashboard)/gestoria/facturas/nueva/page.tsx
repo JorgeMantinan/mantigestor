@@ -69,8 +69,35 @@ export default function NuevaFacturaPage() {
     setError('')
 
     const form = new FormData(e.currentTarget)
+    const numero = (form.get('numero') as string)?.trim()
+    const emisorReceptor = (form.get('emisorReceptor') as string)?.trim()
     const baseImponible = parseFloat(form.get('baseImponible') as string) * 100
     const iva = parseInt(form.get('iva') as string, 10)
+
+    if (!numero) {
+      setError('El número de factura es obligatorio')
+      setLoading(false)
+      return
+    }
+
+    if (!emisorReceptor) {
+      setError('El nombre del cliente o proveedor es obligatorio')
+      setLoading(false)
+      return
+    }
+
+    if (isNaN(baseImponible) || baseImponible <= 0) {
+      setError('La base imponible debe ser un importe positivo')
+      setLoading(false)
+      return
+    }
+
+    if (![0, 4, 10, 21].includes(iva)) {
+      setError('El IVA debe ser 0, 4, 10 o 21')
+      setLoading(false)
+      return
+    }
+
     const importeIva = Math.round(baseImponible * (iva / 100))
     const total = baseImponible + importeIva
 
@@ -82,6 +109,7 @@ export default function NuevaFacturaPage() {
     }
 
     const { error: insertError } = await getSupabase().from('facturas').insert({
+      id: crypto.randomUUID(),
       perfilId: user.id,
       numero: form.get('numero') as string,
       tipo: form.get('tipo') as string,
@@ -102,13 +130,13 @@ export default function NuevaFacturaPage() {
       return
     }
 
-    router.push('/dashboard/gestoria/facturas')
+    router.push('/gestoria/facturas')
   }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/gestoria/facturas">
+        <Link href="/gestoria/facturas">
           <Button variant="ghost" size="icon">
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -198,7 +226,7 @@ export default function NuevaFacturaPage() {
             )}
 
             <div className="flex gap-4 pt-4">
-              <Link href="/dashboard/gestoria/facturas" className="flex-1">
+              <Link href="/gestoria/facturas" className="flex-1">
                 <Button variant="outline" type="button" className="w-full">
                   Cancelar
                 </Button>

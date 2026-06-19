@@ -10,7 +10,7 @@ test.describe('Auth flow', () => {
     await page.goto('/dashboard')
     await expect(page.getByText('Iniciar sesión').first()).toBeVisible()
     await expect(page.getByLabel('Email')).toBeVisible()
-    await expect(page.getByLabel('Contraseña')).toBeVisible()
+    await expect(page.getByLabel('Contraseña', { exact: true })).toBeVisible()
   })
 
   test('redirect preserves dashboard path', async ({ page }) => {

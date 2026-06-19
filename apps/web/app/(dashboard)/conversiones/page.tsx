@@ -78,6 +78,7 @@ export default function ConversionesPage() {
   const [resultado, setResultado] = useState<string | null>(null)
   const [tasas, setTasas] = useState<Record<string, Record<string, number>>>({})
   const [cargandoTasas, setCargandoTasas] = useState(true)
+  const [convirtiendo, setConvirtiendo] = useState(false)
 
   useEffect(() => {
     const fetchTasas = async () => {
@@ -127,8 +128,9 @@ export default function ConversionesPage() {
   }
 
   const convert = useCallback(() => {
+    setConvirtiendo(true)
     const val = parseFloat(cantidad)
-    if (isNaN(val)) { setResultado(null); return }
+    if (isNaN(val)) { setResultado(null); setConvirtiendo(false); return }
 
     let res: number
 
@@ -136,7 +138,7 @@ export default function ConversionesPage() {
       case 'moneda': {
         if (from === to) { res = val; break }
         const tasa = (Object.keys(tasas).length > 0 ? tasas : TASAS_CAMBIO_APROX)[from]?.[to]
-        if (!tasa) { setResultado(null); return }
+        if (!tasa) { setResultado(null); setConvirtiendo(false); return }
         res = val * tasa
         break
       }
@@ -166,6 +168,7 @@ export default function ConversionesPage() {
 
     const decimals = tipo === 'moneda' ? 2 : 4
     setResultado(res.toFixed(decimals))
+    setConvirtiendo(false)
   }, [tipo, cantidad, from, to, tasas])
 
   return (
@@ -268,9 +271,9 @@ export default function ConversionesPage() {
             </div>
           )}
 
-          <Button onClick={convert} className="w-full">
+          <Button onClick={convert} className="w-full" disabled={convirtiendo}>
             <ArrowRightLeft className="mr-2 h-4 w-4" />
-            Convertir
+            {convirtiendo ? 'Convirtiendo...' : 'Convertir'}
           </Button>
 
           {resultado !== null && (

@@ -82,7 +82,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const handleDelete = async () => {
     if (!factura || !confirm('¿Eliminar esta factura definitivamente?')) return
     await getSupabase().from('facturas').delete().eq('id', factura.id)
-    router.push('/dashboard/gestoria/facturas')
+    router.push('/gestoria/facturas')
   }
 
   const formatMoney = (cents: number) =>
@@ -95,7 +95,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/gestoria/facturas">
+          <Link href="/gestoria/facturas">
             <Button variant="ghost" size="icon">
               <ChevronLeft className="h-4 w-4" />
             </Button>

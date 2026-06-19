@@ -1,9 +1,13 @@
-import type { Metadata } from 'next'
+import { createServerClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
-export const metadata: Metadata = {
-  title: 'MantiGestor - Gestión inteligente para autónomos',
-}
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  if (user) {
+    redirect('/dashboard')
+  }
+
   return children
 }

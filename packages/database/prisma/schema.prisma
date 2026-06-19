@@ -22,7 +22,8 @@ model Perfil {
   documentos     Documento[]
   examenes       Examen[]
   suscripciones  Suscripcion[]
-  notificaciones Notificacion[]
+  notificaciones     Notificacion[]
+  propiedadesAlquiler PropiedadAlquiler[]
 
   @@map("perfiles")
 }
@@ -101,4 +102,34 @@ model Notificacion {
 
   @@index([perfilId, leido])
   @@map("notificaciones")
+}
+
+model PropiedadAlquiler {
+  id               String   @id @default(cuid())
+  perfilId         String
+  perfil           Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  direccion        String
+  ingresos         Int      @default(0)
+  inquilinoNombre  String?
+  inquilinoEmail   String?
+  inquilinoTelefono String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  gastos GastoAlquiler[]
+
+  @@map("propiedades_alquiler")
+}
+
+model GastoAlquiler {
+  id          String   @id @default(cuid())
+  propiedadId String
+  propiedad   PropiedadAlquiler @relation(fields: [propiedadId], references: [id], onDelete: Cascade)
+  concepto    String
+  descripcion String?
+  importe     Int
+  fecha       DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@map("gastos_alquiler")
 }

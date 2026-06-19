@@ -31,6 +31,7 @@ export default function NominasPage() {
   const [showForm, setShowForm] = useState(false)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const [guardando, setGuardando] = useState(false)
   const getSupabase = useCallback(() => createClient(), [])
 
   useEffect(() => {
@@ -43,9 +44,10 @@ export default function NominasPage() {
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setGuardando(true)
     const form = new FormData(e.currentTarget)
     const { data: { user } } = await getSupabase().auth.getUser()
-    if (!user) return
+    if (!user) { setGuardando(false); return }
 
     const salarioBruto = parseFloat(form.get('salarioBruto') as string) * 100
     const irpf = parseFloat(form.get('irpf') as string)
@@ -67,6 +69,7 @@ export default function NominasPage() {
 
     setShowForm(false)
     setPdfUrl(null)
+    setGuardando(false)
   }
 
   const formatMoney = (cents: number) =>
@@ -134,7 +137,7 @@ export default function NominasPage() {
                 onUploadComplete={(url) => setPdfUrl(url)}
               />
               <div className="flex gap-4 pt-2">
-                <Button type="submit" className="flex-1">Guardar nómina</Button>
+                <Button type="submit" className="flex-1" disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar nómina'}</Button>
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="flex-1">Cancelar</Button>
               </div>
             </form>

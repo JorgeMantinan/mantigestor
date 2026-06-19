@@ -33,7 +33,7 @@ export function FileUpload({
   path,
   tipo,
   accept = '.pdf,.doc,.docx,.txt,.md,.jpg,.png',
-  maxSizeMB = 10,
+  maxSizeMB = 50,
   onUploadComplete,
   buttonText = 'Subir archivo',
   className,
@@ -141,25 +141,18 @@ export function FileUpload({
       const userId = userData?.user?.id
 
       if (userId) {
-        const { data: perfilData } = await supabase
-          .from('perfiles')
-          .select('id')
-          .eq('userId', userId)
-          .single()
+        const { error: dbError } = await supabase
+          .from('documentos')
+          .insert({
+            id: crypto.randomUUID(),
+            perfilId: userId,
+            tipo,
+            nombre: file.name,
+            tamanoBytes: file.size,
+            url: publicUrl,
+          })
 
-        if (perfilData) {
-          const { error: dbError } = await supabase
-            .from('documentos')
-            .insert({
-              perfilId: perfilData.id,
-              tipo,
-              nombre: file.name,
-              tamanoBytes: file.size,
-              url: publicUrl,
-            })
-
-          if (dbError) throw dbError
-        }
+        if (dbError) throw dbError
       }
 
       clearInterval(interval)
@@ -169,8 +162,8 @@ export function FileUpload({
       onUploadComplete?.(publicUrl, file.name)
     } catch (err) {
       clearInterval(interval)
-      const message = err instanceof Error ? err.message : 'Error al subir el archivo'
-      setError(message)
+      const message = err instanceof Error ? err.message : (err as { message?: string })?.message ?? JSON.stringify(err)
+      setError(message !== '{}' ? message : 'Error al subir el archivo')
       setProgress(0)
     } finally {
       setUploading(false)
@@ -181,11 +174,10 @@ export function FileUpload({
     <Card className={cn('w-full', className)}>
       <CardContent className="p-6">
         {!file ? (
-          <div
+          <label
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
             className={cn(
               'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors',
               dragOver
@@ -206,9 +198,17 @@ export function FileUpload({
               accept={accept}
               onChange={handleInputChange}
               className="hidden"
+              onClick={(e) => { (e.target as HTMLInputElement).value = '' }}
             />
+          </label>
+        ) : null}
+        {error && (
+          <div className="flex items-start gap-2 text-sm text-destructive">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+            <span>{error}</span>
           </div>
-        ) : (
+        )}
+        {file && (
           <div className="space-y-4">
             <div className="flex items-center justify-between rounded-lg border p-3">
               <div className="flex items-center gap-3">

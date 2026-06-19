@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/useAuth'
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -47,7 +48,7 @@ const planes = [
 
 export default function PreciosPage() {
   const [loading, setLoading] = useState(false)
-
+  const { user, cargando } = useAuth()
   const [stripeOk, setStripeOk] = useState(true)
 
   async function handleProCheckout() {
@@ -64,19 +65,36 @@ export default function PreciosPage() {
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">M</span>
-            </div>
-            <span className="text-xl font-heading font-semibold">MantiGestor</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                <span className="text-sm font-bold text-primary-foreground">M</span>
+              </div>
+              <span className="text-xl font-heading font-semibold">MantiGestor</span>
+            </Link>
+          </div>
           <nav className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Iniciar sesión</Button>
-            </Link>
-            <Link href="/register">
-              <Button>Crear cuenta</Button>
-            </Link>
+            {user && (
+              <Link href="/dashboard" className="hidden sm:inline-flex">
+                <Button variant="ghost" size="sm">
+                  ← Volver al Dashboard
+                </Button>
+              </Link>
+            )}
+            {cargando ? null : user ? (
+              <Link href="/dashboard">
+                <Button>Ir al dashboard</Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost">Iniciar sesión</Button>
+                </Link>
+                <Link href="/register">
+                  <Button>Crear cuenta</Button>
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -142,9 +160,9 @@ export default function PreciosPage() {
                       {loading ? 'Redirigiendo...' : stripeOk ? plan.cta : 'Próximamente'}
                     </Button>
                   ) : (
-                    <Link href={plan.href} className="w-full">
+                    <Link href={user ? '/dashboard' : plan.href} className="w-full">
                       <Button variant="outline" size="lg" className="w-full">
-                        {plan.cta}
+                        {user ? 'Ir al dashboard' : plan.cta}
                       </Button>
                     </Link>
                   )}

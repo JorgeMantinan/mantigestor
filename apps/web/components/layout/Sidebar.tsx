@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Receipt,
   BarChart3,
+  Landmark,
   GraduationCap,
   FileText,
   Home,
@@ -26,25 +27,26 @@ const menuItems = [
     group: 'Gestoría',
     items: [
       { label: 'Panel', href: '/dashboard', icon: LayoutDashboard },
-      { label: 'Facturas', href: '/dashboard/gestoria/facturas', icon: Receipt },
-      { label: 'Trimestres', href: '/dashboard/gestoria/trimestres', icon: BarChart3 },
-      { label: 'Alquiler', href: '/dashboard/alquiler', icon: Home },
-      { label: 'Nóminas', href: '/dashboard/nominas', icon: Users },
+      { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
+      { label: 'Trimestres', href: '/gestoria/trimestres', icon: BarChart3 },
+      { label: 'Renta', href: '/gestoria/renta', icon: Landmark },
+      { label: 'Alquiler', href: '/alquiler', icon: Home },
+      { label: 'Nóminas', href: '/nominas', icon: Users },
     ],
   },
   {
     group: 'Alumnos',
     items: [
-      { label: 'Documentos', href: '/dashboard/alumnos', icon: FileText },
-      { label: 'Exámenes', href: '/dashboard/alumnos/examenes', icon: GraduationCap },
+      { label: 'Documentos', href: '/alumnos', icon: FileText },
+      { label: 'Exámenes', href: '/alumnos/examenes', icon: GraduationCap },
     ],
   },
   {
     group: 'Herramientas',
     items: [
-      { label: 'IA', href: '/dashboard/ai', icon: PiggyBank },
-      { label: 'Conversiones', href: '/dashboard/conversiones', icon: FileSpreadsheet },
-      { label: 'Ajustes', href: '/dashboard/ajustes', icon: Settings },
+      { label: 'IA', href: '/ai', icon: PiggyBank },
+      { label: 'Conversiones', href: '/conversiones', icon: FileSpreadsheet },
+      { label: 'Ajustes', href: '/ajustes', icon: Settings },
     ],
   },
 ]

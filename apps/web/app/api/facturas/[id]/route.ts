@@ -85,12 +85,12 @@ export async function PUT(
     const parsed = FacturaSchema.partial().safeParse(body)
     if (!parsed.success) return badRequest(parsed.error.flatten().fieldErrors)
 
-    const { fecha, ...rest } = parsed.data
+    const { fechaEmision, ...rest } = parsed.data
     const updateData: Record<string, unknown> = { ...rest }
 
-    if (fecha) updateData.fechaEmision = fecha.toISOString()
-    if (rest.importe != null || rest.iva != null) {
-      const base = rest.importe ?? existente.baseImponible
+    if (fechaEmision) updateData.fechaEmision = fechaEmision.toISOString()
+    if (rest.baseImponible != null || rest.iva != null) {
+      const base = rest.baseImponible ?? existente.baseImponible
       const iva = rest.iva ?? existente.iva
       updateData.total = base + Math.round(base * iva / 100)
     }

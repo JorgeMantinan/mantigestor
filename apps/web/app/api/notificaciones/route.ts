@@ -28,10 +28,10 @@ export async function POST(req: NextRequest) {
     )
 
     const body = await req.json()
-    const { perfilId, tipo, contenido } = body
+    const { tipo, contenido } = body
 
-    if (!perfilId || !tipo || !contenido) {
-      return badRequest(new Error('Faltan campos requeridos: perfilId, tipo, contenido'))
+    if (!tipo || !contenido) {
+      return badRequest(new Error('Faltan campos requeridos: tipo, contenido'))
     }
 
     if (typeof tipo !== 'string' || typeof contenido !== 'string') {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabase
       .from('notificaciones')
-      .insert({ perfilId, tipo, contenido })
+      .insert({ id: crypto.randomUUID(), perfilId: user.id, tipo, contenido })
       .select()
       .single()
 

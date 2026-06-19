@@ -40,6 +40,7 @@
 | `/precios` | `(dashboard)` | pública (landing) |
 | `/gestoria/facturas` | `(dashboard)` | requiere auth |
 | `/gestoria/trimestres` | `(dashboard)` | requiere auth + tier basic+ |
+| `/gestoria/renta` | `(dashboard)` | requiere auth + tier basic+ |
 | `/alquiler` | `(dashboard)` | requiere auth + tier basic+ |
 | `/nominas` | `(dashboard)` | requiere auth + tier pro |
 | `/alumnos` | `(dashboard)` | requiere auth |
@@ -60,33 +61,86 @@
 - **PRO** ($15/mes): facturas ilimitadas, nóminas, alumnos ilimitados, AI, documentos (5GB), conversiones
 - **Gratuito inicial:** periodo de prueba de 30 días PRO completo
 
-## Seguridad
-- Middleware auth check en todas rutas protegidas
-- Verificación tier en servidor (API routes) y cliente (FeatureGate)
-- Validación Zod en inputs
-- Sin secretos en código
-- Enlaces OAuth solo desde acciones del usuario, nunca en SSR
+## Best Practices (obligatorio seguirlas SIEMPRE)
+
+### Formularios
+- Todo formulario debe tener **Confirmar contraseña** en registro (nunca solo contraseña)
+- Validar client-side **SIEMPRE** antes de enviar: email (`@` + `.`), campos requeridos, formatos (NIF, importes)
+- Botones de submit con `disabled` durante async + texto de carga ("Guardando...")
+- `try/catch` en todo handler asíncrono
+- Mostrar errores al usuario (`setError`) con texto claro en español
+
+### API Routes
+- `try/catch` alrededor de TODO el handler, nunca exceptions sin capturar
+- Rate limiting en TODAS las rutas (30/min default, 10/min AI chat, 5/min Stripe)
+- Auth check (`getAuthenticatedUser`) antes de procesar cualquier dato
+- **NUNCA** confiar en `perfilId` del body — usar `user.id` de la sesión
+- Validar input con Zod antes de tocar la BD
+- Nunca pasar `historial` del cliente directamente a la IA sin filtrar `role: 'system'`
+- Webhooks: idempotencia (check de duplicados antes de insert), manejo de errores con `console.error` + continue
+
+### Seguridad
+- Prompt injection: filtrar `role: 'system'` del historial del usuario antes de enviar a la IA
+- IDOR: siempre verificar propiedad del recurso (`.eq('perfilId', user.id)`)
+- Stripe server.ts: import dinámico `await import()` dentro del handler, no `import` estático a nivel de módulo
+- Nunca exponer datos de otros usuarios por confiar en IDs del body
+- Zod schemas en `packages/utils/src/validaciones/` deben reflejar EXACTAMENTE los campos de la BD
+
+### UX / Frontend
+- Botones con `disabled={loadingState}` + texto alternativo mientras carga
+- Formularios que escriben a BD: estado `guardando` + deshabilitar botón
+- Filtros que se ven funcionales deben SER funcionales (no botones decorativos)
+- Formularios que muestran "Guardar cambios" deben realmente guardar (estado + fetch + write)
+- Loading states: `loading.tsx` para data fetching, inline `setLoading` para acciones de usuario
+- `aria-hidden="true"` en iconos decorativos (Lucide)
+- `error.tsx` en grupos de rutas raíz (`/` y `/precios`)
+
+### Zod / Validaciones
+- Los schemas en `factura.validaciones.ts` deben coincidir con los campos reales de la tabla `facturas`
+- `FacturaSchema`: `tipo`, `numero`, `emisorReceptor`, `nifContraparte`, `fechaEmision`, `baseImponible`, `iva`, `total`, `estado`
+
+### Stripe
+- `try/catch` en checkout, portal y webhook
+- Rate limiting en checkout y portal
+- Webhook: idempotencia (comprobar si `providerSubscriptionId` ya existe antes de insert)
+- Todos los errores de BD en webhook deben capturarse con `console.error`
+- Retornar `200` en webhook incluso si hay error de BD (Stripe reintenta si no recibe 200)
 
 ## Testing
 - Tests unitarios: `packages/utils/src/**/__tests__/`
-- Comando: `pnpm --filter=utils test`
-- Tests E2E (preparado): `apps/web/e2e/`
+- Comando: `pnpm --filter=utils test` (8 tests pasando)
+- Tests E2E: `apps/web/e2e/` (6 archivos Playwright: auth, navigation, public-pages, conversiones, visual)
 - Coverage configurado en vitest.config.ts raíz
 
 ## Comandos útiles
 ```bash
 pnpm dev              # Arrancar todo en dev
-pnpm --filter=web build   # Build producción web
+pnpm --filter=web build   # Build producción web (27 rutas, 0 errores)
 pnpm --filter=utils test  # Tests unitarios
 pnpm db:push          # Push schema a Supabase
 pnpm db:generate      # Regenerar Prisma client
 pnpm typecheck        # TypeScript check global
+pnpm --filter=web lint    # Lint web
 ```
 
 ## Enlaces Supabase
 - Google OAuth: configurado ✅
 - Azure/Outlook OAuth: pendiente ⏳
-- Supabase project: pendiente de añadir credenciales a .env.local
+- Todas las credenciales en `.env.local` raíz ✅
 
+## Estado del proyecto
+- **27 rutas, 0 errores de build.** Prácticamente todo el MVP implementado.
+- Stripe integrado (checkout, portal, webhook) — opcional, si faltan env vars muestra "Próximamente"
+- OCR de facturas con Anthropic Claude API — botón "Escanear factura con IA" auto-rellena formulario
+- Subida de archivos con dropzone + validación + progreso
+- Notificaciones en header (dropdown con badge)
+- Loading/Error states en todas las rutas
+- Tasas de cambio en tiempo real (Frankfurter API + fallback hardcoded)
+- SEO metadata en layouts y root page
+- Rate limiting en todas las API routes (in-memory, sin Redis)
+- Middleware con graceful fallback si faltan NEXT_PUBLIC_SUPABASE_URL/KEY
 ## NOTA IMPORTANTE
-No hacer llamadas a createClient() o createServerClient() durante SSR/prerenderizado de Next.js. Usar lazy initialization (useCallback o dynamic imports) en componentes cliente que renderizan en servidor.
+- No hacer llamadas a createClient() o createServerClient() durante SSR/prerenderizado de Next.js. Usar lazy initialization (useCallback o dynamic imports) en componentes cliente que renderizan en servidor.
+- Middleware usa `createServerClient` de `@supabase/ssr` con guard check de env vars para evitar crash en build/dev
+- `.env.local` raíz se carga via `dotenv -e ../../.env.local` en los scripts de `apps/web/package.json`
+- Stripe es **opcional** — todo el build funciona sin sus variables. Misma filosofía para cualquier integración externa.

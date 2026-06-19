@@ -70,7 +70,7 @@ export default function AlumnosPage() {
               onUploadComplete={() => fetchDocumentos()}
             />
           )}
-          <Link href="/dashboard/alumnos/examenes">
+          <Link href="/alumnos/examenes">
             <Button variant="secondary">
               <GraduationCap className="mr-2 h-4 w-4" />
               Exámenes

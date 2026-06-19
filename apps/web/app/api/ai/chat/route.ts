@@ -45,10 +45,12 @@ export async function POST(req: NextRequest) {
 
     const messages = [
       { role: 'system', content: SYSTEM_PROMPT },
-      ...(historial ?? []).map((m: { role: string; content: string }) => ({
-        role: m.role,
-        content: m.content,
-      })),
+      ...(historial ?? [])
+        .filter((m: { role: string }) => m.role !== 'system')
+        .map((m: { role: string; content: string }) => ({
+          role: m.role,
+          content: m.content,
+        })),
       { role: 'user', content: mensaje },
     ]
 

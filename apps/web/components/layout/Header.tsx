@@ -52,7 +52,7 @@ export function Header() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/ajustes">
+                <Link href="/ajustes">
                   <User className="mr-2 h-4 w-4" />
                   Mi perfil
                 </Link>
@@ -64,7 +64,7 @@ export function Header() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/ajustes">
+                <Link href="/ajustes">
                   <Settings className="mr-2 h-4 w-4" />
                   Ajustes
                 </Link>

@@ -5,7 +5,8 @@ export async function createCheckoutSession(userId: string, email: string, price
     customer_email: email,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/ajustes?success=true`,
+    payment_method_types: ['card', 'paypal', 'sepa_debit'],
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/ajustes?success=true&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/precios`,
     metadata: { userId },
     subscription_data: {
@@ -18,6 +19,6 @@ export async function createCheckoutSession(userId: string, email: string, price
 export async function createPortalSession(stripeCustomerId: string) {
   return stripe.billingPortal.sessions.create({
     customer: stripeCustomerId,
-    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/ajustes`,
+    return_url: `${process.env.NEXT_PUBLIC_APP_URL}/ajustes`,
   })
 }

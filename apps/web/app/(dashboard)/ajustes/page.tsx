@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import { useTheme } from 'next-themes'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
@@ -51,6 +52,54 @@ export default function AjustesPage() {
 }
 
 function PerfilTab() {
+  const [nombre, setNombre] = useState('')
+  const [email, setEmail] = useState('')
+  const [nif, setNif] = useState('')
+  const [provincia, setProvincia] = useState('')
+  const [situacion, setSituacion] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [cargando, setCargando] = useState(true)
+  const getSupabase = useCallback(() => createClient(), [])
+
+  useEffect(() => {
+    const cargar = async () => {
+      const { data: { user } } = await getSupabase().auth.getUser()
+      if (!user) { setCargando(false); return }
+      setEmail(user.email ?? '')
+
+      const { data } = await getSupabase()
+        .from('perfiles')
+        .select('nombre, nif, provincia, situacion')
+        .eq('id', user.id)
+        .single()
+
+      if (data) {
+        setNombre(data.nombre ?? '')
+        setNif(data.nif ?? '')
+        setProvincia(data.provincia ?? '')
+        setSituacion(data.situacion ?? '')
+      }
+      setCargando(false)
+    }
+    cargar()
+  }, [getSupabase])
+
+  const guardar = async () => {
+    setGuardando(true)
+    const { data: { user } } = await getSupabase().auth.getUser()
+    if (!user) { setGuardando(false); return }
+
+    const { error } = await getSupabase()
+      .from('perfiles')
+      .upsert({ id: user.id, nombre, nif, provincia, situacion })
+      .eq('id', user.id)
+
+    if (error) {
+      console.error('Error guardando perfil:', error)
+    }
+    setGuardando(false)
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -58,42 +107,52 @@ function PerfilTab() {
         <CardDescription>Actualiza tus datos fiscales y de contacto</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="nombre">Nombre completo</Label>
-            <Input id="nombre" placeholder="Tu nombre" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="tu@email.com" disabled />
-          </div>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="nif">NIF / CIF</Label>
-            <Input id="nif" placeholder="12345678Z" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="provincia">Provincia fiscal</Label>
-            <Input id="provincia" placeholder="Madrid" />
-          </div>
-        </div>
-        <Separator />
-        <div className="space-y-2">
-          <Label htmlFor="situacion">Situación laboral</Label>
-          <select
-            id="situacion"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-          >
-            <option value="">Selecciona...</option>
-            <option value="autonomo_puro">Autónomo (solo)</option>
-            <option value="autonomo_con_nomina">Autónomo con nómina</option>
-            <option value="asalariado">Asalariado</option>
-            <option value="pensionista">Pensionista</option>
-            <option value="desempleado">Desempleado</option>
-          </select>
-        </div>
-        <Button>Guardar cambios</Button>
+        {cargando ? (
+          <p className="text-sm text-muted-foreground">Cargando perfil...</p>
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="nombre">Nombre completo</Label>
+                <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Tu nombre" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={email} disabled />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="nif">NIF / CIF</Label>
+                <Input id="nif" value={nif} onChange={(e) => setNif(e.target.value)} placeholder="12345678Z" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="provincia">Provincia fiscal</Label>
+                <Input id="provincia" value={provincia} onChange={(e) => setProvincia(e.target.value)} placeholder="Madrid" />
+              </div>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <Label htmlFor="situacion">Situación laboral</Label>
+              <select
+                id="situacion"
+                value={situacion}
+                onChange={(e) => setSituacion(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="">Selecciona...</option>
+                <option value="autonomo_puro">Autónomo (solo)</option>
+                <option value="autonomo_con_nomina">Autónomo con nómina</option>
+                <option value="asalariado">Asalariado</option>
+                <option value="pensionista">Pensionista</option>
+                <option value="desempleado">Desempleado</option>
+              </select>
+            </div>
+            <Button onClick={guardar} disabled={guardando || cargando}>
+              {guardando ? 'Guardando...' : 'Guardar cambios'}
+            </Button>
+          </>
+        )}
       </CardContent>
     </Card>
   )
@@ -109,23 +168,48 @@ function SuscripcionTab() {
   } | null>(null)
   const [subLoading, setSubLoading] = useState(true)
 
-  useEffect(() => {
-    async function load() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setSubLoading(false); return }
+  const cargarSuscripcion = useCallback(async () => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setSubLoading(false); return }
 
-      const { data } = await supabase
-        .from('suscripciones')
-        .select('tier, estado, currentPeriodEnd')
-        .eq('perfilId', user.id)
-        .single()
+    const { data } = await supabase
+      .from('suscripciones')
+      .select('tier, estado, currentPeriodEnd')
+      .eq('perfilId', user.id)
+      .order('currentPeriodStart', { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
-      setSubscription(data)
-      setSubLoading(false)
-    }
-    load()
+    setSubscription(data)
+    setSubLoading(false)
   }, [])
+
+  const sincronizar = useCallback(async () => {
+    setSubLoading(true)
+    const params = new URLSearchParams(window.location.search)
+    const res = await fetch('/api/stripe/verify-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: params.get('session_id') }),
+    })
+    const data = await res.json()
+    if (data.tier === 'PRO') {
+      setSubscription({ tier: 'PRO', estado: 'active', currentPeriodEnd: '' })
+    } else {
+      await cargarSuscripcion()
+    }
+    setSubLoading(false)
+  }, [cargarSuscripcion])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('success') === 'true') {
+      sincronizar()
+    } else {
+      cargarSuscripcion()
+    }
+  }, [cargarSuscripcion, sincronizar])
 
   async function handleCheckout() {
     setLoading('checkout')
@@ -177,6 +261,11 @@ function SuscripcionTab() {
           </div>
         </div>
         <div className="space-y-2">
+          <Button variant="link" size="sm" onClick={sincronizar} disabled={subLoading}>
+            {subLoading ? 'Sincronizando...' : 'Sincronizar suscripción'}
+          </Button>
+        </div>
+        <div className="space-y-2">
           <Label>Método de pago</Label>
           <div className="flex gap-4">
             {isPro && isActive ? (
@@ -216,6 +305,14 @@ function SuscripcionTab() {
 }
 
 function AparienciaTab() {
+  const { theme, setTheme } = useTheme()
+
+  const themes: { value: string; label: string }[] = [
+    { value: 'light', label: 'Claro' },
+    { value: 'dark', label: 'Oscuro' },
+    { value: 'system', label: 'Sistema' },
+  ]
+
   return (
     <Card>
       <CardHeader>
@@ -226,15 +323,16 @@ function AparienciaTab() {
         <div className="space-y-2">
           <Label>Tema</Label>
           <div className="flex gap-4">
-            <Button variant="outline" className="flex-1">
-              Claro
-            </Button>
-            <Button variant="outline" className="flex-1">
-              Oscuro
-            </Button>
-            <Button variant="outline" className="flex-1">
-              Sistema
-            </Button>
+            {themes.map((t) => (
+              <Button
+                key={t.value}
+                variant={theme === t.value ? 'default' : 'outline'}
+                className="flex-1"
+                onClick={() => setTheme(t.value)}
+              >
+                {t.label}
+              </Button>
+            ))}
           </div>
         </div>
       </CardContent>
