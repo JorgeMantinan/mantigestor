@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState, useCallback, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const [password, setPassword] = useState('')
   const [confirmar, setConfirmar] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -18,18 +18,35 @@ export default function ResetPasswordPage() {
   const [cargando, setCargando] = useState(false)
   const [verificando, setVerificando] = useState(true)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const getSupabase = useCallback(() => createClient(), [])
 
   useEffect(() => {
-    getSupabase().auth.getUser().then(({ data, error: userError }) => {
+    const init = async () => {
+      const code = searchParams.get('code')
+      const supabase = getSupabase()
+
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        if (exchangeError) {
+          setError(exchangeError.message)
+          setVerificando(false)
+          return
+        }
+      }
+
+      const { data, error: userError } = await supabase.auth.getUser()
       if (userError || !data.user) {
         router.push('/login?error=sesion_expirada')
-      } else {
-        setVerificando(false)
+        return
       }
-    })
-  }, [getSupabase, router])
+
+      setVerificando(false)
+    }
+
+    init()
+  }, [getSupabase, router, searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,87 +79,99 @@ export default function ResetPasswordPage() {
 
   if (verificando) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6 text-center text-muted-foreground">
-            Verificando sesión...
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="w-full max-w-md">
+        <CardContent className="pt-6 text-center text-muted-foreground">
+          Verificando sesión...
+        </CardContent>
+      </Card>
     )
   }
 
   if (exito) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
-              <span className="text-xl font-bold text-primary-foreground">M</span>
-            </div>
-            <CardTitle className="text-2xl">Contraseña actualizada</CardTitle>
-            <CardDescription>
-              Tu contraseña se ha restablecido correctamente.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <Link href="/login">
-              <Button className="w-full">Iniciar sesión</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
             <span className="text-xl font-bold text-primary-foreground">M</span>
           </div>
-          <CardTitle className="text-2xl">Nueva contraseña</CardTitle>
+          <CardTitle className="text-2xl">Contraseña actualizada</CardTitle>
           <CardDescription>
-            Introduce tu nueva contraseña
+            Tu contraseña se ha restablecido correctamente.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">Nueva contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmar">Confirmar contraseña</Label>
-              <Input
-                id="confirmar"
-                type="password"
-                placeholder="••••••••"
-                value={confirmar}
-                onChange={(e) => setConfirmar(e.target.value)}
-                required
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
-
-            <Button type="submit" className="w-full" disabled={cargando}>
-              {cargando ? 'Guardando...' : 'Restablecer contraseña'}
-            </Button>
-          </form>
+        <CardContent className="text-center">
+          <Link href="/login">
+            <Button className="w-full">Iniciar sesión</Button>
+          </Link>
         </CardContent>
       </Card>
+    )
+  }
+
+  return (
+    <Card className="w-full max-w-md">
+      <CardHeader className="text-center">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
+          <span className="text-xl font-bold text-primary-foreground">M</span>
+        </div>
+        <CardTitle className="text-2xl">Nueva contraseña</CardTitle>
+        <CardDescription>
+          Introduce tu nueva contraseña
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="password">Nueva contraseña</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmar">Confirmar contraseña</Label>
+            <Input
+              id="confirmar"
+              type="password"
+              placeholder="••••••••"
+              value={confirmar}
+              onChange={(e) => setConfirmar(e.target.value)}
+              required
+            />
+          </div>
+
+          {error && (
+            <p className="text-sm text-destructive">{error}</p>
+          )}
+
+          <Button type="submit" className="w-full" disabled={cargando}>
+            {cargando ? 'Guardando...' : 'Restablecer contraseña'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <Suspense
+        fallback={
+          <Card className="w-full max-w-md">
+            <CardContent className="pt-6 text-center text-muted-foreground">
+              Cargando...
+            </CardContent>
+          </Card>
+        }
+      >
+        <ResetPasswordForm />
+      </Suspense>
     </div>
   )
 }
