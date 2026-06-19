@@ -1,6 +1,0 @@
-{
-  "buildCommand": "cd ../.. && npx turbo build --filter=web",
-  "installCommand": "cd ../.. && pnpm install",
-  "framework": "nextjs",
-  "outputDirectory": ".next",
-}
