@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -8,11 +8,37 @@ export async function GET(req: NextRequest) {
   const next = searchParams.get('next') ?? '/dashboard'
 
   if (code) {
-    const supabase = createServerClient()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => req.cookies.getAll().map(c => ({ name: c.name, value: c.value })),
+          setAll: (cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) => {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              req.cookies.set({ name, value, ...options })
+            })
+          },
+        },
+      }
+    )
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('perfiles').upsert({
+          id: user.id,
+          userId: user.id,
+          email: user.email ?? '',
+        }, { onConflict: 'id' })
+      }
+
+      const response = NextResponse.redirect(`${origin}${next}`)
+      req.cookies.getAll().forEach(c => {
+        response.cookies.set({ name: c.name, value: c.value, path: '/' })
+      })
+      return response
     }
   }
 
