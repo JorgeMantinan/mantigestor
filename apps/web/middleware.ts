@@ -18,14 +18,24 @@ function decodeJWTPayload(token: string): Record<string, unknown> | null {
   }
 }
 
+function base64URLDecode(input: string): string {
+  const base64 = input.replace(/-/g, '+').replace(/_/g, '/')
+  const padding = 4 - (base64.length % 4)
+  return atob(padding < 4 ? base64 + '='.repeat(padding) : base64)
+}
+
 function findAccessToken(cookies: ReturnType<NextRequest['cookies']['getAll']>): string | null {
   for (const c of cookies) {
     if (c.name.includes('auth-token')) {
+      let raw = c.value
+      if (raw.startsWith('base64-')) {
+        raw = base64URLDecode(raw.slice(7))
+      }
       try {
-        const parsed = JSON.parse(c.value)
+        const parsed = JSON.parse(raw)
         if (parsed.access_token) return parsed.access_token
       } catch {
-        if (c.value.startsWith('eyJ')) return c.value
+        if (raw.startsWith('eyJ')) return raw
       }
     }
   }
