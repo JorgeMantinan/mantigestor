@@ -8,12 +8,13 @@ export function createServerClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) { return cookieStore.get(name)?.value },
-        set(name: string, value: string, options: Record<string, unknown>) {
-          try { cookieStore.set({ name, value, ...options }) } catch {}
+        getAll() {
+          return cookieStore.getAll().map(({ name, value }) => ({ name, value }))
         },
-        remove(name: string, options: Record<string, unknown>) {
-          try { cookieStore.set({ name, value: '', ...options }) } catch {}
+        setAll(cookiesToSet, headers) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set({ name, value, ...options }))
+          } catch {}
         },
       },
     }
