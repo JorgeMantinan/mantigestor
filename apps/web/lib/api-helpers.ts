@@ -7,14 +7,12 @@ export async function getAuthenticatedUser(req: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name: string) => req.cookies.get(name)?.value,
-        set: () => {},
-        remove: () => {},
+        getAll: () => req.cookies.getAll().map(({ name, value }) => ({ name, value })),
       },
     }
   )
-  const { data: { session } } = await supabase.auth.getSession()
-  return session?.user ?? null
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
 }
 
 export function unauthorized() {

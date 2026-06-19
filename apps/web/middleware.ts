@@ -29,14 +29,15 @@ export async function middleware(req: NextRequest) {
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
-      get: (name: string) => req.cookies.get(name)?.value,
-      set: (name: string, value: string, options: Record<string, unknown>) => res.cookies.set({ name, value, ...options }),
-      remove: (name: string, options: Record<string, unknown>) => res.cookies.set({ name, value: '', ...options }),
+      getAll: () => req.cookies.getAll().map(({ name, value }) => ({ name, value })),
+      setAll: (cookiesToSet, headers) => {
+        cookiesToSet.forEach(({ name, value, options }) => res.cookies.set(name, value, options))
+        Object.entries(headers).forEach(([key, value]) => res.headers.set(key, value))
+      },
     },
   })
 
-  const { data: { session } } = await supabase.auth.getSession()
-  const user = session?.user
+  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user && !RUTAS_PUBLICAS.some(r => ruta === r || ruta.startsWith(r + '/'))) {
     const url = req.nextUrl.clone()
