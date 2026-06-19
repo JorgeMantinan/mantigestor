@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const RUTAS_PUBLICAS = ['/', '/login', '/register', '/precios', '/sobre-nosotros']
+const RUTAS_PUBLICAS = ['/', '/login', '/register', '/precios', '/sobre-nosotros', '/auth/callback']
 const RUTAS_SOLO_PRO = ['/ai', '/alumnos/examenes']
 const RUTAS_BASIC_PLUS = ['/gestoria/trimestres', '/gestoria/renta', '/alquiler', '/nominas']
 

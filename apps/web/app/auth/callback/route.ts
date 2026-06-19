@@ -7,6 +7,11 @@ export async function GET(req: NextRequest) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard'
 
+  const error = searchParams.get('error')
+  if (error) {
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error)}`)
+  }
+
   if (code) {
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,9 +27,9 @@ export async function GET(req: NextRequest) {
         },
       }
     )
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-    if (!error) {
+    if (!exchangeError) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         await supabase.from('perfiles').upsert({
