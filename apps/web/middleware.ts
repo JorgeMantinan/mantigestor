@@ -25,20 +25,46 @@ function base64URLDecode(input: string): string {
 }
 
 function findAccessToken(cookies: ReturnType<NextRequest['cookies']['getAll']>): string | null {
+  const grouped = new Map<string, { suffix: number; value: string }[]>()
+
   for (const c of cookies) {
-    if (c.name.includes('auth-token')) {
-      let raw = c.value
-      if (raw.startsWith('base64-')) {
-        raw = base64URLDecode(raw.slice(7))
-      }
-      try {
-        const parsed = JSON.parse(raw)
-        if (parsed.access_token) return parsed.access_token
-      } catch {
-        if (raw.startsWith('eyJ')) return raw
+    if (!c.name.includes('auth-token')) continue
+
+    let baseName = c.name
+    let suffix = 0
+    const dotIndex = c.name.lastIndexOf('.')
+    if (dotIndex > 0) {
+      const num = parseInt(c.name.slice(dotIndex + 1), 10)
+      if (!isNaN(num)) {
+        baseName = c.name.slice(0, dotIndex)
+        suffix = num
       }
     }
+
+    let arr = grouped.get(baseName)
+    if (!arr) {
+      arr = []
+      grouped.set(baseName, arr)
+    }
+    arr.push({ suffix, value: c.value })
   }
+
+  for (const [, chunks] of grouped) {
+    chunks.sort((a, b) => a.suffix - b.suffix)
+    let combined = chunks.map(c => c.value).join('')
+
+    if (combined.startsWith('base64-')) {
+      combined = base64URLDecode(combined.slice(7))
+    }
+
+    try {
+      const parsed = JSON.parse(combined)
+      if (parsed.access_token) return parsed.access_token
+    } catch {
+      if (combined.startsWith('eyJ')) return combined
+    }
+  }
+
   return null
 }
 

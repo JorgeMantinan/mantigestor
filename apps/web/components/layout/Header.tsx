@@ -15,16 +15,14 @@ import {
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown'
 import { LogOut, User, Settings, CreditCard } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 export function Header() {
   const { user } = useAuth()
-  const router = useRouter()
 
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/login')
+    window.location.href = '/login'
   }
 
   return (

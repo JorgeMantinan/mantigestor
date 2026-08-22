@@ -1,3 +1,0 @@
-$ tsc --noEmit
-src/index.ts(7,5): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
-[ELIFECYCLE] Command failed with exit code 1.
