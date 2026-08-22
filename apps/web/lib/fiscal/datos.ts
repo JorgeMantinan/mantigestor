@@ -94,7 +94,7 @@ export async function obtenerEscalasIrpf(
     const filas = (autRes.data ?? []).filter(
       f =>
         normalizarTerritorio(String(f.comunidad)) === jurisdiccion.nombreNormalizado &&
-        !String(f.comunidad).toLowerCase().includes('resumen'),
+        Number(f.tramo) > 0
     )
     const tramos = aTramosIrpf(filas as Array<Record<string, unknown>>, 'tipoAutonomicoPct')
     if (!filas.length) {
