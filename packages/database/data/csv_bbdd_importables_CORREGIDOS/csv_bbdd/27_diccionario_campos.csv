@@ -1,0 +1,12 @@
+﻿field,type,meaning,rule
+tax_year,integer,Ejercicio fiscal al que aplica el dato,Obligatorio en toda regla fiscal
+application_year,integer,Año en que se presenta/aplica la obligación,No confundir con tax_year
+effective_from,date,Inicio de vigencia,Obligatorio para reglas verificadas
+effective_to,date,Fin de vigencia,NULL si sigue vigente
+source_id,string,FK a 21_Fuentes_Oficiales,Obligatorio para producción
+status,enum,Estado de verificación,Solo OFFICIAL_VERIFIED puede alimentar resultados definitivos
+jurisdiction_id,string,FK a 22_Jurisdicciones,Obligatorio cuando la regla es territorial
+administration_id,string,FK a 23_Administraciones,Obligatorio cuando existe administración específica
+condition_json,json,Condiciones estructuradas,No almacenar reglas críticas solo como texto
+result_json,json,Resultado de una regla,Permite activar modelo/impuesto/plazo/pregunta
+production_eligible,boolean,Indica si puede usarlo el motor de producción,Derivado del status

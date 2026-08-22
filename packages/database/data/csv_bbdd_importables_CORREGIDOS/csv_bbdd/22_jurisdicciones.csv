@@ -1,0 +1,23 @@
+﻿jurisdiction_id,name,type,country,active
+ES-TC,Territorio común,STATE,España,True
+ES-AN,Andalucía,AUTONOMOUS_COMMUNITY,España,True
+ES-AR,Aragón,AUTONOMOUS_COMMUNITY,España,True
+ES-AS,Asturias,AUTONOMOUS_COMMUNITY,España,True
+ES-IB,Illes Balears,AUTONOMOUS_COMMUNITY,España,True
+ES-CN,Canarias,AUTONOMOUS_COMMUNITY,España,True
+ES-CB,Cantabria,AUTONOMOUS_COMMUNITY,España,True
+ES-CM,Castilla-La Mancha,AUTONOMOUS_COMMUNITY,España,True
+ES-CL,Castilla y León,AUTONOMOUS_COMMUNITY,España,True
+ES-CT,Cataluña,AUTONOMOUS_COMMUNITY,España,True
+ES-VC,Comunidad Valenciana,AUTONOMOUS_COMMUNITY,España,True
+ES-EX,Extremadura,AUTONOMOUS_COMMUNITY,España,True
+ES-GA,Galicia,AUTONOMOUS_COMMUNITY,España,True
+ES-MD,Madrid,AUTONOMOUS_COMMUNITY,España,True
+ES-MC,Murcia,AUTONOMOUS_COMMUNITY,España,True
+ES-NC,Navarra,FORAL_TERRITORY,España,True
+ES-PV-AR,Álava,FORAL_TERRITORY,España,True
+ES-PV-BI,Bizkaia,FORAL_TERRITORY,España,True
+ES-PV-SS,Gipuzkoa,FORAL_TERRITORY,España,True
+ES-RI,La Rioja,AUTONOMOUS_COMMUNITY,España,True
+ES-CE,Ceuta,CITY,España,True
+ES-ML,Melilla,CITY,España,True

@@ -1,0 +1,6 @@
+﻿tipo,porcentaje,categoria,ejemplos
+General,21%,Mayoría de bienes y servicios,"Servicios profesionales, electrónica, ropa, combustibles, bebidas alcohólicas"
+Reducido,10%,Bienes y servicios de primera necesidad ampliada,"Alimentación general, hostelería y restauración, transporte de viajeros, servicios de limpieza, vivienda nueva"
+Superreducido,4%,Bienes de primera necesidad,"Pan, leche, huevos, frutas, verduras, medicamentos, libros, periódicos"
+Exento,0%,Actividades exentas por ley,"Sanidad, educación reglada, seguros, alquiler de vivienda habitual, exportaciones, servicios financieros"
+Recargo de equivalencia (adicional),"5,2% / 1,4% / 0,5% / 1,75%",Comercio minorista sin transformación,"Se suma al tipo de IVA correspondiente (21/10/4%). El tabaco tiene un recargo especial del 1,75%"

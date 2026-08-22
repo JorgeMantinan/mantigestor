@@ -1,0 +1,23 @@
+﻿administration_id,name,type,jurisdiction_id
+ADM_AEAT,AEAT,STATE,ES-TC
+ADM_AND,Agencia Tributaria de Andalucía,AUTONOMOUS,ES-AN
+ADM_AR,Gobierno de Aragón / órgano tributario competente,AUTONOMOUS,ES-AR
+ADM_AS,Principado de Asturias / órgano tributario competente,AUTONOMOUS,ES-AS
+ADM_IB,Agència Tributària de les Illes Balears,AUTONOMOUS,ES-IB
+ADM_CN,Agencia Tributaria Canaria,AUTONOMOUS,ES-CN
+ADM_CB,Cantabria / órgano tributario competente,AUTONOMOUS,ES-CB
+ADM_CM,Castilla-La Mancha / órgano tributario competente,AUTONOMOUS,ES-CM
+ADM_CL,Castilla y León / órgano tributario competente,AUTONOMOUS,ES-CL
+ADM_CT,Agència Tributària de Catalunya,AUTONOMOUS,ES-CT
+ADM_VC,Agència Tributària Valenciana,AUTONOMOUS,ES-VC
+ADM_EX,Junta de Extremadura / órgano tributario competente,AUTONOMOUS,ES-EX
+ADM_GA,Axencia Tributaria de Galicia,AUTONOMOUS,ES-GA
+ADM_MD,Comunidad de Madrid / órgano tributario competente,AUTONOMOUS,ES-MD
+ADM_MC,Agencia Tributaria de la Región de Murcia,AUTONOMOUS,ES-MC
+ADM_NA,Hacienda Foral de Navarra,FORAL,ES-NC
+ADM_AL,Hacienda Foral de Álava,FORAL,ES-PV-AR
+ADM_BI,Hacienda Foral de Bizkaia,FORAL,ES-PV-BI
+ADM_SS,Hacienda Foral de Gipuzkoa,FORAL,ES-PV-SS
+ADM_RI,La Rioja / órgano tributario competente,AUTONOMOUS,ES-RI
+ADM_CE,Ciudad Autónoma de Ceuta,CITY,ES-CE
+ADM_ML,Ciudad Autónoma de Melilla,CITY,ES-ML

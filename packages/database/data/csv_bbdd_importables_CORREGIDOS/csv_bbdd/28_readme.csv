@@ -1,0 +1,9 @@
+﻿campo,valor
+Documento,Espana_Fiscal_2025_CORREGIDO.xlsx
+Objetivo,Versión corregida y conservadora del dataset original. Conserva las hojas originales y añade metadatos/auditoría.
+Cambio crítico,MOD037 marcado SUPERSEDED con effective_to 2025-02-02 y reemplazo MOD036.
+Cambio territorial,"Se añaden jurisdicciones separadas para territorio común, Navarra, Álava, Bizkaia y Gipuzkoa."
+Cambio temporal,RETA/Seguridad Social identificados como 2026; calendario identificado como 2026.
+Fuentes,Se añade registro de fuentes oficiales y se exige source_id + estado de verificación.
+Producción,"No usar automáticamente datos OFFICIAL_UNVERIFIED, SECONDARY_SOURCE, RESEARCH, DRAFT, SUPERSEDED o EXPIRED."
+Importante,Este archivo no afirma que todos los valores fiscales existentes estén jurídicamente verificados. Las filas pendientes están marcadas para revisión.

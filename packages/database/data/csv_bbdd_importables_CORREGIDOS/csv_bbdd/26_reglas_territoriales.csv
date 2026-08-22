@@ -1,0 +1,6 @@
+﻿rule_id,tax,scope,case_type,rule,source_id,status
+JR001,IRPF,TERRITORIO_COMUN,Residencia habitual / reglas específicas IRPF,"Determinar CCAA/Ciudad según residencia habitual y reglas de la Ley 22/2009; si interviene régimen foral, determinar competencia foral/estatal según normativa aplicable.",SRC_AEAT_IRPF_2025_RESIDENCE,OFFICIAL_UNVERIFIED
+JR002,IVA,PAIS_VASCO_NAVARRA,Operaciones en territorio común y foral,"Aplicar Concierto/Convenio y reglas de volumen de operaciones, domicilio y localización de operaciones.",SRC_AEAT_IVA_2025_FORAL,OFFICIAL_UNVERIFIED
+JR003,IS,PAIS_VASCO_NAVARRA,Normativa estatal/foral,"Para Sociedades, determinar normativa según domicilio fiscal, volumen de operaciones y porcentaje de operaciones en territorio común/foral.",SRC_AEAT_IS_2025_FORAL,OFFICIAL_UNVERIFIED
+JR004,ISD,SUCESIONES,Competencia territorial,"No inferir automáticamente por residencia del heredero; evaluar residencia del causante, residencia del heredero, naturaleza/localización de bienes y supuestos de no residentes.",,NEEDS_REVIEW
+JR005,ITP_AJD,INMUEBLE,Competencia territorial,"Para transmisiones/constitución de derechos sobre inmuebles, evaluar ubicación del inmueble y reglas específicas del tributo.",,NEEDS_REVIEW

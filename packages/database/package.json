@@ -13,12 +13,13 @@
     "clean": "rm -rf .turbo node_modules prisma/migrations"
   },
   "dependencies": {
-    "@prisma/client": "^5.18.0",
-    "@mantigestor/types": "workspace:*"
+    "@mantigestor/types": "workspace:*",
+    "@prisma/client": "^5.18.0"
   },
   "devDependencies": {
+    "@types/node": "^20.19.43",
     "prisma": "^5.18.0",
-    "typescript": "^5.4.0",
-    "tsx": "^4.16.0"
+    "tsx": "^4.16.0",
+    "typescript": "^5.4.0"
   }
 }

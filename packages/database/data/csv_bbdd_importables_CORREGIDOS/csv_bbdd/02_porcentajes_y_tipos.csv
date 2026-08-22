@@ -1,0 +1,51 @@
+﻿id,id_modelo_relacionado,concepto,valor,base_de_calculo,condicion_aplicacion,vigente_desde,notas_verificacion,fuente_url
+P001,MOD303,IVA tipo general,21%,Base imponible de la operación,Mayoría de bienes y servicios,2012,,sede.agenciatributaria.gob.es
+P002,MOD303,IVA tipo reducido,10%,Base imponible,"Alimentación, hostelería, transporte de viajeros, servicios de limpieza, vivienda nueva",2012,,sede.agenciatributaria.gob.es
+P003,MOD303,IVA tipo superreducido,4%,Base imponible,"Alimentos básicos, medicamentos, libros, prensa",2012,,sede.agenciatributaria.gob.es
+P004,MOD303,IVA exento,0%,Base imponible,"Sanidad, educación reglada, seguros, alquiler de vivienda habitual, exportaciones",Variable,,sede.agenciatributaria.gob.es
+P005,MOD303,Recargo de equivalencia — general,"5,2%","Precio de venta, adicional al 21% de IVA",Comercio minorista en recargo de equivalencia,2012,,sede.agenciatributaria.gob.es
+P006,MOD303,Recargo de equivalencia — reducido,"1,4%",Adicional al 10% de IVA,Comercio minorista en recargo de equivalencia,2012,,sede.agenciatributaria.gob.es
+P007,MOD303,Recargo de equivalencia — superreducido,"0,5%",Adicional al 4% de IVA,Comercio minorista en recargo de equivalencia,2012,,sede.agenciatributaria.gob.es
+P008,MOD130,"Pago fraccionado IRPF, estimación directa",20%,Rendimiento neto acumulado del ejercicio,Autónomos en estimación directa,2026,,sede.agenciatributaria.gob.es
+P009,MOD111,Retención IRPF a profesionales — general,15%,Base de la factura (sin IVA),Facturas de autónomos profesionales a empresas/otros profesionales,2026,,sede.agenciatributaria.gob.es
+P010,MOD111,Retención IRPF a profesionales — reducida,7%,Base de la factura (sin IVA),Año de inicio de actividad y los 2 siguientes,2026,,sede.agenciatributaria.gob.es
+P011,MOD115,Retención alquiler de local de negocio,19%,Renta del alquiler sin IVA,"Arrendador persona física, exento si <900€/año o si el arrendador es una sociedad",2026,,sede.agenciatributaria.gob.es
+P012,MOD123,Retención capital mobiliario,19%,Rendimiento íntegro satisfecho,"Dividendos, intereses y otros rendimientos de capital mobiliario",2026,,sede.agenciatributaria.gob.es
+P013,MOD111,Retención IRPF nómina al SMI,0%,Salario bruto anual,Trabajadores que cobran el Salario Mínimo Interprofesional,2026,,sede.agenciatributaria.gob.es
+P014,RENTA_ALQUILER_IRPF,Reducción por alquiler de vivienda habitual,50% general (60-90% en supuestos específicos),Rendimiento neto del alquiler,Alquiler destinado a vivienda habitual del inquilino (Ley 12/2023),2026,,sede.agenciatributaria.gob.es
+P015,MOD200,Impuesto Sociedades — tipo general,25%,Base imponible,Facturación >10.000.000€ o sociedad patrimonial,2026,,sede.agenciatributaria.gob.es
+P016,MOD200,Impuesto Sociedades — ERD/PYME (1-10M€),23%,Base imponible,Cifra de negocio 1-10.000.000€. Baja gradualmente hasta 20% en 2029,2026,,sede.agenciatributaria.gob.es
+P017,MOD200,"Impuesto Sociedades — micropyme, 1er tramo",19%,Primeros 50.000€ de base imponible,Cifra de negocio <1.000.000€,2026,,sede.agenciatributaria.gob.es
+P018,MOD200,"Impuesto Sociedades — micropyme, resto",21%,Base imponible por encima de 50.000€,Cifra de negocio <1.000.000€,2026,,sede.agenciatributaria.gob.es
+P019,MOD200,Impuesto Sociedades — entidad de nueva creación,15%,Base imponible,Primer ejercicio con base positiva y el siguiente,2026,,sede.agenciatributaria.gob.es
+P020,MOD200,Impuesto Sociedades — entidades sin fines lucrativos,10%,Base imponible,Fundaciones y asociaciones acogidas a la Ley 49/2002,2026,,sede.agenciatributaria.gob.es
+P021,MOD200,Impuesto Sociedades — SICAV / fondos de inversión,1%,Base imponible,Instituciones de inversión colectiva reguladas,2026,,sede.agenciatributaria.gob.es
+P022,MOD200,Reserva de capitalización,20% (hasta 30% con incremento de plantilla),Incremento de fondos propios del ejercicio,Límite: 20-25% de la base imponible previa,2026,,sede.agenciatributaria.gob.es
+P023,RETA_CUOTA,Cotización RETA — tipo total,"≈31,4-31,5%",Base de cotización elegida dentro del tramo,Autónomos en el RETA,2026,,seg-social.es
+P024,RETA_CUOTA,RETA — contingencias comunes,"28,30%",Base de cotización,,2026,"Confirmado literalmente en BOE-A-2026-7296, Art. 18.2",boe.es (Orden PJC/297/2026)
+P025,RETA_CUOTA,RETA — contingencias profesionales (AT/EP),"1,30%",Base de cotización,"0,66% IT + 0,64% IMS",2026,,boe.es
+P026,RETA_CUOTA,RETA — cese de actividad,"0,90%",Base de cotización,,2026,,boe.es
+P027,RETA_CUOTA,RETA — formación profesional,"0,10%",Base de cotización,,2026,,boe.es
+P028,RETA_CUOTA,RETA — MEI,"0,90%",Base de cotización,A cargo íntegro del autónomo,2026,"Confirmado literalmente en BOE-A-2026-7296, Art. 18.2",boe.es
+P029,RETA_CUOTA,Tarifa plana nuevos autónomos,80€/mes (cuota fija),N/A,Primeros 12 meses de alta (ampliable a 24 en casos especiales),2026,,seg-social.es
+P030,RG_RLC_RNT,Régimen General — contingencias comunes (empresa),"23,60%",Base de cotización por contingencias comunes,Grupo de cotización 1,2026,,boe.es (Orden PJC/297/2026)
+P031,RG_RLC_RNT,Régimen General — contingencias comunes (trabajador),"4,70%",Base de cotización por contingencias comunes,Todos los grupos,2026,,boe.es
+P032,RG_RLC_RNT,Régimen General — desempleo indefinido (empresa),"5,50%",Base de cotización desempleo,Contrato indefinido,2026,,seg-social.es
+P033,RG_RLC_RNT,Régimen General — desempleo indefinido (trabajador),"1,55%",Base de cotización desempleo,Contrato indefinido,2026,,seg-social.es
+P034,RG_RLC_RNT,Régimen General — desempleo temporal (empresa),"6,70%",Base de cotización desempleo,Contrato temporal,2026,,seg-social.es
+P035,RG_RLC_RNT,Régimen General — desempleo temporal (trabajador),"1,60%",Base de cotización desempleo,Contrato temporal,2026,,seg-social.es
+P036,RG_RLC_RNT,Régimen General — FOGASA,"0,20%",Base de cotización contingencias comunes,100% a cargo de la empresa,2026,,boe.es
+P037,RG_RLC_RNT,Régimen General — Formación Profesional (empresa),"0,60%",Base de cotización,,2026,,boe.es
+P038,RG_RLC_RNT,Régimen General — Formación Profesional (trabajador),"0,10%",Base de cotización,,2026,,boe.es
+P039,RG_RLC_RNT,Régimen General — MEI (empresa),"0,75%",Base de cotización contingencias comunes,,2026,,boe.es
+P040,RG_RLC_RNT,Régimen General — MEI (trabajador),"0,15%",Base de cotización contingencias comunes,,2026,,boe.es
+P041,RG_RLC_RNT,Régimen General — Accidentes de Trabajo (AT/EP),"Variable (≈0,90%-7,15%)",Base de cotización AT/EP (incluye horas extra),Según tarifa de primas por epígrafe CNAE de la actividad,2026,Verificar epígrafe concreto en la tarifa de primas vigente,seg-social.es
+P042,LGT_RECARGOS,Recargo por presentación extemporánea sin requerimiento,1% + 1%/mes hasta 12 meses (máx. 12%). Del mes 13 en adelante: 15% + intereses de demora,Cuota a ingresar,Art. 27 Ley General Tributaria,2026,,boe.es (Ley 58/2003)
+P043,MOD347,Sanción por no presentar sin requerimiento,200€ (100€ si se acepta y no se recurre),Fija,Presentación fuera de plazo sin requerimiento previo,2026,,sede.agenciatributaria.gob.es
+P044,VERIFACTU,Sanción por software no homologado,Hasta 50.000€/ejercicio (usuario) · hasta 150.000€ (fabricante),Fija por ejercicio,Uso de sistemas de facturación no adaptados al RRSIF,RD 1007/2023,,sede.agenciatributaria.gob.es
+P045,IAE_CUOTA,Exención de la cuota del IAE,100% exento,N/A,Facturación neta <1.000.000€ (las personas físicas siempre están exentas),2003 (Ley 51/2002),,sede.agenciatributaria.gob.es
+P046,MOD232,Umbral operaciones vinculadas — conjunto por contraparte,Declarable si >250.000€ (valor de mercado),Importe conjunto de operaciones con la misma persona/entidad vinculada en el ejercicio,,2026,,sede.agenciatributaria.gob.es
+P047,MOD232,Umbral operaciones vinculadas — específicas,Declarable si >100.000€ por tipo de operación específica,"Importe por operación específica (transmisión de negocio, inmuebles, intangibles)",Con independencia del importe conjunto,2026,,sede.agenciatributaria.gob.es
+P048,AUDITORIA,"Umbrales de auditoría obligatoria (2 de 3, durante 2 ejercicios consecutivos)",Activo >2.850.000€ · Cifra de negocio >5.700.000€ · Plantilla media >50 empleados,N/A,,2026 (en revisión),Hay una reforma en tramitación (Directiva UE 2023/2775) que elevaría estos umbrales — verificar en icac.gob.es antes de usar en producción,icac.gob.es
+P049,SII,Umbral SII (Suministro Inmediato de Información),Obligatorio si facturación >6.000.000€ el año natural anterior,Volumen de operaciones anual,También obligatorio para REDEME y grupos de IVA,2026,,sede.agenciatributaria.gob.es
+P050,MOD347,Umbral de declaración por tercero,"3.005,06€",Importe total anual (IVA incluido) con un mismo cliente/proveedor,Umbral estable desde hace más de una década,2026,,sede.agenciatributaria.gob.es

@@ -1,0 +1,13 @@
+﻿id,sheet,target,type,original_issue,required_change,new_status,effective_to,replacement,source_id
+C001,01_Modelos_y_Obligaciones,MOD037,ERROR_TEMPORAL,Modelo 037 tratado como vigente,Suprimido desde 03/02/2025,SUPERSEDED,2025-02-02,MOD036,SRC_BOE_HAC_1526_2024
+C002,10_IRPF_por_Comunidad_Autonoma,Navarra / País Vasco,JURISDICTION,Mezcla con CCAA de territorio común,Separar Navarra y cada territorio foral del bloque de IRPF autonómico común,OFFICIAL_UNVERIFIED,,,SRC_AEAT_IRPF_2025_RESIDENCE
+C003,11_IRPF_CCAA_Tramos_Detalle,Álava,SOURCE,Dato inferido,No usar como verificado hasta adjuntar fuente normativa foral exacta,OFFICIAL_UNVERIFIED,,,
+C004,04_RETA_Autonomos_Tramos,todas,TEMPORAL,Datos 2026 dentro del dataset,Conservar pero tax_year=2026 y excluir de consultas 2025,OFFICIAL_UNVERIFIED,,,
+C005,05_Cotizaciones_Seg_Social,todas,TEMPORAL,Campo base_de_referencia_2026,Conservar como 2026; no usar para 2025,OFFICIAL_UNVERIFIED,,,
+C006,06_Impuesto_Sociedades_Tipos,tipo_2027_previsto+,STATUS,Previsiones mezcladas con vigentes,Separar por año y marcar futuro como DRAFT/RESEARCH,DRAFT,,,
+C007,07_Calendario_Fiscal,todas,MODEL,Fechas fijas 2026,Conservar como referencia y crear reglas dinámicas de plazo,OFFICIAL_UNVERIFIED,,,
+C008,14_Sucesiones_Donaciones,filas secundarias,SOURCE,Fuentes especializadas,Mantener como investigación; sustituir por norma/BOE/administración oficial,SECONDARY_SOURCE,,,
+C009,15_ITP_AJD_Patrimonio_ITSGF,tipos generales,SOURCE,Tipos apoyados principalmente en webs secundarias,"Verificar por territorio, hecho imponible, condición y vigencia",SECONDARY_SOURCE,,,
+C010,18_Sanciones_Recargos_Aplaz,filas,SOURCE,Fuente principal mezclada con blogs/gestorías,Conservar secundaria pero enlazar artículo/norma oficial exacta,SECONDARY_SOURCE,,,
+C011,19_Sanciones_LGT_Detalle,filas,SOURCE,Resumen secundario,Verificar contra texto consolidado LGT y normativa aplicable,SECONDARY_SOURCE,,,
+C012,17_Umbrales_Tamano_Empresa,PYME,SEMANTIC,PYME usada como concepto genérico,Añadir classification_system y legal_basis; no usar PYME como criterio fiscal universal,OFFICIAL_UNVERIFIED,,,

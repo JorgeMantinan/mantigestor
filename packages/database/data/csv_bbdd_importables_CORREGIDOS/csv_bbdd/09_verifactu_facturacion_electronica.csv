@@ -1,0 +1,9 @@
+﻿concepto,fecha_o_valor,aplica_a,fuente
+VERI*FACTU — obligatorio para el Impuesto de Sociedades,1 de enero de 2027,Sociedades (contribuyentes del IS),"AEAT (RD-ley 15/2025), reconfirmado por fetch directo a la nota informativa oficial"
+VERI*FACTU — obligatorio para el resto de obligados,1 de julio de 2027,Autónomos y no residentes con establecimiento permanente,"AEAT (RD-ley 15/2025), reconfirmado por fetch directo a la nota informativa oficial"
+VERI*FACTU — periodo de pruebas voluntario,2025-2026,Todos,AEAT
+VERI*FACTU — sanción por software no adaptado (usuario),Hasta 50.000€ por ejercicio,Todos,RD 1007/2023
+VERI*FACTU — sanción por software no adaptado (fabricante),Hasta 150.000€,Productores/comercializadores de software,RD 1007/2023
+Factura electrónica B2B (Ley Crea y Crece) — grandes empresas,"Aprox. octubre 2027, pendiente Orden Ministerial definitiva",Facturación >8.000.000€,Ley 18/2022
+Factura electrónica B2B (Ley Crea y Crece) — resto,"Aprox. octubre 2028, pendiente Orden Ministerial definitiva",Autónomos y pymes,Ley 18/2022
+Por qué hay tanta confusión sobre esta fecha,"Verifactu tuvo su calendario original en 2025, se aplazó una vez a enero/julio de 2026, y se aplazó una segunda vez, mediante el Real Decreto-ley 15/2025 de 2 de diciembre de 2025, a enero/julio de 2027. Mucho contenido publicado antes de diciembre de 2025 (o no actualizado desde entonces) sigue circulando con las fechas de 2026, ya obsoletas. La fecha correcta y vigente es 2027, confirmada directamente en la nota informativa de la AEAT.",Todos,sede.agenciatributaria.gob.es/Sede/iva/sistemas-informaticos-facturacion-verifactu/nota-informativa-ampliacion-plazo-adaptacion-facturacion.html

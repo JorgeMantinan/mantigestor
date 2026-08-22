@@ -1,0 +1,14 @@
+﻿regimen,concepto,pct_empresa,pct_trabajador,pct_total,base_de_referencia_2026,tax_year,status,production_note
+Régimen General,Contingencias comunes,"23,60%","4,70%","28,30%","Base CC — máx. 5.101,20€/mes",2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+Régimen General,Desempleo (contrato indefinido),"5,50%","1,55%","7,05%",Base desempleo,2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+Régimen General,Desempleo (contrato temporal),"6,70%","1,60%","8,30%",Base desempleo,2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+Régimen General,FOGASA,"0,20%",0%,"0,20%",Base contingencias comunes,2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+Régimen General,Formación Profesional,"0,60%","0,10%","0,70%",Base contingencias comunes,2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+Régimen General,MEI,"0,75%","0,15%","0,90%",Base contingencias comunes,2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+Régimen General,Accidentes de Trabajo y Enf. Profesionales (AT/EP),Variable según CNAE,0%,Variable,Base AT/EP (incluye horas extra),2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+RETA (autónomos),Contingencias comunes,N/A (cuenta propia),"28,30%","28,30%","Base elegida dentro del tramo (máx. 5.101,20€/mes)",2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+RETA (autónomos),Contingencias profesionales (AT/EP),,"1,30%","1,30%","Base elegida — 0,66% IT + 0,64% IMS",2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+RETA (autónomos),Cese de actividad,,"0,90%","0,90%",Base elegida,2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+RETA (autónomos),Formación profesional,,"0,10%","0,10%",Base elegida,2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+RETA (autónomos),MEI,,"0,90%","0,90%",Base elegida,2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.
+RETA (autónomos),TOTAL cotización RETA,,"≈31,4%-31,5%","≈31,4%-31,5%",Base elegida entre mínima y máxima del tramo (ver hoja 04),2026,OFFICIAL_UNVERIFIED,Dato de 2026: no utilizar para responder consultas de ejercicio 2025.

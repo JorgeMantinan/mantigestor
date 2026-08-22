@@ -19,6 +19,7 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  Calculator,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -30,6 +31,7 @@ const menuItems = [
       { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
       { label: 'Trimestres', href: '/gestoria/trimestres', icon: BarChart3 },
       { label: 'Renta', href: '/gestoria/renta', icon: Landmark },
+      { label: 'Fiscal', href: '/fiscal', icon: Calculator },
       { label: 'Alquiler', href: '/alquiler', icon: Home },
       { label: 'Nóminas', href: '/nominas', icon: Users },
     ],

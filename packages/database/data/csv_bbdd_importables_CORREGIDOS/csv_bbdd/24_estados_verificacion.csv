@@ -1,0 +1,8 @@
+﻿status,production_allowed,definition
+DRAFT,No utilizar en producción,Investigación o borrador
+RESEARCH,No utilizar en producción,Dato de investigación
+SECONDARY_SOURCE,No utilizar en producción,Fuente secundaria
+OFFICIAL_UNVERIFIED,No utilizar automáticamente,Fuente oficial identificada pero falta verificación exacta/temporal
+OFFICIAL_VERIFIED,Sí,Fuente oficial exacta + período + jurisdicción verificados
+SUPERSEDED,No,Dato histórico sustituido
+EXPIRED,No,Dato fuera de vigencia
