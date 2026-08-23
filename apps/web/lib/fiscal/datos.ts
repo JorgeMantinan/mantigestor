@@ -161,3 +161,117 @@ export async function obtenerProximosPlazosFiscales(
     status: String(f.status),
   }))
 }
+
+export interface ReglaIva {
+  tipo: string
+  ratePct: number
+  productCategory: string | null
+  ejemplos: string | null
+}
+
+export async function obtenerReglasIva(client: SupabaseClient, taxYear: number): Promise<ReglaIva[]> {
+  const { data, error } = await client
+    .from('vat_rules')
+    .select('tipo, ratePct, productCategory, ejemplos')
+    .eq('taxYear', taxYear)
+    .order('ratePct', { ascending: false })
+
+  if (error) throw error
+  return (data ?? []).map(f => ({
+    tipo: String(f.tipo),
+    ratePct: decimalANumero(f.ratePct) ?? 0,
+    productCategory: f.productCategory ? String(f.productCategory) : null,
+    ejemplos: f.ejemplos ? String(f.ejemplos) : null,
+  }))
+}
+
+export interface TipoIs {
+  tipoEntidad: string
+  requisitoFacturacion: string | null
+  tipoPct: number
+  taxYear: number
+  previsto: boolean
+  notas: string | null
+}
+
+export async function obtenerTiposIs(client: SupabaseClient): Promise<TipoIs[]> {
+  const { data, error } = await client
+    .from('is_tipos')
+    .select('tipoEntidad, requisitoFacturacion, tipoPct, taxYear, previsto, notas')
+    .order('taxYear')
+
+  if (error) throw error
+  return (data ?? []).map(f => ({
+    tipoEntidad: String(f.tipoEntidad),
+    requisitoFacturacion: f.requisitoFacturacion ? String(f.requisitoFacturacion) : null,
+    tipoPct: decimalANumero(f.tipoPct) ?? 0,
+    taxYear: Number(f.taxYear),
+    previsto: Boolean(f.previsto),
+    notas: f.notas ? String(f.notas) : null,
+  }))
+}
+
+export async function obtenerEscalaPatrimonio(
+  client: SupabaseClient,
+  taxYear: number,
+): Promise<TramoIrpf[]> {
+  const { data, error } = await client
+    .from('patrimonio_escala_estatal')
+    .select('tramo, desdeEur, hastaEur, tipoPct')
+    .eq('taxYear', taxYear)
+    .order('desdeEur')
+
+  if (error) throw error
+  return aTramosIrpf((data ?? []) as Array<Record<string, unknown>>, 'tipoPct')
+}
+
+export interface MinimoFamiliar {
+  territorio: string
+  concepto: string
+  importeEur: number
+  notas: string | null
+}
+
+export async function obtenerMinimos(
+  client: SupabaseClient,
+  taxYear: number,
+): Promise<MinimoFamiliar[]> {
+  const { data, error } = await client
+    .from('minimo_personal_familiar')
+    .select('territorio, concepto, importeEur, notas')
+    .eq('taxYear', taxYear)
+    .order('territorio')
+
+  if (error) throw error
+  return (data ?? []).map(f => ({
+    territorio: String(f.territorio),
+    concepto: String(f.concepto),
+    importeEur: decimalANumero(f.importeEur) ?? 0,
+    notas: f.notas ? String(f.notas) : null,
+  }))
+}
+
+export interface ReduccionIrpf {
+  concepto: string
+  formulaTexto: string | null
+  condiciones: string | null
+  notas: string | null
+}
+
+export async function obtenerReducciones(
+  client: SupabaseClient,
+  taxYear: number,
+): Promise<ReduccionIrpf[]> {
+  const { data, error } = await client
+    .from('reducciones_generales_irpf')
+    .select('concepto, formulaTexto, condiciones, notas')
+    .eq('taxYear', taxYear)
+
+  if (error) throw error
+  return (data ?? []).map(f => ({
+    concepto: String(f.concepto),
+    formulaTexto: f.formulaTexto ? String(f.formulaTexto) : null,
+    condiciones: f.condiciones ? String(f.condiciones) : null,
+    notas: f.notas ? String(f.notas) : null,
+  }))
+}
