@@ -167,12 +167,13 @@ export interface ReglaIva {
   ratePct: number
   productCategory: string | null
   ejemplos: string | null
+  status: string
 }
 
 export async function obtenerReglasIva(client: SupabaseClient, taxYear: number): Promise<ReglaIva[]> {
   const { data, error } = await client
     .from('vat_rules')
-    .select('tipo, ratePct, productCategory, ejemplos')
+    .select('tipo, ratePct, productCategory, ejemplos, status')
     .eq('taxYear', taxYear)
     .order('ratePct', { ascending: false })
 
@@ -182,6 +183,7 @@ export async function obtenerReglasIva(client: SupabaseClient, taxYear: number):
     ratePct: decimalANumero(f.ratePct) ?? 0,
     productCategory: f.productCategory ? String(f.productCategory) : null,
     ejemplos: f.ejemplos ? String(f.ejemplos) : null,
+    status: String(f.status),
   }))
 }
 
@@ -192,12 +194,13 @@ export interface TipoIs {
   taxYear: number
   previsto: boolean
   notas: string | null
+  status: string
 }
 
 export async function obtenerTiposIs(client: SupabaseClient): Promise<TipoIs[]> {
   const { data, error } = await client
     .from('is_tipos')
-    .select('tipoEntidad, requisitoFacturacion, tipoPct, taxYear, previsto, notas')
+    .select('tipoEntidad, requisitoFacturacion, tipoPct, taxYear, previsto, notas, status')
     .order('taxYear')
 
   if (error) throw error
@@ -208,21 +211,24 @@ export async function obtenerTiposIs(client: SupabaseClient): Promise<TipoIs[]> 
     taxYear: Number(f.taxYear),
     previsto: Boolean(f.previsto),
     notas: f.notas ? String(f.notas) : null,
+    status: String(f.status),
   }))
 }
 
 export async function obtenerEscalaPatrimonio(
   client: SupabaseClient,
   taxYear: number,
-): Promise<TramoIrpf[]> {
+): Promise<{ tramos: TramoIrpf[]; avisos: string[] }> {
   const { data, error } = await client
     .from('patrimonio_escala_estatal')
-    .select('tramo, desdeEur, hastaEur, tipoPct')
+    .select('tramo, desdeEur, hastaEur, tipoPct, taxYear, status')
     .eq('taxYear', taxYear)
     .order('desdeEur')
 
   if (error) throw error
-  return aTramosIrpf((data ?? []) as Array<Record<string, unknown>>, 'tipoPct')
+  const filas = (data ?? []) as Array<Record<string, unknown>>
+  const avisos = filas.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []
+  return { tramos: aTramosIrpf(filas, 'tipoPct'), avisos }
 }
 
 export interface MinimoFamiliar {
@@ -230,6 +236,7 @@ export interface MinimoFamiliar {
   concepto: string
   importeEur: number
   notas: string | null
+  status: string
 }
 
 export async function obtenerMinimos(
@@ -238,7 +245,7 @@ export async function obtenerMinimos(
 ): Promise<MinimoFamiliar[]> {
   const { data, error } = await client
     .from('minimo_personal_familiar')
-    .select('territorio, concepto, importeEur, notas')
+    .select('territorio, concepto, importeEur, notas, status')
     .eq('taxYear', taxYear)
     .order('territorio')
 
@@ -248,6 +255,7 @@ export async function obtenerMinimos(
     concepto: String(f.concepto),
     importeEur: decimalANumero(f.importeEur) ?? 0,
     notas: f.notas ? String(f.notas) : null,
+    status: String(f.status),
   }))
 }
 
@@ -256,6 +264,7 @@ export interface ReduccionIrpf {
   formulaTexto: string | null
   condiciones: string | null
   notas: string | null
+  status: string
 }
 
 export async function obtenerReducciones(
@@ -264,7 +273,7 @@ export async function obtenerReducciones(
 ): Promise<ReduccionIrpf[]> {
   const { data, error } = await client
     .from('reducciones_generales_irpf')
-    .select('concepto, formulaTexto, condiciones, notas')
+    .select('concepto, formulaTexto, condiciones, notas, status')
     .eq('taxYear', taxYear)
 
   if (error) throw error
@@ -273,5 +282,6 @@ export async function obtenerReducciones(
     formulaTexto: f.formulaTexto ? String(f.formulaTexto) : null,
     condiciones: f.condiciones ? String(f.condiciones) : null,
     notas: f.notas ? String(f.notas) : null,
+    status: String(f.status),
   }))
 }

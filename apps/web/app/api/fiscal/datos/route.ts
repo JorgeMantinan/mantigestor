@@ -11,6 +11,7 @@ import {
   obtenerEscalaPatrimonio,
   obtenerMinimos,
   obtenerReducciones,
+  AVISO_NO_VERIFICADO,
 } from '@/lib/fiscal/datos'
 
 export async function GET(req: NextRequest) {
@@ -53,6 +54,17 @@ export async function GET(req: NextRequest) {
       obtenerReducciones(supabase, taxYear),
     ])
 
+    const avisos = [
+      ...escalas.avisos,
+      ...reta.avisos,
+      ...patrimonio.avisos,
+      ...(iva.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []),
+      ...(is.filter(f => !f.previsto).some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []),
+      ...(minimos.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []),
+      ...(reducciones.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []),
+    ]
+    const avisosUnicos = [...new Set(avisos)]
+
     return Response.json({
       data: {
         taxYear,
@@ -62,12 +74,12 @@ export async function GET(req: NextRequest) {
         reglasIva: iva,
         tramosReta: reta.tramos,
         tiposIs: is,
-        escalaPatrimonio: patrimonio,
+        escalaPatrimonio: patrimonio.tramos,
         minimos,
         reducciones,
         plazos,
       },
-      avisos: [...escalas.avisos, ...reta.avisos],
+      avisos: avisosUnicos,
     })
   } catch (error) {
     return serverError(error)
