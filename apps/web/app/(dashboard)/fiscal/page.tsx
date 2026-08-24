@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { AlertTriangle, RefreshCw, UserRound } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import type { DatosFiscales } from './calculadoras/types'
 import { CalculadoraIrpf } from './calculadoras/calculadora-irpf'
@@ -12,8 +12,10 @@ import { CalculadoraIs } from './calculadoras/calculadora-is'
 import { CalculadoraPatrimonio } from './calculadoras/calculadora-patrimonio'
 import { PanelPlazos } from './calculadoras/panel-plazos'
 import { PanelMinimos } from './calculadoras/panel-minimos'
+import { PanelResumenAnual } from './calculadoras/panel-resumen-anual'
 
-type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'plazos' | 'minimos'
+type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'plazos' | 'minimos' | 'resumen'
+type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
 
 const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
   { key: 'irpf', label: 'IRPF' },
@@ -23,6 +25,7 @@ const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
   { key: 'patrimonio', label: 'Patrimonio' },
   { key: 'plazos', label: 'Calendario fiscal' },
   { key: 'minimos', label: 'Mínimos y reducciones' },
+  { key: 'resumen', label: 'Resumen anual' },
 ]
 
 const COMUNIDADES = [
@@ -41,25 +44,96 @@ const COMUNIDADES = [
   'Madrid (Comunidad de)',
   'Región de Murcia',
   'Navarra (Comunidad Foral de)',
-  'País Vasco',
+  'País Vasco - Álava',
+  'País Vasco - Bizkaia',
+  'País Vasco - Gipuzkoa',
   'La Rioja',
   'Ceuta',
   'Melilla',
 ]
 
+const PERFILES: Array<{ key: PerfilFiscal; label: string; seccionInicial: SeccionKey }> = [
+  { key: 'autonomo', label: 'Autónomo / freelance', seccionInicial: 'reta' },
+  { key: 'sociedad', label: 'Sociedad / SL', seccionInicial: 'sociedades' },
+  { key: 'empleado', label: 'Empleado por cuenta ajena', seccionInicial: 'irpf' },
+  { key: 'alquilador', label: 'Propietario con alquileres', seccionInicial: 'irpf' },
+]
+
+const ETIQUETA_PERFIL: Record<PerfilFiscal, string> = {
+  autonomo: 'Autónomo / freelance',
+  sociedad: 'Sociedad / SL',
+  empleado: 'Empleado por cuenta ajena',
+  alquilador: 'Propietario con alquileres',
+}
+
+interface CacheEntry {
+  ts: number
+  data: DatosFiscales
+  avisos: string[]
+}
+
+const TTL_MS = 24 * 60 * 60 * 1000
+
+function leerCache(comunidad: string, taxYear: number): CacheEntry | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const bruto = window.sessionStorage.getItem(`fiscal-datos-v1-${comunidad}-${taxYear}`)
+    if (!bruto) return null
+    const entrada = JSON.parse(bruto) as CacheEntry
+    if (!entrada?.data || Date.now() - entrada.ts > TTL_MS) return null
+    return entrada
+  } catch {
+    return null
+  }
+}
+
+function guardarCache(comunidad: string, taxYear: number, data: DatosFiscales, avisos: string[]): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.setItem(`fiscal-datos-v1-${comunidad}-${taxYear}`, JSON.stringify({ ts: Date.now(), data, avisos }))
+  } catch {
+    // cuota de almacenamiento llena: sin caché no pasa nada
+  }
+}
+
+function leerPerfil(): PerfilFiscal | null {
+  if (typeof window === 'undefined') return null
+  const p = window.localStorage.getItem('perfil-fiscal')
+  return p === 'autonomo' || p === 'sociedad' || p === 'empleado' || p === 'alquilador' ? p : null
+}
+
 export default function PaginaFiscal() {
   const [seccion, setSeccion] = useState<SeccionKey>('irpf')
   const [comunidad, setComunidad] = useState('Madrid (Comunidad de)')
+  const [taxYear, setTaxYear] = useState(2025)
   const [datos, setDatos] = useState<DatosFiscales | null>(null)
   const [avisos, setAvisos] = useState<string[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [perfil, setPerfil] = useState<PerfilFiscal | null>(null)
+  const [mostrarWizard, setMostrarWizard] = useState(false)
 
-  const cargarDatos = useCallback(async (comunidadSel: string) => {
+  useEffect(() => {
+    const p = leerPerfil()
+    setPerfil(p)
+    setMostrarWizard(!p)
+  }, [])
+
+  const cargarDatos = useCallback(async (comunidadSel: string, anhoSel: number, forzar = false) => {
+    if (!forzar) {
+      const cache = leerCache(comunidadSel, anhoSel)
+      if (cache) {
+        setDatos(cache.data)
+        setAvisos(cache.avisos)
+        setCargando(false)
+        setError(null)
+        return
+      }
+    }
     setCargando(true)
     setError(null)
     try {
-      const res = await fetch(`/api/fiscal/datos?comunidad=${encodeURIComponent(comunidadSel)}&taxYear=2025`)
+      const res = await fetch(`/api/fiscal/datos?comunidad=${encodeURIComponent(comunidadSel)}&taxYear=${anhoSel}`)
       const json: unknown = await res.json()
       if (!res.ok) {
         const msg =
@@ -71,6 +145,7 @@ export default function PaginaFiscal() {
       const payload = json as { data: DatosFiscales; avisos?: string[] }
       setDatos(payload.data)
       setAvisos(payload.avisos ?? [])
+      guardarCache(comunidadSel, anhoSel, payload.data, payload.avisos ?? [])
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error inesperado al cargar los datos fiscales')
     } finally {
@@ -79,19 +154,91 @@ export default function PaginaFiscal() {
   }, [])
 
   useEffect(() => {
-    void cargarDatos(comunidad)
-  }, [cargarDatos, comunidad])
+    void cargarDatos(comunidad, taxYear)
+  }, [cargarDatos, comunidad, taxYear])
+
+  const elegirPerfil = (p: PerfilFiscal) => {
+    setPerfil(p)
+    setMostrarWizard(false)
+    try {
+      window.localStorage.setItem('perfil-fiscal', p)
+    } catch {
+      // almacenamiento bloqueado: solo estado de sesión
+    }
+    const config = PERFILES.find(x => x.key === p)
+    if (config) setSeccion(config.seccionInicial)
+  }
+
+  const anhoActual = new Date().getFullYear()
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Calculadora fiscal</h1>
-        <p className="text-sm text-muted-foreground">
-          IRPF, IVA, RETA, Sociedades y Patrimonio sobre el dataset oficial importado.
-        </p>
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Calculadora fiscal</h1>
+          <p className="text-sm text-muted-foreground">
+            IRPF, IVA, RETA, Sociedades y Patrimonio sobre el dataset oficial importado.
+          </p>
+        </div>
+        {perfil && !mostrarWizard && (
+          <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={() => setMostrarWizard(true)}>
+            <UserRound className="h-4 w-4" aria-hidden="true" />
+            Perfil: {ETIQUETA_PERFIL[perfil]}
+          </Button>
+        )}
       </header>
 
-      <nav aria-label="Secciones fiscales" className="flex flex-wrap gap-2">
+      {mostrarWizard && (
+        <div role="dialog" aria-label="Elige tu perfil fiscal" className="rounded-lg border bg-card p-4 space-y-3">
+          <p className="font-medium">¿Cuál es tu situación fiscal?</p>
+          <p className="text-sm text-muted-foreground">Te llevamos a la calculadora que más te interesa. Puedes cambiarlo cuando quieras.</p>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {PERFILES.map(p => (
+              <Button
+                key={p.key}
+                type="button"
+                variant={perfil === p.key ? 'secondary' : 'outline'}
+                onClick={() => elegirPerfil(p.key)}
+              >
+                {p.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(seccion === 'irpf' || seccion === 'minimos') && (
+        <div className="flex flex-wrap gap-3 print:hidden">
+          <div className="max-w-xs flex-1 space-y-2">
+            <Label htmlFor="comunidad-fiscal">Comunidad autónoma</Label>
+            <select
+              id="comunidad-fiscal"
+              value={comunidad}
+              onChange={e => setComunidad(e.target.value)}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+            >
+              {COMUNIDADES.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div className="w-32 space-y-2">
+            <Label htmlFor="ejercicio-fiscal">Ejercicio</Label>
+            <select
+              id="ejercicio-fiscal"
+              value={taxYear}
+              onChange={e => setTaxYear(Number(e.target.value))}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+            >
+              {[anhoActual - 1, anhoActual].map(a => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      <nav aria-label="Secciones fiscales" className="print:hidden flex flex-wrap gap-2">
         {SECCIONES.map(s => (
           <Button
             key={s.key}
@@ -105,33 +252,17 @@ export default function PaginaFiscal() {
         ))}
       </nav>
 
-      {(seccion === 'irpf' || seccion === 'minimos') && (
-        <div className="max-w-xs space-y-2">
-          <Label htmlFor="comunidad-fiscal">Comunidad autónoma</Label>
-          <select
-            id="comunidad-fiscal"
-            value={comunidad}
-            onChange={e => setComunidad(e.target.value)}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-          >
-            {COMUNIDADES.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
       {avisos.length > 0 && (
-        <div role="status" className="flex items-start gap-2 rounded-md border border-yellow-500/50 bg-yellow-500/10 p-3 text-sm">
+        <div role="status" className="print:hidden flex items-start gap-2 rounded-md border border-yellow-500/50 bg-yellow-500/10 p-3 text-sm">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-600" aria-hidden="true" />
           <div>{avisos.map((a, i) => <p key={i}>{a}</p>)}</div>
         </div>
       )}
 
       {error && (
-        <div role="alert" className="flex items-center justify-between gap-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
+        <div role="alert" className="print:hidden flex items-center justify-between gap-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
           <span>{error}</span>
-          <Button type="button" size="sm" variant="outline" onClick={() => void cargarDatos(comunidad)}>
+          <Button type="button" size="sm" variant="outline" onClick={() => void cargarDatos(comunidad, taxYear, true)}>
             <RefreshCw className="mr-1 h-4 w-4" aria-hidden="true" />
             Reintentar
           </Button>
@@ -149,6 +280,13 @@ export default function PaginaFiscal() {
           {seccion === 'patrimonio' && <CalculadoraPatrimonio datos={datos} />}
           {seccion === 'plazos' && <PanelPlazos datos={datos} />}
           {seccion === 'minimos' && <PanelMinimos datos={datos} comunidad={comunidad} />}
+          {seccion === 'resumen' && <PanelResumenAnual datos={datos} comunidad={comunidad} />}
+          <p className="print:hidden text-xs text-muted-foreground">
+            Ejercicio {datos.taxYear} · datos en caché de la sesión durante 24 h ·{' '}
+            <button type="button" className="underline hover:no-underline" onClick={() => void cargarDatos(comunidad, taxYear, true)}>
+              actualizar ahora
+            </button>
+          </p>
         </>
       ) : null}
     </div>

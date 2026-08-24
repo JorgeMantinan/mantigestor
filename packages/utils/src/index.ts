@@ -1,5 +1,7 @@
 export * from './fiscal/iva'
 export * from './fiscal/irpf'
+export * from './fiscal/cuota-liquida'
+export * from './fiscal/reduccion-trabajo'
 export * from './fiscal/jurisdiccion'
 export * from './fiscal/reta'
 export * from './fiscal/plazos'

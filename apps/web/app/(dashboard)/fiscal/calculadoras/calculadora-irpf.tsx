@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -6,7 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calculator } from 'lucide-react'
-import { calcularIrpf, type EscalaIrpf } from '@mantigestor/utils'
+import {
+  calcularCuotaLiquida,
+  reduccionRendimientosTrabajoCents,
+} from '@mantigestor/utils'
 import { eur, parseEuros, type DatosFiscales } from './types'
 
 interface DetalleTramo {
@@ -17,6 +20,11 @@ interface DetalleTramo {
   tipoPct: number
   cuotaTramoCentimos: number
 }
+
+type GradoDiscapacidad = 'ninguna' | '33' | '65'
+type RangoEdad = 'menos65' | '65a75' | 'mas75'
+
+const eurosACentimos = (texto: string): number => Math.round((parseEuros(texto) ?? 0) * 100)
 
 function TablaDetalle({ titulo, detalle }: { titulo: string; detalle: DetalleTramo[] }) {
   if (!detalle.length) return null
@@ -54,81 +62,291 @@ export function CalculadoraIrpf({
   datos: DatosFiscales
   comunidad: string
 }) {
-  const [baseLiquidable, setBaseLiquidable] = useState('')
+  const [trabajo, setTrabajo] = useState('')
+  const [actividades, setActividades] = useState('')
+  const [ahorro, setAhorro] = useState('')
+  const [pagosACuenta, setPagosACuenta] = useState('')
+  const [deduccionesManuales, setDeduccionesManuales] = useState('')
+
+  const [edad, setEdad] = useState<RangoEdad>('menos65')
+  const [conyuge, setConyuge] = useState(false)
+  const [hijos, setHijos] = useState('0')
+  const [menores3, setMenores3] = useState('0')
+  const [ascendientes, setAscendientes] = useState('0')
+  const [mayores75, setMayores75] = useState('0')
+  const [monoparental, setMonoparental] = useState(false)
+  const [discapacidad, setDiscapacidad] = useState<GradoDiscapacidad>('ninguna')
+  const [ayudaTerceras, setAyudaTerceras] = useState(false)
+
+  const minimosTerritorio = useMemo(() => {
+    const propios = datos.minimos.filter(m => m.territorio === comunidad)
+    if (propios.length) return { filas: propios, esReferenciaEstatal: false }
+    const estatales = datos.minimos.filter(m => m.territorio.toLowerCase().includes('estatal'))
+    return { filas: estatales, esReferenciaEstatal: true }
+  }, [datos.minimos, comunidad])
+
+  const imp = (conceptoExacto: string): number =>
+    minimosTerritorio.filas.find(f => f.concepto === conceptoExacto)?.importeEur ?? 0
+
+  const impContiene = (fragmento: string): number =>
+    minimosTerritorio.filas.find(f => f.concepto.includes(fragmento))?.importeEur ?? 0
+
+  const numACentimos = (n: number): number => Math.round(n * 100)
+
+  const desgloseMinimo = useMemo(() => {
+    const componentes: Array<{ etiqueta: string; centimos: number }> = []
+    const factorMono = monoparental ? 1.5 : 1
+
+    componentes.push({ etiqueta: 'Contribuyente', centimos: numACentimos(imp('Mínimo del contribuyente, general')) })
+    if (edad !== 'menos65') {
+      componentes.push({ etiqueta: 'Contribuyente mayor de 65 años', centimos: numACentimos(imp('Incremento mínimo contribuyente, mayor de 65 años')) })
+    }
+    if (edad === 'mas75') {
+      componentes.push({ etiqueta: 'Contribuyente mayor de 75 años (adicional)', centimos: numACentimos(imp('Incremento adicional mínimo contribuyente, mayor de 75 años')) })
+    }
+
+    const nHijos = Math.max(0, parseInt(hijos, 10) || 0)
+    if (nHijos > 0) {
+      const importesHijos = [
+        imp('Mínimo por descendiente, 1º'),
+        imp('Mínimo por descendiente, 2º'),
+        imp('Mínimo por descendiente, 3º'),
+      ]
+      const cuarto = imp('Mínimo por descendiente, 4º y siguientes')
+      let suma = 0
+      for (let i = 0; i < nHijos; i++) suma += i < 3 ? (importesHijos[i] ?? 0) : cuarto
+      componentes.push({ etiqueta: `Descendientes (${nHijos})${monoparental ? ', familia monoparental ×1,5' : ''}`, centimos: numACentimos(suma * factorMono) })
+
+      const nMenores3 = Math.min(Math.max(0, parseInt(menores3, 10) || 0), nHijos)
+      if (nMenores3 > 0) {
+        componentes.push({ etiqueta: `Menores de 3 años (${nMenores3})`, centimos: numACentimos(imp('Incremento por descendiente menor de 3 años') * nMenores3 * factorMono) })
+      }
+    }
+
+    if (conyuge) {
+      const valorConyuge = impContiene('ónyuge')
+      if (valorConyuge > 0) componentes.push({ etiqueta: 'Cónyuge a cargo (rentas <8.000 €)', centimos: numACentimos(valorConyuge) })
+    }
+
+    const nAscendientes = Math.max(0, parseInt(ascendientes, 10) || 0)
+    if (nAscendientes > 0) {
+      const nMayores75 = Math.min(Math.max(0, parseInt(mayores75, 10) || 0), nAscendientes)
+      const baseAscendente = imp('Mínimo por ascendiente (mayor 65 años o con discapacidad)')
+      const sumaAsc =
+        baseAscendente * (nAscendientes - nMayores75) +
+        (baseAscendente + imp('Incremento por ascendiente mayor de 75 años')) * nMayores75
+      componentes.push({ etiqueta: `Ascendientes a cargo (${nAscendientes})${monoparental ? ', familia monoparental ×1,5' : ''}`, centimos: numACentimos(sumaAsc * factorMono) })
+    }
+
+    if (discapacidad === '65') {
+      componentes.push({ etiqueta: 'Discapacidad contribuyente ≥65%', centimos: numACentimos(impContiene('grado ≥65%')) })
+      if (ayudaTerceras) {
+        componentes.push({ etiqueta: 'Ayuda terceras personas / movilidad reducida', centimos: numACentimos(impContiene('Incremento por ayuda de terceras personas')) })
+      }
+    } else if (discapacidad === '33') {
+      componentes.push({ etiqueta: 'Discapacidad contribuyente ≥33%', centimos: numACentimos(impContiene('grado ≥33%')) })
+    }
+
+    return componentes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [edad, hijos, menores3, ascendientes, mayores75, monoparental, conyuge, discapacidad, ayudaTerceras, minimosTerritorio])
 
   const resultado = useMemo(() => {
-    const base = parseEuros(baseLiquidable)
-    if (base === null || !datos.escalaEstatal || !datos.escalaAutonomica) return null
     try {
-      return calcularIrpf(
-        Math.round(base * 100),
-        datos.escalaEstatal as EscalaIrpf,
-        datos.escalaAutonomica as EscalaIrpf
-      )
-    } catch {
-      return null
-    }
-  }, [baseLiquidable, datos.escalaEstatal, datos.escalaAutonomica])
+      const trabajoCents = eurosACentimos(trabajo)
+      const reduccion = trabajoCents > 0 ? reduccionRendimientosTrabajoCents(trabajoCents) : 0
+      const baseGeneral = Math.max(0, trabajoCents - reduccion) + eurosACentimos(actividades)
 
-  const sinEscalas = !datos.escalaEstatal || !datos.escalaAutonomica
+      const escalasGenerales = [datos.escalaEstatal, datos.escalaAutonomica].filter(
+        (e): e is NonNullable<typeof e> => e !== null
+      )
+      if (!escalasGenerales.length) return { error: 'No hay escala IRPF disponible para este territorio.' } as const
+
+      return {
+        reduccionTrabajoCents: reduccion,
+        resultado: calcularCuotaLiquida({
+          baseGeneralCents: baseGeneral,
+          baseAhorroCents: eurosACentimos(ahorro),
+          minimoPersonalYFamiliarCents: desgloseMinimo.reduce((acc, c) => acc + c.centimos, 0),
+          deduccionesCents: eurosACentimos(deduccionesManuales),
+          pagosACuentaCents: eurosACentimos(pagosACuenta),
+          escalasGenerales,
+        }),
+        error: null,
+      } as const
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : 'Error en el cálculo', resultado: null, reduccionTrabajoCents: 0 } as const
+    }
+  }, [trabajo, actividades, ahorro, pagosACuenta, deduccionesManuales, desgloseMinimo, datos.escalaEstatal, datos.escalaAutonomica])
+
+  const sinEscalas = !datos.escalaEstatal && !datos.escalaAutonomica
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>IRPF {datos.taxYear} · escala estatal + autonómica</CardTitle>
-        <CardDescription>Cuota íntegra sobre la base liquidable, antes de mínimos y deducciones.</CardDescription>
+        <CardTitle>IRPF {datos.taxYear} · cuota líquida completa</CardTitle>
+        <CardDescription>
+          Reducción del trabajo, mínimos personales y familiares, escala del ahorro (art. 63 LIRPF),
+          deducciones y pagos a cuenta.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="max-w-xs space-y-2">
-          <Label htmlFor="base-irpf">Base liquidable (€)</Label>
-          <Input
-            id="base-irpf"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="25000"
-            value={baseLiquidable}
-            onChange={e => setBaseLiquidable(e.target.value)}
-          />
+      <CardContent className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Rentas</p>
+            <div className="space-y-2">
+              <Label htmlFor="irpf-trabajo">Rendimiento neto del trabajo (€)</Label>
+              <Input id="irpf-trabajo" type="number" min="0" step="0.01" placeholder="25000" value={trabajo} onChange={e => setTrabajo(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="irpf-actividades">Actividades económicas netas (€)</Label>
+              <Input id="irpf-actividades" type="number" min="0" step="0.01" placeholder="0" value={actividades} onChange={e => setActividades(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="irpf-ahorro">Base liquidable del ahorro (€)</Label>
+              <Input id="irpf-ahorro" type="number" min="0" step="0.01" placeholder="0" value={ahorro} onChange={e => setAhorro(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="irpf-deducciones">Deducciones estimadas (€)</Label>
+              <Input id="irpf-deducciones" type="number" min="0" step="0.01" placeholder="0" value={deduccionesManuales} onChange={e => setDeduccionesManuales(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="irpf-pagos">Retenciones y pagos fraccionados (€)</Label>
+              <Input id="irpf-pagos" type="number" min="0" step="0.01" placeholder="0" value={pagosACuenta} onChange={e => setPagosACuenta(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Mínimo personal y familiar</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="irpf-edad">Edad del contribuyente</Label>
+                <select
+                  id="irpf-edad"
+                  value={edad}
+                  onChange={e => setEdad(e.target.value as RangoEdad)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                >
+                  <option value="menos65">Menos de 65</option>
+                  <option value="65a75">Entre 65 y 75</option>
+                  <option value="mas75">Más de 75</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="irpf-discapacidad">Discapacidad contribuyente</Label>
+                <select
+                  id="irpf-discapacidad"
+                  value={discapacidad}
+                  onChange={e => setDiscapacidad(e.target.value as GradoDiscapacidad)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                >
+                  <option value="ninguna">Ninguna</option>
+                  <option value="33">Grado ≥33%</option>
+                  <option value="65">Grado ≥65%</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="irpf-hijos">Descendientes</Label>
+                <Input id="irpf-hijos" type="number" min="0" max="10" value={hijos} onChange={e => setHijos(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="irpf-menores3">De ellos, menores de 3 años</Label>
+                <Input id="irpf-menores3" type="number" min="0" max="10" value={menores3} onChange={e => setMenores3(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="irpf-ascendientes">Ascendientes a cargo</Label>
+                <Input id="irpf-ascendientes" type="number" min="0" max="10" value={ascendientes} onChange={e => setAscendientes(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="irpf-mayores75">De ellos, mayores de 75</Label>
+                <Input id="irpf-mayores75" type="number" min="0" max="10" value={mayores75} onChange={e => setMayores75(e.target.value)} />
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 text-sm">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={conyuge} onChange={e => setConyuge(e.target.checked)} className="h-4 w-4 accent-[--primary]" />
+                Cónyuge a cargo con rentas &lt;8.000 €
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={monoparental} onChange={e => setMonoparental(e.target.checked)} className="h-4 w-4 accent-[--primary]" />
+                Familia monoparental (mínimos descendientes/ascendientes ×1,5)
+              </label>
+              <label className={`flex items-center gap-2 ${discapacidad !== '65' ? 'opacity-50' : ''}`}>
+                <input
+                  type="checkbox"
+                  checked={ayudaTerceras}
+                  disabled={discapacidad !== '65'}
+                  onChange={e => setAyudaTerceras(e.target.checked)}
+                  className="h-4 w-4 accent-[--primary]"
+                />
+                Ayuda de terceras personas o movilidad reducida (solo ≥65%)
+              </label>
+            </div>
+            {minimosTerritorio.esReferenciaEstatal && (
+              <p className="text-xs text-muted-foreground">
+                Sin mínimos propios para {comunidad}: se usan los de referencia estatal (los forales tienen valores distintos).
+              </p>
+            )}
+          </div>
         </div>
 
-        {sinEscalas && (
+        {(sinEscalas || resultado.error) && (
           <p role="alert" className="text-sm text-destructive">
-            No hay escala disponible para {comunidad}. Los territorios forales requieren escalas propias todavía no incluidas.
+            {resultado.error ?? 'No hay escala disponible para este territorio.'}
           </p>
         )}
 
-        {resultado && (
+        {resultado.resultado && (
           <>
-            <dl className="grid gap-3 sm:grid-cols-3">
+            <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-lg border p-3">
-                <dt className="text-xs text-muted-foreground">Cuota estatal</dt>
-                <dd className="text-lg font-semibold">{eur(resultado.estatal.cuotaTotalCentimos)}</dd>
-                <dd className="text-xs text-muted-foreground">Tipo medio {resultado.estatal.tipoMedioPct}%</dd>
+                <dt className="text-xs text-muted-foreground">Reducción por rendimientos del trabajo</dt>
+                <dd className="text-lg font-semibold">{eur(resultado.reduccionTrabajoCents)}</dd>
               </div>
               <div className="rounded-lg border p-3">
-                <dt className="text-xs text-muted-foreground">Cuota autonómica</dt>
-                <dd className="text-lg font-semibold">{eur(resultado.autonomica.cuotaTotalCentimos)}</dd>
-                <dd className="text-xs text-muted-foreground">Tipo medio {resultado.autonomica.tipoMedioPct}%</dd>
+                <dt className="text-xs text-muted-foreground">Mínimo personal y familiar</dt>
+                <dd className="text-lg font-semibold">{eur(desgloseMinimo.reduce((acc, c) => acc + c.centimos, 0))}</dd>
+              </div>
+              <div className="rounded-lg border p-3">
+                <dt className="text-xs text-muted-foreground">Cuota íntegra</dt>
+                <dd className="text-lg font-semibold">{eur(resultado.resultado.cuotaIntegraTotalCents)}</dd>
               </div>
               <div className="rounded-lg border border-primary/50 bg-primary/5 p-3">
-                <dt className="text-xs text-muted-foreground">Cuota íntegra</dt>
-                <dd className="text-lg font-bold text-primary">{eur(resultado.cuotaIntegraCentimos)}</dd>
-                <dd className="text-xs text-muted-foreground">
-                  Tipo medio{' '}
-                  {Number(((resultado.cuotaIntegraCentimos / Math.max(resultado.baseLiquidableCentimos, 1)) * 100).toFixed(2))}%
+                <dt className="text-xs text-muted-foreground">Cuota líquida</dt>
+                <dd className="text-lg font-bold text-primary">{eur(resultado.resultado.cuotaLiquidaCents)}</dd>
+                <dd className={`text-xs ${resultado.resultado.cuotaDiferenciaCents <= 0 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  {resultado.resultado.cuotaDiferenciaCents <= 0
+                    ? `Devolución estimada ${eur(Math.abs(resultado.resultado.cuotaDiferenciaCents))}`
+                    : `A ingresar ${eur(resultado.resultado.cuotaDiferenciaCents)}`}
                 </dd>
               </div>
             </dl>
-            <TablaDetalle titulo="Detalle escala estatal" detalle={resultado.estatal.detalle} />
-            <TablaDetalle titulo={`Detalle escala autonómica (${comunidad})`} detalle={resultado.autonomica.detalle} />
+
+            <div className="rounded-lg border p-3 text-sm space-y-1">
+              <p className="font-medium mb-1">Composición del mínimo personal y familiar</p>
+              {desgloseMinimo.map(c => (
+                <p key={c.etiqueta} className="flex justify-between gap-4 text-muted-foreground">
+                  <span>{c.etiqueta}</span>
+                  <span>{eur(c.centimos)}</span>
+                </p>
+              ))}
+            </div>
+
+            <TablaDetalle titulo="Detalle escala estatal" detalle={resultado.resultado.detalleGeneral[0]?.detalle ?? []} />
+            <TablaDetalle titulo={`Detalle escala autonómica (${comunidad})`} detalle={resultado.resultado.detalleGeneral[1]?.detalle ?? []} />
+            <TablaDetalle titulo="Detalle base del ahorro (art. 63 LIRPF)" detalle={resultado.resultado.detalleAhorro[0]?.detalle ?? []} />
+
+            <p className="text-xs text-muted-foreground">
+              Cálculo orientativo: no incluye deducciones autonómicas específicas, aportaciones a planes de pensiones
+              ni otras partidas particulares. Consulta la declaración oficial antes de presentar.
+            </p>
           </>
         )}
 
-        {!resultado && !sinEscalas && (
+        {!resultado.resultado && !resultado.error && !sinEscalas && (
           <Button disabled className="gap-2 opacity-60 cursor-default">
             <Calculator className="h-4 w-4" aria-hidden="true" />
-            Introduce la base para calcular
+            Introduce tus rentas para calcular
           </Button>
         )}
       </CardContent>

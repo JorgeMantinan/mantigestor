@@ -86,29 +86,36 @@ export async function obtenerEscalasIrpf(
   if (estatalRes.escala) avisos.push(...estatalRes.avisos)
 
   let autonomica: EscalaIrpf | null = null
-  if (!jurisdiccion.usaEscalaComun) {
+  let estatal = estatalRes.escala
+  const filas = (autRes.data ?? []).filter(
+    f =>
+      normalizarTerritorio(String(f.comunidad)) === jurisdiccion.nombreNormalizado &&
+      Number(f.tramo) > 0
+  )
+  if (!jurisdiccion.usaEscalaComun && !filas.length) {
     avisos.push(
       `${jurisdiccion.regimen}: territorio foral con escala propia no incluida todavía en la base de datos.`,
     )
   } else {
-    const filas = (autRes.data ?? []).filter(
-      f =>
-        normalizarTerritorio(String(f.comunidad)) === jurisdiccion.nombreNormalizado &&
-        Number(f.tramo) > 0
-    )
     const tramos = aTramosIrpf(filas as Array<Record<string, unknown>>, 'tipoAutonomicoPct')
     if (!filas.length) {
       avisos.push(`No hay escala autonómica de IRPF para "${comunidadEntrada}" en ${taxYear}`)
     } else {
       if (filas.some(f => f.status !== 'OFFICIAL_VERIFIED')) avisos.push(AVISO_NO_VERIFICADO)
       autonomica = { ambito: 'AUTONOMICO', comunidad: String(filas[0]?.comunidad), taxYear, tramos }
+      if (!jurisdiccion.usaEscalaComun) {
+        estatal = null
+        avisos.push(
+          `${jurisdiccion.regimen}: régimen foral — la escala indicada es la tarifa íntegra del territorio y NO se suma a la estatal.`,
+        )
+      }
     }
   }
 
   return {
     regimen: jurisdiccion.regimen,
     comunidad: comunidadEntrada,
-    estatal: estatalRes.escala,
+    estatal,
     autonomica,
     avisos,
   }
