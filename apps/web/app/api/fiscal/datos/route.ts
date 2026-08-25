@@ -4,6 +4,7 @@ import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/l
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import {
   obtenerEscalasIrpf,
+  obtenerEscalaAhorroForal,
   obtenerTramosReta,
   obtenerProximosPlazosFiscales,
   obtenerReglasIva,
@@ -43,8 +44,9 @@ export async function GET(req: NextRequest) {
     const taxYear = parseInt(searchParams.get('taxYear') ?? '2025', 10)
     if (!/^(19|20)\d{2}$/.test(String(taxYear))) return badRequest('Año fiscal inválido')
 
-    const [escalas, reta, plazos, iva, is, patrimonio, minimos, reducciones] = await Promise.all([
+    const [escalas, ahorroForal, reta, plazos, iva, is, patrimonio, minimos, reducciones] = await Promise.all([
       obtenerEscalasIrpf(supabase, comunidad, taxYear),
+      obtenerEscalaAhorroForal(supabase, comunidad, taxYear),
       obtenerTramosReta(supabase, 2026),
       obtenerProximosPlazosFiscales(supabase, new Date()),
       obtenerReglasIva(supabase, taxYear),
@@ -56,6 +58,7 @@ export async function GET(req: NextRequest) {
 
     const avisos = [
       ...escalas.avisos,
+      ...ahorroForal.avisos,
       ...reta.avisos,
       ...patrimonio.avisos,
       ...(iva.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []),
@@ -71,6 +74,7 @@ export async function GET(req: NextRequest) {
         regimen: escalas.regimen,
         escalaEstatal: escalas.estatal,
         escalaAutonomica: escalas.autonomica,
+        escalaAhorroForal: ahorroForal.escala,
         reglasIva: iva,
         tramosReta: reta.tramos,
         tiposIs: is,

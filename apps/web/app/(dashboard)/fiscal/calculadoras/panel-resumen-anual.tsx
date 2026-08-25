@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Printer } from 'lucide-react'
+import { proximosPlazos } from '@mantigestor/utils'
 import { eur, type DatosFiscales } from './types'
 
 export function PanelResumenAnual({
@@ -14,11 +15,8 @@ export function PanelResumenAnual({
 }) {
   const minimos = datos.minimos.filter(m => m.territorio === comunidad)
   const minimosRef = minimos.length ? minimos : datos.minimos.filter(m => m.territorio.toLowerCase().includes('estatal'))
-  const plazosProximos = datos.plazos
-    .filter((p): p is typeof p & { fechaLimiteReferencia: Date } => p.fechaLimiteReferencia !== null)
-    .filter(p => p.fechaLimiteReferencia.getTime() >= Date.now())
-    .sort((a, b) => a.fechaLimiteReferencia.getTime() - b.fechaLimiteReferencia.getTime())
-    .slice(0, 8)
+  // proximosPlazos normaliza fechas que llegan como string ISO vía JSON y descarta pasadas/inválidas
+  const plazosProximos = proximosPlazos(datos.plazos, new Date(), 8)
 
   return (
     <div className="space-y-4">

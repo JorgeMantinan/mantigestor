@@ -11,6 +11,7 @@ export interface DatosFiscales {
   regimen: string
   escalaEstatal: EscalaIrpf | null
   escalaAutonomica: EscalaIrpf | null
+  escalaAhorroForal: EscalaIrpf | null
   reglasIva: ReglaIva[]
   tramosReta: TramoReta[]
   tiposIs: TipoIs[]

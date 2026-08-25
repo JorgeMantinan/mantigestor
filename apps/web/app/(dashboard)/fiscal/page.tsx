@@ -102,6 +102,19 @@ function leerPerfil(): PerfilFiscal | null {
   return p === 'autonomo' || p === 'sociedad' || p === 'empleado' || p === 'alquilador' ? p : null
 }
 
+/** Guarda el perfil fiscal en BD (multi-dispositivo). Fallo silencioso: localStorage ya lo conserva. */
+async function guardarPerfilBd(cuerpo: { comunidadFiscal?: string; perfilFiscal?: PerfilFiscal }): Promise<void> {
+  try {
+    await fetch('/api/fiscal/perfil', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cuerpo),
+    })
+  } catch {
+    // sin conexión o sin sesión: se mantiene la preferencia local
+  }
+}
+
 export default function PaginaFiscal() {
   const [seccion, setSeccion] = useState<SeccionKey>('irpf')
   const [comunidad, setComunidad] = useState('Madrid (Comunidad de)')
@@ -112,11 +125,36 @@ export default function PaginaFiscal() {
   const [error, setError] = useState<string | null>(null)
   const [perfil, setPerfil] = useState<PerfilFiscal | null>(null)
   const [mostrarWizard, setMostrarWizard] = useState(false)
+  const [sincronizado, setSincronizado] = useState(false)
 
   useEffect(() => {
     const p = leerPerfil()
     setPerfil(p)
     setMostrarWizard(!p)
+    // Sincroniza con la BD ANTES de la primera carga de datos: la preferencia guardada
+    // en cuenta manda sobre el dispositivo local y evita cargas en carrera con distinta comunidad
+    void (async () => {
+      try {
+        const res = await fetch('/api/fiscal/perfil')
+        if (res.ok) {
+          const json = (await res.json()) as {
+            data?: { comunidadFiscal?: string | null; perfilFiscal?: PerfilFiscal | null }
+          }
+          const bd = json.data
+          if (bd?.comunidadFiscal) setComunidad(bd.comunidadFiscal)
+          if (bd?.perfilFiscal) {
+            setPerfil(bd.perfilFiscal)
+            setMostrarWizard(false)
+            // Nota: NO forzamos aquí seccionInicial para no pisar la elección
+            // del usuario si interactúa antes de que resuelva la sincronización
+          }
+        }
+      } catch {
+        // sin sesión o red caída: seguimos con localStorage
+      } finally {
+        setSincronizado(true)
+      }
+    })()
   }, [])
 
   const cargarDatos = useCallback(async (comunidadSel: string, anhoSel: number, forzar = false) => {
@@ -154,8 +192,9 @@ export default function PaginaFiscal() {
   }, [])
 
   useEffect(() => {
+    if (!sincronizado) return
     void cargarDatos(comunidad, taxYear)
-  }, [cargarDatos, comunidad, taxYear])
+  }, [sincronizado, cargarDatos, comunidad, taxYear])
 
   const elegirPerfil = (p: PerfilFiscal) => {
     setPerfil(p)
@@ -165,6 +204,7 @@ export default function PaginaFiscal() {
     } catch {
       // almacenamiento bloqueado: solo estado de sesión
     }
+    void guardarPerfilBd({ perfilFiscal: p, comunidadFiscal: comunidad })
     const config = PERFILES.find(x => x.key === p)
     if (config) setSeccion(config.seccionInicial)
   }
@@ -214,7 +254,10 @@ export default function PaginaFiscal() {
             <select
               id="comunidad-fiscal"
               value={comunidad}
-              onChange={e => setComunidad(e.target.value)}
+              onChange={e => {
+                setComunidad(e.target.value)
+                void guardarPerfilBd({ comunidadFiscal: e.target.value })
+              }}
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
             >
               {COMUNIDADES.map(c => (

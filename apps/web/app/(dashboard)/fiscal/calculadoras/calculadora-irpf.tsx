@@ -162,6 +162,9 @@ export function CalculadoraIrpf({
       )
       if (!escalasGenerales.length) return { error: 'No hay escala IRPF disponible para este territorio.' } as const
 
+      const escalaAhorroForal = datos.escalaAhorroForal
+      const escalasAhorro = escalaAhorroForal ? [escalaAhorroForal] : undefined
+
       return {
         reduccionTrabajoCents: reduccion,
         resultado: calcularCuotaLiquida({
@@ -171,13 +174,14 @@ export function CalculadoraIrpf({
           deduccionesCents: eurosACentimos(deduccionesManuales),
           pagosACuentaCents: eurosACentimos(pagosACuenta),
           escalasGenerales,
+          escalasAhorro,
         }),
         error: null,
       } as const
     } catch (e) {
       return { error: e instanceof Error ? e.message : 'Error en el cálculo', resultado: null, reduccionTrabajoCents: 0 } as const
     }
-  }, [trabajo, actividades, ahorro, pagosACuenta, deduccionesManuales, desgloseMinimo, datos.escalaEstatal, datos.escalaAutonomica])
+  }, [trabajo, actividades, ahorro, pagosACuenta, deduccionesManuales, desgloseMinimo, datos.escalaEstatal, datos.escalaAutonomica, datos.escalaAhorroForal])
 
   const sinEscalas = !datos.escalaEstatal && !datos.escalaAutonomica
 

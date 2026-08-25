@@ -19,6 +19,46 @@ export interface EscalasIrpfResultado {
   avisos: string[]
 }
 
+export async function obtenerEscalaAhorroForal(
+  client: SupabaseClient,
+  comunidadEntrada: string,
+  taxYear: number,
+): Promise<{ escala: EscalaIrpf | null; avisos: string[] }> {
+  const jurisdiccion = resolverJurisdiccion(comunidadEntrada)
+  if (jurisdiccion.usaEscalaComun) return { escala: null, avisos: [] }
+
+  const { data, error } = await client
+    .from('irpf_tramos_ahorro')
+    .select('territorio, tramo, desdeEur, hastaEur, tipoPct, status')
+    .eq('taxYear', taxYear)
+    .order('desdeEur')
+
+  if (error) throw error
+  const filas = ((data ?? []) as Array<Record<string, unknown>>).filter(
+    f =>
+      normalizarTerritorio(String(f.territorio)) === jurisdiccion.nombreNormalizado &&
+      Number(f.tramo) > 0,
+  )
+  if (!filas.length) {
+    return {
+      escala: null,
+      avisos: [
+        `${jurisdiccion.regimen}: territorio foral con escala del ahorro propia no incluida todavía en la base de datos.`,
+      ],
+    }
+  }
+  const avisos = filas.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []
+  return {
+    escala: {
+      ambito: 'AUTONOMICO',
+      comunidad: String(filas[0]?.territorio),
+      taxYear,
+      tramos: aTramosIrpf(filas, 'tipoPct'),
+    },
+    avisos,
+  }
+}
+
 export function eurosACentimos(valor: number): number {
   return Math.round(valor * 100)
 }
