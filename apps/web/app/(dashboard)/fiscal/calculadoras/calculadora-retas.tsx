@@ -15,18 +15,20 @@ export function CalculadoraReta({ datos }: { datos: DatosFiscales }) {
     if (cantidad === null || !datos.tramosReta.length) return null
     try {
       const tramo = seleccionarTramoReta(Math.round(cantidad * 100), datos.tramosReta)
-      return estimarCuotaReta(tramo)
+      const pct = datos.cotizacionRetaPct ?? 31.5
+      return estimarCuotaReta(tramo, pct)
     } catch {
       return null
     }
-  }, [rendimiento, datos.tramosReta])
+  }, [rendimiento, datos.tramosReta, datos.cotizacionRetaPct])
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>RETA · cotización de autónomos {datos.tramosReta[0]?.tabla ?? ''}</CardTitle>
         <CardDescription>
-          Base de cotización según rendimiento neto mensual y cuota estimada al tipo de referencia.
+          Base de cotización según rendimiento neto mensual y cuota estimada al tipo de referencia
+          {datos.cotizacionRetaPct != null ? ` (${datos.cotizacionRetaPct}%)` : ''}.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -56,7 +58,7 @@ export function CalculadoraReta({ datos }: { datos: DatosFiscales }) {
               </dd>
             </div>
             <div className="rounded-lg border border-primary/50 bg-primary/5 p-3">
-              <dt className="text-xs text-muted-foreground">Cuota estimada (31,5%)</dt>
+              <dt className="text-xs text-muted-foreground">Cuota estimada ({datos.cotizacionRetaPct ?? 31.5}%)</dt>
               <dd className="text-lg font-bold text-primary">
                 {estimacion.cuotaEstimadaMinCentimos === null
                   ? '—'

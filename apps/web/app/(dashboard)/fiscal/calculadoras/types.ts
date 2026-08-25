@@ -14,6 +14,7 @@ export interface DatosFiscales {
   escalaAhorroForal: EscalaIrpf | null
   reglasIva: ReglaIva[]
   tramosReta: TramoReta[]
+  cotizacionRetaPct: number | null
   tiposIs: TipoIs[]
   escalaPatrimonio: TramoIrpf[]
   minimos: MinimoFamiliar[]

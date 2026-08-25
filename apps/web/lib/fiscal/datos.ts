@@ -198,6 +198,24 @@ export async function obtenerTramosReta(
   return { tramos, avisos }
 }
 
+export async function obtenerCotizacionReta(
+  client: SupabaseClient,
+  taxYear: number,
+): Promise<{ porcentaje: number | null; avisos: string[] }> {
+  const { data, error } = await client
+    .from('cotizaciones_seg_social')
+    .select('pctTotal, status')
+    .eq('regimen', 'RETA (autónomos)')
+    .eq('concepto', 'TOTAL cotización RETA')
+    .eq('taxYear', taxYear)
+    .single()
+
+  if (error || !data) return { porcentaje: null, avisos: [`No hay cotización RETA para el año ${taxYear}`] }
+  const porcentaje = data.pctTotal != null ? Number(data.pctTotal) : null
+  const avisos = data.status !== 'OFFICIAL_VERIFIED' ? [AVISO_NO_VERIFICADO] : []
+  return { porcentaje, avisos }
+}
+
 export async function obtenerProximosPlazosFiscales(
   client: SupabaseClient,
   hoy: Date,

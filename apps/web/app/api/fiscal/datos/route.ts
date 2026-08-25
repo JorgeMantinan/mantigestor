@@ -6,6 +6,7 @@ import {
   obtenerEscalasIrpf,
   obtenerEscalaAhorroForal,
   obtenerTramosReta,
+  obtenerCotizacionReta,
   obtenerProximosPlazosFiscales,
   obtenerReglasIva,
   obtenerTiposIs,
@@ -44,10 +45,11 @@ export async function GET(req: NextRequest) {
     const taxYear = parseInt(searchParams.get('taxYear') ?? '2025', 10)
     if (!/^(19|20)\d{2}$/.test(String(taxYear))) return badRequest('Año fiscal inválido')
 
-    const [escalas, ahorroForal, reta, plazos, iva, is, patrimonio, minimos, reducciones] = await Promise.all([
+    const [escalas, ahorroForal, reta, cotizacionReta, plazos, iva, is, patrimonio, minimos, reducciones] = await Promise.all([
       obtenerEscalasIrpf(supabase, comunidad, taxYear),
       obtenerEscalaAhorroForal(supabase, comunidad, taxYear),
       obtenerTramosReta(supabase, 2026),
+      obtenerCotizacionReta(supabase, 2026),
       obtenerProximosPlazosFiscales(supabase, new Date()),
       obtenerReglasIva(supabase, taxYear),
       obtenerTiposIs(supabase),
@@ -60,6 +62,7 @@ export async function GET(req: NextRequest) {
       ...escalas.avisos,
       ...ahorroForal.avisos,
       ...reta.avisos,
+      ...cotizacionReta.avisos,
       ...patrimonio.avisos,
       ...(iva.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []),
       ...(is.filter(f => !f.previsto).some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []),
@@ -77,6 +80,7 @@ export async function GET(req: NextRequest) {
         escalaAhorroForal: ahorroForal.escala,
         reglasIva: iva,
         tramosReta: reta.tramos,
+        cotizacionRetaPct: cotizacionReta.porcentaje,
         tiposIs: is,
         escalaPatrimonio: patrimonio.tramos,
         minimos,
