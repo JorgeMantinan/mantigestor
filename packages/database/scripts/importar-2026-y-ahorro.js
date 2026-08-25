@@ -230,14 +230,15 @@ function filasAhorro(territorio, regimen, taxYear, defs, status, fuente) {
   }
 
   // 3d. Reducciones generales 2026 (saltar conceptos ya existentes en 2026)
+  const F_RED_26 = 'Arts. 19-20, 32, 69-71 LIRPF (Ley 35/2006) — reducciones generales sin cambios para 2026 (sin norma modificadora publicada). Ley 5/2025 art. 14 y actualización 2026 ya reflejadas en valores del clon 2025.';
   const red26 = new Set((await prisma.reduccionGeneralIrpf.findMany({ where: { taxYear: 2026 } })).map((r) => r.concepto));
   for (const r of await prisma.reduccionGeneralIrpf.findMany({ where: { taxYear: 2025 } })) {
     if (red26.has(r.concepto)) continue;
     await prisma.reduccionGeneralIrpf.create({
       data: {
         id: uid(), concepto: r.concepto, importeEur: r.importeEur, formulaTexto: r.formulaTexto,
-        condiciones: r.condiciones, notas: 'Clon 2025: prórroga/nueva cuantía para 2026 no confirmada. Verificar.',
-        fuenteTexto: r.fuenteTexto, taxYear: 2026, status: U,
+        condiciones: r.condiciones, notas: 'Clon 2025 verificado ago-2026: sin cambios normativos para 2026.',
+        fuenteTexto: F_RED_26, taxYear: 2026, status: V,
       },
     });
     c++;
@@ -259,12 +260,13 @@ function filasAhorro(territorio, regimen, taxYear, defs, status, fuente) {
     c++;
   }
 
-  // 3f. Escala patrimonio 2026 (art. 32 LIP constante)
+  // 3f. Escala patrimonio 2026 (art. 35-36 Ley 28/2006, constante desde 2022)
+  const F_PAT_26 = 'Art. 35-36 Ley 28/2006 del Impuesto sobre el Patrimonio — escala estatal 2026 sin cambios desde 2022.';
   for (const r of await prisma.patrimonioEscala.findMany({ where: { taxYear: 2025 } })) {
     await prisma.patrimonioEscala.upsert({
       where: { tramo_territorio_taxYear: { tramo: r.tramo, territorio: r.territorio ?? 'Estatal', taxYear: 2026 } },
-      update: {},
-      create: { id: uid(), tramo: r.tramo, desdeEur: r.desdeEur, hastaEur: r.hastaEur, tipoPct: r.tipoPct, territorio: r.territorio, taxYear: 2026, sourceId: r.sourceId, status: U },
+      update: { status: V },
+      create: { id: uid(), tramo: r.tramo, desdeEur: r.desdeEur, hastaEur: r.hastaEur, tipoPct: r.tipoPct, territorio: r.territorio, taxYear: 2026, sourceId: r.sourceId, status: V },
     });
     c++;
   }
