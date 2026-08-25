@@ -74,19 +74,22 @@ export default function PreciosPage() {
             </Link>
           </div>
           <nav className="flex items-center gap-4">
-            {user && (
-              <Link href="/dashboard" className="hidden sm:inline-flex">
-                <Button variant="ghost" size="sm">
-                  ← Volver al Dashboard
-                </Button>
-              </Link>
-            )}
             {cargando ? null : user ? (
-              <Link href="/dashboard">
-                <Button>Ir al dashboard</Button>
-              </Link>
+              <>
+                <Link href="/dashboard" className="hidden sm:inline-flex">
+                  <Button variant="ghost" size="sm">
+                    ← Volver al Dashboard
+                  </Button>
+                </Link>
+                <Link href="/dashboard">
+                  <Button>Ir al dashboard</Button>
+                </Link>
+              </>
             ) : (
               <>
+                <Link href="/">
+                  <Button variant="ghost">← Volver</Button>
+                </Link>
                 <Link href="/login">
                   <Button variant="ghost">Iniciar sesión</Button>
                 </Link>
