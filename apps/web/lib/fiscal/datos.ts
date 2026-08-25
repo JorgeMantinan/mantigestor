@@ -36,7 +36,7 @@ export async function obtenerEscalaAhorroForal(
   if (error) throw error
   const filas = ((data ?? []) as Array<Record<string, unknown>>).filter(
     f =>
-      normalizarTerritorio(String(f.territorio)) === jurisdiccion.nombreNormalizado &&
+      coincideTerritorio(String(f.territorio), jurisdiccion.nombreNormalizado) &&
       Number(f.tramo) > 0,
   )
   if (!filas.length) {
@@ -67,6 +67,16 @@ function decimalANumero(v: unknown): number | null {
   if (v === null || v === undefined || v === '') return null
   const n = typeof v === 'number' ? v : parseFloat(String(v))
   return Number.isFinite(n) ? n : null
+}
+
+function coincideTerritorio(nombreDb: string, objetivo: string): boolean {
+  const palabrasA = normalizarTerritorio(nombreDb).split(/[^a-z0-9]+/).filter(Boolean)
+  const palabrasB = normalizarTerritorio(objetivo).split(/[^a-z0-9]+/).filter(Boolean)
+  if (!palabrasA.length || !palabrasB.length) return false
+  const [cortas, largas] =
+    palabrasA.length <= palabrasB.length ? [palabrasA, palabrasB] : [palabrasB, palabrasA]
+  const disponibles = new Set(largas)
+  return cortas.every(p => disponibles.has(p))
 }
 
 function aTramosIrpf(filas: Array<Record<string, unknown>>, campoTipo: string): TramoIrpf[] {
@@ -129,7 +139,7 @@ export async function obtenerEscalasIrpf(
   let estatal = estatalRes.escala
   const filas = (autRes.data ?? []).filter(
     f =>
-      normalizarTerritorio(String(f.comunidad)) === jurisdiccion.nombreNormalizado &&
+      coincideTerritorio(String(f.comunidad), jurisdiccion.nombreNormalizado) &&
       Number(f.tramo) > 0
   )
   if (!jurisdiccion.usaEscalaComun && !filas.length) {
