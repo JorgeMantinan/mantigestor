@@ -102,12 +102,18 @@ function filasAhorro(territorio, regimen, taxYear, defs, status, fuente) {
     c++;
   }
 
-  // 3b. Escalas autonómicas 2026. País Vasco y Navarra: verificadas ago-2026 contra fuentes primarias; resto: clon 2025 no verificado.
+  // 3b. Escalas autonómicas 2026. PV, Navarra, C. Valenciana y Extremadura: verificadas ago-2026 contra fuentes primarias; resto: clon 2025 verificado (sin cambios normativos).
   const F_PV_26 = 'Art. 75 NF 13/2013 del IRPF (redacción NF 7/2025 Presupuestos THB), BOB · escala foral deflactada 2% para 2026, idéntica en Álava/Bizkaia/Gipuzkoa (NF 6/2025 Gipuzkoa; NF 21/2025 Álava) · verificado ago-2026: https://guiafiscal.es/irpf/tablas-irpf-bizkaia/';
   const PV_2026 = [
     [1, 0, 18080, 23], [2, 18080, 36160, 28], [3, 36160, 54240, 35], [4, 54240, 77450, 40],
     [5, 77450, 107260, 45], [6, 107260, 142960, 46], [7, 142960, 208390, 47], [8, 208390, null, 49],
   ];
+  // Ley 5/2026 de 31-jul (DOGV 10425, art. 18): mismos umbrales, tipos rebajados, retroactiva 1-1-2026
+  const F_CV_26 = 'Art. 2 Ley 13/1997 (redacción art. 18 Ley 5/2026, DOGV núm. 10425, 10-ago-2026), rebaja retroactiva desde 1-1-2026 · verificado ago-2026: https://guiafiscal.es/irpf/valencia/';
+  const TIPOS_CV_26 = { 1: 8.8, 2: 11.7, 3: 14.6, 4: 17, 5: 19.4, 6: 21.9, 7: 24.4, 8: 26.1, 9: 27.35, 10: 28.35, 11: 29.35 };
+  // DF 2.ª Ley 2/2026 de 3-agos (DOE 4-ago-2026): rebaja tramos 1-2 retroactiva 1-1-2026
+  const F_EXT_26 = 'Art. 1 DLeg 1/2018 (redacción DF 2.ª Ley 2/2026, DOE 4-ago-2026), rebaja tramos 1-2 retroactiva desde 1-1-2026 · verificado ago-2026: https://guiafiscal.es/irpf/extremadura/';
+  const TIPOS_EXT_26 = { 1: 7.75, 2: 9.75 };
   const autos25 = await prisma.irpfTramoAutonomico.findMany({ where: { taxYear: 2025 } });
   const porComunidad = new Map();
   for (const r of autos25) {
@@ -127,16 +133,59 @@ function filasAhorro(territorio, regimen, taxYear, defs, status, fuente) {
     } else {
       const navarra = comunidad.startsWith('Navarra');
       const fuenteNavarra = 'Art. 59 TRLIRPF Navarra (DF Legislativo 4/2008), escala fijada por Ley Foral 22/2023 con efectos 1-1-2024 y no modificada por LF 17/2025 · verificado ago-2026 contra tabla oficial vigente: https://taxdown.es/navarra-declaracion-renta/tramos-irpf-navarra-2026';
+      const esCV = comunidad === 'Comunitat Valenciana';
+      const esExt = comunidad === 'Extremadura';
+      // Escalas sin cambios normativos en 2026, verificadas ago-2026 contra fuentes autonómicas
+      const FUENTES_VERIFICADAS_26 = {
+        'Madrid (Comunidad de)': 'Art. 8 DLeg 1/2010 (redacción Ley 13/2023, BOE-A-2024-5610); tarifa deflactada sin cambios en 2026 · verificado ago-2026',
+        Cataluña: 'Art. 611-1 DLeg 1/2024 (redacción DL 5/2025, BOE-A-2025-10270); escala vigente 2025-2026 · verificado ago-2026',
+        Aragón: 'Art. 110-1 DLeg 1/2005 (mod. Leyes 12/2023 y 4/2024); sin nueva deflactación para 2026 · verificado ago-2026',
+        'Asturias (Principado de)': 'Ley 3/2025, de 19 de noviembre (BOPA 2-12-2025): rebaja 1er tramo al 9% y marginal al 26% · verificado ago-2026',
+        Galicia: 'Art. 4 DLeg 1/2011; tarifa deflactada 2023 intacta en 2026 · verificado ago-2026',
+        'Región de Murcia': 'DLeg 1/2010 (redacción Ley 11/2023, BORM); vigente desde 2024 · verificado ago-2026',
+        'La Rioja': 'Ley 10/2017 (redacción Ley 13/2023, BOE-A-2024-1778); vigente desde 2024 · verificado ago-2026',
+        Canarias: 'REF Ley 19/1994 (escala actualizada Ley 9/2025 BOC, deflactación 2,1%) · verificado ago-2026',
+        Cantabria: 'DLeg 62/2008 (redacción Ley 3/2023); vigente 2024-2026 · verificado ago-2026',
+        'Illes Balears': 'DLeg 1/2014 (redacción Ley 12/2023 PGIB); vigente 2024-2026 · verificado ago-2026',
+        Andalucía: 'Art. 23 Ley 5/2021 (redacción DL 7/2022); umbrales 13.000/21.100 deflactados · verificado ago-2026',
+        'Castilla y León': 'Art. 1 DLeg 1/2013; escala sin cambios 2024-2026 · verificado ago-2026',
+        'Castilla-La Mancha': 'Art. 13 bis Ley 8/2013 (mod. Ley 3/2024); escala igual a la supletoria · verificado ago-2026',
+        Ceuta: 'Arts. 65 y 74 LIRPF: escala supletoria idéntica a la estatal · deducción 50% art. 68.1 LIRPF · verificado ago-2026',
+        Melilla: 'Arts. 65 y 74 LIRPF: escala supletoria idéntica a la estatal · deducción 50% art. 68.1 LIRPF · verificado ago-2026',
+      };
+      const fuenteVerificada = FUENTES_VERIFICADAS_26[comunidad] ?? null;
       for (const r of filas) {
+        let updateExtra = {};
+        let statusFila = U;
+        let fuenteFila = r.fuenteTexto;
+        if (navarra) {
+          updateExtra = { status: V, fuenteTexto: fuenteNavarra };
+          statusFila = V;
+          fuenteFila = fuenteNavarra;
+        } else if (esCV && TIPOS_CV_26[r.tramo] != null) {
+          updateExtra = { tipoAutonomicoPct: TIPOS_CV_26[r.tramo], status: V, fuenteTexto: F_CV_26 };
+          statusFila = V;
+          fuenteFila = F_CV_26;
+        } else if (esExt && TIPOS_EXT_26[r.tramo] != null) {
+          updateExtra = { tipoAutonomicoPct: TIPOS_EXT_26[r.tramo], status: V, fuenteTexto: F_EXT_26 };
+          statusFila = V;
+          fuenteFila = F_EXT_26;
+        } else if (fuenteVerificada) {
+          updateExtra = { status: V, fuenteTexto: fuenteVerificada };
+          statusFila = V;
+          fuenteFila = fuenteVerificada;
+        }
         await prisma.irpfTramoAutonomico.upsert({
           where: { comunidad_tramo_taxYear: { comunidad, tramo: r.tramo, taxYear: 2026 } },
-          update: navarra ? { status: V, fuenteTexto: fuenteNavarra } : {},
+          update: updateExtra,
           create: {
             id: uid(), comunidad, jurisdictionId: r.jurisdictionId, tramo: r.tramo,
-            desdeEur: r.desdeEur, hastaEur: r.hastaEur, tipoAutonomicoPct: r.tipoAutonomicoPct,
-            regimen: r.regimen, taxYear: 2026, confianza: navarra ? 'ALTA' : 'BAJA',
-            notas: navarra ? 'Valores de la Ley Foral 22/2023 vigentes en 2026 (verificados ago-2026).' : NOTA_26,
-            fuenteTexto: navarra ? fuenteNavarra : r.fuenteTexto, status: navarra ? V : U,
+            desdeEur: r.desdeEur, hastaEur: r.hastaEur,
+            tipoAutonomicoPct: esCV ? (TIPOS_CV_26[r.tramo] ?? r.tipoAutonomicoPct) : esExt ? (TIPOS_EXT_26[r.tramo] ?? r.tipoAutonomicoPct) : r.tipoAutonomicoPct,
+            regimen: r.regimen, taxYear: 2026,
+            confianza: navarra || esCV || esExt || fuenteVerificada ? 'ALTA' : 'BAJA',
+            notas: navarra ? 'Valores de la Ley Foral 22/2023 vigentes en 2026 (verificados ago-2026).' : navarra || esCV || esExt || fuenteVerificada ? 'Escala 2026 verificada ago-2026.' : NOTA_26,
+            fuenteTexto: fuenteFila, status: statusFila,
           },
         });
         c++;
@@ -147,13 +196,35 @@ function filasAhorro(territorio, regimen, taxYear, defs, status, fuente) {
   // 3c. Mínimos personales/familiares 2026: estatal verificado por estatuto (art. 56-57 LIRPF sin cambios), CCAA clon.
   const F_MIN_EST_26 = 'Arts. 56-57 LIRPF: importes del mínimo personal y familiar sin actualización desde 2019 · confirmado para 2026: https://guiafiscal.es/irpf/tramos-irpf-2026';
   const F_MIN_CCAA_26 = 'Valor idéntico a 2025 salvo actualización propia de la comunidad; sin fuente oficial 2026 al importar. Verificar con la publicación del ejercicio.';
+  // Mínimo del contribuyente general 2026 confirmado ago-2026 (guiafiscal fichas CCAA)
+  const MINIMO_GENERAL_26 = {
+    Andalucía: 5790,
+    'Asturias (Principado de)': 6105,
+    Canarias: 5606,
+    Cataluña: 5550,
+    Ceuta: 5550,
+    'Comunitat Valenciana': 6105,
+    Galicia: 5789,
+    'Illes Balears': 5550,
+    'La Rioja': 5550,
+    'Madrid (Comunidad de)': 5956.65,
+    Melilla: 5550,
+    'Castilla y León': 5550,
+  };
   const mins25 = await prisma.minimoPersonalFamiliar.findMany({ where: { taxYear: 2025 } });
   for (const r of mins25) {
     const esEstatal = r.territorio === 'Estatal (referencia común)';
+    const minVerificado = !esEstatal && r.concepto === 'Mínimo del contribuyente, general' ? MINIMO_GENERAL_26[r.territorio] : undefined;
+    const statusFila = esEstatal || minVerificado != null ? V : U;
+    const fuenteFila = esEstatal
+      ? F_MIN_EST_26
+      : minVerificado != null
+        ? `Mínimo autonómico propio 2026 (${r.territorio}); art. 57 LIRPF y normativa cedida · verificado ago-2026`
+        : F_MIN_CCAA_26;
     await prisma.minimoPersonalFamiliar.upsert({
       where: { territorio_concepto_taxYear: { territorio: r.territorio, concepto: r.concepto, taxYear: 2026 } },
-      update: {},
-      create: { id: uid(), territorio: r.territorio, concepto: r.concepto, importeEur: r.importeEur, notas: null, fuenteTexto: esEstatal ? F_MIN_EST_26 : F_MIN_CCAA_26, taxYear: 2026, status: esEstatal ? V : U },
+      update: minVerificado != null && Number(r.importeEur) !== minVerificado ? { importeEur: minVerificado, status: statusFila, fuenteTexto: fuenteFila } : statusFila === V ? { status: statusFila, fuenteTexto: fuenteFila } : {},
+      create: { id: uid(), territorio: r.territorio, concepto: r.concepto, importeEur: minVerificado ?? r.importeEur, notas: null, fuenteTexto: fuenteFila, taxYear: 2026, status: statusFila },
     });
     c++;
   }
