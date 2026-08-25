@@ -301,25 +301,27 @@ export async function obtenerMinimos(
   taxYear: number,
   comunidad?: string,
 ): Promise<MinimoFamiliar[]> {
-  let query = client
+  const { data, error } = await client
     .from('minimo_personal_familiar')
     .select('territorio, concepto, importeEur, notas, status')
     .eq('taxYear', taxYear)
-
-  if (comunidad) {
-    query = query.or(`territorio.eq.Estatal (referencia común),territorio.eq.${comunidad}`)
-  }
-
-  const { data, error } = await query.order('territorio')
+    .order('territorio')
 
   if (error) throw error
-  return (data ?? []).map(f => ({
+  const filas = (data ?? []).map(f => ({
     territorio: String(f.territorio),
     concepto: String(f.concepto),
     importeEur: decimalANumero(f.importeEur) ?? 0,
     notas: f.notas ? String(f.notas) : null,
     status: String(f.status),
   }))
+
+  if (!comunidad) return filas
+  const jurisdiccion = resolverJurisdiccion(comunidad)
+  return filas.filter(f =>
+    f.territorio === 'Estatal (referencia común)' ||
+    coincideTerritorio(f.territorio, jurisdiccion.nombreNormalizado)
+  )
 }
 
 export interface ReduccionIrpf {
