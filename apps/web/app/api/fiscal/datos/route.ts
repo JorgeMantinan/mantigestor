@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
       obtenerReglasIva(supabase, taxYear),
       obtenerTiposIs(supabase),
       obtenerEscalaPatrimonio(supabase, taxYear),
-      obtenerMinimos(supabase, taxYear),
+      obtenerMinimos(supabase, taxYear, comunidad),
       obtenerReducciones(supabase, taxYear),
     ])
 

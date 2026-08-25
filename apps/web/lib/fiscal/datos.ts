@@ -299,12 +299,18 @@ export interface MinimoFamiliar {
 export async function obtenerMinimos(
   client: SupabaseClient,
   taxYear: number,
+  comunidad?: string,
 ): Promise<MinimoFamiliar[]> {
-  const { data, error } = await client
+  let query = client
     .from('minimo_personal_familiar')
     .select('territorio, concepto, importeEur, notas, status')
     .eq('taxYear', taxYear)
-    .order('territorio')
+
+  if (comunidad) {
+    query = query.or(`territorio.eq.Estatal (referencia común),territorio.eq.${comunidad}`)
+  }
+
+  const { data, error } = await query.order('territorio')
 
   if (error) throw error
   return (data ?? []).map(f => ({
