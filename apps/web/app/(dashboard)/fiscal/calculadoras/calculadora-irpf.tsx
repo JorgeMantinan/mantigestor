@@ -9,6 +9,9 @@ import { Calculator } from 'lucide-react'
 import {
   calcularCuotaLiquida,
   reduccionRendimientosTrabajoCents,
+  deduccionTrabajoCents,
+  DEDUCCION_TRABAJO_2025,
+  DEDUCCION_TRABAJO_2026,
 } from '@mantigestor/utils'
 import { eur, parseEuros, type DatosFiscales } from './types'
 
@@ -165,13 +168,21 @@ export function CalculadoraIrpf({
       const escalaAhorroForal = datos.escalaAhorroForal
       const escalasAhorro = escalaAhorroForal ? [escalaAhorroForal] : undefined
 
+      // Deducción DA 61ª LIRPF (Ley 5/2025): reduce cuota íntegra para rentas bajas
+      const deduccionParams = datos.taxYear >= 2026 ? DEDUCCION_TRABAJO_2026 : DEDUCCION_TRABAJO_2025
+      const trabajoIntegroCents = eurosACentimos(trabajo)
+      const deduccionTrabajo = deduccionTrabajoCents(trabajoIntegroCents, deduccionParams)
+      const deduccionesManualesCents = eurosACentimos(deduccionesManuales)
+      const totalDeduccionesCents = deduccionesManualesCents + deduccionTrabajo
+
       return {
         reduccionTrabajoCents: reduccion,
+        deduccionTrabajoCents: deduccionTrabajo,
         resultado: calcularCuotaLiquida({
           baseGeneralCents: baseGeneral,
           baseAhorroCents: eurosACentimos(ahorro),
           minimoPersonalYFamiliarCents: desgloseMinimo.reduce((acc, c) => acc + c.centimos, 0),
-          deduccionesCents: eurosACentimos(deduccionesManuales),
+          deduccionesCents: totalDeduccionesCents,
           pagosACuentaCents: eurosACentimos(pagosACuenta),
           escalasGenerales,
           escalasAhorro,
@@ -179,9 +190,9 @@ export function CalculadoraIrpf({
         error: null,
       } as const
     } catch (e) {
-      return { error: e instanceof Error ? e.message : 'Error en el cálculo', resultado: null, reduccionTrabajoCents: 0 } as const
+      return { error: e instanceof Error ? e.message : 'Error en el cálculo', resultado: null, reduccionTrabajoCents: 0, deduccionTrabajoCents: 0 } as const
     }
-  }, [trabajo, actividades, ahorro, pagosACuenta, deduccionesManuales, desgloseMinimo, datos.escalaEstatal, datos.escalaAutonomica, datos.escalaAhorroForal])
+  }, [trabajo, actividades, ahorro, pagosACuenta, deduccionesManuales, desgloseMinimo, datos.escalaEstatal, datos.escalaAutonomica, datos.escalaAhorroForal, datos.taxYear])
 
   const sinEscalas = !datos.escalaEstatal && !datos.escalaAutonomica
 
@@ -190,8 +201,8 @@ export function CalculadoraIrpf({
       <CardHeader>
         <CardTitle>IRPF {datos.taxYear} · cuota líquida completa</CardTitle>
         <CardDescription>
-          Reducción del trabajo, mínimos personales y familiares, escala del ahorro (art. 63 LIRPF),
-          deducciones y pagos a cuenta.
+          Reducción del trabajo (art. 20), mínimos personales y familiares, escala del ahorro (art. 63 LIRPF),
+          deducción DA 61ª (Ley 5/2025), deducciones y pagos a cuenta.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -307,6 +318,12 @@ export function CalculadoraIrpf({
                 <dt className="text-xs text-muted-foreground">Reducción por rendimientos del trabajo</dt>
                 <dd className="text-lg font-semibold">{eur(resultado.reduccionTrabajoCents)}</dd>
               </div>
+              {resultado.deduccionTrabajoCents > 0 && (
+                <div className="rounded-lg border p-3">
+                  <dt className="text-xs text-muted-foreground">Deducción DA 61ª (Ley 5/2025)</dt>
+                  <dd className="text-lg font-semibold">{eur(resultado.deduccionTrabajoCents)}</dd>
+                </div>
+              )}
               <div className="rounded-lg border p-3">
                 <dt className="text-xs text-muted-foreground">Mínimo personal y familiar</dt>
                 <dd className="text-lg font-semibold">{eur(desgloseMinimo.reduce((acc, c) => acc + c.centimos, 0))}</dd>
