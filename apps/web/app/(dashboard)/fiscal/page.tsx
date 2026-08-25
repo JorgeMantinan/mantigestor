@@ -13,8 +13,9 @@ import { CalculadoraPatrimonio } from './calculadoras/calculadora-patrimonio'
 import { PanelPlazos } from './calculadoras/panel-plazos'
 import { PanelMinimos } from './calculadoras/panel-minimos'
 import { PanelResumenAnual } from './calculadoras/panel-resumen-anual'
+import { PanelDeduccionesAutonomicas } from './calculadoras/panel-deducciones-autonomicas'
 
-type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'plazos' | 'minimos' | 'resumen'
+type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'plazos' | 'minimos' | 'resumen'
 type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
 
 const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
@@ -23,6 +24,7 @@ const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
   { key: 'reta', label: 'Autónomos (RETA)' },
   { key: 'sociedades', label: 'Sociedades' },
   { key: 'patrimonio', label: 'Patrimonio' },
+  { key: 'deducciones', label: 'Deducciones autonómicas' },
   { key: 'plazos', label: 'Calendario fiscal' },
   { key: 'minimos', label: 'Mínimos y reducciones' },
   { key: 'resumen', label: 'Resumen anual' },
@@ -321,6 +323,7 @@ export default function PaginaFiscal() {
           {seccion === 'reta' && <CalculadoraReta datos={datos} />}
           {seccion === 'sociedades' && <CalculadoraIs datos={datos} />}
           {seccion === 'patrimonio' && <CalculadoraPatrimonio datos={datos} />}
+          {seccion === 'deducciones' && <PanelDeduccionesAutonomicas datos={datos} />}
           {seccion === 'plazos' && <PanelPlazos datos={datos} />}
           {seccion === 'minimos' && <PanelMinimos datos={datos} comunidad={comunidad} />}
           {seccion === 'resumen' && <PanelResumenAnual datos={datos} comunidad={comunidad} />}

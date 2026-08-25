@@ -170,6 +170,7 @@ model FiscalSource {
   isdReglas             IsdRegla[]
   itpAjdReglas          ItpAjdRegla[]
   patrimonioEscalas     PatrimonioEscala[]
+  deduccionesAutonomicas DeduccionAutonomica[]
   sanciones             Sancion[]
   amortizaciones        AmortizacionDietaKm[]
   umbrales              UmbralTamanoEmpresa[]
@@ -395,6 +396,30 @@ model IsTipo {
 
   @@unique([tipoEntidad, taxYear])
   @@map("is_tipos")
+}
+
+model DeduccionAutonomica {
+  id                String  @id
+  taxYear           Int
+  comunidad         String
+  tipo              String  // nacimiento, ascendientes, discapacidad, alquiler, guarderia, etc.
+  descripcion       String
+  importeBaseCents  Int?    // cantidad fija en céntimos (ej: 72170 = 721,70€)
+  porcentaje        Decimal? @db.Decimal(5, 2) // % sobre gasto/base (ej: 20.00 para 20%)
+  importeMaxCents   Int?    // tope máximo anual de la deducción en céntimos
+  rentaMinimaCents  Int?    // base imponible mínima para aplicación plena
+  rentaMaximaCents  Int?    // base imponible máxima (hasta la que se reduce linealmente)
+  duplicable        Boolean @default(false) // true si se duplica con discapacidad ≥33%
+  incompatibilidades String? // IDs o tipos de deducciones incompatibles
+  periodoAplicacion String? // "nacimiento+2", "anual", etc.
+  notas             String? // condiciones específicas,.umbral de renta de descendiente, etc.
+  status            String  @default("OFFICIAL_UNVERIFIED")
+  productionNote    String?
+  sourceId          String?
+  source            FiscalSource? @relation(fields: [sourceId], references: [id])
+
+  @@unique([comunidad, tipo, descripcion, taxYear])
+  @@map("deducciones_autonomicas")
 }
 
 model Deadline {

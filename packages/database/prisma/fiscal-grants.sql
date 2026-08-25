@@ -20,6 +20,7 @@ GRANT SELECT ON public.reducciones_generales_irpf TO anon, authenticated, servic
 GRANT SELECT ON public.isd_reglas TO anon, authenticated, service_role;
 GRANT SELECT ON public.itp_ajd_reglas TO anon, authenticated, service_role;
 GRANT SELECT ON public.patrimonio_escala_estatal TO anon, authenticated, service_role;
+GRANT SELECT ON public.deducciones_autonomicas TO anon, authenticated, service_role;
 GRANT SELECT ON public.sanciones TO anon, authenticated, service_role;
 GRANT SELECT ON public.amortizacion_dietas_km TO anon, authenticated, service_role;
 GRANT SELECT ON public.umbrales_tamano_empresa TO anon, authenticated, service_role;

@@ -4,7 +4,7 @@ import type {
   TramoReta,
   PlazoFiscalEntrada,
 } from '@mantigestor/utils'
-import type { ReglaIva, TipoIs, MinimoFamiliar, ReduccionIrpf } from '@/lib/fiscal/datos'
+import type { ReglaIva, TipoIs, MinimoFamiliar, ReduccionIrpf, DeduccionAutonomica } from '@/lib/fiscal/datos'
 
 export interface DatosFiscales {
   taxYear: number
@@ -15,6 +15,7 @@ export interface DatosFiscales {
   reglasIva: ReglaIva[]
   tramosReta: TramoReta[]
   cotizacionRetaPct: number | null
+  deduccionesAutonomicas: DeduccionAutonomica[]
   tiposIs: TipoIs[]
   escalaPatrimonio: TramoIrpf[]
   minimos: MinimoFamiliar[]

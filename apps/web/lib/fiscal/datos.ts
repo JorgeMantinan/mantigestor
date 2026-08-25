@@ -216,6 +216,57 @@ export async function obtenerCotizacionReta(
   return { porcentaje, avisos }
 }
 
+export interface DeduccionAutonomica {
+  id: string
+  comunidad: string
+  tipo: string
+  descripcion: string
+  importeBaseCents: number | null
+  porcentaje: number | null
+  importeMaxCents: number | null
+  rentaMinimaCents: number | null
+  rentaMaximaCents: number | null
+  duplicable: boolean
+  periodoAplicacion: string | null
+  notas: string | null
+  status: string
+}
+
+export async function obtenerDeduccionesAutonomicas(
+  client: SupabaseClient,
+  comunidad: string,
+  taxYear: number,
+): Promise<{ deducciones: DeduccionAutonomica[]; avisos: string[] }> {
+  const { data, error } = await client
+    .from('deducciones_autonomicas')
+    .select('id, comunidad, tipo, descripcion, importeBaseCents, porcentaje, importeMaxCents, rentaMinimaCents, rentaMaximaCents, duplicable, periodoAplicacion, notas, status')
+    .eq('taxYear', taxYear)
+    .eq('comunidad', comunidad)
+    .order('tipo')
+
+  if (error) throw error
+  if (!data?.length) return { deducciones: [], avisos: [`No hay deducciones autonómicas para ${comunidad} en ${taxYear}`] }
+
+  const avisos = data.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []
+  const deducciones: DeduccionAutonomica[] = data.map(f => ({
+    id: String(f.id),
+    comunidad: String(f.comunidad),
+    tipo: String(f.tipo),
+    descripcion: String(f.descripcion),
+    importeBaseCents: f.importeBaseCents != null ? Number(f.importeBaseCents) : null,
+    porcentaje: f.porcentaje != null ? Number(f.porcentaje) : null,
+    importeMaxCents: f.importeMaxCents != null ? Number(f.importeMaxCents) : null,
+    rentaMinimaCents: f.rentaMinimaCents != null ? Number(f.rentaMinimaCents) : null,
+    rentaMaximaCents: f.rentaMaximaCents != null ? Number(f.rentaMaximaCents) : null,
+    duplicable: Boolean(f.duplicable),
+    periodoAplicacion: f.periodoAplicacion != null ? String(f.periodoAplicacion) : null,
+    notas: f.notas != null ? String(f.notas) : null,
+    status: String(f.status),
+  }))
+
+  return { deducciones, avisos }
+}
+
 export async function obtenerProximosPlazosFiscales(
   client: SupabaseClient,
   hoy: Date,
