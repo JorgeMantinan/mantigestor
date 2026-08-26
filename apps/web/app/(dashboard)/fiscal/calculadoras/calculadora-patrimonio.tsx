@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { calcularCuotaEscala, type EscalaIrpf } from '@mantigestor/utils'
 import { eur, parseEuros, type DatosFiscales } from './types'
+import { LabelConAyuda } from './label-con-ayuda'
+import { GUIA_PATRIMONIO } from '@/lib/fiscal/guia-fiscal'
 
 export function CalculadoraPatrimonio({ datos }: { datos: DatosFiscales }) {
   const [patrimonio, setPatrimonio] = useState('')
@@ -60,7 +62,7 @@ export function CalculadoraPatrimonio({ datos }: { datos: DatosFiscales }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="max-w-xs space-y-2">
-          <Label htmlFor="patrimonio-neto">Patrimonio neto (€)</Label>
+          <LabelConAyuda htmlFor="patrimonio-neto" ayuda={GUIA_PATRIMONIO.patrimonioNeto!}>Patrimonio neto (€)</LabelConAyuda>
           <Input
             id="patrimonio-neto"
             type="number"

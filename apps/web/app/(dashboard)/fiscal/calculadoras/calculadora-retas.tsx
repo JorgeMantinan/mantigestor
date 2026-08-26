@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { seleccionarTramoReta, estimarCuotaReta } from '@mantigestor/utils'
 import { eur, parseEuros, type DatosFiscales } from './types'
+import { LabelConAyuda } from './label-con-ayuda'
+import { GUIA_RETA } from '@/lib/fiscal/guia-fiscal'
 
 export function CalculadoraReta({ datos }: { datos: DatosFiscales }) {
   const [rendimiento, setRendimiento] = useState('')
@@ -33,7 +35,7 @@ export function CalculadoraReta({ datos }: { datos: DatosFiscales }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="max-w-xs space-y-2">
-          <Label htmlFor="rendimiento-retas">Rendimiento neto mensual (€)</Label>
+          <LabelConAyuda htmlFor="rendimiento-retas" ayuda={GUIA_RETA.rendimientoReta!}>Rendimiento neto mensual (€)</LabelConAyuda>
           <Input
             id="rendimiento-retas"
             type="number"

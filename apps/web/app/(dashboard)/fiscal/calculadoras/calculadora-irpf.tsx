@@ -13,6 +13,8 @@ import {
   DEDUCCION_TRABAJO_2025,
   DEDUCCION_TRABAJO_2026,
 } from '@mantigestor/utils'
+import { LabelConAyuda } from './label-con-ayuda'
+import { GUIA_IRPF } from '@/lib/fiscal/guia-fiscal'
 import { eur, parseEuros, type DatosFiscales } from './types'
 
 interface DetalleTramo {
@@ -210,23 +212,23 @@ export function CalculadoraIrpf({
           <div className="space-y-3">
             <p className="text-sm font-medium">Rentas</p>
             <div className="space-y-2">
-              <Label htmlFor="irpf-trabajo">Rendimiento neto del trabajo (€)</Label>
+              <LabelConAyuda htmlFor="irpf-trabajo" ayuda={GUIA_IRPF.trabajo!}>Rendimiento neto del trabajo (€)</LabelConAyuda>
               <Input id="irpf-trabajo" type="number" min="0" step="0.01" placeholder="25000" value={trabajo} onChange={e => setTrabajo(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="irpf-actividades">Actividades económicas netas (€)</Label>
+              <LabelConAyuda htmlFor="irpf-actividades" ayuda={GUIA_IRPF.actividades!}>Actividades económicas netas (€)</LabelConAyuda>
               <Input id="irpf-actividades" type="number" min="0" step="0.01" placeholder="0" value={actividades} onChange={e => setActividades(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="irpf-ahorro">Base liquidable del ahorro (€)</Label>
+              <LabelConAyuda htmlFor="irpf-ahorro" ayuda={GUIA_IRPF.ahorro!}>Base liquidable del ahorro (€)</LabelConAyuda>
               <Input id="irpf-ahorro" type="number" min="0" step="0.01" placeholder="0" value={ahorro} onChange={e => setAhorro(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="irpf-deducciones">Deducciones estimadas (€)</Label>
+              <LabelConAyuda htmlFor="irpf-deducciones" ayuda={GUIA_IRPF.deduccionesManuales!}>Deducciones estimadas (€)</LabelConAyuda>
               <Input id="irpf-deducciones" type="number" min="0" step="0.01" placeholder="0" value={deduccionesManuales} onChange={e => setDeduccionesManuales(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="irpf-pagos">Retenciones y pagos fraccionados (€)</Label>
+              <LabelConAyuda htmlFor="irpf-pagos" ayuda={GUIA_IRPF.pagosACuenta!}>Retenciones y pagos fraccionados (€)</LabelConAyuda>
               <Input id="irpf-pagos" type="number" min="0" step="0.01" placeholder="0" value={pagosACuenta} onChange={e => setPagosACuenta(e.target.value)} />
             </div>
           </div>
@@ -235,7 +237,7 @@ export function CalculadoraIrpf({
             <p className="text-sm font-medium">Mínimo personal y familiar</p>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-2">
-                <Label htmlFor="irpf-edad">Edad del contribuyente</Label>
+                <LabelConAyuda htmlFor="irpf-edad" ayuda={GUIA_IRPF.edad!}>Edad del contribuyente</LabelConAyuda>
                 <select
                   id="irpf-edad"
                   value={edad}
@@ -261,15 +263,15 @@ export function CalculadoraIrpf({
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="irpf-hijos">Descendientes</Label>
+                <LabelConAyuda htmlFor="irpf-hijos" ayuda={GUIA_IRPF.hijos!}>Descendientes</LabelConAyuda>
                 <Input id="irpf-hijos" type="number" min="0" max="10" value={hijos} onChange={e => setHijos(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="irpf-menores3">De ellos, menores de 3 años</Label>
+                <LabelConAyuda htmlFor="irpf-menores3" ayuda={GUIA_IRPF.menores3!}>De ellos, menores de 3 años</LabelConAyuda>
                 <Input id="irpf-menores3" type="number" min="0" max="10" value={menores3} onChange={e => setMenores3(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="irpf-ascendientes">Ascendientes a cargo</Label>
+                <LabelConAyuda htmlFor="irpf-ascendientes" ayuda={GUIA_IRPF.ascendientes!}>Ascendientes a cargo</LabelConAyuda>
                 <Input id="irpf-ascendientes" type="number" min="0" max="10" value={ascendientes} onChange={e => setAscendientes(e.target.value)} />
               </div>
               <div className="space-y-2">

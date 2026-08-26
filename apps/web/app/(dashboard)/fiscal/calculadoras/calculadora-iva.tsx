@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { calcularIva, extraerBaseDeTotal, type PorcentajeIva } from '@mantigestor/utils'
 import { eur, parseEuros, type DatosFiscales } from './types'
+import { LabelConAyuda } from './label-con-ayuda'
+import { GUIA_IVA } from '@/lib/fiscal/guia-fiscal'
 
 export function CalculadoraIva({ datos }: { datos: DatosFiscales }) {
   const [tipoSel, setTipoSel] = useState<string>('')
@@ -58,7 +60,7 @@ export function CalculadoraIva({ datos }: { datos: DatosFiscales }) {
 
         <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
           <div className="space-y-2">
-            <Label htmlFor="importe-iva">{modo === 'base' ? 'Base imponible (€)' : 'Total con IVA incluido (€)'}</Label>
+            <LabelConAyuda htmlFor="importe-iva" ayuda={GUIA_IVA.importeIva!}>{modo === 'base' ? 'Base imponible (€)' : 'Total con IVA incluido (€)'}</LabelConAyuda>
             <Input
               id="importe-iva"
               type="number"

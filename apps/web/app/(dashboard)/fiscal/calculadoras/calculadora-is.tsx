@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { eur, parseEuros, type DatosFiscales } from './types'
 import type { TipoIs } from '@/lib/fiscal/datos'
+import { LabelConAyuda } from './label-con-ayuda'
+import { GUIA_IS } from '@/lib/fiscal/guia-fiscal'
 
 export function CalculadoraIs({ datos }: { datos: DatosFiscales }) {
   const anios = useMemo(
@@ -50,7 +52,7 @@ export function CalculadoraIs({ datos }: { datos: DatosFiscales }) {
         </div>
 
         <div className="space-y-2 max-w-md">
-          <Label htmlFor="entidad-is">Tipo de entidad</Label>
+          <LabelConAyuda htmlFor="entidad-is" ayuda={GUIA_IS.tipoEntidad!}>Tipo de entidad</LabelConAyuda>
           <select
             id="entidad-is"
             value={tipo?.tipoEntidad ?? ''}
@@ -67,7 +69,7 @@ export function CalculadoraIs({ datos }: { datos: DatosFiscales }) {
         </div>
 
         <div className="max-w-xs space-y-2">
-          <Label htmlFor="base-is">Base imponible (€)</Label>
+          <LabelConAyuda htmlFor="base-is" ayuda={GUIA_IS.baseIs!}>Base imponible (€)</LabelConAyuda>
           <Input
             id="base-is"
             type="number"
