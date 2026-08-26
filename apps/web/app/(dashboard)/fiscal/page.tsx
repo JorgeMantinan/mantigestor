@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle, RefreshCw, UserRound } from 'lucide-react'
+import { AlertTriangle, RefreshCw, UserRound, Database } from 'lucide-react'
 import { Label } from '@/components/ui/label'
+import { createClient } from '@/lib/supabase/client'
 import type { DatosFiscales } from './calculadoras/types'
 import { CalculadoraIrpf } from './calculadoras/calculadora-irpf'
 import { CalculadoraIva } from './calculadoras/calculadora-iva'
@@ -15,7 +16,6 @@ import { PanelMinimos } from './calculadoras/panel-minimos'
 import { PanelResumenAnual } from './calculadoras/panel-resumen-anual'
 import { PanelDeduccionesAutonomicas } from './calculadoras/panel-deducciones-autonomicas'
 import { PanelDocumentosFiscales } from './calculadoras/panel-documentos-fiscales'
-import { createClient } from '@/lib/supabase/client'
 
 type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'plazos' | 'minimos' | 'resumen'
 type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
@@ -132,6 +132,13 @@ export default function PaginaFiscal() {
   const [mostrarWizard, setMostrarWizard] = useState(false)
   const [sincronizado, setSincronizado] = useState(false)
   const [esPro, setEsPro] = useState(false)
+  const [datosReales, setDatosReales] = useState<{
+    trabajo?: number
+    actividades?: number
+    pagosACuenta?: number
+    deducciones?: number
+  } | null>(null)
+  const [cargandoReales, setCargandoReales] = useState(false)
 
   useEffect(() => {
     void (async () => {
@@ -235,6 +242,100 @@ export default function PaginaFiscal() {
     const config = PERFILES.find(x => x.key === p)
     if (config) setSeccion(config.seccionInicial)
   }
+
+  const cargarDatosReales = useCallback(async () => {
+    setCargandoReales(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const desde = `${taxYear}-01-01`
+      const hasta = `${taxYear + 1}-01-01`
+
+      // Fetch facturas del año
+      const { data: facturas } = await supabase
+        .from('facturas')
+        .select('*')
+        .eq('perfilId', user.id)
+        .gte('fechaEmision', desde)
+        .lt('fechaEmision', hasta)
+
+      // Fetch nominas del año (empleado: retenciones IRPF)
+      const { data: nominasEmp } = await supabase
+        .from('nominas')
+        .select('salarioBruto, irpf, neto')
+        .eq('perfilId', user.id)
+        .eq('rol', 'empleado')
+        .eq('anyo', taxYear)
+
+      // Fetch nominas del año (jefe: gastos deducibles)
+      const { data: nominasJefe } = await supabase
+        .from('nominas')
+        .select('salarioBruto')
+        .eq('perfilId', user.id)
+        .eq('rol', 'jefe')
+        .eq('anyo', taxYear)
+
+      // Fetch gastos alquiler deducibles del año
+      const { data: propiedades } = await supabase
+        .from('propiedades_alquiler')
+        .select('id')
+        .eq('perfilId', user.id)
+
+      let gastosAlquiler = 0
+      if (propiedades && propiedades.length > 0) {
+        const ids = propiedades.map(p => p.id)
+        const { data: gastos } = await supabase
+          .from('gastos_alquiler')
+          .select('importe')
+          .in('propiedadId', ids)
+          .gte('fecha', desde)
+          .lt('fecha', hasta)
+        if (gastos) gastosAlquiler = gastos.reduce((s, g) => s + (g.importe ?? 0), 0)
+      }
+
+      // Calcular datos reales
+      const facturasArr = (facturas ?? []) as unknown as Array<{
+        tipo: string
+        importe: number
+        deducible: boolean | null
+      }>
+
+      // Actividades económicas: ingresos - gastos deducibles de facturas
+      const ingresosFacturas = facturasArr
+        .filter(f => f.tipo === 'ingreso')
+        .reduce((s, f) => s + f.importe, 0)
+      const gastosFacturas = facturasArr
+        .filter(f => f.tipo === 'gasto' && f.deducible)
+        .reduce((s, f) => s + f.importe, 0)
+      const actividadesNetas = Math.max(0, ingresosFacturas - gastosFacturas)
+
+      // Trabajo: sumatorio neto de nóminas como empleada
+      const trabajoNeto = nominasEmp
+        ? nominasEmp.reduce((s, n) => s + n.neto, 0)
+        : 0
+
+      // Pagos a cuenta: retenciones IRPF de nóminas como empleada
+      const retencionesNomina = nominasEmp
+        ? nominasEmp.reduce((s, n) => s + Math.round(n.salarioBruto * (n.irpf / 100)), 0)
+        : 0
+
+      // Deducciones: gastos alquiler deducibles
+      const deducciones = gastosAlquiler
+
+      setDatosReales({
+        trabajo: trabajoNeto,
+        actividades: actividadesNetas,
+        pagosACuenta: retencionesNomina,
+        deducciones,
+      })
+    } catch {
+      // silently fail — the user can still type manually
+    } finally {
+      setCargandoReales(false)
+    }
+  }, [taxYear])
 
   const anhoActual = new Date().getFullYear()
 
@@ -343,7 +444,28 @@ export default function PaginaFiscal() {
         <p className="text-sm text-muted-foreground">Cargando datos fiscales...</p>
       ) : datos ? (
         <>
-          {seccion === 'irpf' && <CalculadoraIrpf datos={datos} comunidad={comunidad} />}
+          {seccion === 'irpf' && (
+            <>
+              <div className="flex items-center gap-2 print:hidden">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={datosReales ? 'secondary' : 'outline'}
+                  onClick={() => void cargarDatosReales()}
+                  disabled={cargandoReales}
+                >
+                  <Database className="mr-1 h-3 w-3" aria-hidden="true" />
+                  {cargandoReales ? 'Cargando...' : datosReales ? 'Recargar datos reales' : 'Cargar datos reales'}
+                </Button>
+                {datosReales && (
+                  <p className="text-xs text-muted-foreground">
+                    Auto-rellenado desde facturas, nóminas y alquileres del año {taxYear}
+                  </p>
+                )}
+              </div>
+              <CalculadoraIrpf datos={datos} comunidad={comunidad} datosIniciales={datosReales ?? undefined} />
+            </>
+          )}
           {seccion === 'iva' && <CalculadoraIva datos={datos} />}
           {seccion === 'reta' && <CalculadoraReta datos={datos} />}
           {seccion === 'sociedades' && <CalculadoraIs datos={datos} />}

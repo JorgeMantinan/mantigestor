@@ -32,6 +32,8 @@ interface ResumenAnual {
   totalIngresos: number
   totalGastos: number
   numFacturas: number
+  retencionesTrimestre: Array<number>
+  totalRetenciones: number
 }
 
 function indiceTrimestre(fechaEmision: string): number {
@@ -85,12 +87,31 @@ export default function TrimestresPage() {
       })
       const pagos130 = pagosFraccionados130(beneficiosPorTrimestre)
 
+      // Retenciones IRPF de nóminas (empleado) por trimestre
+      const { data: nominasEmp } = await getSupabase()
+        .from('nominas')
+        .select('salarioBruto, irpf, mes')
+        .eq('perfilId', user.id)
+        .eq('rol', 'empleado')
+        .eq('anyo', anho)
+
+      const retencionesPorTrimestre: [number, number, number, number] = [0, 0, 0, 0]
+      if (nominasEmp) {
+        for (const n of nominasEmp as unknown as Array<{ salarioBruto: number; irpf: number; mes: number }>) {
+          const trimestreIdx = Math.min(3, Math.max(0, Math.floor((n.mes - 1) / 3))) as 0 | 1 | 2 | 3
+          retencionesPorTrimestre[trimestreIdx] += Math.round(n.salarioBruto * (n.irpf / 100))
+        }
+      }
+      const totalRetenciones = retencionesPorTrimestre.reduce((s, r) => s + r, 0)
+
       setResultado({
         resultadosIva,
         pagos130,
         totalIngresos: facturasTipadas.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + f.importe, 0),
         totalGastos: facturasTipadas.filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.importe, 0),
         numFacturas: facturasTipadas.length,
+        retencionesTrimestre: retencionesPorTrimestre,
+        totalRetenciones,
       })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error inesperado al calcular el trimestre')
@@ -131,6 +152,8 @@ export default function TrimestresPage() {
       ],
       ['Pago fraccionado IRPF acumulado hasta el trimestre (modelo 130)', formatMoney(pago.cuotaAcumulada)],
       ['Pago fraccionado a ingresar este trimestre (modelo 130)', formatMoney(pago.aIngresar)],
+      ['Retenciones IRPF nóminas (trimestre)', formatMoney(resultado.retencionesTrimestre[selectedTrimestre - 1] ?? 0)],
+      ['Retenciones IRPF nóminas (acumulado año)', formatMoney(resultado.totalRetenciones)],
     ]
     const csv = '\uFEFF' + filas.map(f => f.map(c => `"${c}"`).join(';')).join('\r\n')
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))
@@ -267,6 +290,23 @@ export default function TrimestresPage() {
                     {formatMoney(pago?.beneficioAcumulado ?? 0)}
                   </span>
                 </div>
+                {(resultado.retencionesTrimestre[selectedTrimestre - 1] ?? 0) > 0 && (
+                  <div className="flex items-center justify-between border-t pt-4">
+                    <div>
+                      <p className="font-medium">Retenciones IRPF nóminas (empleado)</p>
+                      <p className="text-sm text-muted-foreground">Se descuentan de la cuota anual del Modelo 100</p>
+                    </div>
+                    <span className="text-xl font-bold text-green-600">
+                      {formatMoney(resultado.retencionesTrimestre[selectedTrimestre - 1] ?? 0)}
+                    </span>
+                  </div>
+                )}
+                {resultado.totalRetenciones > 0 && (
+                  <div className="flex items-center justify-between border-t pt-4 text-sm">
+                    <span className="text-muted-foreground">Retenciones acumuladas del año</span>
+                    <span className="font-medium text-green-600">{formatMoney(resultado.totalRetenciones)}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

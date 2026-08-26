@@ -63,15 +63,23 @@ function TablaDetalle({ titulo, detalle }: { titulo: string; detalle: DetalleTra
 export function CalculadoraIrpf({
   datos,
   comunidad,
+  datosIniciales,
 }: {
   datos: DatosFiscales
   comunidad: string
+  datosIniciales?: {
+    trabajo?: number
+    actividades?: number
+    ahorro?: number
+    pagosACuenta?: number
+    deducciones?: number
+  }
 }) {
-  const [trabajo, setTrabajo] = useState('')
-  const [actividades, setActividades] = useState('')
-  const [ahorro, setAhorro] = useState('')
-  const [pagosACuenta, setPagosACuenta] = useState('')
-  const [deduccionesManuales, setDeduccionesManuales] = useState('')
+  const [trabajo, setTrabajo] = useState(datosIniciales?.trabajo != null ? String(datosIniciales.trabajo) : '')
+  const [actividades, setActividades] = useState(datosIniciales?.actividades != null ? String(datosIniciales.actividades) : '')
+  const [ahorro, setAhorro] = useState(datosIniciales?.ahorro != null ? String(datosIniciales.ahorro) : '')
+  const [pagosACuenta, setPagosACuenta] = useState(datosIniciales?.pagosACuenta != null ? String(datosIniciales.pagosACuenta) : '')
+  const [deduccionesManuales, setDeduccionesManuales] = useState(datosIniciales?.deducciones != null ? String(datosIniciales.deducciones) : '')
 
   const [edad, setEdad] = useState<RangoEdad>('menos65')
   const [conyuge, setConyuge] = useState(false)

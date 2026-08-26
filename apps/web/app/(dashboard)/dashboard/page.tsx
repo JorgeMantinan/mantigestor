@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Receipt, TrendingUp, TrendingDown, PiggyBank, Calendar, Users, Home } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { proximosPlazos, getCalendarioFiscal } from '@mantigestor/utils'
 
 interface Factura {
   id: string
@@ -333,22 +334,69 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Vencimientos fiscales placeholder */}
+      {/* Vencimientos fiscales reales */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-lg">Próximos vencimientos fiscales</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-lg">Próximos vencimientos fiscales</CardTitle>
+            </div>
+            <Link href="/fiscal">
+              <Button variant="ghost" size="sm">Ver calendario</Button>
+            </Link>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-6">
-            <p className="text-sm text-muted-foreground">
-              Conecta tus facturas para ver los próximos vencimientos del Modelo 303 y 130.
-            </p>
-          </div>
+          <CalendarioFiscalDashboard />
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+function CalendarioFiscalDashboard() {
+  const calendario = getCalendarioFiscal(new Date().getFullYear())
+  const plazosRaw = calendario.map(f => ({
+    modeloNumero: f.modelo,
+    periodo: f.descripcion,
+    fechaLimiteReferencia: f.fechaLimite,
+  }))
+  const plazos = proximosPlazos(plazosRaw, new Date(), 45)
+
+  if (plazos.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground text-center py-4">
+        No hay vencimientos próximos en los próximos 45 días.
+      </p>
+    )
+  }
+
+  return (
+    <ul className="space-y-2">
+      {plazos.slice(0, 5).map(p => (
+        <li key={p.id} className="flex items-center justify-between rounded-lg border p-3">
+          <div>
+            <p className="text-sm font-medium">
+              Modelo {p.modeloNumero?.replace(/^MOD/, '') ?? '—'} · {p.periodo}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {p.fechaLimiteReferencia.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
+            </p>
+          </div>
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+              p.diasRestantes <= 7
+                ? 'bg-destructive/10 text-destructive'
+                : p.diasRestantes <= 15
+                  ? 'bg-yellow-500/10 text-yellow-700'
+                  : 'bg-muted text-muted-foreground'
+            }`}
+          >
+            {p.diasRestantes} días
+          </span>
+        </li>
+      ))}
+    </ul>
   )
 }
