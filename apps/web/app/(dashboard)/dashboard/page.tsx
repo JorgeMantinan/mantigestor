@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
-import { Receipt, TrendingUp, TrendingDown, PiggyBank, Calendar, Users, Home } from 'lucide-react'
+import {
+  Receipt, TrendingUp, TrendingDown, PiggyBank, Calendar, Users, Home,
+  Plus, FileText, Calculator, ArrowRight
+} from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { proximosPlazos, getCalendarioFiscal } from '@mantigestor/utils'
@@ -45,12 +47,15 @@ interface GastoAlquiler {
 const formatMoney = (cents: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+
 export default function DashboardPage() {
   const [facturas, setFacturas] = useState<Factura[]>([])
   const [nominas, setNominas] = useState<Nomina[]>([])
   const [propiedades, setPropiedades] = useState<Propiedad[]>([])
   const [gastosAlquiler, setGastosAlquiler] = useState<GastoAlquiler[]>([])
   const [loading, setLoading] = useState(true)
+  const [nombre, setNombre] = useState('')
   const getSupabase = useCallback(() => createClient(), [])
 
   useEffect(() => {
@@ -59,15 +64,23 @@ export default function DashboardPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
 
+      // Fetch perfil for name
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('nombre')
+        .eq('id', user.id)
+        .single()
+      if (perfil?.nombre) setNombre(perfil.nombre)
+
       const currentYear = new Date().getFullYear()
 
-      // Fetch facturas
+      // Fetch facturas (últimas 10)
       const { data: facturasData } = await supabase
         .from('facturas')
         .select('*')
         .eq('perfilId', user.id)
         .order('fechaEmision', { ascending: false })
-        .limit(5)
+        .limit(10)
 
       // Fetch nominas del año actual
       const { data: nominasData } = await supabase
@@ -87,7 +100,6 @@ export default function DashboardPage() {
       if (nominasData) setNominas(nominasData as Nomina[])
       if (propsData) {
         setPropiedades(propsData as Propiedad[])
-        // Fetch gastos de todas las propiedades
         if (propsData.length > 0) {
           const ids = propsData.map(p => p.id)
           const { data: gastosData } = await supabase
@@ -104,34 +116,60 @@ export default function DashboardPage() {
     fetchData()
   }, [getSupabase])
 
-  const ingresos = facturas.filter((f) => f.tipo === 'ingreso')
-  const gastos = facturas.filter((f) => f.tipo === 'gasto')
+  const ingresos = facturas.filter(f => f.tipo === 'ingreso')
+  const gastos = facturas.filter(f => f.tipo === 'gasto')
   const totalIngresos = ingresos.reduce((s, f) => s + f.total, 0)
   const totalGastos = gastos.reduce((s, f) => s + f.total, 0)
   const ivaAingresar = ingresos.reduce((s, f) => s + Math.round(f.baseImponible * (f.iva / 100)), 0)
   const ivaSoportado = gastos.reduce((s, f) => s + Math.round(f.baseImponible * (f.iva / 100)), 0)
   const ivaNeto = ivaAingresar - ivaSoportado
 
-  // Nominas summary
   const nominasJefe = nominas.filter(n => n.rol === 'jefe')
   const nominasEmp = nominas.filter(n => n.rol === 'empleado')
   const totalNominasJefe = nominasJefe.reduce((s, n) => s + n.salarioBruto, 0)
   const totalRetencionesEmp = nominasEmp.reduce((s, n) => s + Math.round(n.salarioBruto * (n.irpf / 100)), 0)
 
-  // Alquiler summary
   const totalIngresosAlquiler = propiedades.reduce((s, p) => s + p.ingresos, 0)
   const totalGastosAlquiler = gastosAlquiler.reduce((s, g) => s + g.importe, 0)
   const balanceAlquiler = totalIngresosAlquiler - totalGastosAlquiler
 
   const beneficio = totalIngresos - totalGastos - totalNominasJefe
 
+  const ahora = new Date()
+  const saludo = ahora.getHours() < 14 ? 'Buenos días' : ahora.getHours() < 20 ? 'Buenas tardes' : 'Buenas noches'
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-heading font-bold tracking-tight">Panel</h1>
-        <p className="text-muted-foreground">Resumen de tu actividad fiscal y financiera</p>
+      {/* Saludo + acciones rápidas */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-heading font-bold tracking-tight">
+            {saludo}{nombre ? `, ${nombre}` : ''}
+          </h1>
+          <p className="text-muted-foreground">
+            {MESES[ahora.getMonth()]} {ahora.getFullYear()} · Panel de control fiscal
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/gestoria/facturas/nueva">
+            <Button size="sm">
+              <Plus className="mr-1.5 h-4 w-4" /> Nueva factura
+            </Button>
+          </Link>
+          <Link href="/fiscal">
+            <Button variant="outline" size="sm">
+              <Calculator className="mr-1.5 h-4 w-4" /> Calculadoras
+            </Button>
+          </Link>
+          <Link href="/gestoria/facturas">
+            <Button variant="outline" size="sm">
+              <FileText className="mr-1.5 h-4 w-4" /> Facturas
+            </Button>
+          </Link>
+        </div>
       </div>
 
+      {/* KPIs */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -139,9 +177,7 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {formatMoney(totalIngresos)}
-            </div>
+            <div className="text-2xl font-bold text-green-600">{formatMoney(totalIngresos)}</div>
             <p className="text-xs text-muted-foreground">{ingresos.length} facturas emitidas</p>
           </CardContent>
         </Card>
@@ -151,27 +187,22 @@ export default function DashboardPage() {
             <TrendingDown className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {formatMoney(totalGastos + totalNominasJefe)}
-            </div>
+            <div className="text-2xl font-bold text-red-600">{formatMoney(totalGastos + totalNominasJefe)}</div>
             <p className="text-xs text-muted-foreground">
-              {gastos.length} facturas
-              {nominasJefe.length > 0 ? ` + ${nominasJefe.length} nóminas` : ''}
+              {gastos.length} facturas{nominasJefe.length > 0 ? ` + ${nominasJefe.length} nóminas` : ''}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">IVA a ingresar</CardTitle>
+            <CardTitle className="text-sm font-medium">IVA neto</CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${ivaNeto >= 0 ? 'text-red-600' : 'text-green-600'}`}>
               {formatMoney(Math.abs(ivaNeto))}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {ivaNeto >= 0 ? 'A ingresar (Modelo 303)' : 'A compensar'}
-            </p>
+            <p className="text-xs text-muted-foreground">{ivaNeto >= 0 ? 'A ingresar (303)' : 'A compensar'}</p>
           </CardContent>
         </Card>
         <Card>
@@ -180,14 +211,15 @@ export default function DashboardPage() {
             <PiggyBank className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className={`text-2xl font-bold ${beneficio >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatMoney(beneficio)}
             </div>
-            <p className="text-xs text-muted-foreground">Facturas − gastos − nóminas jefe</p>
+            <p className="text-xs text-muted-foreground">Ingresos − gastos − nóminas</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Contenido principal */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Últimas facturas */}
         <Card>
@@ -195,28 +227,26 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">Últimas facturas</CardTitle>
               <Link href="/gestoria/facturas">
-                <Button variant="ghost" size="sm">Ver todas</Button>
+                <Button variant="ghost" size="sm">Ver todas <ArrowRight className="ml-1 h-3 w-3" /></Button>
               </Link>
             </div>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-sm text-muted-foreground">Cargando...</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">Cargando...</p>
             ) : facturas.length === 0 ? (
               <div className="text-center py-6">
                 <Receipt className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Aún no has añadido ninguna factura.
-                </p>
+                <p className="mt-2 text-sm text-muted-foreground">Aún no has añadido ninguna factura.</p>
                 <Link href="/gestoria/facturas/nueva">
                   <Button variant="outline" size="sm" className="mt-3">
-                    Añadir primera factura
+                    <Plus className="mr-1 h-3 w-3" /> Añadir primera factura
                   </Button>
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
-                {facturas.slice(0, 5).map((f) => (
+              <div className="space-y-2">
+                {facturas.slice(0, 6).map(f => (
                   <Link
                     key={f.id}
                     href={`/gestoria/facturas/${f.id}`}
@@ -247,7 +277,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Nóminas y Alquiler */}
+        {/* Columna derecha */}
         <div className="space-y-4">
           {/* Nóminas */}
           <Card>
@@ -258,33 +288,31 @@ export default function DashboardPage() {
                   <CardTitle className="text-lg">Nóminas</CardTitle>
                 </div>
                 <Link href="/nominas">
-                  <Button variant="ghost" size="sm">Ver todas</Button>
+                  <Button variant="ghost" size="sm">Ver <ArrowRight className="ml-1 h-3 w-3" /></Button>
                 </Link>
               </div>
             </CardHeader>
             <CardContent>
               {nominas.length === 0 ? (
-                <div className="text-center py-4">
-                  <p className="text-sm text-muted-foreground">
-                    Añade nóminas de empleadas del hogar para gestionar retenciones IRPF.
-                  </p>
-                </div>
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Añade nóminas para gestionar retenciones IRPF.
+                </p>
               ) : (
                 <div className="space-y-2">
                   {nominasJefe.length > 0 && (
                     <div className="flex items-center justify-between rounded-lg border p-3">
-                      <span className="text-sm text-muted-foreground">Gasto deducible (jefe)</span>
+                      <span className="text-sm text-muted-foreground">Gasto deducible</span>
                       <span className="text-sm font-medium text-red-600">{formatMoney(totalNominasJefe)}</span>
                     </div>
                   )}
                   {nominasEmp.length > 0 && (
                     <div className="flex items-center justify-between rounded-lg border p-3">
-                      <span className="text-sm text-muted-foreground">IRPF retenido (empleado)</span>
+                      <span className="text-sm text-muted-foreground">IRPF retenido</span>
                       <span className="text-sm font-medium text-green-600">{formatMoney(totalRetencionesEmp)}</span>
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground pt-1">
-                    {nominas.length} nóminas en {new Date().getFullYear()}
+                    {nominas.length} nóminas en {ahora.getFullYear()}
                   </p>
                 </div>
               )}
@@ -300,29 +328,27 @@ export default function DashboardPage() {
                   <CardTitle className="text-lg">Alquileres</CardTitle>
                 </div>
                 <Link href="/alquiler">
-                  <Button variant="ghost" size="sm">Ver todo</Button>
+                  <Button variant="ghost" size="sm">Ver <ArrowRight className="ml-1 h-3 w-3" /></Button>
                 </Link>
               </div>
             </CardHeader>
             <CardContent>
               {propiedades.length === 0 ? (
-                <div className="text-center py-4">
-                  <p className="text-sm text-muted-foreground">
-                    Registra propiedades en alquiler para controlar ingresos y gastos.
-                  </p>
-                </div>
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Registra propiedades en alquiler.
+                </p>
               ) : (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between rounded-lg border p-3">
-                    <span className="text-sm text-muted-foreground">Ingresos anuales</span>
+                    <span className="text-sm text-muted-foreground">Ingresos</span>
                     <span className="text-sm font-medium text-green-600">{formatMoney(totalIngresosAlquiler)}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg border p-3">
-                    <span className="text-sm text-muted-foreground">Gastos anuales</span>
+                    <span className="text-sm text-muted-foreground">Gastos</span>
                     <span className="text-sm font-medium text-red-600">{formatMoney(totalGastosAlquiler)}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
-                    <span className="text-sm font-medium">Balance neto</span>
+                    <span className="text-sm font-medium">Balance</span>
                     <span className={`text-sm font-bold ${balanceAlquiler >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatMoney(balanceAlquiler)}
                     </span>
@@ -334,7 +360,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Vencimientos fiscales reales */}
+      {/* Vencimientos fiscales */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -343,7 +369,7 @@ export default function DashboardPage() {
               <CardTitle className="text-lg">Próximos vencimientos fiscales</CardTitle>
             </div>
             <Link href="/fiscal">
-              <Button variant="ghost" size="sm">Ver calendario</Button>
+              <Button variant="ghost" size="sm">Calendario <ArrowRight className="ml-1 h-3 w-3" /></Button>
             </Link>
           </div>
         </CardHeader>
