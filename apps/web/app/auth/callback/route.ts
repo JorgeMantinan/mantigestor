@@ -49,6 +49,7 @@ export async function GET(req: NextRequest) {
           id: user.id,
           userId: user.id,
           email: user.email ?? '',
+          nombre: user.user_metadata?.full_name ?? user.user_metadata?.name ?? null,
         }, { onConflict: 'id' })
 
         if (upsertError) {

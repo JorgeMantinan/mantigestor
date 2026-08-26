@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { FEATURES_POR_TIER } from '@mantigestor/types'
 import type { Feature, SubscriptionTier } from '@mantigestor/types'
+import { NextResponse } from 'next/server'
 
 function puedeUsarFeature(tier: SubscriptionTier, feature: Feature): boolean {
   return FEATURES_POR_TIER[tier].includes(feature)
@@ -11,7 +12,6 @@ function tierMinimoPara(feature: Feature): SubscriptionTier {
   if (FEATURES_POR_TIER.basic.includes(feature)) return 'basic'
   return 'pro'
 }
-import { NextResponse } from 'next/server'
 
 export async function verificarAccesoFeature(feature: Feature) {
   const supabase = createServerClient()
@@ -24,13 +24,19 @@ export async function verificarAccesoFeature(feature: Feature) {
     }
   }
 
-  const { data: perfil } = await supabase
-    .from('perfiles')
-    .select('subscription_tier')
-    .eq('id', user.id)
-    .single()
+  // Buscar suscripción activa para obtener el tier
+  const { data: suscripcion } = await supabase
+    .from('suscripciones')
+    .select('tier')
+    .eq('perfilId', user.id)
+    .eq('estado', 'active')
+    .order('createdAt', { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
-  if (!perfil || !puedeUsarFeature(perfil.subscription_tier as any, feature)) {
+  const tier: SubscriptionTier = (suscripcion?.tier?.toLowerCase() as SubscriptionTier) ?? 'free'
+
+  if (!puedeUsarFeature(tier, feature)) {
     return {
       error: NextResponse.json(
         { error: `Requiere plan ${tierMinimoPara(feature)}` },
@@ -40,5 +46,5 @@ export async function verificarAccesoFeature(feature: Feature) {
     }
   }
 
-  return { error: null, usuario: { ...user, tier: perfil.subscription_tier } }
+  return { error: null, usuario: { ...user, tier } }
 }
