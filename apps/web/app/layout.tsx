@@ -11,9 +11,21 @@ const roboto = Roboto({
 })
 
 export const metadata: Metadata = {
-  title: 'MantiGestor - Gestión inteligente para autónomos',
+  title: {
+    default: 'MantiGestor - Gestión inteligente para autónomos',
+    template: '%s | MantiGestor',
+  },
   description:
-    'SaaS con IA para autónomos españoles. Gestiona facturas, IVA, IRPF, alumnos y más.',
+    'SaaS con IA para autónomos españoles. Gestiona facturas, IVA, IRPF, nóminas, alumnos y más.',
+  keywords: ['autónomos', 'facturas', 'gestoría', 'IVA', 'IRPF', 'nóminas', 'alumnos', 'España', 'IA'],
+  openGraph: {
+    title: 'MantiGestor - Gestión inteligente para autónomos',
+    description:
+      'SaaS con IA para autónomos españoles. Gestiona facturas, IVA, IRPF, nóminas, alumnos y más.',
+    locale: 'es_ES',
+    type: 'website',
+  },
+  robots: { index: true, follow: true },
 }
 
 export default function RootLayout({

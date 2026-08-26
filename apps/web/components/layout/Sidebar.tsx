@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import {
   LayoutDashboard,
   Receipt,
@@ -20,6 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Calculator,
+  Menu,
+  X,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -56,78 +57,96 @@ const menuItems = [
 export function Sidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <aside
-      className={cn(
-        'flex flex-col border-r bg-sidebar transition-all duration-300',
-        collapsed ? 'w-16' : 'w-64'
+    <>
+      <Button
+        variant="outline"
+        size="icon"
+        className="fixed left-4 top-3 z-50 lg:hidden"
+        onClick={() => setMobileOpen(!mobileOpen)}
+      >
+        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </Button>
+
+      {mobileOpen && (
+        <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
-    >
-      <div className="flex h-14 items-center gap-2 border-b px-4">
-        <div className={cn('flex items-center gap-2', collapsed && 'justify-center w-full')}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <span className="text-sm font-bold text-primary-foreground">M</span>
-          </div>
-          {!collapsed && (
-            <span className="font-heading text-lg font-semibold">MantiGestor</span>
-          )}
-        </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto py-4">
-        <nav className="flex flex-col gap-6 px-3">
-          {menuItems.map((group) => (
-            <div key={group.group}>
-              {!collapsed && (
-                <p className="mb-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  {group.group}
-                </p>
-              )}
-              <div className="flex flex-col gap-1">
-                {group.items.map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <Button
-                      key={item.href}
-                      variant={isActive ? 'secondary' : 'ghost'}
-                      size={collapsed ? 'icon' : 'default'}
-                      className={cn(
-                        'justify-start',
-                        collapsed ? 'h-10 w-10 mx-auto' : 'px-3'
-                      )}
-                      asChild
-                    >
-                      <Link href={item.href}>
-                        <item.icon className={cn('h-4 w-4', !collapsed && 'mr-3')} />
-                        {!collapsed && item.label}
-                      </Link>
-                    </Button>
-                  )
-                })}
-              </div>
+      <aside
+        className={cn(
+          'flex flex-col border-r bg-sidebar transition-all duration-300',
+          'hidden lg:flex',
+          collapsed ? 'lg:w-16' : 'lg:w-64',
+          mobileOpen && '!flex fixed inset-y-0 left-0 z-40 w-64'
+        )}
+      >
+        <div className="flex h-14 items-center gap-2 border-b px-4">
+          <div className={cn('flex items-center gap-2', collapsed && 'justify-center w-full')}>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+              <span className="text-sm font-bold text-primary-foreground">M</span>
             </div>
-          ))}
-        </nav>
-      </div>
+            {!collapsed && (
+              <span className="font-heading text-lg font-semibold">MantiGestor</span>
+            )}
+          </div>
+        </div>
 
-      <div className="border-t p-3">
-        <Button
-          variant="ghost"
-          size={collapsed ? 'icon' : 'default'}
-          className={cn('w-full', collapsed && 'mx-auto')}
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <>
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              Colapsar
-            </>
-          )}
-        </Button>
-      </div>
-    </aside>
+        <div className="flex-1 overflow-y-auto py-4">
+          <nav className="flex flex-col gap-6 px-3">
+            {menuItems.map((group) => (
+              <div key={group.group}>
+                {!collapsed && (
+                  <p className="mb-2 px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {group.group}
+                  </p>
+                )}
+                <div className="flex flex-col gap-1">
+                  {group.items.map((item) => {
+                    const isActive = pathname === item.href
+                    return (
+                      <Button
+                        key={item.href}
+                        variant={isActive ? 'secondary' : 'ghost'}
+                        size={collapsed ? 'icon' : 'default'}
+                        className={cn(
+                          'justify-start',
+                          collapsed ? 'h-10 w-10 mx-auto' : 'px-3'
+                        )}
+                        asChild
+                      >
+                        <Link href={item.href}>
+                          <item.icon className={cn('h-4 w-4', !collapsed && 'mr-3')} />
+                          {!collapsed && item.label}
+                        </Link>
+                      </Button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
+        </div>
+
+        <div className="border-t p-3">
+          <Button
+            variant="ghost"
+            size={collapsed ? 'icon' : 'default'}
+            className={cn('w-full', collapsed && 'mx-auto')}
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <>
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Colapsar
+              </>
+            )}
+          </Button>
+        </div>
+      </aside>
+    </>
   )
 }

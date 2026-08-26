@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Home, Plus, Building2, Euro, User, Trash2, Pencil } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Toaster, toast } from 'sonner'
+import { Home, Plus, Building2, User, Trash2, Pencil, Search } from 'lucide-react'
 
 const CATEGORIAS_GASTO = [
   { value: 'hipoteca', label: 'Hipoteca' },
@@ -18,6 +20,9 @@ const CATEGORIAS_GASTO = [
   { value: 'reparacion', label: 'Reparación' },
   { value: 'otros', label: 'Otros' },
 ] as const
+
+type OrdenCampo = 'direccion' | 'ingresos' | 'gastos' | 'balance'
+type OrdenDir = 'asc' | 'desc'
 
 interface Gasto {
   id: string
@@ -44,6 +49,9 @@ export default function AlquilerPage() {
   const [gastoPropiedadId, setGastoPropiedadId] = useState<string | null>(null)
   const [guardando, setGuardando] = useState(false)
   const [cargando, setCargando] = useState(true)
+  const [busqueda, setBusqueda] = useState('')
+  const [ordenCampo, setOrdenCampo] = useState<OrdenCampo>('direccion')
+  const [ordenDir, setOrdenDir] = useState<OrdenDir>('asc')
   const getSupabase = useCallback(() => createClient(), [])
 
   const cargar = useCallback(async () => {
@@ -76,6 +84,51 @@ export default function AlquilerPage() {
 
   useEffect(() => { cargar() }, [cargar])
 
+  const totalGastos = (gastos: Gasto[]) => gastos.reduce((s, g) => s + g.importe, 0)
+
+  const visibles = useMemo(() => {
+    const term = busqueda.toLowerCase().trim()
+    let filtradas = propiedades
+    if (term) {
+      filtradas = propiedades.filter((p) =>
+        p.direccion.toLowerCase().includes(term) ||
+        (p.inquilinoNombre?.toLowerCase().includes(term) ?? false)
+      )
+    }
+    return [...filtradas].sort((a, b) => {
+      let valA: number
+      let valB: number
+      switch (ordenCampo) {
+        case 'direccion':
+          return ordenDir === 'asc'
+            ? a.direccion.localeCompare(b.direccion)
+            : b.direccion.localeCompare(a.direccion)
+        case 'ingresos':
+          valA = a.ingresos
+          valB = b.ingresos
+          break
+        case 'gastos':
+          valA = totalGastos(a.gastos)
+          valB = totalGastos(b.gastos)
+          break
+        case 'balance':
+          valA = a.ingresos - totalGastos(a.gastos)
+          valB = b.ingresos - totalGastos(b.gastos)
+          break
+      }
+      return ordenDir === 'asc' ? valA - valB : valB - valA
+    })
+  }, [propiedades, busqueda, ordenCampo, ordenDir])
+
+  const toggleOrden = (campo: OrdenCampo) => {
+    if (ordenCampo === campo) {
+      setOrdenDir(ordenDir === 'asc' ? 'desc' : 'asc')
+    } else {
+      setOrdenCampo(campo)
+      setOrdenDir('asc')
+    }
+  }
+
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setGuardando(true)
@@ -104,6 +157,7 @@ export default function AlquilerPage() {
         gastos: [],
       }, ...propiedades])
       setShowForm(false)
+      toast.success('Propiedad añadida')
     }
     setGuardando(false)
   }
@@ -135,6 +189,7 @@ export default function AlquilerPage() {
         } : p
       ))
       setEditingId(null)
+      toast.success('Propiedad actualizada')
     }
     setGuardando(false)
   }
@@ -142,6 +197,7 @@ export default function AlquilerPage() {
   const handleDelete = async (id: string) => {
     await getSupabase().from('propiedades_alquiler').delete().eq('id', id)
     setPropiedades(propiedades.filter((p) => p.id !== id))
+    toast.success('Propiedad eliminada')
   }
 
   const handleAddGasto = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -172,6 +228,7 @@ export default function AlquilerPage() {
         } : p
       ))
       setGastoPropiedadId(null)
+      toast.success('Gasto añadido')
     }
     setGuardando(false)
   }
@@ -181,16 +238,55 @@ export default function AlquilerPage() {
     setPropiedades(propiedades.map((p) =>
       p.id === propiedadId ? { ...p, gastos: p.gastos.filter((g) => g.id !== gastoId) } : p
     ))
+    toast.success('Gasto eliminado')
   }
 
-  const totalGastos = (gastos: Gasto[]) => gastos.reduce((s, g) => s + g.importe, 0)
-
   if (cargando) {
-    return <p className="text-muted-foreground">Cargando propiedades...</p>
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-40" />
+            <Skeleton className="h-4 w-56" />
+          </div>
+          <Skeleton className="h-10 w-40" />
+        </div>
+        <Skeleton className="h-10 w-full max-w-md" />
+        <div className="grid gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <Skeleton className="h-8 w-8 rounded" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Skeleton className="h-8 w-8 rounded" />
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-6">
+                  <Skeleton className="h-12 w-28" />
+                  <Skeleton className="h-12 w-28" />
+                  <Skeleton className="h-12 w-28" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
+      <Toaster position="top-right" richColors />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-heading font-bold tracking-tight">Alquiler</h1>
@@ -200,6 +296,16 @@ export default function AlquilerPage() {
           <Plus className="mr-2 h-4 w-4" />
           Añadir propiedad
         </Button>
+      </div>
+
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+        <Input
+          placeholder="Buscar por dirección o inquilino..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          className="pl-9"
+        />
       </div>
 
       {showForm && (
@@ -255,8 +361,22 @@ export default function AlquilerPage() {
         </Card>
       )}
 
+      {propiedades.length > 0 && visibles.length === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center gap-4 py-12">
+            <Search className="h-12 w-12 text-muted-foreground" />
+            <div className="text-center">
+              <p className="font-medium">Sin resultados</p>
+              <p className="text-sm text-muted-foreground">
+                No se encontraron propiedades que coincidan con &quot;{busqueda}&quot;
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-6">
-        {propiedades.map((p) => {
+        {visibles.map((p) => {
           const totalGasto = totalGastos(p.gastos)
           const balance = p.ingresos - totalGasto
 
@@ -265,7 +385,7 @@ export default function AlquilerPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <Building2 className="mt-1 h-8 w-8 text-primary" />
+                    <Building2 className="mt-1 h-8 w-8 text-primary" aria-hidden="true" />
                     <div>
                       <CardTitle className="text-lg">{p.direccion}</CardTitle>
                       <CardDescription>Propiedad en alquiler</CardDescription>
@@ -275,9 +395,23 @@ export default function AlquilerPage() {
                     <Button variant="ghost" size="icon" onClick={() => setEditingId(editingId === p.id ? null : p.id)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Eliminar propiedad?</AlertDialogTitle>
+                          <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminarán también todos sus gastos.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(p.id)}>Eliminar</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </CardHeader>
@@ -302,7 +436,7 @@ export default function AlquilerPage() {
 
                 {p.inquilinoNombre && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <User className="h-4 w-4" />
+                    <User className="h-4 w-4" aria-hidden="true" />
                     <span>{p.inquilinoNombre}</span>
                     {p.inquilinoEmail && <span>· {p.inquilinoEmail}</span>}
                     {p.inquilinoTelefono && <span>· {p.inquilinoTelefono}</span>}
@@ -388,9 +522,23 @@ export default function AlquilerPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="font-medium text-red-600">-{(g.importe / 100).toFixed(2)} €</span>
-                              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteGasto(p.id, g.id)}>
-                                <Trash2 className="h-3 w-3 text-destructive" />
-                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-6 w-6">
+                                    <Trash2 className="h-3 w-3 text-destructive" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Eliminar gasto?</AlertDialogTitle>
+                                    <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteGasto(p.id, g.id)}>Eliminar</AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </div>
                         )

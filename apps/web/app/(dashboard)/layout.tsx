@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { FiscalRemindersProvider } from '@/components/layout/FiscalRemindersProvider'
+import { DashboardShortcuts } from '@/components/layout/DashboardShortcuts'
 
 export const metadata: Metadata = {
   title: 'Panel - MantiGestor',
@@ -22,6 +23,7 @@ export default function DashboardLayout({
           <FiscalRemindersProvider>{children}</FiscalRemindersProvider>
         </main>
       </div>
+      <DashboardShortcuts />
     </div>
   )
 }

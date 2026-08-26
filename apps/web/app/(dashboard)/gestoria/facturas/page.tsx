@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { BotonPDF } from '@/components/boton-pdf'
+import { toast, Toaster } from 'sonner'
 
 interface Factura {
   id: string
@@ -33,6 +34,8 @@ export default function FacturasPage() {
   const [page, setPage] = useState(0)
   const [ordenCampo, setOrdenCampo] = useState<OrdenCampo>('fechaEmision')
   const [ordenDir, setOrdenDir] = useState<OrdenDireccion>('desc')
+  const [fechaDesde, setFechaDesde] = useState('')
+  const [fechaHasta, setFechaHasta] = useState('')
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -55,6 +58,7 @@ export default function FacturasPage() {
     if (!confirm('¿Eliminar esta factura?')) return
     await getSupabase().from('facturas').delete().eq('id', id)
     setFacturas(prev => prev.filter(f => f.id !== id))
+    toast.success('Factura eliminada')
   }
 
   const formatMoney = (cents: number) =>
@@ -89,6 +93,9 @@ export default function FacturasPage() {
       )
     }
 
+    if (fechaDesde) result = result.filter(f => f.fechaEmision >= fechaDesde)
+    if (fechaHasta) result = result.filter(f => f.fechaEmision <= fechaHasta)
+
     result.sort((a, b) => {
       let cmp = 0
       switch (ordenCampo) {
@@ -101,7 +108,7 @@ export default function FacturasPage() {
     })
 
     return result
-  }, [facturas, filtro, busqueda, ordenCampo, ordenDir])
+  }, [facturas, filtro, busqueda, fechaDesde, fechaHasta, ordenCampo, ordenDir])
 
   const totalPages = Math.ceil(visibles.length / PAGE_SIZE)
   const paginadas = visibles.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -135,7 +142,15 @@ export default function FacturasPage() {
             value={busqueda}
             onChange={e => { setBusqueda(e.target.value); setPage(0) }}
             className="pl-9"
+            data-search-input
           />
+        </div>
+        <div className="flex items-center gap-2">
+          <Input type="date" value={fechaDesde} onChange={e => { setFechaDesde(e.target.value); setPage(0) }}
+            className="w-[150px]" placeholder="Desde" />
+          <span className="text-muted-foreground text-xs">—</span>
+          <Input type="date" value={fechaHasta} onChange={e => { setFechaHasta(e.target.value); setPage(0) }}
+            className="w-[150px]" placeholder="Hasta" />
         </div>
         <div className="flex gap-2">
           {(['todas', 'ingreso', 'gasto'] as const).map(f => (
@@ -247,6 +262,7 @@ export default function FacturasPage() {
           )}
         </>
       )}
+      <Toaster richColors position="top-right" />
     </div>
   )
 }
