@@ -18,22 +18,56 @@ export default function RentaPage() {
 
   const calcular = useCallback(async () => {
     setLoading(true)
-    const { data: { user } } = await getSupabase().auth.getUser()
+    const supabase = getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
 
-    const { data: facturas } = await getSupabase()
+    // Fetch facturas del año
+    const { data: facturas } = await supabase
       .from('facturas')
       .select('*')
       .eq('perfilId', user.id)
       .gte('fechaEmision', `${selectedYear}-01-01`)
       .lt('fechaEmision', `${selectedYear + 1}-01-01`)
 
+    // Fetch retenciones IRPF de nóminas donde el usuario es la empleada
+    const { data: nominasEmp } = await supabase
+      .from('nominas')
+      .select('salarioBruto, irpf')
+      .eq('perfilId', user.id)
+      .eq('rol', 'empleado')
+      .eq('anyo', selectedYear)
+
+    // Fetch gastos de alquiler deducibles del año
+    const { data: propiedades } = await supabase
+      .from('propiedades_alquiler')
+      .select('id')
+      .eq('perfilId', user.id)
+
+    let gastosAlquiler = 0
+    if (propiedades && propiedades.length > 0) {
+      const ids = propiedades.map(p => p.id)
+      const { data: gastos } = await supabase
+        .from('gastos_alquiler')
+        .select('importe')
+        .in('propiedadId', ids)
+        .gte('fecha', `${selectedYear}-01-01`)
+        .lt('fecha', `${selectedYear + 1}-01-01`)
+
+      if (gastos) gastosAlquiler = gastos.reduce((s, g) => s + (g.importe ?? 0), 0)
+    }
+
     if (facturas) {
       const tipadas = facturas as unknown as FacturaType[]
       const ingresos = tipadas.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + f.importe, 0)
       const gastos = tipadas.filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.importe, 0)
 
-      const res = calcularModelo130(ingresos, gastos, 0)
+      // Retenciones IRPF de nóminas como empleada: sumamos retenciones mensuales
+      const retencionesNomina = nominasEmp
+        ? nominasEmp.reduce((s, n) => s + Math.round(n.salarioBruto * (n.irpf / 100)), 0)
+        : 0
+
+      const res = calcularModelo130(ingresos, gastos + gastosAlquiler, 0, retencionesNomina)
       setResultado(res)
     }
     setLoading(false)
@@ -46,7 +80,9 @@ export default function RentaPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-heading font-bold tracking-tight">Declaración de la Renta</h1>
-        <p className="text-muted-foreground">Resumen anual del IRPF (Modelo 100) y pagos fraccionados</p>
+        <p className="text-muted-foreground">
+          Resumen anual del IRPF (Modelo 100) — incluye facturas, retenciones de nómina y gastos de alquiler
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
