@@ -3,123 +3,123 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const STORAGE_KEY = 'recurrentes-check-v1'
+const STORAGE_KEY_GEN = 'recurrentes-gen-v1'
+const STORAGE_KEY_EMAIL = 'recurrentes-email-v1'
 
 /**
- * Comprueba al abrir la app si hay facturas recurrentes pendientes de generar.
- * Si las hay, las genera y envía email de recordatorio.
- * Solo ejecuta una vez por día (guarda en localStorage).
+ * Comprueba al abrir la app:
+ * 1. Si hay facturas pendientes de generar (diaGeneracion = hoy)
+ * 2. Si toca enviar email de recordatorio (diaEmail = hoy)
+ * Cada cosa se ejecuta como máximo una vez por día.
  */
 export function useRecurringInvoiceCheck() {
   const ejecutado = useRef(false)
 
-  const comprobarYGenerar = useCallback(async () => {
+  const comprobar = useCallback(async () => {
     if (ejecutado.current) return
     ejecutado.current = true
 
     try {
-      // Evitar ejecutar más de una vez por día
-      const hoy = new Date().toISOString().slice(0, 10)
-      const ultimaEjecucion = localStorage.getItem(STORAGE_KEY)
-      if (ultimaEjecucion === hoy) return
-
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const diaActual = new Date().getDate()
+      const hoy = new Date()
+      const diaActual = hoy.getDate()
+      const mesActual = hoy.getMonth() + 1
+      const anyoActual = hoy.getFullYear()
+      const hoyStr = hoy.toISOString().slice(0, 10)
 
-      // Buscar plantillas activas cuyo día coincide con hoy
-      const { data: plantillas } = await supabase
-        .from('facturas_recurrentes')
-        .select('*')
-        .eq('perfilId', user.id)
-        .eq('activa', true)
-        .eq('diaGeneracion', diaActual)
+      // ── 1. GENERAR FACTURAS (diaGeneracion = hoy) ──
+      const ultimaGen = localStorage.getItem(STORAGE_KEY_GEN)
+      if (ultimaGen !== hoyStr) {
+        const { data: plantillas } = await supabase
+          .from('facturas_recurrentes')
+          .select('*')
+          .eq('perfilId', user.id)
+          .eq('activa', true)
+          .eq('diaGeneracion', diaActual)
 
-      if (!plantillas || plantillas.length === 0) return
+        if (plantillas && plantillas.length > 0) {
+          let generadas = 0
+          for (const tpl of plantillas) {
+            if (tpl.ultimaGeneracion) {
+              const ultima = new Date(tpl.ultimaGeneracion)
+              if (ultima.getMonth() + 1 === mesActual && ultima.getFullYear() === anyoActual) continue
+            }
 
-      const hoyDate = new Date()
-      const mesActual = hoyDate.getMonth() + 1
-      const anyoActual = hoyDate.getFullYear()
+            const importeIva = Math.round(tpl.baseImponible * (tpl.iva / 100))
+            const total = tpl.baseImponible + importeIva
+            const numero = `${tpl.numero}-${anyoActual}-${String(mesActual).padStart(2, '0')}`
 
-      let generadas = 0
-      const contrapartes: string[] = []
-
-      for (const tpl of plantillas) {
-        // Verificar que no se ya generó este mes
-        if (tpl.ultimaGeneracion) {
-          const ultima = new Date(tpl.ultimaGeneracion)
-          if (ultima.getMonth() + 1 === mesActual && ultima.getFullYear() === anyoActual) {
-            continue
-          }
-        }
-
-        const importeIva = Math.round(tpl.baseImponible * (tpl.iva / 100))
-        const total = tpl.baseImponible + importeIva
-        const numero = `${tpl.numero}-${anyoActual}-${String(mesActual).padStart(2, '0')}`
-
-        const { error } = await supabase.from('facturas').insert({
-          id: crypto.randomUUID(),
-          perfilId: tpl.perfilId,
-          numero,
-          tipo: tpl.tipo,
-          emisorReceptor: tpl.emisorReceptor,
-          nifContraparte: tpl.nifContraparte,
-          fechaEmision: `${anyoActual}-${String(mesActual).padStart(2, '0')}-${String(tpl.diaGeneracion).padStart(2, '0')}`,
-          baseImponible: tpl.baseImponible,
-          iva: tpl.iva,
-          total,
-          estado: 'pendiente',
-        })
-
-        if (!error) {
-          generadas++
-          contrapartes.push(tpl.emisorReceptor)
-
-          // Actualizar última generación
-          await supabase
-            .from('facturas_recurrentes')
-            .update({ ultimaGeneracion: hoyDate.toISOString() })
-            .eq('id', tpl.id)
-        }
-      }
-
-      // Enviar email de recordatorio si se generaron facturas
-      if (generadas > 0) {
-        const { data: perfil } = await supabase
-          .from('perfiles')
-          .select('email, nombre')
-          .eq('id', user.id)
-          .single()
-
-        if (perfil?.email) {
-          try {
-            await fetch('/api/facturas/recurrentes/enviar-email', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: perfil.email,
-                nombre: perfil.nombre,
-                contrapartes,
-                mes: mesActual,
-                anyo: anyoActual,
-              }),
+            const { error } = await supabase.from('facturas').insert({
+              id: crypto.randomUUID(),
+              perfilId: tpl.perfilId,
+              numero,
+              tipo: tpl.tipo,
+              emisorReceptor: tpl.emisorReceptor,
+              nifContraparte: tpl.nifContraparte,
+              fechaEmision: `${anyoActual}-${String(mesActual).padStart(2, '0')}-${String(tpl.diaGeneracion).padStart(2, '0')}`,
+              baseImponible: tpl.baseImponible,
+              iva: tpl.iva,
+              total,
+              estado: 'pendiente',
             })
-          } catch {
-            // Email es best-effort
+
+            if (!error) {
+              generadas++
+              await supabase
+                .from('facturas_recurrentes')
+                .update({ ultimaGeneracion: hoy.toISOString() })
+                .eq('id', tpl.id)
+            }
           }
+          localStorage.setItem(STORAGE_KEY_GEN, hoyStr)
         }
       }
 
-      // Marcar como ejecutado hoy
-      localStorage.setItem(STORAGE_KEY, hoy)
+      // ── 2. ENVIAR EMAIL (diaEmail = hoy) ──
+      const ultimaEmail = localStorage.getItem(STORAGE_KEY_EMAIL)
+      if (ultimaEmail !== hoyStr) {
+        const { data: paraEmail } = await supabase
+          .from('facturas_recurrentes')
+          .select('emisorReceptor')
+          .eq('perfilId', user.id)
+          .eq('activa', true)
+          .eq('diaEmail', diaActual)
+
+        if (paraEmail && paraEmail.length > 0) {
+          const contrapartes = paraEmail.map(p => p.emisorReceptor)
+          const { data: perfil } = await supabase
+            .from('perfiles')
+            .select('email, nombre')
+            .eq('id', user.id)
+            .single()
+
+          if (perfil?.email) {
+            try {
+              await fetch('/api/facturas/recurrentes/enviar-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: perfil.email,
+                  nombre: perfil.nombre,
+                  contrapartes,
+                  mes: mesActual,
+                  anyo: anyoActual,
+                }),
+              })
+            } catch { /* email es best-effort */ }
+          }
+          localStorage.setItem(STORAGE_KEY_EMAIL, hoyStr)
+        }
+      }
     } catch {
-      // Silently fail — facturas recurrentes son best-effort
+      // Silently fail
     }
   }, [])
 
   useEffect(() => {
-    void comprobarYGenerar()
-  }, [comprobarYGenerar])
+    void comprobar()
+  }, [comprobar])
 }

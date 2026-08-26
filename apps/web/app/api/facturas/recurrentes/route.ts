@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     if (!user) return unauthorized()
 
     const body = await req.json()
-    const { tipo, numero, emisorReceptor, nifContraparte, baseImponible, iva, diaGeneracion } = body
+    const { tipo, numero, emisorReceptor, nifContraparte, baseImponible, iva, diaGeneracion, diaEmail } = body
 
     if (!tipo || !numero || !emisorReceptor || baseImponible == null || !diaGeneracion) {
       return badRequest('Faltan campos obligatorios')
@@ -43,6 +43,10 @@ export async function POST(req: NextRequest) {
 
     if (diaGeneracion < 1 || diaGeneracion > 28) {
       return badRequest('Día de generación debe ser entre 1 y 28')
+    }
+
+    if (diaEmail != null && (diaEmail < 1 || diaEmail > 28)) {
+      return badRequest('Día de email debe ser entre 1 y 28 o null')
     }
 
     const id = crypto.randomUUID()
@@ -58,6 +62,7 @@ export async function POST(req: NextRequest) {
         baseImponible: Math.round(baseImponible * 100),
         iva,
         diaGeneracion,
+        diaEmail: diaEmail ?? null,
         activa: true,
       })
       .select()

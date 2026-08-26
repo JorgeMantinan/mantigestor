@@ -11,6 +11,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const updates: Record<string, unknown> = {}
     if (body.activa !== undefined) updates.activa = body.activa
     if (body.diaGeneracion !== undefined) updates.diaGeneracion = body.diaGeneracion
+    if (body.diaEmail !== undefined) updates.diaEmail = body.diaEmail
 
     const { error } = await createClient()
       .from('facturas_recurrentes')

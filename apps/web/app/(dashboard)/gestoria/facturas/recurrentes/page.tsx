@@ -20,6 +20,7 @@ interface FacturaRecurrente {
   baseImponible: number
   iva: number
   diaGeneracion: number
+  diaEmail: number | null
   activa: boolean
   ultimaGeneracion: string | null
   createdAt: string
@@ -40,6 +41,7 @@ export default function FacturasRecurrentesPage() {
   const [baseImponible, setBaseImponible] = useState('')
   const [iva, setIva] = useState('21')
   const [diaGeneracion, setDiaGeneracion] = useState('5')
+  const [diaEmail, setDiaEmail] = useState('')
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -76,6 +78,7 @@ export default function FacturasRecurrentesPage() {
           baseImponible: parseFloat(baseImponible),
           iva: parseInt(iva),
           diaGeneracion: parseInt(diaGeneracion),
+          diaEmail: diaEmail ? parseInt(diaEmail) : null,
         }),
       })
       if (!res.ok) {
@@ -195,6 +198,19 @@ export default function FacturasRecurrentesPage() {
                 </select>
               </div>
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Día de aviso por email</Label>
+                <select value={diaEmail} onChange={e => setDiaEmail(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  <option value="">Sin aviso</option>
+                  {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">Email automático con recordatorio de facturas pendientes</p>
+              </div>
+            </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setMostrarForm(false)}>Cancelar</Button>
@@ -239,6 +255,12 @@ export default function FacturasRecurrentesPage() {
                     <span>{p.numero}-YYYY-MM</span>
                     <span>·</span>
                     <span>{nombreMes(p.diaGeneracion)}</span>
+                    {p.diaEmail && (
+                      <>
+                        <span>·</span>
+                        <span className="text-blue-600">Email día {p.diaEmail}</span>
+                      </>
+                    )}
                     <span>·</span>
                     <span className="capitalize">{p.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}</span>
                   </div>
