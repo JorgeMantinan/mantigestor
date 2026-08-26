@@ -14,8 +14,10 @@ import { PanelPlazos } from './calculadoras/panel-plazos'
 import { PanelMinimos } from './calculadoras/panel-minimos'
 import { PanelResumenAnual } from './calculadoras/panel-resumen-anual'
 import { PanelDeduccionesAutonomicas } from './calculadoras/panel-deducciones-autonomicas'
+import { PanelDocumentosFiscales } from './calculadoras/panel-documentos-fiscales'
+import { createClient } from '@/lib/supabase/client'
 
-type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'plazos' | 'minimos' | 'resumen'
+type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'plazos' | 'minimos' | 'resumen'
 type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
 
 const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
@@ -25,6 +27,7 @@ const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
   { key: 'sociedades', label: 'Sociedades' },
   { key: 'patrimonio', label: 'Patrimonio' },
   { key: 'deducciones', label: 'Deducciones autonómicas' },
+  { key: 'documentos', label: 'Documentos IA' },
   { key: 'plazos', label: 'Calendario fiscal' },
   { key: 'minimos', label: 'Mínimos y reducciones' },
   { key: 'resumen', label: 'Resumen anual' },
@@ -128,6 +131,28 @@ export default function PaginaFiscal() {
   const [perfil, setPerfil] = useState<PerfilFiscal | null>(null)
   const [mostrarWizard, setMostrarWizard] = useState(false)
   const [sincronizado, setSincronizado] = useState(false)
+  const [esPro, setEsPro] = useState(false)
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data: sub } = await supabase
+          .from('suscripciones')
+          .select('tier, estado')
+          .eq('perfilId', user.id)
+          .in('estado', ['active', 'trialing'])
+          .order('currentPeriodStart', { ascending: false })
+          .limit(1)
+          .single()
+        setEsPro(sub?.tier === 'PRO')
+      } catch {
+        // sin sesión o sin sub: se mantiene false
+      }
+    })()
+  }, [])
 
   useEffect(() => {
     const p = leerPerfil()
@@ -324,6 +349,7 @@ export default function PaginaFiscal() {
           {seccion === 'sociedades' && <CalculadoraIs datos={datos} />}
           {seccion === 'patrimonio' && <CalculadoraPatrimonio datos={datos} />}
           {seccion === 'deducciones' && <PanelDeduccionesAutonomicas datos={datos} />}
+          {seccion === 'documentos' && <PanelDocumentosFiscales esPro={esPro} />}
           {seccion === 'plazos' && <PanelPlazos datos={datos} />}
           {seccion === 'minimos' && <PanelMinimos datos={datos} comunidad={comunidad} />}
           {seccion === 'resumen' && <PanelResumenAnual datos={datos} comunidad={comunidad} />}
