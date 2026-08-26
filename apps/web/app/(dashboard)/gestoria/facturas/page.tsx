@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Receipt, ArrowUpRight, Trash2 } from 'lucide-react'
+import { Plus, Receipt, ArrowUpRight, Trash2, Repeat } from 'lucide-react'
 
 interface Factura {
   id: string
@@ -62,12 +62,20 @@ export default function FacturasPage() {
           <h1 className="text-3xl font-heading font-bold tracking-tight">Facturas</h1>
           <p className="text-muted-foreground">Gestiona tus facturas emitidas y recibidas</p>
         </div>
-        <Link href="/gestoria/facturas/nueva">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Nueva factura
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/gestoria/facturas/recurrentes">
+            <Button variant="outline" size="sm">
+              <Repeat className="mr-1 h-3 w-3" />
+              Recurrentes
+            </Button>
+          </Link>
+          <Link href="/gestoria/facturas/nueva">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva factura
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="flex gap-2">

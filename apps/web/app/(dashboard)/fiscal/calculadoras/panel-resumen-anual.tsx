@@ -1,10 +1,19 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Printer } from 'lucide-react'
+import { Printer, AlertTriangle } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { proximosPlazos } from '@mantigestor/utils'
 import { eur, type DatosFiscales } from './types'
+
+interface ResumenAno {
+  anyo: number
+  numFacturas: number
+  totalIngresos: number
+  totalGastos: number
+}
 
 export function PanelResumenAnual({
   datos,
@@ -17,6 +26,51 @@ export function PanelResumenAnual({
   const minimosRef = minimos.length ? minimos : datos.minimos.filter(m => m.territorio.toLowerCase().includes('estatal'))
   // proximosPlazos normaliza fechas que llegan como string ISO vía JSON y descarta pasadas/inválidas
   const plazosProximos = proximosPlazos(datos.plazos, new Date(), 8)
+
+  const [historial, setHistorial] = useState<ResumenAno[]>([])
+  const [cargandoHistorial, setCargandoHistorial] = useState(true)
+
+  const getSupabase = useCallback(() => createClient(), [])
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const supabase = getSupabase()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { setCargandoHistorial(false); return }
+
+        const { data: facturas } = await supabase
+          .from('facturas')
+          .select('fechaEmision, tipo, baseImponible')
+          .eq('perfilId', user.id)
+
+        if (!facturas) { setCargandoHistorial(false); return }
+
+        const porAno = new Map<number, { num: number; ingresos: number; gastos: number }>()
+        for (const f of facturas) {
+          const ano = new Date(f.fechaEmision).getFullYear()
+          const existente = porAno.get(ano) ?? { num: 0, ingresos: 0, gastos: 0 }
+          existente.num++
+          if (f.tipo === 'ingreso') existente.ingresos += f.baseImponible
+          else existente.gastos += f.baseImponible
+          porAno.set(ano, existente)
+        }
+
+        const resumen: ResumenAno[] = [...porAno.entries()]
+          .sort((a, b) => b[0] - a[0])
+          .map(([anyo, d]) => ({
+            anyo,
+            numFacturas: d.num,
+            totalIngresos: d.ingresos,
+            totalGastos: d.gastos,
+          }))
+        setHistorial(resumen)
+      } catch {
+        // silently fail
+      }
+      setCargandoHistorial(false)
+    })()
+  }, [getSupabase])
 
   return (
     <div className="space-y-4">
@@ -120,6 +174,60 @@ export function PanelResumenAnual({
             </p>
           </CardContent>
         </Card>
+
+        {/* Historical invoices by year */}
+        {historial.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Facturas por año</CardTitle>
+              <CardDescription>
+                Resumen de facturas en todos los años con actividad
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {cargandoHistorial ? (
+                <p className="text-sm text-muted-foreground">Cargando historial...</p>
+              ) : (
+                <div className="rounded-lg border overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="px-3 py-2 text-left font-medium">Año</th>
+                        <th className="px-3 py-2 text-right font-medium">Facturas</th>
+                        <th className="px-3 py-2 text-right font-medium">Ingresos</th>
+                        <th className="px-3 py-2 text-right font-medium">Gastos</th>
+                        <th className="px-3 py-2 text-right font-medium">Neto</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {historial.map(h => {
+                        const neto = h.totalIngresos - h.totalGastos
+                        const esAñoActual = h.anyo === datos.taxYear
+                        return (
+                          <tr key={h.anyo} className={`border-b last:border-0 ${esAñoActual ? 'bg-primary/5 font-medium' : ''}`}>
+                            <td className="px-3 py-2">{h.anyo} {esAñoActual && '← ejercicio actual'}</td>
+                            <td className="px-3 py-2 text-right">{h.numFacturas}</td>
+                            <td className="px-3 py-2 text-right text-green-600">{eur(h.totalIngresos)}</td>
+                            <td className="px-3 py-2 text-right text-red-600">{eur(h.totalGastos)}</td>
+                            <td className={`px-3 py-2 text-right font-medium ${neto >= 0 ? 'text-green-600' : 'text-red-600'}`}>{eur(neto)}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {historial.some(h => h.anyo < datos.taxYear) && (
+                <div className="mt-3 flex items-start gap-2 rounded-md border border-yellow-500/50 bg-yellow-500/10 p-3 text-sm">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-600" aria-hidden="true" />
+                  <p>
+                    Tienes facturas de años anteriores. Si no las declaraste, puedes seleccionar ese año en el ejercicio del IRPF para incluirlas.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

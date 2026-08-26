@@ -18,8 +18,11 @@ import { PanelDeduccionesAutonomicas } from './calculadoras/panel-deducciones-au
 import { PanelDocumentosFiscales } from './calculadoras/panel-documentos-fiscales'
 import { Calculadora111 } from './calculadoras/calculadora-111'
 import { Calculadora390 } from './calculadoras/calculadora-390'
+import { Calculadora190 } from './calculadoras/calculadora-190'
+import { Calculadora180 } from './calculadoras/calculadora-180'
+import { Calculadora202 } from './calculadoras/calculadora-202'
 
-type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo390' | 'plazos' | 'minimos' | 'resumen'
+type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'plazos' | 'minimos' | 'resumen'
 type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
 
 const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
@@ -31,7 +34,10 @@ const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
   { key: 'deducciones', label: 'Deducciones autonómicas' },
   { key: 'documentos', label: 'Documentos IA' },
   { key: 'modelo111', label: 'Modelo 111' },
+  { key: 'modelo190', label: 'Modelo 190' },
   { key: 'modelo390', label: 'Modelo 390' },
+  { key: 'modelo180', label: 'Modelo 180' },
+  { key: 'modelo202', label: 'Modelo 202' },
   { key: 'plazos', label: 'Calendario fiscal' },
   { key: 'minimos', label: 'Mínimos y reducciones' },
   { key: 'resumen', label: 'Resumen anual' },
@@ -485,7 +491,10 @@ export default function PaginaFiscal() {
           {seccion === 'deducciones' && <PanelDeduccionesAutonomicas datos={datos} onTotalChange={setDeduccionesAutonomicas} />}
           {seccion === 'documentos' && <PanelDocumentosFiscales esPro={esPro} />}
           {seccion === 'modelo111' && <Calculadora111 taxYear={taxYear} />}
+          {seccion === 'modelo190' && <Calculadora190 taxYear={taxYear} />}
           {seccion === 'modelo390' && <Calculadora390 taxYear={taxYear} />}
+          {seccion === 'modelo180' && <Calculadora180 taxYear={taxYear} />}
+          {seccion === 'modelo202' && <Calculadora202 taxYear={taxYear} />}
           {seccion === 'plazos' && <PanelPlazos datos={datos} />}
           {seccion === 'minimos' && <PanelMinimos datos={datos} comunidad={comunidad} />}
           {seccion === 'resumen' && <PanelResumenAnual datos={datos} comunidad={comunidad} />}
