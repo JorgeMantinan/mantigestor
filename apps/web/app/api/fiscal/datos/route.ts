@@ -12,6 +12,7 @@ import {
   obtenerReglasIva,
   obtenerTiposIs,
   obtenerEscalaPatrimonio,
+  obtenerBonificacionesPatrimonio,
   obtenerMinimos,
   obtenerReducciones,
   AVISO_NO_VERIFICADO,
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
     const taxYear = parseInt(searchParams.get('taxYear') ?? '2025', 10)
     if (!/^(19|20)\d{2}$/.test(String(taxYear))) return badRequest('Año fiscal inválido')
 
-    const [escalas, ahorroForal, reta, cotizacionReta, deduccionesAutonomicas, plazos, iva, is, patrimonio, minimos, reducciones] = await Promise.all([
+    const [escalas, ahorroForal, reta, cotizacionReta, deduccionesAutonomicas, plazos, iva, is, patrimonio, bonificacionesPatrimonio, minimos, reducciones] = await Promise.all([
       obtenerEscalasIrpf(supabase, comunidad, taxYear),
       obtenerEscalaAhorroForal(supabase, comunidad, taxYear),
       obtenerTramosReta(supabase, 2026),
@@ -55,7 +56,8 @@ export async function GET(req: NextRequest) {
       obtenerProximosPlazosFiscales(supabase, new Date()),
       obtenerReglasIva(supabase, taxYear),
       obtenerTiposIs(supabase),
-      obtenerEscalaPatrimonio(supabase, taxYear),
+      obtenerEscalaPatrimonio(supabase, taxYear, comunidad),
+      obtenerBonificacionesPatrimonio(supabase, comunidad, taxYear),
       obtenerMinimos(supabase, taxYear, comunidad),
       obtenerReducciones(supabase, taxYear),
     ])
@@ -67,6 +69,7 @@ export async function GET(req: NextRequest) {
       ...cotizacionReta.avisos,
       ...deduccionesAutonomicas.avisos,
       ...patrimonio.avisos,
+      ...bonificacionesPatrimonio.avisos,
       ...(iva.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []),
       ...(is.filter(f => !f.previsto).some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []),
       ...(minimos.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []),
@@ -86,7 +89,10 @@ export async function GET(req: NextRequest) {
         cotizacionRetaPct: cotizacionReta.porcentaje,
         deduccionesAutonomicas: deduccionesAutonomicas.deducciones,
         tiposIs: is,
-        escalaPatrimonio: patrimonio.tramos,
+        escalaPatrimonioEstatal: patrimonio.estatal,
+        escalaPatrimonioAutonomica: patrimonio.autonomico,
+        comunidadPatrimonio: patrimonio.comunidad,
+        bonificacionesPatrimonio: bonificacionesPatrimonio.bonificaciones,
         minimos,
         reducciones,
         plazos,

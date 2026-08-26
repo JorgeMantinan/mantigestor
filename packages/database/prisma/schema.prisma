@@ -171,6 +171,7 @@ model FiscalSource {
   itpAjdReglas          ItpAjdRegla[]
   patrimonioEscalas     PatrimonioEscala[]
   deduccionesAutonomicas DeduccionAutonomica[]
+  patrimonioBonificaciones PatrimonioBonificacion[]
   sanciones             Sancion[]
   amortizaciones        AmortizacionDietaKm[]
   umbrales              UmbralTamanoEmpresa[]
@@ -420,6 +421,24 @@ model DeduccionAutonomica {
 
   @@unique([comunidad, tipo, descripcion, taxYear])
   @@map("deducciones_autonomicas")
+}
+
+model PatrimonioBonificacion {
+  id                String  @id
+  taxYear           Int
+  comunidad         String
+  descripcion       String
+  porcentajeCents   Int     // porcentaje de bonificación en céntimos (10000 = 100%)
+  importeMaxCents   Int?    // tope máximo de bonificación en céntimos (null = sin tope)
+  condiciones       String? // condiciones específicas
+  notas             String? // notas adicionales (anti-ITSGF, etc.)
+  status            String  @default("OFFICIAL_UNVERIFIED")
+  productionNote    String?
+  sourceId          String?
+  source            FiscalSource? @relation(fields: [sourceId], references: [id])
+
+  @@unique([comunidad, taxYear])
+  @@map("patrimonio_bonificaciones")
 }
 
 model Deadline {

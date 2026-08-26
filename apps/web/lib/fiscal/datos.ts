@@ -341,20 +341,83 @@ export async function obtenerTiposIs(client: SupabaseClient): Promise<TipoIs[]> 
   }))
 }
 
+export interface BonificacionPatrimonio {
+  id: string
+  comunidad: string
+  descripcion: string
+  porcentajeCents: number
+  importeMaxCents: number | null
+  condiciones: string | null
+  notas: string | null
+  status: string
+}
+
 export async function obtenerEscalaPatrimonio(
   client: SupabaseClient,
   taxYear: number,
-): Promise<{ tramos: TramoIrpf[]; avisos: string[] }> {
-  const { data, error } = await client
+  comunidad?: string,
+): Promise<{ estatal: TramoIrpf[]; autonomico: TramoIrpf[] | null; comunidad: string | null; avisos: string[] }> {
+  // Escala estatal siempre
+  const { data: estatalData, error: estatalErr } = await client
     .from('patrimonio_escala_estatal')
     .select('tramo, desdeEur, hastaEur, tipoPct, taxYear, status')
     .eq('taxYear', taxYear)
+    .eq('territorio', 'Estatal')
     .order('desdeEur')
 
+  if (estatalErr) throw estatalErr
+  const estatalFilas = (estatalData ?? []) as Array<Record<string, unknown>>
+  const estatal = aTramosIrpf(estatalFilas, 'tipoPct')
+
+  // Escala autonómica si la comunidad tiene una
+  let autonomico: TramoIrpf[] | null = null
+  let comunidadSeleccionada: string | null = null
+  if (comunidad) {
+    const { data: autoData } = await client
+      .from('patrimonio_escala_estatal')
+      .select('tramo, desdeEur, hastaEur, tipoPct, taxYear, status')
+      .eq('taxYear', taxYear)
+      .eq('territorio', comunidad)
+      .order('desdeEur')
+    if (autoData && autoData.length > 0) {
+      autonomico = aTramosIrpf(autoData as Array<Record<string, unknown>>, 'tipoPct')
+      comunidadSeleccionada = comunidad
+    }
+  }
+
+  const todasFilas = [...estatalFilas, ...((autonomico ?? []).length > 0 ? [] : [])]
+  const avisos = todasFilas.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []
+
+  return { estatal, autonomico, comunidad: comunidadSeleccionada, avisos }
+}
+
+export async function obtenerBonificacionesPatrimonio(
+  client: SupabaseClient,
+  comunidad: string,
+  taxYear: number,
+): Promise<{ bonificaciones: BonificacionPatrimonio[]; avisos: string[] }> {
+  const { data, error } = await client
+    .from('patrimonio_bonificaciones')
+    .select('id, comunidad, descripcion, porcentajeCents, importeMaxCents, condiciones, notas, status')
+    .eq('taxYear', taxYear)
+    .eq('comunidad', comunidad)
+
   if (error) throw error
-  const filas = (data ?? []) as Array<Record<string, unknown>>
-  const avisos = filas.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []
-  return { tramos: aTramosIrpf(filas, 'tipoPct'), avisos }
+  if (!data?.length) return { bonificaciones: [], avisos: [] }
+
+  const avisos = data.some(f => f.status !== 'OFFICIAL_VERIFIED') ? [AVISO_NO_VERIFICADO] : []
+  const bonificaciones: BonificacionPatrimonio[] = data.map(f => ({
+    id: String(f.id),
+    comunidad: String(f.comunidad),
+    descripcion: String(f.descripcion),
+    porcentajeCents: Number(f.porcentajeCents),
+    importeMaxCents: f.importeMaxCents != null ? Number(f.importeMaxCents) : null,
+    condiciones: f.condiciones != null ? String(f.condiciones) : null,
+    notas: f.notas != null ? String(f.notas) : null,
+    status: String(f.status),
+  }))
+
+  return { bonificaciones, avisos }
 }
 
 export interface MinimoFamiliar {
