@@ -21,8 +21,11 @@ import { Calculadora390 } from './calculadoras/calculadora-390'
 import { Calculadora190 } from './calculadoras/calculadora-190'
 import { Calculadora180 } from './calculadoras/calculadora-180'
 import { Calculadora202 } from './calculadoras/calculadora-202'
+import { CalculadoraModelo200 } from './calculadoras/calculadora-200'
+import { CalculadoraModelo720 } from './calculadoras/calculadora-720'
+import { CalculadoraModelo151 } from './calculadoras/calculadora-151'
 
-type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'plazos' | 'minimos' | 'resumen'
+type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'plazos' | 'minimos' | 'resumen'
 type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
 
 const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
@@ -38,6 +41,9 @@ const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
   { key: 'modelo390', label: 'Modelo 390' },
   { key: 'modelo180', label: 'Modelo 180' },
   { key: 'modelo202', label: 'Modelo 202' },
+  { key: 'modelo200', label: 'Modelo 200 (IS)' },
+  { key: 'modelo720', label: 'Modelo 720' },
+  { key: 'modelo151', label: 'Modelo 151' },
   { key: 'plazos', label: 'Calendario fiscal' },
   { key: 'minimos', label: 'Mínimos y reducciones' },
   { key: 'resumen', label: 'Resumen anual' },
@@ -495,6 +501,9 @@ export default function PaginaFiscal() {
           {seccion === 'modelo390' && <Calculadora390 taxYear={taxYear} />}
           {seccion === 'modelo180' && <Calculadora180 taxYear={taxYear} />}
           {seccion === 'modelo202' && <Calculadora202 taxYear={taxYear} />}
+          {seccion === 'modelo200' && <CalculadoraModelo200 />}
+          {seccion === 'modelo720' && <CalculadoraModelo720 />}
+          {seccion === 'modelo151' && <CalculadoraModelo151 />}
           {seccion === 'plazos' && <PanelPlazos datos={datos} />}
           {seccion === 'minimos' && <PanelMinimos datos={datos} comunidad={comunidad} />}
           {seccion === 'resumen' && <PanelResumenAnual datos={datos} comunidad={comunidad} />}
