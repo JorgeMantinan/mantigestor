@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Receipt, ArrowUpRight, Trash2, Repeat } from 'lucide-react'
+import { BotonPDF } from '@/components/boton-pdf'
 
 interface Factura {
   id: string
@@ -69,6 +70,7 @@ export default function FacturasPage() {
               Recurrentes
             </Button>
           </Link>
+          <BotonPDF elementId="tabla-facturas" filename={`facturas-${new Date().toISOString().slice(0, 10)}`} />
           <Link href="/gestoria/facturas/nueva">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -118,7 +120,7 @@ export default function FacturasPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="rounded-lg border">
+        <div id="tabla-facturas" className="rounded-lg border">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>

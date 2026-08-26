@@ -7,6 +7,7 @@ import { Printer, AlertTriangle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { proximosPlazos } from '@mantigestor/utils'
 import { eur, type DatosFiscales } from './types'
+import { BotonPDF } from '@/components/boton-pdf'
 
 interface ResumenAno {
   anyo: number
@@ -74,14 +75,15 @@ export function PanelResumenAnual({
 
   return (
     <div className="space-y-4">
-      <div className="print:hidden">
+      <div className="print:hidden flex gap-2">
         <Button variant="outline" onClick={() => window.print()}>
           <Printer className="mr-2 h-4 w-4" aria-hidden="true" />
           Imprimir resumen
         </Button>
+        <BotonPDF elementId="resumen-fiscal" filename={`resumen-fiscal-${datos.taxYear}`} />
       </div>
 
-      <div className="print-area space-y-4">
+      <div id="resumen-fiscal" className="print-area space-y-4">
         <Card>
           <CardHeader>
             <CardTitle>Resumen fiscal {comunidad} · ejercicio {datos.taxYear}</CardTitle>
