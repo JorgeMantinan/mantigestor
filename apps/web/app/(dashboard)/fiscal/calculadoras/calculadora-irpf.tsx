@@ -80,6 +80,7 @@ export function CalculadoraIrpf({
   const [ahorro, setAhorro] = useState(datosIniciales?.ahorro != null ? String(datosIniciales.ahorro) : '')
   const [pagosACuenta, setPagosACuenta] = useState(datosIniciales?.pagosACuenta != null ? String(datosIniciales.pagosACuenta) : '')
   const [deduccionesManuales, setDeduccionesManuales] = useState(datosIniciales?.deducciones != null ? String(datosIniciales.deducciones) : '')
+  const [aportacionesPension, setAportacionesPension] = useState('')
 
   const [edad, setEdad] = useState<RangoEdad>('menos65')
   const [conyuge, setConyuge] = useState(false)
@@ -168,7 +169,12 @@ export function CalculadoraIrpf({
     try {
       const trabajoCents = eurosACentimos(trabajo)
       const reduccion = trabajoCents > 0 ? reduccionRendimientosTrabajoCents(trabajoCents) : 0
-      const baseGeneral = Math.max(0, trabajoCents - reduccion) + eurosACentimos(actividades)
+      // Reducción por aportaciones a planes de pensiones (límite general 1.500€, máximo 8.000€ con seguros)
+      const aportacionesCents = eurosACentimos(aportacionesPension)
+      const LIMITE_PENSION_GENERAL = 1_500_00 // 1.500€
+      const LIMITE_PENSION_MAXIMO = 8_000_00 // 8.000€ con seguros de dependencia
+      const reduccionPension = Math.min(aportacionesCents, LIMITE_PENSION_MAXIMO)
+      const baseGeneral = Math.max(0, trabajoCents - reduccion - reduccionPension) + eurosACentimos(actividades)
 
       const escalasGenerales = [datos.escalaEstatal, datos.escalaAutonomica].filter(
         (e): e is NonNullable<typeof e> => e !== null
@@ -187,6 +193,7 @@ export function CalculadoraIrpf({
 
       return {
         reduccionTrabajoCents: reduccion,
+        reduccionPensionCents: reduccionPension,
         deduccionTrabajoCents: deduccionTrabajo,
         resultado: calcularCuotaLiquida({
           baseGeneralCents: baseGeneral,
@@ -200,9 +207,9 @@ export function CalculadoraIrpf({
         error: null,
       } as const
     } catch (e) {
-      return { error: e instanceof Error ? e.message : 'Error en el cálculo', resultado: null, reduccionTrabajoCents: 0, deduccionTrabajoCents: 0 } as const
+      return { error: e instanceof Error ? e.message : 'Error en el cálculo', resultado: null, reduccionTrabajoCents: 0, reduccionPensionCents: 0, deduccionTrabajoCents: 0 } as const
     }
-  }, [trabajo, actividades, ahorro, pagosACuenta, deduccionesManuales, desgloseMinimo, datos.escalaEstatal, datos.escalaAutonomica, datos.escalaAhorroForal, datos.taxYear])
+  }, [trabajo, actividades, ahorro, pagosACuenta, deduccionesManuales, aportacionesPension, desgloseMinimo, datos.escalaEstatal, datos.escalaAutonomica, datos.escalaAhorroForal, datos.taxYear])
 
   const sinEscalas = !datos.escalaEstatal && !datos.escalaAutonomica
 
@@ -238,6 +245,11 @@ export function CalculadoraIrpf({
             <div className="space-y-2">
               <LabelConAyuda htmlFor="irpf-pagos" ayuda={GUIA_IRPF.pagosACuenta!}>Retenciones y pagos fraccionados (€)</LabelConAyuda>
               <Input id="irpf-pagos" type="number" min="0" step="0.01" placeholder="0" value={pagosACuenta} onChange={e => setPagosACuenta(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="irpf-pension">Aportaciones a planes de pensiones (€)</Label>
+              <Input id="irpf-pension" type="number" min="0" step="0.01" placeholder="0" value={aportacionesPension} onChange={e => setAportacionesPension(e.target.value)} />
+              <p className="text-xs text-muted-foreground">Límite general: 1.500 €/año · máximo 8.000 € con seguros de dependencia</p>
             </div>
           </div>
 
@@ -328,6 +340,12 @@ export function CalculadoraIrpf({
                 <dt className="text-xs text-muted-foreground">Reducción por rendimientos del trabajo</dt>
                 <dd className="text-lg font-semibold">{eur(resultado.reduccionTrabajoCents)}</dd>
               </div>
+              {resultado.reduccionPensionCents > 0 && (
+                <div className="rounded-lg border p-3">
+                  <dt className="text-xs text-muted-foreground">Reducción planes de pensiones</dt>
+                  <dd className="text-lg font-semibold">{eur(resultado.reduccionPensionCents)}</dd>
+                </div>
+              )}
               {resultado.deduccionTrabajoCents > 0 && (
                 <div className="rounded-lg border p-3">
                   <dt className="text-xs text-muted-foreground">Deducción DA 61ª (Ley 5/2025)</dt>

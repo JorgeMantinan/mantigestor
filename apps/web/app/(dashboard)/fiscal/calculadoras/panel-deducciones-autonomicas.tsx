@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -79,7 +79,13 @@ function calcularDeduccion(
   }
 }
 
-export function PanelDeduccionesAutonomicas({ datos }: { datos: DatosFiscales }) {
+export function PanelDeduccionesAutonomicas({
+  datos,
+  onTotalChange,
+}: {
+  datos: DatosFiscales
+  onTotalChange?: (totalCents: number) => void
+}) {
   const [entrada, setEntrada] = useState<EntradaDeducciones>({
     hijosMenores3: 0,
     hijos3a25: 0,
@@ -100,6 +106,10 @@ export function PanelDeduccionesAutonomicas({ datos }: { datos: DatosFiscales })
   }, [datos.deduccionesAutonomicas, entrada])
 
   const totalDeduccionesCents = resultados.reduce((acc, r) => acc + r.importeCents, 0)
+
+  useEffect(() => {
+    onTotalChange?.(totalDeduccionesCents)
+  }, [totalDeduccionesCents, onTotalChange])
 
   if (!datos.deduccionesAutonomicas.length) {
     return (

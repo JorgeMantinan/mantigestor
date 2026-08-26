@@ -16,8 +16,10 @@ import { PanelMinimos } from './calculadoras/panel-minimos'
 import { PanelResumenAnual } from './calculadoras/panel-resumen-anual'
 import { PanelDeduccionesAutonomicas } from './calculadoras/panel-deducciones-autonomicas'
 import { PanelDocumentosFiscales } from './calculadoras/panel-documentos-fiscales'
+import { Calculadora111 } from './calculadoras/calculadora-111'
+import { Calculadora390 } from './calculadoras/calculadora-390'
 
-type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'plazos' | 'minimos' | 'resumen'
+type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo390' | 'plazos' | 'minimos' | 'resumen'
 type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
 
 const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
@@ -28,6 +30,8 @@ const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
   { key: 'patrimonio', label: 'Patrimonio' },
   { key: 'deducciones', label: 'Deducciones autonómicas' },
   { key: 'documentos', label: 'Documentos IA' },
+  { key: 'modelo111', label: 'Modelo 111' },
+  { key: 'modelo390', label: 'Modelo 390' },
   { key: 'plazos', label: 'Calendario fiscal' },
   { key: 'minimos', label: 'Mínimos y reducciones' },
   { key: 'resumen', label: 'Resumen anual' },
@@ -139,6 +143,7 @@ export default function PaginaFiscal() {
     deducciones?: number
   } | null>(null)
   const [cargandoReales, setCargandoReales] = useState(false)
+  const [deduccionesAutonomicas, setDeduccionesAutonomicas] = useState(0)
 
   useEffect(() => {
     void (async () => {
@@ -463,15 +468,24 @@ export default function PaginaFiscal() {
                   </p>
                 )}
               </div>
-              <CalculadoraIrpf datos={datos} comunidad={comunidad} datosIniciales={datosReales ?? undefined} />
+              <CalculadoraIrpf
+                datos={datos}
+                comunidad={comunidad}
+                datosIniciales={{
+                  ...datosReales,
+                  deducciones: (datosReales?.deducciones ?? 0) + deduccionesAutonomicas,
+                }}
+              />
             </>
           )}
           {seccion === 'iva' && <CalculadoraIva datos={datos} />}
           {seccion === 'reta' && <CalculadoraReta datos={datos} />}
           {seccion === 'sociedades' && <CalculadoraIs datos={datos} />}
           {seccion === 'patrimonio' && <CalculadoraPatrimonio datos={datos} />}
-          {seccion === 'deducciones' && <PanelDeduccionesAutonomicas datos={datos} />}
+          {seccion === 'deducciones' && <PanelDeduccionesAutonomicas datos={datos} onTotalChange={setDeduccionesAutonomicas} />}
           {seccion === 'documentos' && <PanelDocumentosFiscales esPro={esPro} />}
+          {seccion === 'modelo111' && <Calculadora111 taxYear={taxYear} />}
+          {seccion === 'modelo390' && <Calculadora390 taxYear={taxYear} />}
           {seccion === 'plazos' && <PanelPlazos datos={datos} />}
           {seccion === 'minimos' && <PanelMinimos datos={datos} comunidad={comunidad} />}
           {seccion === 'resumen' && <PanelResumenAnual datos={datos} comunidad={comunidad} />}
