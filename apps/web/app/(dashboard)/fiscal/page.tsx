@@ -249,6 +249,12 @@ export default function PaginaFiscal() {
     base10?: number
     base4?: number
     deduccionesIva?: number
+    baseSop21?: number
+    baseSop10?: number
+    baseSop4?: number
+    base130Ingresos?: number
+    base130Gastos?: number
+    retencionesNomina?: number
     operacionesIntracomunitarias?: Array<{ tercero: string; nif: string; pais: string; tipo: string; baseImponible: number }>
   } | null>(null)
   const [cargandoReales, setCargandoReales] = useState(false)
@@ -453,6 +459,17 @@ export default function PaginaFiscal() {
       const base4 = facturasIngreso.filter(f => f.iva === 4).reduce((s, f) => s + f.baseImponible, 0) / 100
       const deduccionesIva = facturasGasto.reduce((s, f) => s + Math.round(f.baseImponible * f.iva / 100), 0) / 100
 
+      // Modelo 303: bases soportadas deducibles por tipo de IVA
+      const gastosDeducibles = facturasGasto.filter(f => f.deducible)
+      const baseSop21 = gastosDeducibles.filter(f => f.iva === 21).reduce((s, f) => s + f.baseImponible, 0) / 100
+      const baseSop10 = gastosDeducibles.filter(f => f.iva === 10).reduce((s, f) => s + f.baseImponible, 0) / 100
+      const baseSop4 = gastosDeducibles.filter(f => f.iva === 4).reduce((s, f) => s + f.baseImponible, 0) / 100
+
+      // Modelo 130: ingresos y gastos acumulados del año (base imponible, en euros)
+      const base130Ingresos = facturasIngreso.reduce((s, f) => s + f.baseImponible, 0) / 100
+      const base130Gastos = gastosFacturas / 100
+      const retenciones130 = retencionesNomina
+
       // Modelo 349: operaciones intracomunitarias
       const operacionesIntracomunitarias = computeIntracomunitarias(facturasIngreso, facturasGasto)
 
@@ -467,6 +484,12 @@ export default function PaginaFiscal() {
         base10,
         base4,
         deduccionesIva,
+        baseSop21,
+        baseSop10,
+        baseSop4,
+        base130Ingresos,
+        base130Gastos,
+        retencionesNomina: retenciones130,
         operacionesIntracomunitarias,
       })
     } catch {
@@ -664,8 +687,8 @@ export default function PaginaFiscal() {
           {seccion === 'modelo345' && <CalculadoraModelo345 taxYear={taxYear} />}
           {seccion === 'modelo193' && <CalculadoraModelo193 taxYear={taxYear} />}
           {seccion === 'modelo369' && <CalculadoraModelo369 taxYear={taxYear} />}
-          {seccion === 'modelo130' && <Calculadora130 taxYear={taxYear} />}
-          {seccion === 'modelo303' && <Calculadora303 taxYear={taxYear} />}
+          {seccion === 'modelo130' && <Calculadora130 taxYear={taxYear} datosIniciales={datosReales ? { ingresos: datosReales.base130Ingresos, gastos: datosReales.base130Gastos, retenciones: datosReales.retencionesNomina } : undefined} />}
+          {seccion === 'modelo303' && <Calculadora303 taxYear={taxYear} datosIniciales={datosReales ? { base21: datosReales.base21, base10: datosReales.base10, base4: datosReales.base4, baseSop21: datosReales.baseSop21, baseSop10: datosReales.baseSop10, baseSop4: datosReales.baseSop4 } : undefined} />}
           {seccion === 'modelo170' && <CalculadoraModelo170 />}
           {seccion === 'modelo179' && <CalculadoraModelo179 />}
           {seccion === 'modelo600' && <CalculadoraModelo600 />}

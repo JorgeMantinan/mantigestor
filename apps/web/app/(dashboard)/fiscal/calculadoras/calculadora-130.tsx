@@ -14,13 +14,14 @@ const fEuropeo = (n: number) =>
 
 interface Props {
   taxYear?: number
+  datosIniciales?: { ingresos?: number; gastos?: number; retenciones?: number; pagosAnteriores?: number }
 }
 
-export function Calculadora130({ taxYear = 2026 }: Props) {
-  const [ingresos, setIngresos] = useState('')
-  const [gastos, setGastos] = useState('')
-  const [pagosAnteriores, setPagosAnteriores] = useState('')
-  const [retenciones, setRetenciones] = useState('')
+export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
+  const [ingresos, setIngresos] = useState(datosIniciales?.ingresos != null ? String(datosIniciales.ingresos) : '')
+  const [gastos, setGastos] = useState(datosIniciales?.gastos != null ? String(datosIniciales.gastos) : '')
+  const [pagosAnteriores, setPagosAnteriores] = useState(datosIniciales?.pagosAnteriores != null ? String(datosIniciales.pagosAnteriores) : '')
+  const [retenciones, setRetenciones] = useState(datosIniciales?.retenciones != null ? String(datosIniciales.retenciones) : '')
 
   const [trim1, setTrim1] = useState('')
   const [trim2, setTrim2] = useState('')

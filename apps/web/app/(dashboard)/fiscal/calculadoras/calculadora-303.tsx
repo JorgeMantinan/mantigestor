@@ -33,16 +33,20 @@ function construyeFacturas(
 
 interface Props {
   taxYear?: number
+  datosIniciales?: {
+    base21?: number; base10?: number; base4?: number
+    baseSop21?: number; baseSop10?: number; baseSop4?: number
+  }
 }
 
-export function Calculadora303({ taxYear = 2026 }: Props) {
+export function Calculadora303({ taxYear = 2026, datosIniciales }: Props) {
   const [trimestre, setTrimestre] = useState<'1' | '2' | '3' | '4'>('1')
-  const [base21, setBase21] = useState('')
-  const [base10, setBase10] = useState('')
-  const [base4, setBase4] = useState('')
-  const [sop21, setSop21] = useState('')
-  const [sop10, setSop10] = useState('')
-  const [sop4, setSop4] = useState('')
+  const [base21, setBase21] = useState(datosIniciales?.base21 != null ? String(datosIniciales.base21) : '')
+  const [base10, setBase10] = useState(datosIniciales?.base10 != null ? String(datosIniciales.base10) : '')
+  const [base4, setBase4] = useState(datosIniciales?.base4 != null ? String(datosIniciales.base4) : '')
+  const [sop21, setSop21] = useState(datosIniciales?.baseSop21 != null ? String(datosIniciales.baseSop21) : '')
+  const [sop10, setSop10] = useState(datosIniciales?.baseSop10 != null ? String(datosIniciales.baseSop10) : '')
+  const [sop4, setSop4] = useState(datosIniciales?.baseSop4 != null ? String(datosIniciales.baseSop4) : '')
   const [compensacion, setCompensacion] = useState('')
 
   const resultado = useMemo(() => {
