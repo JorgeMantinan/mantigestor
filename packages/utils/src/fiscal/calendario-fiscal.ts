@@ -240,6 +240,384 @@ export function getCalendarioFiscal(año: number): FechaFiscal[] {
       url: 'https://sede.agenciatributaria.gob.es/Sede/sociedades/impuesto-sociedades-200.html',
       categoria: 'irpf',
     },
+
+    // ── Modelo 100 — IRPF anual ──
+    {
+      modelo: '100',
+      descripcion: 'Declaración del IRPF anual (Modelo 100)',
+      fechaLimite: new Date(`${año}-06-30`),
+      diasAviso: [30, 15, 7, 1],
+      tiersQueAplica: ['free', 'basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/modelo-100.html',
+      categoria: 'irpf',
+    },
+
+    // ── Modelo 131 — IRPF módulos trimestral ──
+    {
+      modelo: '131-Q1',
+      descripcion: 'IRPF módulos 1er trimestre (enero-marzo)',
+      fechaLimite: new Date(`${año}-04-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/empresarios-profesionales-agricultores/pagos-fraccionados/modelo-131.html',
+      categoria: 'irpf',
+    },
+    {
+      modelo: '131-Q2',
+      descripcion: 'IRPF módulos 2º trimestre (abril-junio)',
+      fechaLimite: new Date(`${año}-07-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/empresarios-profesionales-agricultores/pagos-fraccionados/modelo-131.html',
+      categoria: 'irpf',
+    },
+    {
+      modelo: '131-Q3',
+      descripcion: 'IRPF módulos 3er trimestre (julio-septiembre)',
+      fechaLimite: new Date(`${año}-10-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/empresarios-profesionales-agricultores/pagos-fraccionados/modelo-131.html',
+      categoria: 'irpf',
+    },
+    {
+      modelo: '131-Q4',
+      descripcion: 'IRPF módulos 4º trimestre (octubre-diciembre)',
+      fechaLimite: new Date(`${año + 1}-01-30`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/empresarios-profesionales-agricultores/pagos-fraccionados/modelo-131.html',
+      categoria: 'irpf',
+    },
+
+    // ── Modelo 123 — Retenciones capital mobiliario trimestral ──
+    {
+      modelo: '123-Q1',
+      descripcion: 'Retenciones capital mobiliario 1er trimestre',
+      fechaLimite: new Date(`${año}-04-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/retenciones-pro/pagos-mensuales/modelo-123.html',
+      categoria: 'retenciones',
+    },
+    {
+      modelo: '123-Q2',
+      descripcion: 'Retenciones capital mobiliario 2º trimestre',
+      fechaLimite: new Date(`${año}-07-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/retenciones-pro/pagos-mensuales/modelo-123.html',
+      categoria: 'retenciones',
+    },
+    {
+      modelo: '123-Q3',
+      descripcion: 'Retenciones capital mobiliario 3er trimestre',
+      fechaLimite: new Date(`${año}-10-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/retenciones-pro/pagos-mensuales/modelo-123.html',
+      categoria: 'retenciones',
+    },
+    {
+      modelo: '123-Q4',
+      descripcion: 'Retenciones capital mobiliario 4º trimestre',
+      fechaLimite: new Date(`${año + 1}-01-30`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/retenciones-pro/pagos-mensuales/modelo-123.html',
+      categoria: 'retenciones',
+    },
+
+    // ── Modelo 347 — Operaciones con terceros ──
+    {
+      modelo: '347',
+      descripcion: 'Declaración informativa operaciones con terceros (>3.005,06 €)',
+      fechaLimite: new Date(`${año + 1}-02-28`),
+      diasAviso: [30, 15, 7],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/iva/modelo-347.html',
+      categoria: 'otros',
+    },
+
+    // ── Modelo 349 — Intracomunitarias ──
+    {
+      modelo: '349',
+      descripcion: 'Declaración informativa operaciones intracomunitarias',
+      fechaLimite: new Date(`${año + 1}-01-20`),
+      diasAviso: [15, 7],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/iva/modelo-349.html',
+      categoria: 'iva',
+    },
+
+    // ── Modelo 721 — Monedas virtuales extranjero ──
+    {
+      modelo: '721',
+      descripcion: 'Declaración informativa monedas virtuales en el extranjero',
+      fechaLimite: new Date(`${año + 1}-03-31`),
+      diasAviso: [30, 15, 7],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/modelo-721.html',
+      categoria: 'otros',
+    },
+
+    // ── Modelo 714 — Impuesto sobre el Patrimonio ──
+    {
+      modelo: '714',
+      descripcion: 'Impuesto sobre el Patrimonio (Modelo 714)',
+      fechaLimite: new Date(`${año}-06-30`),
+      diasAviso: [30, 15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/impuesto-patrimonio.html',
+      categoria: 'irpf',
+    },
+
+    // ── Modelo 232 — Operaciones vinculadas ──
+    {
+      modelo: '232',
+      descripcion: 'Declaración informativa operaciones vinculadas',
+      fechaLimite: new Date(`${año + 1}-11-28`),
+      diasAviso: [30, 15, 7],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/sociedades/modelo-232.html',
+      categoria: 'irpf',
+    },
+
+    // ── Modelo 210 — IRNR no residentes trimestral ──
+    {
+      modelo: '210-Q1',
+      descripcion: 'IRNR no residentes 1er trimestre',
+      fechaLimite: new Date(`${año}-04-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/modelo-210.html',
+      categoria: 'retenciones',
+    },
+    {
+      modelo: '210-Q2',
+      descripcion: 'IRNR no residentes 2º trimestre',
+      fechaLimite: new Date(`${año}-07-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/modelo-210.html',
+      categoria: 'retenciones',
+    },
+    {
+      modelo: '210-Q3',
+      descripcion: 'IRNR no residentes 3er trimestre',
+      fechaLimite: new Date(`${año}-10-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/modelo-210.html',
+      categoria: 'retenciones',
+    },
+    {
+      modelo: '210-Q4',
+      descripcion: 'IRNR no residentes 4º trimestre',
+      fechaLimite: new Date(`${año + 1}-01-30`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/modelo-210.html',
+      categoria: 'retenciones',
+    },
+
+    // ── Modelo 220 — IS consolidación fiscal ──
+    {
+      modelo: '220',
+      descripcion: 'Impuesto Sociedades consolidación fiscal (Modelo 220)',
+      fechaLimite: new Date(`${año + 1}-07-25`),
+      diasAviso: [30, 15, 7],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/sociedades/modelo-220.html',
+      categoria: 'irpf',
+    },
+
+    // ── Modelo 309 — IVA simplificado trimestral ──
+    {
+      modelo: '309-Q1',
+      descripcion: 'IVA simplificado 1er trimestre',
+      fechaLimite: new Date(`${año}-04-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/iva/modelo-309.html',
+      categoria: 'iva',
+    },
+    {
+      modelo: '309-Q2',
+      descripcion: 'IVA simplificado 2º trimestre',
+      fechaLimite: new Date(`${año}-07-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/iva/modelo-309.html',
+      categoria: 'iva',
+    },
+    {
+      modelo: '309-Q3',
+      descripcion: 'IVA simplificado 3er trimestre',
+      fechaLimite: new Date(`${año}-10-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/iva/modelo-309.html',
+      categoria: 'iva',
+    },
+    {
+      modelo: '309-Q4',
+      descripcion: 'IVA simplificado 4º trimestre',
+      fechaLimite: new Date(`${año + 1}-01-30`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/iva/modelo-309.html',
+      categoria: 'iva',
+    },
+
+    // ── Modelo 184 — Atribución rentas ──
+    {
+      modelo: '184',
+      descripcion: 'Declaración informativa atribución rentas (entidades en atribución)',
+      fechaLimite: new Date(`${año + 1}-01-31`),
+      diasAviso: [15, 7],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/modelo-184.html',
+      categoria: 'otros',
+    },
+
+    // ── Modelo 296 — Retenciones NR resumen anual ──
+    {
+      modelo: '296',
+      descripcion: 'Resumen anual retenciones no residentes (Modelo 296)',
+      fechaLimite: new Date(`${año + 1}-01-31`),
+      diasAviso: [15, 7],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/modelo-296.html',
+      categoria: 'retenciones',
+    },
+
+    // ── Modelo 345 — Planes de pensiones informativo ──
+    {
+      modelo: '345',
+      descripcion: 'Información planes de pensiones y previsión social',
+      fechaLimite: new Date(`${año + 1}-01-31`),
+      diasAviso: [15, 7],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/modelo-345.html',
+      categoria: 'otros',
+    },
+
+    // ── Modelo 193 — Retenciones seguros ──
+    {
+      modelo: '193',
+      descripcion: 'Retenciones operaciones de seguros (Modelo 193)',
+      fechaLimite: new Date(`${año + 1}-01-31`),
+      diasAviso: [15, 7],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/modelo-193.html',
+      categoria: 'retenciones',
+    },
+
+    // ── Modelo 369 — IVA OSS trimestral ──
+    {
+      modelo: '369-Q1',
+      descripcion: 'IVA OSS 1er trimestre (régimen un solo estado)',
+      fechaLimite: new Date(`${año}-04-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/iva/modelo-369.html',
+      categoria: 'iva',
+    },
+    {
+      modelo: '369-Q2',
+      descripcion: 'IVA OSS 2º trimestre',
+      fechaLimite: new Date(`${año}-07-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/iva/modelo-369.html',
+      categoria: 'iva',
+    },
+    {
+      modelo: '369-Q3',
+      descripcion: 'IVA OSS 3er trimestre',
+      fechaLimite: new Date(`${año}-10-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/iva/modelo-369.html',
+      categoria: 'iva',
+    },
+    {
+      modelo: '369-Q4',
+      descripcion: 'IVA OSS 4º trimestre',
+      fechaLimite: new Date(`${año + 1}-01-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/iva/modelo-369.html',
+      categoria: 'iva',
+    },
+
+    // ── Modelo 202 — Pagos fraccionados IS ──
+    {
+      modelo: '202-Q1',
+      descripcion: 'Pagos fraccionados IS 1er trimestre',
+      fechaLimite: new Date(`${año}-04-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/sociedades/modelo-202.html',
+      categoria: 'irpf',
+    },
+    {
+      modelo: '202-Q2',
+      descripcion: 'Pagos fraccionados IS 2º trimestre',
+      fechaLimite: new Date(`${año}-07-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/sociedades/modelo-202.html',
+      categoria: 'irpf',
+    },
+    {
+      modelo: '202-Q3',
+      descripcion: 'Pagos fraccionados IS 3er trimestre',
+      fechaLimite: new Date(`${año}-10-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/sociedades/modelo-202.html',
+      categoria: 'irpf',
+    },
+
+    // ── Modelo 151 — IRPF módulos alta/renuncia trimestral ──
+    {
+      modelo: '151-Q1',
+      descripcion: 'IRPF módulos alta/renuncia 1er trimestre',
+      fechaLimite: new Date(`${año}-04-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/empresarios-profesionales-agricultores/pagos-fraccionados/modelo-131.html',
+      categoria: 'irpf',
+    },
+    {
+      modelo: '151-Q2',
+      descripcion: 'IRPF módulos alta/renuncia 2º trimestre',
+      fechaLimite: new Date(`${año}-07-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/empresarios-profesionales-agricultores/pagos-fraccionados/modelo-131.html',
+      categoria: 'irpf',
+    },
+    {
+      modelo: '151-Q3',
+      descripcion: 'IRPF módulos alta/renuncia 3er trimestre',
+      fechaLimite: new Date(`${año}-10-20`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/empresarios-profesionales-agricultores/pagos-fraccionados/modelo-131.html',
+      categoria: 'irpf',
+    },
+    {
+      modelo: '151-Q4',
+      descripcion: 'IRPF módulos alta/renuncia 4º trimestre',
+      fechaLimite: new Date(`${año + 1}-01-30`),
+      diasAviso: [15, 7, 1],
+      tiersQueAplica: ['basic', 'pro'],
+      url: 'https://sede.agenciatributaria.gob.es/Sede/irpf/empresarios-profesionales-agricultores/pagos-fraccionados/modelo-131.html',
+      categoria: 'irpf',
+    },
   ]
 }
 

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,6 +15,8 @@ export async function POST(req: NextRequest) {
     }
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
+
+    const { perfilId } = await resolvePerfilActivo(req)
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabase
       .from('notificaciones')
-      .insert({ id: crypto.randomUUID(), perfilId: user.id, tipo, contenido })
+      .insert({ id: crypto.randomUUID(), perfilId, tipo, contenido })
       .select()
       .single()
 

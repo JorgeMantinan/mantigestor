@@ -9,7 +9,8 @@ import { Trash2, Plus, Database } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularModelo111, TIPOS_RETENCION_HABITUALES, type RendimientoRetencion } from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
-import { GUIA_IRPF } from '@/lib/fiscal/guia-fiscal'
+import { GUIA_MODELO_111 } from '@/lib/fiscal/guia-fiscal'
+import { BotonPDF } from '@/components/boton-pdf'
 
 const formatMoney = (cents: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
@@ -90,6 +91,31 @@ export function Calculadora111({ taxYear }: Props) {
         }
       }
 
+      // Add facturas gasto as professional retainings (15% retention)
+      if (facturas) {
+        const porProfesional = new Map<string, { bruto: number }>()
+        for (const f of facturas as unknown as Array<{ emisorReceptor: string; baseImponible: number; iva: number; mes?: number; total: number }>) {
+          const mes = (f as Record<string, unknown>).mes as number | undefined
+          if (mes != null) {
+            const trimestreFactura = Math.min(4, Math.ceil(mes / 3)) as 1 | 2 | 3 | 4
+            if (trimestreFactura !== trimestre) continue
+          }
+          const existing = porProfesional.get(f.emisorReceptor) ?? { bruto: 0 }
+          existing.bruto += f.baseImponible
+          porProfesional.set(f.emisorReceptor, existing)
+        }
+        for (const [nombre, datos] of porProfesional) {
+          const RETENCION_PROFESIONAL = 15
+          nuevosRendimientos.push({
+            tipo: 'profesional',
+            descripcion: nombre,
+            brutoCents: datos.bruto,
+            tipoRetencionPct: RETENCION_PROFESIONAL,
+            retencionCents: Math.round(datos.bruto * (RETENCION_PROFESIONAL / 100)),
+          })
+        }
+      }
+
       setRendimientos(prev => {
         const existentes = prev.filter(r => r.tipo !== 'trabajo' && r.tipo !== 'profesional')
         return [...existentes, ...nuevosRendimientos]
@@ -129,7 +155,9 @@ export function Calculadora111({ taxYear }: Props) {
   )
 
   return (
-    <Card>
+    <div id="pdf-modelo-111" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-111" filename="modelo-111" />
+      <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -201,7 +229,7 @@ export function Calculadora111({ taxYear }: Props) {
             />
           </div>
           <div className="space-y-1">
-            <LabelConAyuda htmlFor="bruto-111" ayuda={GUIA_IRPF.trabajo!}>Bruto satisfecho (€)</LabelConAyuda>
+            <LabelConAyuda htmlFor="bruto-111" ayuda={GUIA_MODELO_111.baseRetencion}>Bruto satisfecho (€)</LabelConAyuda>
             <Input
               id="bruto-111"
               type="number"
@@ -308,5 +336,6 @@ export function Calculadora111({ taxYear }: Props) {
         </p>
       </CardContent>
     </Card>
+    </div>
   )
 }

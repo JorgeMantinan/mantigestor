@@ -3,6 +3,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { FiscalRemindersProvider } from '@/components/layout/FiscalRemindersProvider'
 import { DashboardShortcuts } from '@/components/layout/DashboardShortcuts'
+import { PersonaActivaProvider } from '@/contexts/persona-activa-context'
 
 export const metadata: Metadata = {
   title: 'Panel - MantiGestor',
@@ -15,15 +16,17 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto p-6">
-          <FiscalRemindersProvider>{children}</FiscalRemindersProvider>
-        </main>
+    <PersonaActivaProvider>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-y-auto p-6">
+            <FiscalRemindersProvider>{children}</FiscalRemindersProvider>
+          </main>
+        </div>
+        <DashboardShortcuts />
       </div>
-      <DashboardShortcuts />
-    </div>
+    </PersonaActivaProvider>
   )
 }

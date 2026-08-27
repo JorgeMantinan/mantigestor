@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { useTheme } from 'next-themes'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { Users } from 'lucide-react'
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -47,6 +49,21 @@ export default function AjustesPage() {
       {tab === 'perfil' && <PerfilTab />}
       {tab === 'suscripcion' && <SuscripcionTab />}
       {tab === 'apariencia' && <AparienciaTab />}
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>Personas asociadas</CardTitle>
+            <CardDescription>Gestiona las personas cuyos asuntos fiscales gestionas</CardDescription>
+          </div>
+          <Link href="/ajustes/personas">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Users className="h-4 w-4" />
+              Ver personas
+            </Button>
+          </Link>
+        </CardHeader>
+      </Card>
     </div>
   )
 }

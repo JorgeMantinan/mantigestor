@@ -108,7 +108,10 @@
 
 ## Testing
 - Tests unitarios: `packages/utils/src/**/__tests__/`
-- Comando: `pnpm --filter=utils test` (8 tests pasando)
+- Tests utils (fiscal): `packages/utils/src/fiscal/__tests__/`
+- Comando: `pnpm --filter=utils test`
+- Tests web (multi-persona): `apps/web/__tests__/multi-persona/` (19 tests: resolve-perfil-activo, asociar-persona, desasociar-persona, mis-personas)
+- Comando: `pnpm --filter=web test`
 - Tests E2E: `apps/web/e2e/` (6 archivos Playwright: auth, navigation, public-pages, conversiones, visual)
 - Coverage configurado en vitest.config.ts raíz
 
@@ -126,7 +129,9 @@
 ```bash
 pnpm dev              # Arrancar todo en dev
 pnpm --filter=web build   # Build producción web (29 rutas, 0 errores)
-pnpm --filter=utils test  # Tests unitarios
+pnpm --filter=web test   # Tests vitest web (multi-persona)
+pnpm --filter=utils test # Tests vitest utils (fiscal)
+pnpm --filter=database exec -- dotenv -e ../../.env.local -- prisma db execute --file prisma/migrations/20260825_multi_persona.sql  # Migración multi-persona
 pnpm db:push          # Push schema a Supabase
 pnpm db:generate      # Regenerar Prisma client
 pnpm typecheck        # TypeScript check global
@@ -154,6 +159,20 @@ git add -A; git commit -m "msg"; git push origin master  # Deploy a Vercel
 - **Generación de exámenes con IA** desde documentos de alumno (requiere API key de Anthropic con crédito)
 - **Todos los inserts corregidos**: id explícito con `crypto.randomUUID()` en todas las tablas Prisma-managed
 - **Registro de perfil fijo**: ahora incluye `userId` para que las consultas por `userId` funcionen correctamente
+- **Tooltips en calculadoras**: las ~27 calculadoras tienen `LabelConAyuda` + guías `GUIA_*` en `lib/fiscal/guia-fiscal.ts`
+- **Pre-relleno de datos reales**: `cargarDatosReales()` auto-carga y rellena calculadoras 100, 111, 309, 349 (baseGeneral, pagosFraccionados, bases IVA, operaciones intracomunitarias)
+- **Export PDF**: modelos fiscales tienen botón `BotonPDF` (id `pdf-modelo-XXX`)
+
+## Multi-persona (gestión de otras personas)
+- Nueva tabla `perfil_asociado` (ownerUserId, perfilId, rol) — gestiones de otras personas (cónyuge, madre, etc.)
+- `resolvePerfilActivo()` helper que lee el header `x-perfil-activo`
+- `PersonaActivaProvider` context + hook `usePersonaActiva()`
+- 3 API routes: `/api/fiscal/mis-personas`, `/api/fiscal/asociar-persona`, `/api/fiscal/desasociar-persona`
+- Persona selector dropdown en Header + badge en Sidebar
+- Página de gestión: `/ajustes/personas`
+- RLS: funciones SQL `perfiles_accesibles()` + `es_gestor_del_perfil()`, acceso gestor en 7 tablas
+- Email de invitación vía Resend al asociar (link `/register?invitado=true&email=...`)
+- Registro invitado: adopta perfil pendiente (`userId: pending:email`)
 ## NOTA IMPORTANTE
 - No hacer llamadas a createClient() o createServerClient() durante SSR/prerenderizado de Next.js. Usar lazy initialization (useCallback o dynamic imports) en componentes cliente que renderizan en servidor.
 - Middleware usa `createServerClient` de `@supabase/ssr` con guard check de env vars para evitar crash en build/dev

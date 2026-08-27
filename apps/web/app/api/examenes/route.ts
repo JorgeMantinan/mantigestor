@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { createServerClient } from '@supabase/ssr'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,6 +13,8 @@ export async function POST(req: NextRequest) {
 
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
+
+    const { perfilId } = await resolvePerfilActivo(req)
 
     const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
     if (!ANTHROPIC_API_KEY) {
@@ -36,7 +39,7 @@ export async function POST(req: NextRequest) {
     const { data: docs } = await supabase
       .from('documentos')
       .select('id, nombre, url, tipo')
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilId)
       .eq('tipo', 'alumno')
 
     if (!docs || docs.length === 0) {
@@ -47,7 +50,7 @@ export async function POST(req: NextRequest) {
       .from('examenes')
       .insert({
         id: crypto.randomUUID(),
-        perfilId: user.id,
+        perfilId,
         tipo: 'alumnos',
         estado: 'pendiente',
       })

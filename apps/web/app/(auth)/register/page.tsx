@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
@@ -12,6 +13,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator'
 
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
+  )
+}
+
+function RegisterForm() {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -19,6 +28,9 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [cargando, setCargando] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const invitado = searchParams.get('invitado') === 'true'
+  const emailInvitado = searchParams.get('email') ?? ''
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -39,8 +51,15 @@ export default function RegisterPage() {
       return
     }
 
+    const emailFinal = email || emailInvitado
+    if (!emailFinal) {
+      setError('Introduce tu email')
+      setCargando(false)
+      return
+    }
+
     const { data, error: authError } = await getSupabase().auth.signUp({
-      email,
+      email: emailFinal,
       password,
       options: {
         data: { nombre },
@@ -54,12 +73,38 @@ export default function RegisterPage() {
     }
 
     if (data.session) {
-      const { error: perfilError } = await getSupabase()
-        .from('perfiles')
-        .upsert({ id: data.session.user.id, userId: data.session.user.id, email, nombre })
+      const nuevoUserId = data.session.user.id
 
-      if (perfilError) {
-        console.error('Error creating perfil:', perfilError)
+      // Crear (o vincular) el perfil del nuevo usuario
+      const { data: perfilExistente } = await getSupabase()
+        .from('perfiles')
+        .select('id')
+        .eq('userId', `pending:${emailFinal}`)
+        .single()
+
+      if (perfilExistente) {
+        // Adoptar el perfil pendiente creado por un gestor: asignar el userId real
+        await getSupabase()
+          .from('perfiles')
+          .update({ userId: nuevoUserId, email: emailFinal, nombre: nombre || undefined })
+          .eq('id', perfilExistente.id)
+
+        // Vincular como asociación propietario del mismo usuario
+        await getSupabase()
+          .from('perfil_asociado')
+          .upsert(
+            { id: nuevoUserId, ownerUserId: nuevoUserId, perfilId: perfilExistente.id, rol: 'propietario' },
+            { onConflict: 'ownerUserId,perfilId' }
+          )
+      } else {
+        // Perfil normal (sin invitación)
+        const { error: perfilError } = await getSupabase()
+          .from('perfiles')
+          .upsert({ id: nuevoUserId, userId: nuevoUserId, email: emailFinal, nombre })
+
+        if (perfilError) {
+          console.error('Error creating perfil:', perfilError)
+        }
       }
 
       router.push('/dashboard')
@@ -117,7 +162,9 @@ export default function RegisterPage() {
           </div>
           <CardTitle className="text-2xl">Crear cuenta</CardTitle>
           <CardDescription>
-            Empieza a gestionar tu actividad con MantiGestor
+            {invitado
+              ? 'Se te ha invitado a gestionar una persona en MantiGestor'
+              : 'Empieza a gestionar tu actividad con MantiGestor'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -181,10 +228,16 @@ export default function RegisterPage() {
                 id="email"
                 type="email"
                 placeholder="tu@email.com"
-                value={email}
+                value={email || emailInvitado}
                 onChange={(e) => setEmail(e.target.value)}
+                readOnly={invitado}
                 required
               />
+              {invitado && (
+                <p className="text-xs text-muted-foreground">
+                  Este email fue añadido por un gestor. Al crear tu cuenta se vinculará tu perfil.
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>

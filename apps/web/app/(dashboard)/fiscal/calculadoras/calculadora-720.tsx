@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { eur, parseEuros } from './types'
+import { LabelConAyuda } from './label-con-ayuda'
+import { GUIA_MODELO_720 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo720, PAISES_COMUNES } from '@mantigestor/utils'
 import type { BienExtranjero } from '@mantigestor/utils'
 
@@ -53,15 +55,15 @@ export function CalculadoraModelo720() {
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Tipo de bien</Label>
-            <select value={tipo} onChange={e => setTipo(e.target.value as BienExtranjero['tipo'])}
+            <LabelConAyuda htmlFor="tipoBien" ayuda={GUIA_MODELO_720.tipoBien}>Tipo de bien</LabelConAyuda>
+            <select id="tipoBien" value={tipo} onChange={e => setTipo(e.target.value as BienExtranjero['tipo'])}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
               {TIPOS_BIEN.map(t => <option key={t.valor} value={t.valor}>{t.label}</option>)}
             </select>
           </div>
           <div className="space-y-2">
-            <Label>País</Label>
-            <select value={pais} onChange={e => setPais(e.target.value)}
+            <LabelConAyuda htmlFor="pais" ayuda={GUIA_MODELO_720.pais}>País</LabelConAyuda>
+            <select id="pais" value={pais} onChange={e => setPais(e.target.value)}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
               <option value="">Seleccionar...</option>
               {PAISES_COMUNES.map(p => <option key={p} value={p}>{p}</option>)}
@@ -72,8 +74,8 @@ export function CalculadoraModelo720() {
             <Input value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Ej: Cuenta bancaria, piso..." />
           </div>
           <div className="space-y-2">
-            <Label>Valor (€)</Label>
-            <Input type="number" step="0.01" value={valor} onChange={e => setValor(e.target.value)} placeholder="0.00" />
+            <LabelConAyuda htmlFor="valor" ayuda={GUIA_MODELO_720.valor}>Valor (€)</LabelConAyuda>
+            <Input id="valor" type="number" step="0.01" value={valor} onChange={e => setValor(e.target.value)} placeholder="0.00" />
           </div>
         </div>
 

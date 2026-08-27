@@ -30,6 +30,17 @@ model Perfil {
   @@map("perfiles")
 }
 
+model PerfilAsociado {
+  id            String   @id @default(uuid())
+  ownerUserId   String   // auth.users id del gestor
+  perfilId      String   // perfiles.id de la persona gestionada
+  rol           String   @default("gestor") // "propietario" | "gestor" | "visualizador"
+  createdAt     DateTime @default(now())
+
+  @@unique([ownerUserId, perfilId])
+  @@map("perfil_asociado")
+}
+
 model Factura {
   id              String   @id @default(cuid())
   perfilId        String

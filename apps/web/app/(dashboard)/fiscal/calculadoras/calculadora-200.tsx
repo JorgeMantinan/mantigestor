@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { eur, parseEuros } from './types'
 import { LabelConAyuda } from './label-con-ayuda'
+import { GUIA_MODELO_200 } from '@/lib/fiscal/guia-fiscal'
+import { BotonPDF } from '@/components/boton-pdf'
 import { calcularModelo200, TIPOS_ENTIDAD, tipoImpositivo } from '@mantigestor/utils'
 import type { DatosModelo200 } from '@mantigestor/utils'
 
@@ -63,7 +65,9 @@ export function CalculadoraModelo200() {
   const tipo = tipoImpositivo(tipoEntidad, false, parseEuros(ingresos) ?? 0)
 
   return (
-    <Card>
+    <div id="pdf-modelo-200" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-200" filename="modelo-200" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 200 — Impuesto sobre Sociedades</CardTitle>
         <CardDescription>Declaración anual del impuesto de sociedades</CardDescription>
@@ -79,12 +83,12 @@ export function CalculadoraModelo200() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Ingresos de explotación (€)</Label>
-            <Input type="number" step="0.01" value={ingresos} onChange={e => setIngresos(e.target.value)} placeholder="0.00" />
+            <LabelConAyuda htmlFor="ingresosExplotacion" ayuda={GUIA_MODELO_200.ingresosExplotacion}>Ingresos de explotación (€)</LabelConAyuda>
+            <Input id="ingresosExplotacion" type="number" step="0.01" value={ingresos} onChange={e => setIngresos(e.target.value)} placeholder="0.00" />
           </div>
           <div className="space-y-2">
-            <Label>Gastos de explotación (€)</Label>
-            <Input type="number" step="0.01" value={gastosExplot} onChange={e => setGastosExplot(e.target.value)} placeholder="0.00" />
+            <LabelConAyuda htmlFor="gastosExplotacion" ayuda={GUIA_MODELO_200.gastosExplotacion}>Gastos de explotación (€)</LabelConAyuda>
+            <Input id="gastosExplotacion" type="number" step="0.01" value={gastosExplot} onChange={e => setGastosExplot(e.target.value)} placeholder="0.00" />
           </div>
           <div className="space-y-2">
             <Label>Gastos financieros (€)</Label>
@@ -96,8 +100,8 @@ export function CalculadoraModelo200() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Resultado contable (€)</Label>
-            <Input type="number" step="0.01" value={resultadoContable} onChange={e => setResultadoContable(e.target.value)} placeholder="0.00" />
+            <LabelConAyuda htmlFor="resultadoContable" ayuda={GUIA_MODELO_200.resultadoContable}>Resultado contable (€)</LabelConAyuda>
+            <Input id="resultadoContable" type="number" step="0.01" value={resultadoContable} onChange={e => setResultadoContable(e.target.value)} placeholder="0.00" />
           </div>
           <div className="space-y-2">
             <Label>Ajustes fiscales (€)</Label>
@@ -109,8 +113,8 @@ export function CalculadoraModelo200() {
             <Input type="number" step="0.01" value={basesNeg} onChange={e => setBasesNeg(e.target.value)} placeholder="0.00" />
           </div>
           <div className="space-y-2">
-            <Label>Deducciones (€)</Label>
-            <Input type="number" step="0.01" value={deducciones} onChange={e => setDeducciones(e.target.value)} placeholder="0.00" />
+            <LabelConAyuda htmlFor="deducciones" ayuda={GUIA_MODELO_200.deducciones}>Deducciones (€)</LabelConAyuda>
+            <Input id="deducciones" type="number" step="0.01" value={deducciones} onChange={e => setDeducciones(e.target.value)} placeholder="0.00" />
           </div>
         </div>
 
@@ -165,5 +169,6 @@ export function CalculadoraModelo200() {
         )}
       </CardContent>
     </Card>
+    </div>
   )
 }

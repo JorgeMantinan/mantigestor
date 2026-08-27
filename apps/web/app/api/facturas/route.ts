@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { FacturaSchema } from '@mantigestor/utils'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,6 +16,8 @@ export async function GET(req: NextRequest) {
     }
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
+
+    const { perfilId } = await resolvePerfilActivo(req)
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,7 +39,7 @@ export async function GET(req: NextRequest) {
     let query = supabase
       .from('facturas')
       .select('*', { count: 'exact' })
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilId)
       .order('createdAt', { ascending: false })
       .range((page - 1) * limit, page * limit - 1)
 
@@ -74,6 +77,8 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
+    const { perfilId } = await resolvePerfilActivo(req)
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -92,7 +97,7 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabase.from('facturas').insert({
       id: crypto.randomUUID(),
-      perfilId: user.id,
+      perfilId,
       ...parsed.data,
       fechaEmision: parsed.data.fechaEmision.toISOString(),
     }).select().single()

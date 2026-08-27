@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Receipt, TrendingUp, TrendingDown, PiggyBank, Calendar, Users, Home,
@@ -57,6 +58,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [nombre, setNombre] = useState('')
   const getSupabase = useCallback(() => createClient(), [])
+  const { perfilActivoId, personas, esPropio } = usePersonaActiva()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,21 +66,31 @@ export default function DashboardPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
 
-      // Fetch perfil for name
+      // Determinar el perfilId activo: propia (user.id) o persona asociada
+      let perfilId = user.id
+      let mostrarNombre: string | undefined
+      if (perfilActivoId) {
+        perfilId = perfilActivoId
+        const persona = personas.find(p => p.perfilId === perfilActivoId)
+        mostrarNombre = persona?.nombre ?? persona?.email ?? undefined
+      }
+
+      // Fetch perfil for name (del perfil activo)
       const { data: perfil } = await supabase
         .from('perfiles')
         .select('nombre')
-        .eq('id', user.id)
+        .eq('id', perfilId)
         .single()
       if (perfil?.nombre) setNombre(perfil.nombre)
+      else if (mostrarNombre) setNombre(mostrarNombre)
 
       const currentYear = new Date().getFullYear()
 
-      // Fetch facturas (últimas 10)
+      // Fetch facturas (últimas 10) del perfil activo
       const { data: facturasData } = await supabase
         .from('facturas')
         .select('*')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilId)
         .order('fechaEmision', { ascending: false })
         .limit(10)
 
@@ -86,7 +98,7 @@ export default function DashboardPage() {
       const { data: nominasData } = await supabase
         .from('nominas')
         .select('*')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilId)
         .eq('anyo', currentYear)
         .order('mes', { ascending: false })
 
@@ -94,7 +106,7 @@ export default function DashboardPage() {
       const { data: propsData } = await supabase
         .from('propiedades_alquiler')
         .select('*')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilId)
 
       if (facturasData) setFacturas(facturasData as Factura[])
       if (nominasData) setNominas(nominasData as Nomina[])
@@ -114,7 +126,7 @@ export default function DashboardPage() {
       setLoading(false)
     }
     fetchData()
-  }, [getSupabase])
+  }, [getSupabase, perfilActivoId, personas])
 
   const ingresos = facturas.filter(f => f.tipo === 'ingreso')
   const gastos = facturas.filter(f => f.tipo === 'gasto')
@@ -148,6 +160,7 @@ export default function DashboardPage() {
           </h1>
           <p className="text-muted-foreground">
             {MESES[ahora.getMonth()]} {ahora.getFullYear()} · Panel de control fiscal
+            {!esPropio && ' · Gestionando otra persona'}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

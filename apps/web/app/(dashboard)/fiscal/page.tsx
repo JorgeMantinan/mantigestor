@@ -24,11 +24,31 @@ import { Calculadora202 } from './calculadoras/calculadora-202'
 import { CalculadoraModelo200 } from './calculadoras/calculadora-200'
 import { CalculadoraModelo720 } from './calculadoras/calculadora-720'
 import { CalculadoraModelo151 } from './calculadoras/calculadora-151'
+import { CalculadoraModelo100 } from './calculadoras/calculadora-100'
+import { CalculadoraModelo131 } from './calculadoras/calculadora-131'
+import { CalculadoraModelo115 } from './calculadoras/calculadora-115'
+import { CalculadoraModelo123 } from './calculadoras/calculadora-123'
+import { CalculadoraModelo347 } from './calculadoras/calculadora-347'
+import { CalculadoraModelo349 } from './calculadoras/calculadora-349'
+import { CalculadoraModelo721 } from './calculadoras/calculadora-721'
+import { CalculadoraModelo714 } from './calculadoras/calculadora-714'
+import { CalculadoraModelo232 } from './calculadoras/calculadora-232'
+import { CalculadoraModelo210 } from './calculadoras/calculadora-210'
+import { CalculadoraModelo220 } from './calculadoras/calculadora-220'
+import { CalculadoraModelo309 } from './calculadoras/calculadora-309'
+import { CalculadoraModelo184 } from './calculadoras/calculadora-184'
+import { CalculadoraModelo296 } from './calculadoras/calculadora-296'
+import { CalculadoraModelo345 } from './calculadoras/calculadora-345'
+import { CalculadoraModelo193 } from './calculadoras/calculadora-193'
+import { CalculadoraModelo369 } from './calculadoras/calculadora-369'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
+import { GUIAS_PERFIL } from '@/lib/fiscal/guias-perfil'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
-type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'plazos' | 'minimos' | 'resumen'
+type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'modelo100' | 'modelo131' | 'modelo115' | 'modelo123' | 'modelo347' | 'modelo349' | 'modelo721' | 'modelo714' | 'modelo232' | 'modelo210' | 'modelo220' | 'modelo309' | 'modelo184' | 'modelo296' | 'modelo345' | 'modelo193' | 'modelo369' | 'plazos' | 'minimos' | 'resumen' | 'guias'
 type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
 
-const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
+const SECCIONES_CALCULADORAS: Array<{ key: SeccionKey; label: string }> = [
   { key: 'irpf', label: 'IRPF' },
   { key: 'iva', label: 'IVA' },
   { key: 'reta', label: 'Autónomos (RETA)' },
@@ -36,14 +56,38 @@ const SECCIONES: Array<{ key: SeccionKey; label: string }> = [
   { key: 'patrimonio', label: 'Patrimonio' },
   { key: 'deducciones', label: 'Deducciones autonómicas' },
   { key: 'documentos', label: 'Documentos IA' },
+]
+
+const SECCIONES_MODELOS: Array<{ key: SeccionKey; label: string }> = [
+  { key: 'modelo100', label: 'Modelo 100' },
   { key: 'modelo111', label: 'Modelo 111' },
-  { key: 'modelo190', label: 'Modelo 190' },
-  { key: 'modelo390', label: 'Modelo 390' },
-  { key: 'modelo180', label: 'Modelo 180' },
-  { key: 'modelo202', label: 'Modelo 202' },
-  { key: 'modelo200', label: 'Modelo 200 (IS)' },
-  { key: 'modelo720', label: 'Modelo 720' },
+  { key: 'modelo115', label: 'Modelo 115' },
+  { key: 'modelo123', label: 'Modelo 123' },
+  { key: 'modelo131', label: 'Modelo 131' },
   { key: 'modelo151', label: 'Modelo 151' },
+  { key: 'modelo180', label: 'Modelo 180' },
+  { key: 'modelo184', label: 'Modelo 184' },
+  { key: 'modelo190', label: 'Modelo 190' },
+  { key: 'modelo193', label: 'Modelo 193' },
+  { key: 'modelo200', label: 'Modelo 200 (IS)' },
+  { key: 'modelo202', label: 'Modelo 202' },
+  { key: 'modelo210', label: 'Modelo 210' },
+  { key: 'modelo220', label: 'Modelo 220' },
+  { key: 'modelo232', label: 'Modelo 232' },
+  { key: 'modelo296', label: 'Modelo 296' },
+  { key: 'modelo309', label: 'Modelo 309' },
+  { key: 'modelo345', label: 'Modelo 345' },
+  { key: 'modelo347', label: 'Modelo 347' },
+  { key: 'modelo349', label: 'Modelo 349' },
+  { key: 'modelo369', label: 'Modelo 369' },
+  { key: 'modelo390', label: 'Modelo 390' },
+  { key: 'modelo714', label: 'Modelo 714' },
+  { key: 'modelo720', label: 'Modelo 720' },
+  { key: 'modelo721', label: 'Modelo 721' },
+]
+
+const SECCIONES_UTILIDADES: Array<{ key: SeccionKey; label: string }> = [
+  { key: 'guias', label: 'Guías' },
   { key: 'plazos', label: 'Calendario fiscal' },
   { key: 'minimos', label: 'Mínimos y reducciones' },
   { key: 'resumen', label: 'Resumen anual' },
@@ -94,6 +138,40 @@ interface CacheEntry {
 }
 
 const TTL_MS = 24 * 60 * 60 * 1000
+
+function computeIntracomunitarias(ingresos: Array<{ emisorReceptor: string; nifContraparte: string | null; baseImponible: number; tipo: string }>, gastos: Array<{ emisorReceptor: string; nifContraparte: string | null; baseImponible: number; tipo: string }>) {
+  const EU_PREFIXES = ['DE','FR','IT','NL','BE','AT','PT','IE','FI','SE','DK','PL','CZ','RO','BG','HR','HU','SK','SI','LT','LV','EE','CY','MT','LU']
+  const map = new Map<string, { tercero: string; nif: string; pais: string; tipo: string; baseImponible: number }>()
+
+  for (const f of [...ingresos, ...gastos]) {
+    if (!f.nifContraparte) continue
+    const prefix = f.nifContraparte.substring(0, 2).toUpperCase()
+    if (!EU_PREFIXES.includes(prefix)) continue
+    if (prefix === 'ES') continue
+
+    const key = f.nifContraparte
+    const existing = map.get(key)
+    if (existing) {
+      existing.baseImponible += f.baseImponible / 100
+    } else {
+      const PAIS_MAP: Record<string, string> = {
+        DE: 'Alemania', FR: 'Francia', IT: 'Italia', NL: 'Países Bajos', BE: 'Bélgica',
+        AT: 'Austria', PT: 'Portugal', IE: 'Irlanda', FI: 'Finlandia', SE: 'Suecia',
+        DK: 'Dinamarca', PL: 'Polonia', CZ: 'Chequia', RO: 'Rumanía', BG: 'Bulgaria',
+        HR: 'Croacia', HU: 'Hungría', SK: 'Eslovaquia', SI: 'Eslovenia', LT: 'Lituania',
+        LV: 'Letonia', EE: 'Estonia', CY: 'Chipre', MT: 'Malta', LU: 'Luxemburgo',
+      }
+      map.set(key, {
+        tercero: f.emisorReceptor,
+        nif: f.nifContraparte,
+        pais: PAIS_MAP[prefix] ?? prefix,
+        tipo: f.tipo === 'ingreso' ? 'entrega' : 'adquisicion',
+        baseImponible: f.baseImponible / 100,
+      })
+    }
+  }
+  return Array.from(map.values())
+}
 
 function leerCache(comunidad: string, taxYear: number): CacheEntry | null {
   if (typeof window === 'undefined') return null
@@ -153,6 +231,13 @@ export default function PaginaFiscal() {
     actividades?: number
     pagosACuenta?: number
     deducciones?: number
+    baseGeneral?: number
+    pagosFraccionados?: number
+    base21?: number
+    base10?: number
+    base4?: number
+    deduccionesIva?: number
+    operacionesIntracomunitarias?: Array<{ tercero: string; nif: string; pais: string; tipo: string; baseImponible: number }>
   } | null>(null)
   const [cargandoReales, setCargandoReales] = useState(false)
   const [deduccionesAutonomicas, setDeduccionesAutonomicas] = useState(0)
@@ -317,14 +402,20 @@ export default function PaginaFiscal() {
         tipo: string
         importe: number
         deducible: boolean | null
+        baseImponible: number
+        iva: number
+        emisorReceptor: string
+        nifContraparte: string | null
       }>
 
+      const facturasIngreso = facturasArr.filter(f => f.tipo === 'ingreso')
+      const facturasGasto = facturasArr.filter(f => f.tipo === 'gasto')
+
       // Actividades económicas: ingresos - gastos deducibles de facturas
-      const ingresosFacturas = facturasArr
-        .filter(f => f.tipo === 'ingreso')
+      const ingresosFacturas = facturasIngreso
         .reduce((s, f) => s + f.importe, 0)
-      const gastosFacturas = facturasArr
-        .filter(f => f.tipo === 'gasto' && f.deducible)
+      const gastosFacturas = facturasGasto
+        .filter(f => f.deducible)
         .reduce((s, f) => s + f.importe, 0)
       const actividadesNetas = Math.max(0, ingresosFacturas - gastosFacturas)
 
@@ -341,11 +432,30 @@ export default function PaginaFiscal() {
       // Deducciones: gastos alquiler deducibles
       const deducciones = gastosAlquiler
 
+      // Modelo 100: baseGeneral = trabajo + actividades
+      const baseGeneral = trabajoNeto + actividadesNetas
+
+      // Modelo 309: bases por tipo de IVA e IVA deducible
+      const base21 = facturasIngreso.filter(f => f.iva === 21).reduce((s, f) => s + f.baseImponible, 0) / 100
+      const base10 = facturasIngreso.filter(f => f.iva === 10).reduce((s, f) => s + f.baseImponible, 0) / 100
+      const base4 = facturasIngreso.filter(f => f.iva === 4).reduce((s, f) => s + f.baseImponible, 0) / 100
+      const deduccionesIva = facturasGasto.reduce((s, f) => s + Math.round(f.baseImponible * f.iva / 100), 0) / 100
+
+      // Modelo 349: operaciones intracomunitarias
+      const operacionesIntracomunitarias = computeIntracomunitarias(facturasIngreso, facturasGasto)
+
       setDatosReales({
         trabajo: trabajoNeto,
         actividades: actividadesNetas,
         pagosACuenta: retencionesNomina,
         deducciones,
+        baseGeneral,
+        pagosFraccionados: retencionesNomina,
+        base21,
+        base10,
+        base4,
+        deduccionesIva,
+        operacionesIntracomunitarias,
       })
     } catch {
       // silently fail — the user can still type manually
@@ -353,6 +463,13 @@ export default function PaginaFiscal() {
       setCargandoReales(false)
     }
   }, [taxYear])
+
+  useEffect(() => {
+    // Auto-cargar datos reales la primera vez que la sesión está lista
+    if (datosReales === null) {
+      void cargarDatosReales()
+    }
+  }, [cargarDatosReales, datosReales])
 
   const anhoActual = new Date().getFullYear()
 
@@ -392,52 +509,66 @@ export default function PaginaFiscal() {
         </div>
       )}
 
-      {(seccion === 'irpf' || seccion === 'minimos') && (
-        <div className="flex flex-wrap gap-3 print:hidden">
-          <div className="max-w-xs flex-1 space-y-2">
-            <Label htmlFor="comunidad-fiscal">Comunidad autónoma</Label>
-            <select
-              id="comunidad-fiscal"
-              value={comunidad}
-              onChange={e => {
-                setComunidad(e.target.value)
-                void guardarPerfilBd({ comunidadFiscal: e.target.value })
-              }}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-            >
-              {COMUNIDADES.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-          <div className="w-32 space-y-2">
-            <Label htmlFor="ejercicio-fiscal">Ejercicio</Label>
-            <select
-              id="ejercicio-fiscal"
-              value={taxYear}
-              onChange={e => setTaxYear(Number(e.target.value))}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-            >
-              {[anhoActual - 1, anhoActual].map(a => (
-                <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )}
-
-      <nav aria-label="Secciones fiscales" className="print:hidden flex flex-wrap gap-2">
-        {SECCIONES.map(s => (
-          <Button
-            key={s.key}
-            type="button"
-            size="sm"
-            variant={s.key === seccion ? 'secondary' : 'outline'}
-            onClick={() => setSeccion(s.key)}
+      <div className="flex flex-wrap gap-3 print:hidden">
+        <div className="max-w-xs flex-1 space-y-2">
+          <Label htmlFor="comunidad-fiscal">Comunidad autónoma</Label>
+          <select
+            id="comunidad-fiscal"
+            value={comunidad}
+            onChange={e => {
+              setComunidad(e.target.value)
+              void guardarPerfilBd({ comunidadFiscal: e.target.value })
+            }}
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
           >
-            {s.label}
-          </Button>
-        ))}
+            {COMUNIDADES.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <div className="w-32 space-y-2">
+          <Label htmlFor="ejercicio-fiscal">Ejercicio</Label>
+          <select
+            id="ejercicio-fiscal"
+            value={taxYear}
+            onChange={e => setTaxYear(Number(e.target.value))}
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+          >
+            {[anhoActual - 1, anhoActual].map(a => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <nav aria-label="Secciones fiscales" className="print:hidden space-y-2">
+        <CollapsibleSection titulo="Calculadoras" defaultAbierto>
+          <div className="flex flex-wrap gap-2">
+            {SECCIONES_CALCULADORAS.map(s => (
+              <Button key={s.key} type="button" size="sm" variant={s.key === seccion ? 'secondary' : 'outline'} onClick={() => setSeccion(s.key)}>
+                {s.label}
+              </Button>
+            ))}
+          </div>
+        </CollapsibleSection>
+        <CollapsibleSection titulo="Modelos AEAT" defaultAbierto>
+          <div className="flex flex-wrap gap-2">
+            {SECCIONES_MODELOS.map(s => (
+              <Button key={s.key} type="button" size="sm" variant={s.key === seccion ? 'secondary' : 'outline'} onClick={() => setSeccion(s.key)}>
+                {s.label}
+              </Button>
+            ))}
+          </div>
+        </CollapsibleSection>
+        <CollapsibleSection titulo="Utilidades">
+          <div className="flex flex-wrap gap-2">
+            {SECCIONES_UTILIDADES.map(s => (
+              <Button key={s.key} type="button" size="sm" variant={s.key === seccion ? 'secondary' : 'outline'} onClick={() => setSeccion(s.key)}>
+                {s.label}
+              </Button>
+            ))}
+          </div>
+        </CollapsibleSection>
       </nav>
 
       {avisos.length > 0 && (
@@ -467,7 +598,7 @@ export default function PaginaFiscal() {
                 <Button
                   type="button"
                   size="sm"
-                  variant={datosReales ? 'secondary' : 'outline'}
+                  variant="ghost"
                   onClick={() => void cargarDatosReales()}
                   disabled={cargandoReales}
                 >
@@ -504,6 +635,57 @@ export default function PaginaFiscal() {
           {seccion === 'modelo200' && <CalculadoraModelo200 />}
           {seccion === 'modelo720' && <CalculadoraModelo720 />}
           {seccion === 'modelo151' && <CalculadoraModelo151 />}
+          {seccion === 'modelo100' && <CalculadoraModelo100 datosIniciales={datosReales ? { baseGeneral: datosReales.baseGeneral, pagosFraccionados: datosReales.pagosFraccionados } : undefined} />}
+          {seccion === 'modelo131' && <CalculadoraModelo131 />}
+          {seccion === 'modelo115' && <CalculadoraModelo115 />}
+          {seccion === 'modelo123' && <CalculadoraModelo123 />}
+          {seccion === 'modelo347' && <CalculadoraModelo347 />}
+          {seccion === 'modelo349' && <CalculadoraModelo349 datosIniciales={datosReales ? { operaciones: datosReales.operacionesIntracomunitarias } : undefined} />}
+          {seccion === 'modelo721' && <CalculadoraModelo721 />}
+          {seccion === 'modelo714' && <CalculadoraModelo714 />}
+          {seccion === 'modelo232' && <CalculadoraModelo232 />}
+          {seccion === 'modelo210' && <CalculadoraModelo210 />}
+          {seccion === 'modelo220' && <CalculadoraModelo220 />}
+          {seccion === 'modelo309' && <CalculadoraModelo309 datosIniciales={datosReales ? { base21: datosReales.base21, base10: datosReales.base10, base4: datosReales.base4, deducciones: datosReales.deduccionesIva } : undefined} />}
+          {seccion === 'modelo184' && <CalculadoraModelo184 />}
+          {seccion === 'modelo296' && <CalculadoraModelo296 />}
+          {seccion === 'modelo345' && <CalculadoraModelo345 taxYear={taxYear} />}
+          {seccion === 'modelo193' && <CalculadoraModelo193 taxYear={taxYear} />}
+          {seccion === 'modelo369' && <CalculadoraModelo369 taxYear={taxYear} />}
+          {seccion === 'guias' && (() => {
+            const guia = GUIAS_PERFIL[perfil ?? 'autonomo'] ?? GUIAS_PERFIL['autonomo']
+            if (!guia) return null
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{guia.titulo}</CardTitle>
+                  <CardDescription>{guia.descripcion}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h3 className="font-semibold mb-2">Obligaciones fiscales</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-sm">
+                      {guia.obligaciones.map((o, i) => <li key={i}>{o}</li>)}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Consejos</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-sm">
+                      {guia.consejos.map((c, i) => <li key={i}>{c}</li>)}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Modelos relevantes</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {guia.modelosRelevantes.map((m, i) => (
+                        <span key={i} className="inline-flex items-center rounded-md border bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">{m}</span>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })()}
           {seccion === 'plazos' && <PanelPlazos datos={datos} />}
           {seccion === 'minimos' && <PanelMinimos datos={datos} comunidad={comunidad} />}
           {seccion === 'resumen' && <PanelResumenAnual datos={datos} comunidad={comunidad} />}

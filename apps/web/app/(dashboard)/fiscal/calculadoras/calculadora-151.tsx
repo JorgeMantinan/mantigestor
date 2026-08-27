@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { LabelConAyuda } from './label-con-ayuda'
+import { GUIA_MODELO_131 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo151, requisitosEstimacionObjetiva } from '@mantigestor/utils'
 
 export function CalculadoraModelo151() {
@@ -37,20 +39,20 @@ export function CalculadoraModelo151() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>NIF</Label>
-            <Input value={nif} onChange={e => setNif(e.target.value)} placeholder="12345678A" />
+            <LabelConAyuda htmlFor="nif" ayuda={GUIA_MODELO_131.moduloAnual}>NIF</LabelConAyuda>
+            <Input id="nif" value={nif} onChange={e => setNif(e.target.value)} placeholder="12345678A" />
           </div>
           <div className="space-y-2">
-            <Label>Nombre / denominación</Label>
-            <Input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Tu nombre o empresa" />
+            <LabelConAyuda htmlFor="nombre" ayuda={GUIA_MODELO_131.kcalAnuales}>Nombre / denominación</LabelConAyuda>
+            <Input id="nombre" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Tu nombre o empresa" />
           </div>
           <div className="space-y-2">
             <Label>Actividad económica</Label>
             <Input value={actividad} onChange={e => setActividad(e.target.value)} placeholder="Ej: Hostelería, Comercio..." />
           </div>
           <div className="space-y-2">
-            <Label>Código IAE</Label>
-            <Input value={codigoIae} onChange={e => setCodigoIae(e.target.value)} placeholder="Ej: 4711" />
+            <LabelConAyuda htmlFor="codigoIAE" ayuda={GUIA_MODELO_131.personal}>Código IAE</LabelConAyuda>
+            <Input id="codigoIAE" value={codigoIae} onChange={e => setCodigoIae(e.target.value)} placeholder="Ej: 4711" />
           </div>
         </div>
 

@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown'
+import { PersonaSelector } from './persona-selector'
 import { LogOut, User, Settings, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 
@@ -30,6 +31,7 @@ export function Header() {
       <div className="flex-1" />
 
       <div className="flex items-center gap-2">
+        {user && <PersonaSelector />}
         {user && <NotificationDropdown />}
         {user ? (
           <DropdownMenu>

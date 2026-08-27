@@ -23,6 +23,8 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
+import { Badge } from '@/components/ui/badge'
 
 const menuItems = [
   {
@@ -58,6 +60,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { esPropio } = usePersonaActiva()
 
   return (
     <>
@@ -92,6 +95,14 @@ export function Sidebar() {
             )}
           </div>
         </div>
+
+        {!esPropio && !collapsed && (
+          <div className="mx-3 mb-2">
+            <Badge variant="outline" className="w-full justify-center text-xs">
+              Gestionando a otra persona
+            </Badge>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto py-4">
           <nav className="flex flex-col gap-6 px-3">

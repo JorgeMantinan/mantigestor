@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { z } from 'zod'
 import { getAuthenticatedUser, unauthorized, serverError, badRequest } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 const PerfilFiscalSchema = z.object({
   comunidadFiscal: z.string().max(80).nullable().optional(),
@@ -31,6 +32,8 @@ export async function GET(req: NextRequest) {
     }
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
+
+    const { perfilId } = await resolvePerfilActivo(req)
 
     const supabase = supabaseDeReq(req)
     let fila: Record<string, unknown> | null = null
@@ -78,6 +81,8 @@ export async function PUT(req: NextRequest) {
     const parsed = PerfilFiscalSchema.safeParse(body)
     if (!parsed.success) return badRequest('Datos de perfil fiscal inválidos')
 
+    const { perfilId } = await resolvePerfilActivo(req)
+
     const supabase = supabaseDeReq(req)
     // Comprobar si existe la fila del usuario para decidir insert vs update (id distinto según el origen)
     const existentePorUserId = await supabase
@@ -101,7 +106,7 @@ export async function PUT(req: NextRequest) {
       const { error } = await supabase
         .from('perfiles')
         .insert({
-          id: user.id,
+          id: perfilId,
           userId: user.id,
           email: user.email ?? '',
           updatedAt: ahora,
