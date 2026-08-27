@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Building2, FileWarning } from 'lucide-react'
+import { Building2, FileWarning, Sparkles } from 'lucide-react'
 import { calcularPlusvaliaMunicipal, type MetodoPlusvalia } from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_PLUSVALIA } from '@/lib/fiscal/guia-fiscal'
@@ -108,6 +108,41 @@ export function CalculadoraPlusvalia() {
               <dd className="text-2xl font-bold text-primary">{formatoEuros(resultado.cuota)}</dd>
             </div>
           </dl>
+
+          <div className="overflow-hidden rounded-lg border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted text-xs text-muted-foreground">
+                <tr>
+                  <th className="px-3 py-2 text-left">Método</th>
+                  <th className="px-3 py-2 text-right">Base imponible</th>
+                  <th className="px-3 py-2 text-right">Cuota</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-t">
+                  <td className={`px-3 py-2 ${resultado.metodoFavorable === 'objetivo' ? 'font-semibold' : ''}`}>
+                    Objetivo (catastral × coeficiente){resultado.metodoFavorable === 'objetivo' ? ' · más favorable' : ''}
+                  </td>
+                  <td className="px-3 py-2 text-right">{formatoEuros(resultado.baseObjetiva)}</td>
+                  <td className="px-3 py-2 text-right">{formatoEuros(resultado.baseObjetiva * (resultado.tipoEfectivo / 100))}</td>
+                </tr>
+                <tr className="border-t">
+                  <td className={`px-3 py-2 ${resultado.metodoFavorable === 'real' ? 'font-semibold' : ''}`}>
+                    Real (plusvalía){resultado.metodoFavorable === 'real' ? ' · más favorable' : ''}
+                  </td>
+                  <td className="px-3 py-2 text-right">{formatoEuros(resultado.baseReal)}</td>
+                  <td className="px-3 py-2 text-right">{formatoEuros(resultado.baseReal * (resultado.tipoEfectivo / 100))}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {resultado.metodo === 'objetivo' && resultado.baseReal > 0 && resultado.baseReal < resultado.baseObjetiva && (
+            <p className="flex items-start gap-1.5 rounded-lg border border-primary/50 bg-primary/5 p-2 text-xs">
+              <Sparkles className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+              El método <strong>real</strong> resulta más favorable: cuota {formatoEuros(resultado.cuotaMinima)} en vez de {formatoEuros(resultado.cuota)}. Confirma con tu ayuntamiento si admite alegación.
+            </p>
+          )}
 
           <p className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">{resultado.detalle}</p>
 

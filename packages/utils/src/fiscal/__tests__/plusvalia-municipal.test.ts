@@ -43,6 +43,34 @@ describe('calcularPlusvaliaMunicipal — IIVTNU', () => {
     expect(r.cuota).toBeCloseTo(18_000, 1)
   })
 
+  it('detecta el método más favorable por menor base', () => {
+    // 8 años → coef 0.46 → base objetiva 46.000; plusvalía real 60.000 → favorable = objetivo
+    const r = calcularPlusvaliaMunicipal({
+      valorCatastralTerreno: 100_000,
+      anyosTenencia: 8,
+      tipoMunicipal: 30,
+      metodo: 'real',
+      valorAdquisicion: 120_000,
+      valorTransmision: 180_000,
+    })
+    expect(r.baseObjetiva).toBeCloseTo(46_000, 1)
+    expect(r.metodoFavorable).toBe('objetivo')
+    expect(r.baseReal).toBe(60_000)
+  })
+
+  it('calcula la cuota mínima como la del método más favorable', () => {
+    const r = calcularPlusvaliaMunicipal({
+      valorCatastralTerreno: 100_000,
+      anyosTenencia: 8,
+      tipoMunicipal: 30,
+      metodo: 'objetivo',
+      valorAdquisicion: 120_000,
+      valorTransmision: 180_000,
+    })
+    // min(46.000, 60.000) = 46.000 × 30% = 13.800
+    expect(r.cuotaMinima).toBeCloseTo(13_800, 1)
+  })
+
   it('advierte si en el método real no hay incremento', () => {
     const r = calcularPlusvaliaMunicipal({
       valorCatastralTerreno: 100_000,

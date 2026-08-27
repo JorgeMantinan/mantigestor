@@ -15,6 +15,7 @@ import { CalculadoraPatrimonio } from './calculadoras/calculadora-patrimonio'
 import { PanelPlazos } from './calculadoras/panel-plazos'
 import { PanelMinimos } from './calculadoras/panel-minimos'
 import { PanelResumenAnual } from './calculadoras/panel-resumen-anual'
+import { PanelPackTrimestre } from './calculadoras/panel-pack-trimestre'
 import { PanelDeduccionesAutonomicas } from './calculadoras/panel-deducciones-autonomicas'
 import { PanelDocumentosFiscales } from './calculadoras/panel-documentos-fiscales'
 import { Calculadora111 } from './calculadoras/calculadora-111'
@@ -61,7 +62,7 @@ import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { GUIAS_PERFIL } from '@/lib/fiscal/guias-perfil'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
-type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'modelo100' | 'modelo131' | 'modelo115' | 'modelo123' | 'modelo347' | 'modelo349' | 'modelo721' | 'modelo714' | 'modelo232' | 'modelo210' | 'modelo220' | 'modelo309' | 'modelo184' | 'modelo296' | 'modelo345' | 'modelo193' | 'modelo369' | 'modelo130' | 'modelo303' | 'modelo170' | 'modelo179' | 'modelo600' | 'modelo233' | 'modelo036' | 'modelo145' | 'modelo590' | 'modelo222' | 'modelo211' | 'modelo104' | 'plusvalia' | 'modelo110' | 'modelo117' | 'plazos' | 'minimos' | 'resumen' | 'guias'
+type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'modelo100' | 'modelo131' | 'modelo115' | 'modelo123' | 'modelo347' | 'modelo349' | 'modelo721' | 'modelo714' | 'modelo232' | 'modelo210' | 'modelo220' | 'modelo309' | 'modelo184' | 'modelo296' | 'modelo345' | 'modelo193' | 'modelo369' | 'modelo130' | 'modelo303' | 'modelo170' | 'modelo179' | 'modelo600' | 'modelo233' | 'modelo036' | 'modelo145' | 'modelo590' | 'modelo222' | 'modelo211' | 'modelo104' | 'plusvalia' | 'modelo110' | 'modelo117' | 'plazos' | 'minimos' | 'resumen' | 'packTrimestre' | 'guias'
 type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
 
 const SECCIONES_CALCULADORAS: Array<{ key: SeccionKey; label: string }> = [
@@ -122,6 +123,7 @@ const SECCIONES_UTILIDADES: Array<{ key: SeccionKey; label: string }> = [
   { key: 'plazos', label: 'Calendario fiscal' },
   { key: 'minimos', label: 'Mínimos y reducciones' },
   { key: 'resumen', label: 'Resumen anual' },
+  { key: 'packTrimestre', label: 'Pack de trimestre' },
 ]
 
 const COMUNIDADES = [
@@ -774,6 +776,7 @@ function PaginaFiscalInner() {
           {seccion === 'plazos' && <PanelPlazos datos={datos} />}
           {seccion === 'minimos' && <PanelMinimos datos={datos} comunidad={comunidad} />}
           {seccion === 'resumen' && <PanelResumenAnual datos={datos} comunidad={comunidad} />}
+          {seccion === 'packTrimestre' && <PanelPackTrimestre taxYear={taxYear} />}
           <p className="print:hidden text-xs text-muted-foreground">
             Ejercicio {datos.taxYear} · datos en caché de la sesión durante 24 h ·{' '}
             <button type="button" className="underline hover:no-underline" onClick={() => void cargarDatos(comunidad, taxYear, true)}>

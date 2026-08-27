@@ -32,6 +32,14 @@ export interface ResultadoPlusvalia {
   /** Explicación de cómo se ha calculado la base */
   detalle: string
   avisos: string[]
+  /** Método que resultaría más favorable para el contribuyente */
+  metodoFavorable: MetodoPlusvalia
+  /** Base por el método objetivo (usado para comparar) */
+  baseObjetiva: number
+  /** Base por el método real (incremento), si procede */
+  baseReal: number
+  /** Cuota del método más favorable (la cuota mínima posible) */
+  cuotaMinima: number
 }
 
 /**
@@ -72,32 +80,49 @@ export function calcularPlusvaliaMunicipal(datos: DatosPlusvalia): ResultadoPlus
   const avisos: string[] = []
   const anyos = Math.max(0, Math.floor(datos.anyosTenencia))
 
+  // Base por el método objetivo (siempre calculable)
+  const coef = coeficientePara(anyos)
+  const baseObjetiva = Math.max(0, datos.valorCatastralTerreno) * coef
+
+  // Base por el método real (incremento de valor)
+  const adq = Math.max(0, datos.valorAdquisicion ?? 0)
+  const trans = Math.max(0, datos.valorTransmision ?? 0)
+  const baseReal = Math.max(0, trans - adq)
+
+  // Método más favorable: el de menor base imponible
+  const metodoFavorable: MetodoPlusvalia =
+    baseObjetiva <= baseReal ? 'objetivo' : 'real'
+
   let baseImponible: number
   let detalle: string
 
   if (datos.metodo === 'objetivo') {
-    // Base = (valor catastral del terreno) × coeficiente según años de tenencia
-    const coef = coeficientePara(anyos)
-    baseImponible = Math.max(0, datos.valorCatastralTerreno) * coef
+    baseImponible = baseObjetiva
     detalle = `Base objetiva = ${datos.valorCatastralTerreno.toLocaleString('es-ES')} € (valor catastral del terreno) × ${(coef * 100).toFixed(2)}% (coeficiente por ${anyos} año(s) de tenencia)`
     if (anyos < 1) {
       avisos.push('Con menos de 1 año de tenencia no se genera incremento de valor (no hay base imponible por el método objetivo).')
     }
+    if (trans > 0 && adq > 0) {
+      if (baseReal < baseObjetiva) {
+        detalle += ` El método real (plusvalía ${baseReal.toLocaleString('es-ES')} €) resulta MÁS FAVORABLE que el objetivo: conviene elegirlo si es admisible según tu ayuntamiento.`
+      }
+    } else {
+      avisos.push('Aporta los valores de adquisición y transmisión para comparar con el método real y elegir la opción más favorable.')
+    }
   } else {
-    const adq = Math.max(0, datos.valorAdquisicion ?? 0)
-    const trans = Math.max(0, datos.valorTransmision ?? 0)
     const incremento = trans - adq
-    // El contribuyente puede elegir la base: incremento real o base catastral objetiva
-    const baseObjetiva = Math.max(0, datos.valorCatastralTerreno) * coeficientePara(anyos)
-    baseImponible = Math.max(0, incremento)
-    detalle = `Base por método real = ${(trans - adq).toLocaleString('es-ES')} € (transmisión ${trans.toLocaleString('es-ES')} € − adquisición ${adq.toLocaleString('es-ES')} €). Comparativa con base objetiva: ${baseObjetiva.toLocaleString('es-ES')} €. Si el incremento resultara inferior usarías la base objetiva (o la mayor que corresponda según tu ayuntamiento).`
+    baseImponible = baseReal
+    detalle = `Base por método real = ${(trans - adq).toLocaleString('es-ES')} € (transmisión ${trans.toLocaleString('es-ES')} € − adquisición ${adq.toLocaleString('es-ES')} €). Comparativa con base objetiva: ${baseObjetiva.toLocaleString('es-ES')} €.`
     if (incremento <= 0) {
       avisos.push('No hay incremento de valor real: la cuota por este método es 0 €. El contribuyente puede alegar ausencia de plusvalía.')
+    } else if (baseObjetiva < baseReal) {
+      detalle += ` La base objetiva (${baseObjetiva.toLocaleString('es-ES')} €) resulta MÁS FAVORABLE: conviene elegirla si es admisible según tu ayuntamiento.`
     }
   }
 
   const tipoEfectivo = 100 * (datos.tipoMunicipal / 100)
   const cuota = baseImponible * (datos.tipoMunicipal / 100)
+  const cuotaMinima = Math.min(baseObjetiva, baseReal) * (datos.tipoMunicipal / 100)
 
   return {
     metodo: datos.metodo,
@@ -107,5 +132,9 @@ export function calcularPlusvaliaMunicipal(datos: DatosPlusvalia): ResultadoPlus
     anyosTenencia: anyos,
     detalle,
     avisos,
+    metodoFavorable,
+    baseObjetiva,
+    baseReal,
+    cuotaMinima,
   }
 }
