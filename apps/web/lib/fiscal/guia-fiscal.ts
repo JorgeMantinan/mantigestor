@@ -1284,6 +1284,126 @@ export const GUIA_MODELO_036: Record<string, GuiaCampo> = {
   },
 }
 
+export const GUIA_MODELO_104: Record<string, GuiaCampo> = {
+  categoria: {
+    titulo: 'Situación familiar',
+    contenido: 'Define el colectivo que permite la devolución acelerada del IRPF: familia numerosa (general o especial) o persona con discapacidad a cargo. Cada situación genera un mínimo personal y familiar distinto que determina el exceso de retenciones a devolver por anticipado.',
+    ejemplos: [
+      'Familia numerosa general → mínimo por descendientes estándar',
+      'Familia numerosa especial → mínimo incrementado',
+      'Persona con discapacidad a cargo → mínimo por discapacidad notablemente mayor',
+    ],
+    dondeVer: 'Título y categoría de tu tarjeta de familia numerosa, o certificado de discapacidad.',
+  },
+  numHijos: {
+    titulo: 'Nº de hijos / personas a cargo',
+    contenido: 'El número de hijos (para familia numerosa) o personas con discapacidad a cargo que determinan el importe del mínimo por descendientes/familiares. Cuantos más, mayor el mínimo y, en consecuencia, mayor la devolución anticipada.',
+    ejemplos: [
+      '3 hijos, categoría general → mínimo por descendientes de 2.400 + 2×2.700',
+    ],
+    dondeVer: 'Tarjeta de familia numerosa o solicitud de devolución acelerada.',
+  },
+  retencionesAnuales: {
+    titulo: 'Retenciones de IRPF del año',
+    contenido: 'Cantidad total de IRPF que te retiene tu empresa en las nóminas del ejercicio. El anticipo mensual se calcula sobre la parte que no se compensa con tu cuota y que finalmente resultaría a devolver.',
+    ejemplos: [
+      'Si te retienen 6.000 € y tu cuota anual es menor, el exceso es lo que puedes cobrar por adelantado',
+    ],
+    dondeVer: 'En tus nóminas o el resumen anual del trabajador.',
+  },
+  rendimientosBrutos: {
+    titulo: 'Rendimientos brutos del trabajo',
+    contenido: 'Tus rendimientos íntegros del trabajo anuales. Se usan para estimar la cuota anual y el exceso de mínimos que corresponde devolver, afinando el importe mensual solicitable.',
+    ejemplos: [
+      'Rendimientos brutos de 24.000 €',
+    ],
+    dondeVer: 'Nóminas anuales o la declaración de la renta del ejercicio anterior.',
+  },
+}
+
+export const GUIA_MODELO_211: Record<string, GuiaCampo> = {
+  precioVenta: {
+    titulo: 'Precio de la transmisión',
+    contenido: 'Es la consideración total acordada (el precio de venta) por la adquisición del inmueble a un no residente. Sobre este importe se calcula la retención del 3% (art. 25.2 LIRNR).',
+    ejemplos: [
+      'Compras un piso por 200.000 € → retención de 6.000 € y neto al vendedor de 194.000 €',
+    ],
+    dondeVer: 'En la escritura pública de compraventa.',
+  },
+  tipoRetencion: {
+    titulo: 'Tipo de retención',
+    contenido: 'Porcentaje que se retiene sobre el precio. El general para adquisición de inmuebles a no residentes sin establecimiento permanente es el 3%.',
+    ejemplos: [
+      'General: 3% sobre el precio',
+    ],
+    dondeVer: 'Art. 25.2 LIRNR.',
+  },
+}
+
+export const GUIA_MODELO_222: Record<string, GuiaCampo> = {
+  modalidad: {
+    titulo: 'Modalidad del pago fraccionado',
+    contenido: 'El pago fraccionado del IS se calcula de dos formas: (a) sobre una parte de la cuota íntegra del ejercicio anterior (18%), o (b) sobre la base imponible del periodo acumulado (método de base, obligatorio para grandes empresas). El modelo 222 lo usan grupos de consolidación fiscal y entidades con cifra de negocios ≥ 10 M€.',
+    ejemplos: [
+      'Grupo de consolidación → 222',
+      'Empresa con 20 M€ de cifra de negocios → 222 con modalidad de base (24%)',
+    ],
+    dondeVer: 'Art. 40 LIS y normativa anual del modelo 222 en la sede de la AEAT.',
+  },
+  baseImponible: {
+    titulo: 'Base imponible del periodo',
+    contenido: 'En la modalidad de base, es el resultado contable del periodo ajustado (base imponible acumulada) sobre el que se aplica el tipo del pago fraccionado (18% o 24%).',
+    ejemplos: [
+      'Base imponible acumulada de 100.000 € y cifra ≥ 10M → 100.000 × 24% = 24.000 € a cuenta',
+    ],
+    dondeVer: 'Cálculo de la base imponible del ISS para el periodo (resultado contable + ajustes).',
+  },
+  cuotaIntegraAnterior: {
+    titulo: 'Cuota íntegra del ejercicio anterior',
+    contenido: 'En la modalidad de cuota, se toma la cuota íntegra del último periodo impositivo presentado y se le aplica el 18%.',
+    ejemplos: [
+      'Cuota íntegra de 20.000 € → 20.000 × 18% = 3.600 € por pago',
+    ],
+    dondeVer: 'Modelo 200 del ejercicio anterior, casilla de cuota íntegra.',
+  },
+  cifraNegocios: {
+    titulo: 'Cifra de negocios',
+    contenido: 'El importe neto de la cifra de negocios determina el obligado al 222 y el tipo aplicable: a partir de 10 M€ debes usar el 222 en modalidad de base con el 24%.',
+    ejemplos: [
+      '≥ 10 M€ de cifra de negocios → 222 con base (24%)',
+      '< 10 M€ y no grupo → normalmente 202',
+    ],
+    dondeVer: 'Comercial de la sociedad del ejercicio anterior.',
+  },
+  pagosAnteriores: {
+    titulo: 'Pagos anteriores',
+    contenido: 'Cantidad ya ingresada a cuenta en pagos fraccionados anteriores del mismo ejercicio. Se resta del pago del periodo para evitar duplicidades.',
+    dondeVer: 'Justificantes de los pagos fraccionados previos del ejercicio.',
+  },
+}
+
+export const GUIA_MODELO_590: Record<string, GuiaCampo> = {
+  cifraNegocios: {
+    titulo: 'Cifra de negocios',
+    contenido: 'Es el importe neto de la cifra de negocios del periodo impositivo (facturación neta de la sociedad). Determina si estás obligado a presentar el modelo 590 (si superas 250.000 € en el ejercicio y realizas operaciones vinculadas) y a elaborar documentación (a partir de 10 M€).',
+    ejemplos: [
+      'Sociedad con 1 M€ facturados y préstamo de un socio por 300.000 € → debe presentar el 590',
+      'Cifra de negocios 8.000.000 € con operaciones vinculadas de 500.000 € → presenta 590 pero sin documentación individual (<10M)',
+    ],
+    dondeVer: 'Comercial de la sociedad. Lo habitual es coincidir con la línea 01 del modelo 200.',
+  },
+  operaciones: {
+    titulo: 'Operaciones vinculadas',
+    contenido: 'Son las operaciones realizadas con partes vinculadas (socios significativos, administradores, sociedades del grupo familiar, etc.). Deben valorarse a precios de mercado. Suma aquí el importe de cada una para comprobar si superas el umbral individual de 250.000 € que obliga a declararlas.',
+    ejemplos: [
+      'Préstamo participativo de un socio: 300.000 €',
+      'Arrendamiento de local a una sociedad del mismo grupo: 60.000 €/año',
+      'Venta de mercancías a una empresa familiar: 400.000 €',
+    ],
+    dondeVer: 'Identifica a las partes vinculadas y recopila el valor de cada operación del ejercicio.',
+  },
+}
+
 export const GUIA_MODELO_390: Record<string, GuiaCampo> = {
   resumen: {
     titulo: 'Resumen anual del IVA',
@@ -1379,6 +1499,10 @@ export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
     modelo036: GUIA_MODELO_036,
     modelo145: GUIA_MODELO_145,
     modelo390: GUIA_MODELO_390,
+    modelo590: GUIA_MODELO_590,
+    modelo222: GUIA_MODELO_222,
+    modelo211: GUIA_MODELO_211,
+    modelo104: GUIA_MODELO_104,
   }
   return guias[seccion]?.[campo] ?? null
 }

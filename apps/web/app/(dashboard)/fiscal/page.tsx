@@ -49,11 +49,15 @@ import { CalculadoraModelo600 } from './calculadoras/calculadora-600'
 import { CalculadoraModelo233 } from './calculadoras/calculadora-233'
 import { CalculadoraModelo036 } from './calculadoras/calculadora-036'
 import { CalculadoraModelo145 } from './calculadoras/calculadora-145'
+import { CalculadoraModelo590 } from './calculadoras/calculadora-590'
+import { CalculadoraModelo222 } from './calculadoras/calculadora-222'
+import { CalculadoraModelo211 } from './calculadoras/calculadora-211'
+import { CalculadoraModelo104 } from './calculadoras/calculadora-104'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { GUIAS_PERFIL } from '@/lib/fiscal/guias-perfil'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
-type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'modelo100' | 'modelo131' | 'modelo115' | 'modelo123' | 'modelo347' | 'modelo349' | 'modelo721' | 'modelo714' | 'modelo232' | 'modelo210' | 'modelo220' | 'modelo309' | 'modelo184' | 'modelo296' | 'modelo345' | 'modelo193' | 'modelo369' | 'modelo130' | 'modelo303' | 'modelo170' | 'modelo179' | 'modelo600' | 'modelo233' | 'modelo036' | 'modelo145' | 'plazos' | 'minimos' | 'resumen' | 'guias'
+type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'modelo100' | 'modelo131' | 'modelo115' | 'modelo123' | 'modelo347' | 'modelo349' | 'modelo721' | 'modelo714' | 'modelo232' | 'modelo210' | 'modelo220' | 'modelo309' | 'modelo184' | 'modelo296' | 'modelo345' | 'modelo193' | 'modelo369' | 'modelo130' | 'modelo303' | 'modelo170' | 'modelo179' | 'modelo600' | 'modelo233' | 'modelo036' | 'modelo145' | 'modelo590' | 'modelo222' | 'modelo211' | 'modelo104' | 'plazos' | 'minimos' | 'resumen' | 'guias'
 type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
 
 const SECCIONES_CALCULADORAS: Array<{ key: SeccionKey; label: string }> = [
@@ -100,6 +104,10 @@ const SECCIONES_MODELOS: Array<{ key: SeccionKey; label: string }> = [
   { key: 'modelo721', label: 'Modelo 721' },
   { key: 'modelo036', label: 'Modelo 036/037 (alta censal)' },
   { key: 'modelo145', label: 'Modelo 145 (retención trabajo)' },
+  { key: 'modelo590', label: 'Modelo 590 (operaciones vinculadas)' },
+  { key: 'modelo222', label: 'Modelo 222 (pago fraccionado)' },
+  { key: 'modelo211', label: 'Modelo 211 (no residentes, inmuebles)' },
+  { key: 'modelo104', label: 'Modelo 104 (devolución acelerada)' },
 ]
 
 const SECCIONES_UTILIDADES: Array<{ key: SeccionKey; label: string }> = [
@@ -699,6 +707,10 @@ export default function PaginaFiscal() {
           {seccion === 'modelo233' && <CalculadoraModelo233 />}
           {seccion === 'modelo036' && <CalculadoraModelo036 />}
           {seccion === 'modelo145' && <CalculadoraModelo145 />}
+          {seccion === 'modelo590' && <CalculadoraModelo590 />}
+          {seccion === 'modelo222' && <CalculadoraModelo222 />}
+          {seccion === 'modelo211' && <CalculadoraModelo211 />}
+          {seccion === 'modelo104' && <CalculadoraModelo104 />}
           {seccion === 'guias' && (() => {
             const guia = GUIAS_PERFIL[perfil ?? 'autonomo'] ?? GUIAS_PERFIL['autonomo']
             if (!guia) return null
