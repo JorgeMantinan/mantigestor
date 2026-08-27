@@ -1284,6 +1284,43 @@ export const GUIA_MODELO_036: Record<string, GuiaCampo> = {
   },
 }
 
+export const GUIA_PLUSVALIA: Record<string, GuiaCampo> = {
+  valorCatastralTerreno: {
+    titulo: 'Valor catastral del terreno',
+    contenido: 'El valor catastral del suelo (no de la construcción). Lo encuentras en el recibo del IBI o en la sede electrónica del Catastro. Es la base del método objetivo de la plusvalía municipal.',
+    ejemplos: [
+      'Suele aparecer desglosado en el recibo del IBI como valor catastral del suelo',
+    ],
+    dondeVer: 'Recibo del IBI o certificado catastral del inmueble.',
+  },
+  anyosTenencia: {
+    titulo: 'Años de tenencia',
+    contenido: 'Número de años completos entre la adquisición y la transmisión del terreno. Determina el coeficiente reductor del método objetivo: cuantos más años, menor el coeficiente y, por tanto, menor la base.',
+    ejemplos: [
+      '5 años de tenencia → coeficiente 0,52',
+      '15 años → coeficiente 0,36',
+    ],
+    dondeVer: 'Escritura de compra y escritura de venta.',
+  },
+  tipoMunicipal: {
+    titulo: 'Tipo impositivo municipal',
+    contenido: 'Porcentaje que aplica tu ayuntamiento sobre la base imponible (habitualmente entre el 20% y el 30%). Lo fija cada ordenanza fiscal local.',
+    ejemplos: [
+      'Tipo del 30% → cuota = base imponible × 0,30',
+    ],
+    dondeVer: 'Ordenanza fiscal del IIVTNU de tu ayuntamiento.',
+  },
+  metodo: {
+    titulo: 'Método de cálculo',
+    contenido: 'Desde la STC 59/2017 coexisten dos métodos: el objetivo (sobre valor catastral y coeficiente por años) y el real (sobre la plusvalía efectiva entre transmisión y adquisición). El contribuyente puede elegir el que resulte más favorable.',
+    ejemplos: [
+      'Objetivo: valor catastral del terreno × coeficiente',
+      'Real: (valor transmisión − valor adquisición) × tipo',
+    ],
+    dondeVer: 'Liquidación del ayuntamiento; puedes alegar el método más beneficioso.',
+  },
+}
+
 export const GUIA_MODELO_104: Record<string, GuiaCampo> = {
   categoria: {
     titulo: 'Situación familiar',
@@ -1318,6 +1355,81 @@ export const GUIA_MODELO_104: Record<string, GuiaCampo> = {
       'Rendimientos brutos de 24.000 €',
     ],
     dondeVer: 'Nóminas anuales o la declaración de la renta del ejercicio anterior.',
+  },
+}
+
+export const GUIA_MODELO_117: Record<string, GuiaCampo> = {
+  tipo: {
+    titulo: 'Tipo de actividad',
+    contenido: 'Procedencia de la renta del sector primario: venta de ganado (distinto del ibérico originario), ganado ibérico originario, madera, productos lácteos en origen, retribuciones en especie u otras.',
+    ejemplos: [
+      'Venta de madera en pie o corta',
+      'Venta de leche en origen a la industria',
+    ],
+    dondeVer: 'Factura del destinatario (sujeto obligado a retener).',
+  },
+  importe: {
+    titulo: 'Importe bruto',
+    contenido: 'Base sobre la que se practica la retención (el importe íntegro de la operación).',
+    ejemplos: [
+      'Venta de ganado por 5.000 € → base sujeta a retención',
+    ],
+    dondeVer: 'Justificante de la operación o factura.',
+  },
+  tipoRetencion: {
+    titulo: 'Tipo de retención',
+    contenido: 'Porcentaje a cuenta para actividades agrícolas y ganaderas: habitualmente el 1% (2% para el ganado ibérico originario y productos lácteos en origen).',
+    ejemplos: [
+      '1% sobre venta de madera',
+      '2% sobre ganado ibérico originario',
+    ],
+    dondeVer: 'Normativa de retenciones del IRPF del ejercicio.',
+  },
+  periodo: {
+    titulo: 'Periodo',
+    contenido: 'Ingreso trimestral (hasta el día 20 del mes siguiente al cierre del trimestre) y resumen anual hasta el 30 de enero.',
+    ejemplos: [
+      'Trimestre 1 → ingreso hasta el 20 de abril',
+      'Resumen anual → hasta el 30 de enero',
+    ],
+    dondeVer: 'Calendario del contribuyente de la AEAT.',
+  },
+}
+
+export const GUIA_MODELO_110: Record<string, GuiaCampo> = {
+  tipo: {
+    titulo: 'Tipo de retención',
+    contenido: 'Categoría de rendimiento que genera la retención sin modelo propio: capital inmobiliario distinto del arrendamiento de local, premios, ganancias patrimoniales no derivadas de inmuebles, retribuciones en especie u otros.',
+    ejemplos: [
+      'Premios de concursos o sorteos no exentos → retención a cuenta',
+      'Cesión de derechos de imagen o similares → capital',
+    ],
+    dondeVer: 'Factura o documento del perceptor con la retención practicada.',
+  },
+  importe: {
+    titulo: 'Importe bruto satisfecho',
+    contenido: 'Base sobre la que se practica la retención (el importe íntegro del pago, sin descontar la propia retención).',
+    ejemplos: [
+      'Un premio de 5.000 € → base sobre la que se aplica el 19%',
+    ],
+    dondeVer: 'Justificante del pago o factura.',
+  },
+  tipoRetencion: {
+    titulo: 'Tipo de retención',
+    contenido: 'Porcentaje aplicado (habitualmente 19%-23%). El rango orientativo depende de la naturaleza de la renta y de la normativa vigente en el ejercicio.',
+    ejemplos: [
+      '19% sobre premios y ganancias patrimoniales',
+    ],
+    dondeVer: 'Factura o contrato.',
+  },
+  periodo: {
+    titulo: 'Periodo',
+    contenido: 'Las retenciones se ingresan cada trimestre (modelo 110 trimestral) y al final del año se presenta la declaración-resumen anual. Elija "anual" para el resumen de todo el ejercicio.',
+    ejemplos: [
+      'Trimestre 4 → ingreso hasta el 20 de enero',
+      'Resumen anual → hasta el 30 de enero del año siguiente',
+    ],
+    dondeVer: 'Calendario del contribuyente de la AEAT.',
   },
 }
 
@@ -1503,6 +1615,9 @@ export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
     modelo222: GUIA_MODELO_222,
     modelo211: GUIA_MODELO_211,
     modelo104: GUIA_MODELO_104,
+    plusvalia: GUIA_PLUSVALIA,
+    modelo110: GUIA_MODELO_110,
+    modelo117: GUIA_MODELO_117,
   }
   return guias[seccion]?.[campo] ?? null
 }

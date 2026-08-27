@@ -161,7 +161,7 @@ git add -A; git commit -m "msg"; git push origin master  # Deploy a Vercel
 - **Registro de perfil fijo**: ahora incluye `userId` para que las consultas por `userId` funcionen correctamente
 - **Tooltips en calculadoras**: las calculadoras tienen `LabelConAyuda` + guías `GUIA_*` en `lib/fiscal/guia-fiscal.ts`
 - **Pre-relleno de datos reales**: `cargarDatosReales()` auto-carga y rellena calculadoras 100, 111, 309, 349 (baseGeneral, pagosFraccionados, bases IVA, operaciones intracomunitarias)
-- **Modelos fiscales implementados**: 036/037, 100, 104, 111, 115, 123, 130, 131, 145, 151, 170, 179, 180, 184, 190, 193, 200, 202, 210, 211, 220, 222, 232, 233, 296, 303, 309, 345, 347, 349, 369, 390, 590, 600, 714, 720, 721 (cada uno: utils en `packages/utils/src/fiscal/`, calculadora UI, test, guía y export PDF)
+- **Modelos fiscales implementados**: 036/037, 100, 104, 110, 111, 115, 117, 123, 130, 131, 145, 151, 170, 179, 180, 184, 190, 193, 200, 202, 210, 211, 220, 222, 232, 233, 296, 303, 309, 345, 347, 349, 369, 390, 590, 600, 714, 720, 721, **+ calculadora Plusvalía municipal (IIVTNU)** (cada uno: utils en `packages/utils/src/fiscal/`, calculadora UI, test, guía y export PDF)
 - **Export PDF**: botón `BotonPDF` en todos los modelos fiscales (id `pdf-modelo-XXX` en el wrapper `<div>`)
 - **Dark mode desplegables**: `color-scheme: dark` en `.dark` de `globals.css` + `select`/`select option` con `bg-background text-foreground` (corrige popups de `<select>` nativos en modo oscuro)
 - **Auto-relleno 130/303**: `cargarDatosReales()` calcula también `baseSop21/10/4` (bases IVA soportadas), `base130Ingresos`, `base130Gastos` y `retencionesNomina` para pre-rellenar los modelos 130 y 303 desde facturas/nóminas
