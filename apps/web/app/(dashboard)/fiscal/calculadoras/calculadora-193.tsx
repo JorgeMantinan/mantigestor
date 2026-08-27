@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { eur, parseEuros } from './types'
 import { calcularModelo193 } from '@mantigestor/utils'
 import type { RetencionSeguro } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 export function CalculadoraModelo193({ taxYear }: { taxYear: number }) {
   const [retenciones, setRetenciones] = useState<RetencionSeguro[]>([])
@@ -44,7 +45,9 @@ export function CalculadoraModelo193({ taxYear }: { taxYear: number }) {
   }
 
   return (
-    <Card>
+    <div id="pdf-modelo-193" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-193" filename="modelo-193" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 193 — Retenciones seguros</CardTitle>
         <CardDescription>
@@ -130,5 +133,6 @@ export function CalculadoraModelo193({ taxYear }: { taxYear: number }) {
         </dl>
       </CardContent>
     </Card>
+    </div>
   )
 }

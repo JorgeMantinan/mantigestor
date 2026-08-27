@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { LabelConAyuda } from './label-con-ayuda'
 import { calcularModelo202 } from '@mantigestor/utils'
 import { eur } from './types'
+import { BotonPDF } from '@/components/boton-pdf'
 
 interface Props {
   taxYear: number
@@ -31,7 +32,9 @@ export function Calculadora202({ taxYear }: Props) {
   }, [tipoContribuyente, cuotaIntegra, baseImponible, pagosAnteriores])
 
   return (
-    <Card>
+    <div id="pdf-modelo-202" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-202" filename="modelo-202" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 202 — Pago fraccionado sociedades {taxYear}</CardTitle>
         <CardDescription>
@@ -161,5 +164,6 @@ export function Calculadora202({ taxYear }: Props) {
         )}
       </CardContent>
     </Card>
+    </div>
   )
 }

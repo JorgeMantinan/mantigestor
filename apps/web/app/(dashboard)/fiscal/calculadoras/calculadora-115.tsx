@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Calculator, Plus, Trash2, Home } from 'lucide-react'
 import { calcularModelo115 } from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
+import { BotonPDF } from '@/components/boton-pdf'
 import { eur } from './types'
 
 const eurosACentimos = (v: string): number => Math.round((parseFloat(v) || 0) * 100)
@@ -52,7 +53,9 @@ export function CalculadoraModelo115() {
   const hasData = resultado.totalBaseImponible > 0
 
   return (
-    <Card>
+    <div id="pdf-modelo-115" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-115" filename="modelo-115" />
+      <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Home className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -172,5 +175,6 @@ export function CalculadoraModelo115() {
         </p>
       </CardContent>
     </Card>
+    </div>
   )
 }

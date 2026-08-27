@@ -1021,6 +1021,228 @@ export const GUIA_MODELO_349: Record<string, GuiaCampo> = {
   },
 }
 
+export const GUIA_MODELO_130: Record<string, GuiaCampo> = {
+  ingresos: {
+    titulo: 'Ingresos acumulados del año',
+    contenido: 'Son los ingresos íntegros de tu actividad desde el 1 de enero hasta el cierre del trimestre. Incluye todas tus facturas emitidas y cobradas, tanto con IVA como sin él.',
+    ejemplos: [
+      'Si en enero-marzo facturaste 12.000€, ese es tu ingreso acumulado del 1T',
+      'Se acumulan: el 2T incluye lo de enero a junio',
+      'NO descuentes aquí los gastos: eso va en el campo siguiente',
+    ],
+    dondeVer: 'En tus facturas emitidas del año. Súmalas sin IVA (base imponible).',
+  },
+  gastos: {
+    titulo: 'Gastos deducibles acumulados',
+    contenido: 'Son los gastos necesarios para tu actividad desde el 1 de enero: compras, alquiler del local, suministros, material, seguros. NO incluyen el IVA ni las cuotas de autónomo.',
+    ejemplos: [
+      'Alquiler local, luz, internet, material de oficina',
+      'Compras de mercaderías, herramientas, software',
+      'NO incluyas las cuotas de Seguridad Social ni el IVA',
+    ],
+    dondeVer: 'En tus facturas de gasto anuales (sin IVA y sin cuotas de autónomo).',
+  },
+  pagosAnteriores: {
+    titulo: 'Pagos fraccionados anteriores',
+    contenido: 'Es la suma de los pagos fraccionados trimestrales que ya has ingresado a Hacienda en trimestres anteriores del mismo año. Se restan de la cuota acumulada.',
+    ejemplos: [
+      'Si en el 1T ingresaste 400€, en el 2T pones 400€',
+      'Si es el 1T, deja este campo en 0',
+    ],
+    dondeVer: 'En los modelos 130 de trimestres anteriores o el resumen de tu gestoría.',
+  },
+}
+
+export const GUIA_MODELO_303: Record<string, GuiaCampo> = {
+  trimestre: {
+    titulo: 'Trimestre de la autoliquidación',
+    contenido: 'El periodo al que corresponde la liquidación del IVA. Determina cómo se tratan los saldos negativos (en los tres primeros trimestres se compensan; en el 4T se puede solicitar devolución).',
+    ejemplos: [
+      '1T: enero-marzo (se presenta en abril)',
+      '2T: abril-junio (presentación en julio)',
+      '4T: octubre-diciembre (presentación en enero)',
+    ],
+    dondeVer: 'Calendario fiscal. Modelo 303 en la sede de la AEAT.',
+  },
+  baseRepercutida: {
+    titulo: 'Base imponible repercutida',
+    contenido: 'Es la base imponible (sin IVA) de tus ventas y servicios gravados con IVA. Se desglosa por tipo de IVA (21%, 10%, 4%). Es el IVA que has cobrado a tus clientes.',
+    ejemplos: [
+      'Facturaste 5.000€ + 21% IVA → base repercutida 21% = 5.000€',
+      'Restaurante: base al 10% para comida',
+    ],
+    dondeVer: 'En tus facturas emitidas: la base imponible sin IVA.',
+  },
+  baseSoportada: {
+    titulo: 'Base imponible soportada deducible',
+    contenido: 'Es la base imponible (sin IVA) de tus gastos y compras deducibles. El IVA pagado en esos gastos es el que te puedes restar (cuota soportada deducible).',
+    ejemplos: [
+      'Compraste material por 1.000€ + 21% IVA → base soportada 21% = 1.000€',
+      'Solo cuentan los gastos que son deducibles para la actividad',
+    ],
+    dondeVer: 'En tus facturas de gasto recibidas: la base imponible sin IVA.',
+  },
+  compensacion: {
+    titulo: 'Compensación de saldo negativo',
+    contenido: 'Si en trimestres anteriores tuviste más IVA soportado que repercutido (saldo a compensar), puedes restarlo ahora del resultado positivo de este trimestre.',
+    ejemplos: [
+      'En el 1T tuviste 300€ a compensar: los pones aquí y se restan del 2T',
+      'Solo compensa saldos negativos del mismo año natural',
+    ],
+    dondeVer: 'En el resultado a compensar (casilla 54) de trimestres anteriores.',
+  },
+}
+
+export const GUIA_MODELO_170: Record<string, GuiaCampo> = {
+  baseImponible: {
+    titulo: 'Base imponible',
+    contenido: 'Es el importe bruto del arrendamiento de inmuebles urbanos sobre el que se aplica la retención. Se corresponde con el rendimiento satisfecho al arrendador antes de cualquier gasto.',
+    ejemplos: [
+      'Si pagas 900€/mes de alquiler de local, la base trimestral es 2.700€',
+      'Incluye la renta pactada sin IVA (los arrendamientos de vivienda están exentos de IVA)',
+    ],
+    dondeVer: 'En el contrato de arrendamiento o en las facturas/recibos del arrendador.',
+  },
+  tipoRetencion: {
+    titulo: 'Tipo de retención',
+    contenido: 'El porcentaje que se retiene sobre la base imponible y se ingresa en Hacienda. El 19% aplica cuando el arrendador es persona física; el 24% cuando el arrendatario actúa como empresario o profesional en el ejercicio de su actividad (regla general desde 2015).',
+    ejemplos: [
+      'La empresa arrenda un local a un particular: retiene el 19%',
+      'Una empresa alquila un local a otra empresa: retiene el 24%',
+      'Un autónomo alquila un piso a un particular para uso personal: retiene el 19%',
+    ],
+    dondeVer: 'Art. 75.1.1º y Disposición Transitoria 31ª de la Ley del IRPF. Tipos publicados por la AEAT.',
+  },
+  cuotaRetenida: {
+    titulo: 'Cuota retenida',
+    contenido: 'Es el importe que se retiene y se ingresa trimestralmente en Hacienda. Se calcula: base imponible × tipo de retención / 100. Se declara en el modelo 170 y también se informa con el modelo 115 si eres el arrendatario.',
+    ejemplos: [
+      'Base 2.700€ × 19% = 513€ de cuota retenida',
+      'Base 5.000€ × 24% = 1.200€ de cuota retenida',
+    ],
+    dondeVer: 'Calcula: base imponible × tipo de retención / 100. Modelos 170 y 115.',
+  },
+}
+
+export const GUIA_MODELO_179: Record<string, GuiaCampo> = {
+  viviendas: {
+    titulo: 'Número de viviendas',
+    contenido: 'El total de viviendas de uso turístico o arrendamientos de corta duración que cedes. Cada vivienda cuyo alquiler u otra forma de cesión de uso se comercialice por cualquier canal (plataformas, agencias, anuncios) debe declararse.',
+    ejemplos: [
+      '2 pisos en alquiler turístico → 2 viviendas',
+      'Un piso y una cabaña en plataformas → 2 viviendas',
+    ],
+    dondeVer: 'Listado de tus viviendas o de los anuncios/plataformas donde las comercializas.',
+  },
+  diasAlquiler: {
+    titulo: 'Días de alquiler',
+    contenido: 'Los días que cada vivienda ha estado ocupada o cedida en el periodo. Si varias viviendas se alquilan días distintos, se usa la suma de días por vivienda.',
+    ejemplos: [
+      '120 días alquilada en el trimestre',
+      'Si tienes 2 viviendas a 60 días cada una, el total son 120 días',
+    ],
+    dondeVer: 'Cuaderno de reservas o informes de actividad de las plataformas de alquiler.',
+  },
+  rendimiento: {
+    titulo: 'Rendimiento del periodo',
+    contenido: 'El importe total obtenido por los arrendamientos o cesiones de uso en el periodo informado. El modelo 179 es informativo: este importe no genera cuota, pero la AEAT lo cruza con la declaración de la renta.',
+    ejemplos: [
+      'Importe total cobrado por las reservas del trimestre',
+      'Incluye el rendimiento de todas las viviendas declaradas',
+    ],
+    dondeVer: 'Cuaderno de reservas, extractos de las plataformas o CBD (cuaderno de bienes de inversión).',
+  },
+  promedioDias: {
+    titulo: 'Promedio de días por vivienda',
+    contenido: 'El resultado de dividir los días totales de alquiler entre el número de viviendas. Ayuda a ver el nivel medio de ocupación por inmueble.',
+    ejemplos: [
+      '120 días totales entre 2 viviendas → 60 días de media',
+      '1.095 días totales entre 3 viviendas → 365 días de media (ocupación completa)',
+    ],
+    dondeVer: 'Calcula: días totales alquilados ÷ número de viviendas.',
+  },
+}
+
+export const GUIA_MODELO_600: Record<string, GuiaCampo> = {
+  valorBien: {
+    titulo: 'Valor del bien',
+    contenido: 'El valor real del bien transmitido o del acto que se documenta: viviendas, locales, vehículos usados, mobiliario, arrendamientos judiciales o documentos notariales sujetos a AJD.',
+    ejemplos: [
+      'Compra de una vivienda usada por 200.000€ → valor 200.000€',
+      'Adquisición de un vehículo de segunda mano por 15.000€',
+    ],
+    dondeVer: 'Escritura de compraventa, contrato privado, factura o tasación del bien.',
+  },
+  baseLiquidable: {
+    titulo: 'Base liquidable',
+    contenido: 'Es la base sobre la que se aplica el tipo de gravamen. Normalmente coincide con el valor del bien, pero puede reducirse si la normativa autonómica establece reducciones o bases específicas para determinados actos.',
+    ejemplos: [
+      'En general coincide con el valor del bien transmitido',
+      'Algunas CCAA aplican reducciones a viviendas habituales o menores de edad',
+    ],
+    dondeVer: 'Normativa de la comunidad autónoma donde se liquida. Instrucciones del modelo 600.',
+  },
+  tipoGravamen: {
+    titulo: 'Tipo de gravamen',
+    contenido: 'El porcentaje que se aplica sobre la base liquidable. El 6% es el tipo general orientativo para vivienda usada, pero cada comunidad autónoma fija sus propios tipos y existen tipos especiales según el acto (por ejemplo, adquisición de vivienda habitual, transmisión de automóviles, AJD).',
+    ejemplos: [
+      '6% orientativo para vivienda usada (varía por CCAA)',
+      '4-5% en transmisión de vehículos en varias comunidades',
+      'Hasta 10% en algunos actos patrimoniales',
+    ],
+    dondeVer: 'Normativa autonómica del impuesto. Web de la AEAT o del organismo tributario de tu CCAA.',
+  },
+  cuota: {
+    titulo: 'Cuota',
+    contenido: 'El importe a pagar. Se calcula: base liquidable × tipo de gravamen / 100. Se liquida con el modelo 600 y luego el notario, registrador o la propia transmisión queda documentada.',
+    ejemplos: [
+      'Base 200.000€ × 6% = 12.000€',
+      'Base 180.000€ × 8% = 14.400€',
+    ],
+    dondeVer: 'Calcular: base liquidable × tipo de gravamen / 100. Modelo 600 y normativa autonómica.',
+  },
+}
+
+export const GUIA_MODELO_233: Record<string, GuiaCampo> = {
+  nifContraparte: {
+    titulo: 'NIF de la contraparte',
+    contenido: 'El número de identificación fiscal de la persona o entidad con la que se realiza la operación vinculada. La vinculación puede venir por socios, administradores, familiares en línea directa o entidades del mismo grupo.',
+    ejemplos: [
+      'B12345678 (entidad vinculada)',
+      '12345678Z (persona física vinculada, por ejemplo un socio)',
+    ],
+    dondeVer: 'Facturas o contratos de la operación. Registro Mercantil o censo de la AEAT.',
+  },
+  importe: {
+    titulo: 'Importe de la operación',
+    contenido: 'El valor de la operación realizada con la contraparte vinculada en el ejercicio. Se suma por contraparte para comprobar si se supera el umbral de 250.000€.',
+    ejemplos: [
+      'Compraventa de mercancías entre sociedades del mismo grupo',
+      'Préstamo entre socios y la entidad',
+      'Prestación de servicios del administrador a la sociedad',
+    ],
+    dondeVer: 'Facturas emitidas y recibidas. Contabilidad de la entidad.',
+  },
+  umbral: {
+    titulo: 'Umbral de declaración',
+    contenido: 'El importe a partir del cual se declaran las operaciones vinculadas. Si el conjunto de operaciones realizadas con una misma contraparte supera los 250.000€ en el ejercicio, la entidad debe presentar el modelo 233.',
+    ejemplos: [
+      'Total 300.000€ con una contraparte → obligatorio',
+      'Total 200.000€ con una contraparte → no obligatorio por importe',
+    ],
+    dondeVer: 'Art. 18.13 de la Ley del Impuesto sobre Sociedades. Instrucciones del modelo 233.',
+  },
+  superaUmbral: {
+    titulo: 'Estado de declaración',
+    contenido: 'Indica si el total de operaciones vinculadas supera el umbral de 250.000€. Si lo supera, la declaración es obligatoria; en caso contrario no será necesario presentar el modelo.',
+    ejemplos: [
+      'Total 250.000€ exactos → no supera el umbral',
+      'Total 251.000€ → supera el umbral, declaración obligatoria',
+    ],
+    dondeVer: 'Art. 18.13 de la Ley del Impuesto sobre Sociedades. Modelo 233 en la sede electrónica de la AEAT.',
+  },
+}
+
 export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
   const guias: Record<string, Record<string, GuiaCampo>> = {
     irpf: GUIA_IRPF,
@@ -1031,8 +1253,10 @@ export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
     deducciones: GUIA_DEDUCCIONES,
     modelo100: GUIA_MODELO_100,
     modelo111: GUIA_MODELO_111,
+    modelo130: GUIA_MODELO_130,
     modelo131: GUIA_MODELO_131,
     modelo151: GUIA_MODELO_151,
+    modelo303: GUIA_MODELO_303,
     modelo309: GUIA_MODELO_309,
     modelo347: GUIA_MODELO_347,
     modelo349: GUIA_MODELO_349,
@@ -1046,6 +1270,10 @@ export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
     modelo720: GUIA_MODELO_720,
     modelo721: GUIA_MODELO_721,
     modelo184: GUIA_MODELO_184,
+    modelo170: GUIA_MODELO_170,
+    modelo179: GUIA_MODELO_179,
+    modelo600: GUIA_MODELO_600,
+    modelo233: GUIA_MODELO_233,
   }
   return guias[seccion]?.[campo] ?? null
 }

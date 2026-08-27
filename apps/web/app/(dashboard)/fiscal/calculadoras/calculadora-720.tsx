@@ -10,6 +10,7 @@ import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_720 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo720, PAISES_COMUNES } from '@mantigestor/utils'
 import type { BienExtranjero } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 export function CalculadoraModelo720() {
   const [bienes, setBienes] = useState<BienExtranjero[]>([])
@@ -45,7 +46,9 @@ export function CalculadoraModelo720() {
   ]
 
   return (
-    <Card>
+    <div id="pdf-modelo-720" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-720" filename="modelo-720" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 720 — Bienes en el extranjero</CardTitle>
         <CardDescription>
@@ -147,5 +150,6 @@ export function CalculadoraModelo720() {
         )}
       </CardContent>
     </Card>
+    </div>
   )
 }

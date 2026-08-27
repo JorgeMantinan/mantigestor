@@ -41,11 +41,17 @@ import { CalculadoraModelo296 } from './calculadoras/calculadora-296'
 import { CalculadoraModelo345 } from './calculadoras/calculadora-345'
 import { CalculadoraModelo193 } from './calculadoras/calculadora-193'
 import { CalculadoraModelo369 } from './calculadoras/calculadora-369'
+import { Calculadora303 } from './calculadoras/calculadora-303'
+import { Calculadora130 } from './calculadoras/calculadora-130'
+import { CalculadoraModelo170 } from './calculadoras/calculadora-170'
+import { CalculadoraModelo179 } from './calculadoras/calculadora-179'
+import { CalculadoraModelo600 } from './calculadoras/calculadora-600'
+import { CalculadoraModelo233 } from './calculadoras/calculadora-233'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { GUIAS_PERFIL } from '@/lib/fiscal/guias-perfil'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
-type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'modelo100' | 'modelo131' | 'modelo115' | 'modelo123' | 'modelo347' | 'modelo349' | 'modelo721' | 'modelo714' | 'modelo232' | 'modelo210' | 'modelo220' | 'modelo309' | 'modelo184' | 'modelo296' | 'modelo345' | 'modelo193' | 'modelo369' | 'plazos' | 'minimos' | 'resumen' | 'guias'
+type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'modelo100' | 'modelo131' | 'modelo115' | 'modelo123' | 'modelo347' | 'modelo349' | 'modelo721' | 'modelo714' | 'modelo232' | 'modelo210' | 'modelo220' | 'modelo309' | 'modelo184' | 'modelo296' | 'modelo345' | 'modelo193' | 'modelo369' | 'modelo130' | 'modelo303' | 'modelo170' | 'modelo179' | 'modelo600' | 'modelo233' | 'plazos' | 'minimos' | 'resumen' | 'guias'
 type PerfilFiscal = 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
 
 const SECCIONES_CALCULADORAS: Array<{ key: SeccionKey; label: string }> = [
@@ -63,8 +69,11 @@ const SECCIONES_MODELOS: Array<{ key: SeccionKey; label: string }> = [
   { key: 'modelo111', label: 'Modelo 111' },
   { key: 'modelo115', label: 'Modelo 115' },
   { key: 'modelo123', label: 'Modelo 123' },
+  { key: 'modelo130', label: 'Modelo 130' },
   { key: 'modelo131', label: 'Modelo 131' },
   { key: 'modelo151', label: 'Modelo 151' },
+  { key: 'modelo170', label: 'Modelo 170' },
+  { key: 'modelo179', label: 'Modelo 179' },
   { key: 'modelo180', label: 'Modelo 180' },
   { key: 'modelo184', label: 'Modelo 184' },
   { key: 'modelo190', label: 'Modelo 190' },
@@ -74,13 +83,16 @@ const SECCIONES_MODELOS: Array<{ key: SeccionKey; label: string }> = [
   { key: 'modelo210', label: 'Modelo 210' },
   { key: 'modelo220', label: 'Modelo 220' },
   { key: 'modelo232', label: 'Modelo 232' },
+  { key: 'modelo233', label: 'Modelo 233' },
   { key: 'modelo296', label: 'Modelo 296' },
+  { key: 'modelo303', label: 'Modelo 303 (IVA)' },
   { key: 'modelo309', label: 'Modelo 309' },
   { key: 'modelo345', label: 'Modelo 345' },
   { key: 'modelo347', label: 'Modelo 347' },
   { key: 'modelo349', label: 'Modelo 349' },
   { key: 'modelo369', label: 'Modelo 369' },
   { key: 'modelo390', label: 'Modelo 390' },
+  { key: 'modelo600', label: 'Modelo 600 (ITP)' },
   { key: 'modelo714', label: 'Modelo 714' },
   { key: 'modelo720', label: 'Modelo 720' },
   { key: 'modelo721', label: 'Modelo 721' },
@@ -652,6 +664,12 @@ export default function PaginaFiscal() {
           {seccion === 'modelo345' && <CalculadoraModelo345 taxYear={taxYear} />}
           {seccion === 'modelo193' && <CalculadoraModelo193 taxYear={taxYear} />}
           {seccion === 'modelo369' && <CalculadoraModelo369 taxYear={taxYear} />}
+          {seccion === 'modelo130' && <Calculadora130 taxYear={taxYear} />}
+          {seccion === 'modelo303' && <Calculadora303 taxYear={taxYear} />}
+          {seccion === 'modelo170' && <CalculadoraModelo170 />}
+          {seccion === 'modelo179' && <CalculadoraModelo179 />}
+          {seccion === 'modelo600' && <CalculadoraModelo600 />}
+          {seccion === 'modelo233' && <CalculadoraModelo233 />}
           {seccion === 'guias' && (() => {
             const guia = GUIAS_PERFIL[perfil ?? 'autonomo'] ?? GUIAS_PERFIL['autonomo']
             if (!guia) return null

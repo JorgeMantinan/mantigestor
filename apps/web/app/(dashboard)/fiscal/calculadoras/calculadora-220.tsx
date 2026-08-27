@@ -10,6 +10,7 @@ import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_220 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo220 } from '@mantigestor/utils'
 import type { EntidadGrupo } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 export function CalculadoraModelo220() {
   const [entidades, setEntidades] = useState<EntidadGrupo[]>([])
@@ -47,7 +48,9 @@ export function CalculadoraModelo220() {
     setEntidades(prev => prev.filter((_, i) => i !== idx))
 
   return (
-    <Card>
+    <div id="pdf-modelo-220" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-220" filename="modelo-220" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 220 — IS consolidación fiscal</CardTitle>
         <CardDescription>Declaración del impuesto de sociedades para grupos</CardDescription>
@@ -126,5 +129,6 @@ export function CalculadoraModelo220() {
         )}
       </CardContent>
     </Card>
+    </div>
   )
 }

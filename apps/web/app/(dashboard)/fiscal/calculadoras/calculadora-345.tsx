@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { eur, parseEuros } from './types'
 import { calcularModelo345 } from '@mantigestor/utils'
 import type { ContribucionPlan } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 const TIPOS_PLAN: Array<{ value: ContribucionPlan['tipoPlan']; label: string }> = [
   { value: 'pension', label: 'Plan de pensiones' },
@@ -57,7 +58,9 @@ export function CalculadoraModelo345({ taxYear }: { taxYear: number }) {
   }
 
   return (
-    <Card>
+    <div id="pdf-modelo-345" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-345" filename="modelo-345" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 345 — Planes de pensiones</CardTitle>
         <CardDescription>
@@ -159,5 +162,6 @@ export function CalculadoraModelo345({ taxYear }: { taxYear: number }) {
         </dl>
       </CardContent>
     </Card>
+    </div>
   )
 }

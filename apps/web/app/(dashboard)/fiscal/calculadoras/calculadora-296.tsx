@@ -10,6 +10,7 @@ import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_296 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo296, TIPOS_RENTA_296 } from '@mantigestor/utils'
 import type { RetencionNoResidente } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 export function CalculadoraModelo296() {
   const [retenciones, setRetenciones] = useState<RetencionNoResidente[]>([])
@@ -42,7 +43,9 @@ export function CalculadoraModelo296() {
     setRetenciones(prev => prev.filter((_, i) => i !== idx))
 
   return (
-    <Card>
+    <div id="pdf-modelo-296" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-296" filename="modelo-296" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 296 — Retenciones no residentes</CardTitle>
         <CardDescription>Declaración-resumen anual de retenciones IRPF sobre no residentes</CardDescription>
@@ -118,5 +121,6 @@ export function CalculadoraModelo296() {
         </dl>
       </CardContent>
     </Card>
+    </div>
   )
 }

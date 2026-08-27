@@ -10,6 +10,7 @@ import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_721 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo721 } from '@mantigestor/utils'
 import type { ExchangeVirtual } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 export function CalculadoraModelo721() {
   const [exchanges, setExchanges] = useState<ExchangeVirtual[]>([])
@@ -48,7 +49,9 @@ export function CalculadoraModelo721() {
   }
 
   return (
-    <Card>
+    <div id="pdf-modelo-721" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-721" filename="modelo-721" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 721 — Monedas virtuales en el extranjero</CardTitle>
         <CardDescription>
@@ -142,5 +145,6 @@ export function CalculadoraModelo721() {
         )}
       </CardContent>
     </Card>
+    </div>
   )
 }

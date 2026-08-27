@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Download, BarChart3 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { resultadosIvaAnuales, type ResultadoModelo303 } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 interface FacturaFila {
   tipo: 'ingreso' | 'gasto'
@@ -105,7 +106,9 @@ export function Calculadora390({ taxYear }: Props) {
   }
 
   return (
-    <Card>
+    <div id="pdf-modelo-390" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-390" filename="modelo-390" />
+      <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -228,5 +231,6 @@ export function Calculadora390({ taxYear }: Props) {
         )}
       </CardContent>
     </Card>
+    </div>
   )
 }

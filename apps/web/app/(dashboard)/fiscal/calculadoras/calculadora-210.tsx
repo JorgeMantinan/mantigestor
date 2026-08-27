@@ -9,6 +9,7 @@ import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_210 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo210, TIPOS_RENTA_210 } from '@mantigestor/utils'
 import type { TipoRenta210 } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 export function CalculadoraModelo210() {
   const [tipoRenta, setTipoRenta] = useState<TipoRenta210>('inmobiliaria')
@@ -30,7 +31,9 @@ export function CalculadoraModelo210() {
   }, [tipoRenta, base, retencion, gastos, esUe])
 
   return (
-    <Card>
+    <div id="pdf-modelo-210" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-210" filename="modelo-210" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 210 — IRNR</CardTitle>
         <CardDescription>Impuesto sobre la Renta de No Residentes</CardDescription>
@@ -88,5 +91,6 @@ export function CalculadoraModelo210() {
         )}
       </CardContent>
     </Card>
+    </div>
   )
 }

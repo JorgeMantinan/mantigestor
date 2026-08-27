@@ -10,6 +10,7 @@ import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_349 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo349 } from '@mantigestor/utils'
 import type { OperacionIntracomunitaria } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 const PAISES_UE = [
   'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'Croacia',
@@ -66,7 +67,9 @@ export function CalculadoraModelo349({ datosIniciales }: { datosIniciales?: { op
   }
 
   return (
-    <Card>
+    <div id="pdf-modelo-349" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-349" filename="modelo-349" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 349 — Operaciones intracomunitarias UE</CardTitle>
         <CardDescription>
@@ -182,5 +185,6 @@ export function CalculadoraModelo349({ datosIniciales }: { datosIniciales?: { op
         )}
       </CardContent>
     </Card>
+    </div>
   )
 }

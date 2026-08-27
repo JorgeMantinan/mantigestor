@@ -9,6 +9,7 @@ import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_184 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo184, TIPOS_ENTIDAD_184 } from '@mantigestor/utils'
 import type { TipoEntidad184 } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 export function CalculadoraModelo184() {
   const [tipo, setTipo] = useState<TipoEntidad184>('sociedad_civil')
@@ -32,7 +33,9 @@ export function CalculadoraModelo184() {
   }, [tipo, participes, rentasInmo, rentasMobi, rentasActiv, rentasGananc])
 
   return (
-    <Card>
+    <div id="pdf-modelo-184" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-184" filename="modelo-184" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 184 — Atribución de rentas</CardTitle>
         <CardDescription>Entidades en régimen de atribución de rentas</CardDescription>
@@ -91,5 +94,6 @@ export function CalculadoraModelo184() {
         </dl>
       </CardContent>
     </Card>
+    </div>
   )
 }

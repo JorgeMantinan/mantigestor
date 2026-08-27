@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_131 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo151, requisitosEstimacionObjetiva } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 export function CalculadoraModelo151() {
   const [tipo, setTipo] = useState<'alta' | 'renuncia' | 'revocacion'>('alta')
@@ -21,7 +22,9 @@ export function CalculadoraModelo151() {
   )
 
   return (
-    <Card>
+    <div id="pdf-modelo-151" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-151" filename="modelo-151" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 151 — Estimación objetiva (módulos)</CardTitle>
         <CardDescription>Alta, renuncia o revocación del régimen de módulos</CardDescription>
@@ -76,5 +79,6 @@ export function CalculadoraModelo151() {
         </div>
       </CardContent>
     </Card>
+    </div>
   )
 }

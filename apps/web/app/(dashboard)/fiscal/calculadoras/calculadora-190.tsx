@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Download, Plus, Trash2, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularModelo190, type RendimientoRetencion190 } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 const TIPOS = [
   { value: 'trabajo', label: 'Trabajo (asalariado)' },
@@ -135,7 +136,9 @@ export function Calculadora190({ taxYear }: Props) {
   }
 
   return (
-    <Card>
+    <div id="pdf-modelo-190" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-190" filename="modelo-190" />
+      <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -256,5 +259,6 @@ export function Calculadora190({ taxYear }: Props) {
         </div>
       </CardContent>
     </Card>
+    </div>
   )
 }

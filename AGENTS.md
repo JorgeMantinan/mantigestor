@@ -159,9 +159,11 @@ git add -A; git commit -m "msg"; git push origin master  # Deploy a Vercel
 - **Generación de exámenes con IA** desde documentos de alumno (requiere API key de Anthropic con crédito)
 - **Todos los inserts corregidos**: id explícito con `crypto.randomUUID()` en todas las tablas Prisma-managed
 - **Registro de perfil fijo**: ahora incluye `userId` para que las consultas por `userId` funcionen correctamente
-- **Tooltips en calculadoras**: las ~27 calculadoras tienen `LabelConAyuda` + guías `GUIA_*` en `lib/fiscal/guia-fiscal.ts`
+- **Tooltips en calculadoras**: las calculadoras tienen `LabelConAyuda` + guías `GUIA_*` en `lib/fiscal/guia-fiscal.ts`
 - **Pre-relleno de datos reales**: `cargarDatosReales()` auto-carga y rellena calculadoras 100, 111, 309, 349 (baseGeneral, pagosFraccionados, bases IVA, operaciones intracomunitarias)
-- **Export PDF**: modelos fiscales tienen botón `BotonPDF` (id `pdf-modelo-XXX`)
+- **Modelos fiscales implementados**: 100, 111, 115, 123, 130, 131, 151, 170, 179, 180, 184, 190, 193, 200, 202, 210, 220, 232, 233, 296, 303, 309, 345, 347, 349, 369, 390, 600, 714, 720, 721 (cada uno: utils en `packages/utils/src/fiscal/`, calculadora UI, test, guía y export PDF)
+- **Export PDF**: botón `BotonPDF` en todos los modelos fiscales (id `pdf-modelo-XXX` en el wrapper `<div>`)
+- **Dark mode desplegables**: `color-scheme: dark` en `.dark` de `globals.css` + `select`/`select option` con `bg-background text-foreground` (corrige popups de `<select>` nativos en modo oscuro)
 
 ## Multi-persona (gestión de otras personas)
 - Nueva tabla `perfil_asociado` (ownerUserId, perfilId, rol) — gestiones de otras personas (cónyuge, madre, etc.)

@@ -10,6 +10,7 @@ import { calcularModelo347 } from '@mantigestor/utils'
 import type { OperacionTercero } from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_347 } from '@/lib/fiscal/guia-fiscal'
+import { BotonPDF } from '@/components/boton-pdf'
 
 export function CalculadoraModelo347() {
   const [operaciones, setOperaciones] = useState<OperacionTercero[]>([])
@@ -48,7 +49,9 @@ export function CalculadoraModelo347() {
   }
 
   return (
-    <Card>
+    <div id="pdf-modelo-347" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-347" filename="modelo-347" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 347 — Operaciones con terceros</CardTitle>
         <CardDescription>
@@ -132,5 +135,6 @@ export function CalculadoraModelo347() {
         </dl>
       </CardContent>
     </Card>
+    </div>
   )
 }

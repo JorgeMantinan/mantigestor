@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Download, Plus, Trash2 } from 'lucide-react'
 import { calcularModelo180, type RendimientoArrendamiento180 } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 const formatMoney = (cents: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
@@ -81,7 +82,9 @@ export function Calculadora180({ taxYear }: Props) {
   }
 
   return (
-    <Card>
+    <div id="pdf-modelo-180" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-180" filename="modelo-180" />
+      <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -191,5 +194,6 @@ export function Calculadora180({ taxYear }: Props) {
         </div>
       </CardContent>
     </Card>
+    </div>
   )
 }

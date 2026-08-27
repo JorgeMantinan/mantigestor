@@ -10,6 +10,7 @@ import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_232 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo232, METODOS_VINCULACION } from '@mantigestor/utils'
 import type { OperacionVinculada } from '@mantigestor/utils'
+import { BotonPDF } from '@/components/boton-pdf'
 
 export function CalculadoraModelo232() {
   const [operaciones, setOperaciones] = useState<OperacionVinculada[]>([])
@@ -41,7 +42,9 @@ export function CalculadoraModelo232() {
     setOperaciones(prev => prev.filter((_, i) => i !== idx))
 
   return (
-    <Card>
+    <div id="pdf-modelo-232" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-232" filename="modelo-232" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 232 — Operaciones vinculadas</CardTitle>
         <CardDescription>Obligatorio si el volumen supera los 250.000€</CardDescription>
@@ -114,5 +117,6 @@ export function CalculadoraModelo232() {
         </dl>
       </CardContent>
     </Card>
+    </div>
   )
 }

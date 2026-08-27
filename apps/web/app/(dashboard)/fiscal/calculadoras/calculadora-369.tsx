@@ -10,6 +10,7 @@ import { calcularModelo369, obtenerTipoIvaPais, PAISES_OSS } from '@mantigestor/
 import type { VentaOSS } from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_369 } from '@/lib/fiscal/guia-fiscal'
+import { BotonPDF } from '@/components/boton-pdf'
 
 const TRIMESTRES = [
   { value: '1', label: 'T1 (ene-mar)' },
@@ -54,7 +55,9 @@ export function CalculadoraModelo369({ taxYear }: { taxYear: number }) {
   }
 
   return (
-    <Card>
+    <div id="pdf-modelo-369" className="space-y-3">
+      <BotonPDF elementId="pdf-modelo-369" filename="modelo-369" />
+      <Card>
       <CardHeader>
         <CardTitle>Modelo 369 — IVA OSS</CardTitle>
         <CardDescription>
@@ -143,5 +146,6 @@ export function CalculadoraModelo369({ taxYear }: { taxYear: number }) {
         </dl>
       </CardContent>
     </Card>
+    </div>
   )
 }
