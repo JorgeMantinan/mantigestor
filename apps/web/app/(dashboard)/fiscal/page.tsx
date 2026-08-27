@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, RefreshCw, UserRound, Database } from 'lucide-react'
 import { Label } from '@/components/ui/label'
@@ -244,7 +245,7 @@ async function guardarPerfilBd(cuerpo: { comunidadFiscal?: string; perfilFiscal?
   }
 }
 
-export default function PaginaFiscal() {
+function PaginaFiscalInner() {
   const [seccion, setSeccion] = useState<SeccionKey>('irpf')
   const [comunidad, setComunidad] = useState('Madrid (Comunidad de)')
   const [taxYear, setTaxYear] = useState(2025)
@@ -298,6 +299,22 @@ export default function PaginaFiscal() {
       }
     })()
   }, [])
+
+  // Deep-link: permite abrir una calculadora concreta vía ?seccion=modeloXXX
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    const seccionParam = searchParams.get('seccion')
+    if (!seccionParam) return
+    const clavesValidas = new Set<SeccionKey>([
+      ...SECCIONES_CALCULADORAS.map(s => s.key),
+      ...SECCIONES_MODELOS.map(s => s.key),
+      ...SECCIONES_UTILIDADES.map(s => s.key),
+    ])
+    if (clavesValidas.has(seccionParam as SeccionKey)) {
+      setSeccion(seccionParam as SeccionKey)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   useEffect(() => {
     const p = leerPerfil()
@@ -766,5 +783,13 @@ export default function PaginaFiscal() {
         </>
       ) : null}
     </div>
+  )
+}
+
+export default function PaginaFiscal() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Cargando área fiscal…</div>}>
+      <PaginaFiscalInner />
+    </Suspense>
   )
 }

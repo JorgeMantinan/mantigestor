@@ -40,6 +40,16 @@ const menuItems = [
     ],
   },
   {
+    group: 'Modelos rápidos',
+    items: [
+      { label: 'IVA trimestral (303)', href: '/fiscal?seccion=modelo303', icon: Receipt },
+      { label: 'Pago fraccionado (130)', href: '/fiscal?seccion=modelo130', icon: Landmark },
+      { label: 'Retenciones (111)', href: '/fiscal?seccion=modelo111', icon: Receipt },
+      { label: 'Renta anual (100)', href: '/fiscal?seccion=modelo100', icon: FileText },
+      { label: 'Reta (autónomos)', href: '/fiscal?seccion=reta', icon: Users },
+    ],
+  },
+  {
     group: 'Alumnos',
     items: [
       { label: 'Documentos', href: '/alumnos', icon: FileText },
