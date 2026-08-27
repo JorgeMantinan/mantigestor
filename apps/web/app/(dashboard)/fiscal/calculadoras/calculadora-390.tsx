@@ -3,10 +3,11 @@
 import { useState, useCallback, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Download, BarChart3 } from 'lucide-react'
+import { Download, BarChart3, Info } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { resultadosIvaAnuales, type ResultadoModelo303 } from '@mantigestor/utils'
+import { resultadosIvaAnuales, calcularModelo390, type ResultadoModelo303 } from '@mantigestor/utils'
 import { BotonPDF } from '@/components/boton-pdf'
+import { GUIA_MODELO_390 } from '@/lib/fiscal/guia-fiscal'
 
 interface FacturaFila {
   tipo: 'ingreso' | 'gasto'
@@ -70,10 +71,11 @@ export function Calculadora390({ taxYear }: Props) {
   // Auto-calc on mount
   useEffect(() => { void calcular() }, [calcular])
 
-  const totalRepercutido = resultados?.reduce((s, r) => s + r.totalCuotaRepercutida, 0) ?? 0
-  const totalSoportado = resultados?.reduce((s, r) => s + r.totalCuotaSoportada, 0) ?? 0
-  const totalResultado = totalRepercutido - totalSoportado
-  const totalCompensaciones = resultados?.reduce((s, r) => s + r.compensacionAplicada, 0) ?? 0
+  const resumen = resultados ? calcularModelo390(resultados) : null
+  const totalRepercutido = resumen?.totalCuotaRepercutida ?? 0
+  const totalSoportado = resumen?.totalCuotaSoportada ?? 0
+  const totalResultado = resumen?.resultadoNeto ?? 0
+  const totalCompensaciones = resumen?.totalCompensaciones ?? 0
 
   const exportarCsv = () => {
     if (!resultados) return
@@ -116,6 +118,12 @@ export function Calculadora390({ taxYear }: Props) {
             <CardDescription>
               Resumen de las liquidaciones trimestrales del IVA (Modelo 303). Presentación: enero del año siguiente.
             </CardDescription>
+            {GUIA_MODELO_390.resumen && (
+              <p className="mt-1 flex items-start gap-1.5 text-xs text-muted-foreground">
+                <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+                {GUIA_MODELO_390.resumen.contenido}
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
             <Button type="button" size="sm" variant="outline" onClick={() => void calcular()} disabled={loading}>

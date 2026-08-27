@@ -1243,6 +1243,108 @@ export const GUIA_MODELO_233: Record<string, GuiaCampo> = {
   },
 }
 
+export const GUIA_MODELO_036: Record<string, GuiaCampo> = {
+  volumenOperaciones: {
+    titulo: 'Volumen de operaciones',
+    contenido: 'Es el importe total de las ventas o prestaciones de servicios previstas para el primer ejercicio. Determina si puedes declarar IVA en régimen simplificado (por módulos) o en régimen general.',
+    ejemplos: [
+      'Comercio: prevés facturar 120.000€ al año',
+      'Consultor: facturas por horas, estima 90.000€',
+      'Si superas 250.000€ de operaciones no puedes usar el régimen simplificado',
+    ],
+    dondeVer: 'Base es tu estimación de facturación del primer año de actividad.',
+  },
+  tipoActividad: {
+    titulo: 'Tipo de actividad',
+    contenido: 'Las actividades profesionales (servicios técnicos, intelectuales, artísticos: abogados, médicos, ingenieros…) deben tributar en IRPF en estimación directa y en IVA en régimen general. Las empresariales (comercio, hostelería, transporte, talleres…) pueden acogerse a módulos/IVA simplificado si no superan los límites.',
+    ejemplos: [
+      'Profesional colegiado → siempre IVA general',
+      'Tienda o restaurante → puede optar por módulos',
+    ],
+    dondeVer: 'Epígrafe de IAE que elijas y normativa de módulos (Orden de módulos del Ministerio).',
+  },
+  baseCotizacion: {
+    titulo: 'Base de cotización RETA',
+    contenido: 'Es la base mensual sobre la que cotizas en el régimen de autónomos. En 2025 se cotiza por tramos según rendimientos netos; puedes elegir base dentro de los límites mínimo y máximo. Cuanto mayor sea la base, mayor será tu cotización pero también tu futura pensión.',
+    ejemplos: [
+      'Base mínima 2025: 1.184,10 €/mes',
+      'Base máxima 2025: 4.909,50 €/mes',
+      'La cuota final = base × 29,7% (2026)',
+    ],
+    dondeVer: 'Tabla de bases de cotización en la norma anual de cotización (BOE).',
+  },
+  mesesTarifaPlana: {
+    titulo: 'Tarifa plana',
+    contenido: 'Bonificación para nuevos autónomos: durante los primeros meses pagas una cuota reducida (80 € aprox.). Aplica si te das de alta por primera vez y cumples los requisitos. El resto del periodo cotizas la cuota íntegra por la base elegida.',
+    ejemplos: [
+      'Tarifa plana 12 meses: ahorro de 12 × 80 € = 960 € en el cómputo orientativo',
+      'La bonificación real depende de la base elegida',
+    ],
+    dondeVer: 'Normativa de tarifa plana y resolución de tu mutua/seguridad social.',
+  },
+}
+
+export const GUIA_MODELO_390: Record<string, GuiaCampo> = {
+  resumen: {
+    titulo: 'Resumen anual del IVA',
+    contenido: 'El modelo 390 resume las cuatro liquidaciones trimestrales del modelo 303. Se presenta en enero del año siguiente y sirve para verificar que la suma de trimestres cuadra: IVA repercutido (lo que cobraste a tus clientes) frente a IVA soportado (lo que pagaste en tus gastos), más las compensaciones intertrimestrales.',
+    ejemplos: [
+      'Si vendiste 100.000€ + 21% IVA, tu IVA repercutido anual será 21.000€',
+      'Si tus gastos llevaron 3.000€ de IVA soportado, el resultado anual será 21.000 − 3.000 = 18.000€ a ingresar',
+    ],
+    dondeVer: 'Cuadro de liquidaciones del modelo 390 en la sede electrónica de la AEAT.',
+  },
+}
+
+export const GUIA_MODELO_145: Record<string, GuiaCampo> = {
+  salarioBrutoAnual: {
+    titulo: 'Salario bruto anual',
+    contenido: 'Es el total de tu retribución bruta anual por trabajar: salario base + complementos + pagas extra + horas extra. Es el dato base sobre el que la empresa calcula la retención de IRPF en la nómina.',
+    ejemplos: [
+      'Si tu contrato dice 26.000€ anuales distribuidos en 14 pagas, pon 26.000€',
+      'Incluye horas extra y complementos, pero no las indemnizaciones por despido (exentas)',
+    ],
+    dondeVer: 'En tu contrato, nominas o el resumen anual del trabajador.',
+  },
+  numeroPagadores: {
+    titulo: 'Número de pagadores',
+    contenido: 'Cuántas empresas o entidades te pagan retribuciones que estén obligadas a retener IRPF. Si es tu único empleo es 1 (el caso normal). Si además cobras del SEPE, pensiones u otras prestaciones, pasa a 2 o más.',
+    ejemplos: [
+      'Un solo empleo a jornada completa → 1 pagador',
+      'Trabajas en dos empresas o cobras paro → 2 o más',
+    ],
+    dondeVer: 'Recuerda cuántas empresas te retienen. Con 2+ pagadores se aplica la retención mínima de seguridad.',
+  },
+  hijos: {
+    titulo: 'Hijos (mínimo por descendientes)',
+    contenido: 'El número de hijos que generan el mínimo personal y familiar por descendientes. Reduce la base sobre la que se calcula la retención, por lo que baja el tipo. Aplica por hijos menores de 25 años que convivan y no tengan rentas anuales superiores al umbral.',
+    ejemplos: [
+      '1 hijo → 2.400€ de mínimo',
+      '2 hijos → 2.400€ + 2.700€ = 5.100€',
+      'Hijos con discapacidad suman mínimo adicional',
+    ],
+    dondeVer: 'Solo cuentan hijos que cumplan los requisitos del art. 58 LIRPF.',
+  },
+  discapacidadPct: {
+    titulo: 'Discapacidad',
+    contenido: 'Grado de discapacidad reconocido (≥33% o ≥65%). Genera un mínimo personal adicional que reduce la base de retención (3.000€ con grado ≥33%, más si ≥65%).',
+    ejemplos: [
+      'Grado ≥33% → mínimo adicional 3.000€',
+      'Grado ≥65% → mínimo adicional mayor',
+    ],
+    dondeVer: 'Certificado del grado de discapacidad emitido por el órgano competente.',
+  },
+  otrosGastos: {
+    titulo: 'Otros gastos deducibles',
+    contenido: 'Gastos que reducen el rendimiento neto del trabajo antes de aplicar la retención: cuotas a colegios profesionales (en ciertos casos), cuotas de sindicatos, etc. En la retención anual se descuentan de la base.',
+    ejemplos: [
+      'Cuota anual de tu colegio profesional',
+      'Cuotas sindicales',
+    ],
+    dondeVer: 'Justificantes de los gastos que comunices en el modelo 145.',
+  },
+}
+
 export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
   const guias: Record<string, Record<string, GuiaCampo>> = {
     irpf: GUIA_IRPF,
@@ -1274,6 +1376,9 @@ export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
     modelo179: GUIA_MODELO_179,
     modelo600: GUIA_MODELO_600,
     modelo233: GUIA_MODELO_233,
+    modelo036: GUIA_MODELO_036,
+    modelo145: GUIA_MODELO_145,
+    modelo390: GUIA_MODELO_390,
   }
   return guias[seccion]?.[campo] ?? null
 }
