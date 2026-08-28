@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { stripe } from '@/lib/stripe/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
@@ -60,6 +59,8 @@ export async function POST(req: Request) {
     } catch {}
 
     let subId: string | null = null
+
+    const { stripe } = await import('@/lib/stripe/server')
 
     if (sessionId) {
       try {

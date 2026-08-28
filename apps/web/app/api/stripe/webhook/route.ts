@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { stripe } from '@/lib/stripe/server'
 
 function getSupabaseAdmin() {
   return createClient(
@@ -11,6 +10,7 @@ function getSupabaseAdmin() {
 
 export async function POST(req: Request) {
   try {
+    const { stripe } = await import('@/lib/stripe/server')
     const body = await req.text()
     const signature = req.headers.get('stripe-signature')
 
