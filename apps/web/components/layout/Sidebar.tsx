@@ -37,6 +37,7 @@ const menuItems = [
       { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
       { label: 'Trimestres', href: '/gestoria/trimestres', icon: BarChart3 },
       { label: 'Renta', href: '/gestoria/renta', icon: Landmark },
+      { label: 'Pack anual', href: '/gestoria/pack-anual', icon: FileText },
       { label: 'Fiscal', href: '/fiscal', icon: Calculator },
       { label: 'Alquiler', href: '/alquiler', icon: Home },
       { label: 'Nóminas', href: '/nominas', icon: Users },
