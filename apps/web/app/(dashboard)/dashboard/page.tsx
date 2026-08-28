@@ -11,6 +11,10 @@ import {
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { proximosPlazos, getCalendarioFiscal } from '@mantigestor/utils'
+import { ChartIngresosGastos } from '@/components/dashboard/chart-ingresos-gastos'
+import { ChartIvaTrimestral } from '@/components/dashboard/chart-iva-trimestral'
+import { ChartAlquiler } from '@/components/dashboard/chart-alquiler'
+import { ChartEvolucion } from '@/components/dashboard/chart-evolucion'
 
 interface Factura {
   id: string
@@ -86,13 +90,14 @@ export default function DashboardPage() {
 
       const currentYear = new Date().getFullYear()
 
-      // Fetch facturas (últimas 10) del perfil activo
+      // Fetch facturas del año actual del perfil activo
       const { data: facturasData } = await supabase
         .from('facturas')
         .select('*')
         .eq('perfilId', perfilId)
+        .gte('fechaEmision', `${currentYear}-01-01`)
+        .lt('fechaEmision', `${currentYear + 1}-01-01`)
         .order('fechaEmision', { ascending: false })
-        .limit(10)
 
       // Fetch nominas del año actual
       const { data: nominasData } = await supabase
@@ -231,6 +236,16 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Gráficas */}
+      {!loading && facturas.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <ChartIngresosGastos facturas={facturas} />
+          <ChartEvolucion facturas={facturas} nominas={nominas} />
+          <ChartIvaTrimestral facturas={facturas} />
+          <ChartAlquiler ingresos={totalIngresosAlquiler} gastos={totalGastosAlquiler} />
+        </div>
+      )}
 
       {/* Contenido principal */}
       <div className="grid gap-4 md:grid-cols-2">
