@@ -16,6 +16,7 @@ import { ChartIvaTrimestral } from '@/components/dashboard/chart-iva-trimestral'
 import { ChartAlquiler } from '@/components/dashboard/chart-alquiler'
 import { ChartEvolucion } from '@/components/dashboard/chart-evolucion'
 import { SkeletonDashboard } from '@/components/dashboard/skeleton-dashboard'
+import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
 
 interface Factura {
   id: string
@@ -230,6 +231,15 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Onboarding (solo si usuario nuevo) */}
+      {!loading && facturas.length === 0 && (
+        <OnboardingChecklist
+          tienePerfil={nombre.length > 0}
+          tieneFacturas={facturas.length > 0}
+          tieneCalculadoras={false}
+        />
+      )}
 
       {/* Gráficas */}
       {!loading && facturas.length > 0 && (
