@@ -22,6 +22,7 @@ import {
   Menu,
   X,
   FolderOpen,
+  Bell,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -63,6 +64,7 @@ const menuItems = [
     items: [
       { label: 'IA', href: '/ai', icon: PiggyBank },
       { label: 'Conversiones', href: '/conversiones', icon: FileSpreadsheet },
+      { label: 'Notificaciones', href: '/ajustes/notificaciones', icon: Bell },
       { label: 'Ajustes', href: '/ajustes', icon: Settings },
     ],
   },

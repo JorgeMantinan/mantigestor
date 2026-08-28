@@ -2,14 +2,43 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { getCalendarioFiscal } from '@mantigestor/utils'
+import { getCalendarioFiscal, type FechaFiscal } from '@mantigestor/utils'
 
 const STORAGE_KEY = 'fiscal-notifs-creadas'
+
+interface PreferenciaNotif {
+  canal: string
+  categoria: string
+  diasAntelacion: number
+  activo: boolean
+}
+
+function mapCategoria(modelo: string): string {
+  if (modelo.includes('303') || modelo.includes('390') || modelo.includes('309') || modelo.includes('369')) return 'iva'
+  if (modelo.includes('130') || modelo.includes('131') || modelo.includes('100') || modelo.includes('151')) return 'irpf'
+  if (modelo.includes('111') || modelo.includes('190') || modelo.includes('115') || modelo.includes('180') || modelo.includes('123')) return 'retenciones'
+  if (modelo.includes('RENTA') || modelo.includes('720') || modelo.includes('721') || modelo.includes('PATRIMONIO')) return 'renta'
+  return 'todos'
+}
+
+function cumplePreferencia(
+  fecha: FechaFiscal,
+  diffDias: number,
+  preferencias: PreferenciaNotif[],
+): boolean {
+  const cat = mapCategoria(fecha.modelo)
+  const pref = preferencias.find(p => p.categoria === cat && p.canal === 'in_app')
+    ?? preferencias.find(p => p.categoria === 'todos' && p.canal === 'in_app')
+  if (!pref) return true // sin preferencia = notificar por defecto
+  if (!pref.activo) return false
+  return diffDias <= pref.diasAntelacion
+}
 
 /**
  * Comprueba si hay vencimientos fiscales próximos y crea notificaciones
  * en la tabla `notificaciones` para que aparezcan en el dropdown del header.
  * Se ejecuta una vez por sesión (guarda en localStorage las ya creadas).
+ * Respeta las preferencias de notificación del usuario.
  */
 export function useFiscalReminders() {
   const ejecutado = useRef(false)
@@ -22,6 +51,16 @@ export function useFiscalReminders() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+
+      // Cargar preferencias del usuario
+      let preferencias: PreferenciaNotif[] = []
+      try {
+        const { data: prefsData } = await supabase
+          .from('preferencias_notificaciones')
+          .select('canal, categoria, diasAntelacion, activo')
+          .eq('perfilId', user.id)
+        preferencias = (prefsData ?? []) as PreferenciaNotif[]
+      } catch { /* sin preferencias = defaults */ }
 
       const year = new Date().getFullYear()
       const calendario = getCalendarioFiscal(year)
@@ -53,8 +92,11 @@ export function useFiscalReminders() {
           (fecha.fechaLimite.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24)
         )
 
-        // Solo notificar si vence en los próximos 15 días y no está pasado
-        if (diffDias < 0 || diffDias > 15) continue
+        // Solo notificar si vence en los próximos días y no está pasado
+        if (diffDias < 0 || diffDias > 30) continue
+
+        // Respetar preferencias del usuario
+        if (!cumplePreferencia(fecha, diffDias, preferencias)) continue
 
         const clave = `${fecha.modelo}-${fecha.fechaLimite.toISOString().slice(0, 10)}`
         if (creadas.includes(clave)) continue

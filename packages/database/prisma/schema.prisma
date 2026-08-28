@@ -25,6 +25,7 @@ model Perfil {
   examenes       Examen[]
   suscripciones  Suscripcion[]
   notificaciones     Notificacion[]
+  preferenciasNotificaciones PreferenciaNotificacion[]
   propiedadesAlquiler PropiedadAlquiler[]
 
   @@map("perfiles")
@@ -115,6 +116,21 @@ model Notificacion {
 
   @@index([perfilId, leido])
   @@map("notificaciones")
+}
+
+model PreferenciaNotificacion {
+  id               String   @id @default(cuid())
+  perfilId         String
+  perfil           Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  canal            String   @default("in_app") // 'in_app' | 'email'
+  categoria        String   // 'iva' | 'irpf' | 'retenciones' | 'renta' | 'todos'
+  diasAntelacion   Int      @default(15)
+  activo           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([perfilId, canal, categoria])
+  @@map("preferencias_notificaciones")
 }
 
 model PropiedadAlquiler {

@@ -8,6 +8,7 @@ import { getCalendarioFiscal } from '@mantigestor/utils'
  * Llamar una vez al día (via Vercel Cron o external cron).
  * Envía un email a cada usuario con vencimientos fiscales próximos (hoy o mañana)
  * y deja además una notificación in-app (tipo 'fiscal_email').
+ * Respeta las preferencias de notificación del usuario.
  *
  * Seguridad: comprobar CRON_SECRET en headers.
  */
@@ -23,6 +24,34 @@ interface VencimientoProximo {
   descripcion: string
   fechaLimite: Date
   diffDias: number
+  categoria?: string
+}
+
+interface PreferenciaNotif {
+  canal: string
+  categoria: string
+  diasAntelacion: number
+  activo: boolean
+}
+
+function mapCategoria(modelo: string): string {
+  if (modelo.includes('303') || modelo.includes('390') || modelo.includes('309') || modelo.includes('369')) return 'iva'
+  if (modelo.includes('130') || modelo.includes('131') || modelo.includes('100') || modelo.includes('151')) return 'irpf'
+  if (modelo.includes('111') || modelo.includes('190') || modelo.includes('115') || modelo.includes('180') || modelo.includes('123')) return 'retenciones'
+  if (modelo.includes('RENTA') || modelo.includes('720') || modelo.includes('721') || modelo.includes('PATRIMONIO')) return 'renta'
+  return 'todos'
+}
+
+function cumplePreferenciaEmail(
+  diffDias: number,
+  categoria: string,
+  preferencias: PreferenciaNotif[],
+): boolean {
+  const pref = preferencias.find(p => p.categoria === categoria && p.canal === 'email')
+    ?? preferencias.find(p => p.categoria === 'todos' && p.canal === 'email')
+  if (!pref) return true // sin preferencia = enviar por defecto
+  if (!pref.activo) return false
+  return diffDias <= pref.diasAntelacion
 }
 
 export async function GET(req: NextRequest) {
@@ -43,8 +72,9 @@ export async function GET(req: NextRequest) {
     .map(fecha => ({
       ...fecha,
       diffDias: Math.ceil((fecha.fechaLimite.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24)),
+      categoria: mapCategoria(fecha.modelo),
     }))
-    .filter(f => f.diffDias === 0 || f.diffDias === 1)
+    .filter(f => f.diffDias >= 0 && f.diffDias <= 1)
     .sort((a, b) => a.diffDias - b.diffDias) as unknown as VencimientoProximo[]
 
   if (vencimientos.length === 0) {
@@ -68,8 +98,25 @@ export async function GET(req: NextRequest) {
     if (!perfil.email) continue
 
     try {
+      // Cargar preferencias del usuario
+      let preferencias: PreferenciaNotif[] = []
+      try {
+        const { data: prefsData } = await supabase
+          .from('preferencias_notificaciones')
+          .select('canal, categoria, diasAntelacion, activo')
+          .eq('perfilId', perfil.id)
+        preferencias = (prefsData ?? []) as PreferenciaNotif[]
+      } catch { /* sin preferencias = defaults */ }
+
+      // Filtrar vencimientos según preferencias de email
+      const vencimientosFiltrados = vencimientos.filter(v =>
+        cumplePreferenciaEmail(v.diffDias, v.categoria ?? 'todos', preferencias)
+      )
+
+      if (vencimientosFiltrados.length === 0) continue
+
       const clavePorVencimiento: Array<{ clave: string; v: VencimientoProximo }> = []
-      for (const v of vencimientos) {
+      for (const v of vencimientosFiltrados) {
         const fecha = `${v.fechaLimite.getFullYear()}-${String(v.fechaLimite.getMonth() + 1).padStart(2, '0')}-${String(v.fechaLimite.getDate()).padStart(2, '0')}`
         clavePorVencimiento.push({ clave: `${v.modelo}-${fecha}`, v })
       }
