@@ -24,6 +24,7 @@ import {
   FolderOpen,
   Bell,
   Calendar,
+  Upload,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -40,6 +41,7 @@ const menuItems = [
       { label: 'Trimestres', href: '/gestoria/trimestres', icon: BarChart3 },
       { label: 'Renta', href: '/gestoria/renta', icon: Landmark },
       { label: 'Pack anual', href: '/gestoria/pack-anual', icon: FileText },
+      { label: 'Importar extracto', href: '/gestoria/importar-extracto', icon: Upload },
       { label: 'Fiscal', href: '/fiscal', icon: Calculator },
       { label: 'Alquiler', href: '/alquiler', icon: Home },
       { label: 'Nóminas', href: '/nominas', icon: Users },
