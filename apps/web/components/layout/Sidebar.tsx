@@ -21,6 +21,7 @@ import {
   Calculator,
   Menu,
   X,
+  FolderOpen,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -31,6 +32,7 @@ const menuItems = [
     group: 'Gestoría',
     items: [
       { label: 'Panel', href: '/dashboard', icon: LayoutDashboard },
+      { label: 'Expediente', href: '/gestoria/expediente', icon: FolderOpen },
       { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
       { label: 'Trimestres', href: '/gestoria/trimestres', icon: BarChart3 },
       { label: 'Renta', href: '/gestoria/renta', icon: Landmark },
