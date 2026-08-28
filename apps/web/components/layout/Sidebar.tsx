@@ -23,6 +23,7 @@ import {
   X,
   FolderOpen,
   Bell,
+  Calendar,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -34,6 +35,7 @@ const menuItems = [
     items: [
       { label: 'Panel', href: '/dashboard', icon: LayoutDashboard },
       { label: 'Expediente', href: '/gestoria/expediente', icon: FolderOpen },
+      { label: 'Agenda', href: '/gestoria/agenda', icon: Calendar },
       { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
       { label: 'Trimestres', href: '/gestoria/trimestres', icon: BarChart3 },
       { label: 'Renta', href: '/gestoria/renta', icon: Landmark },
