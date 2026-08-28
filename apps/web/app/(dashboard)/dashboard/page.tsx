@@ -6,7 +6,7 @@ import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Receipt, TrendingUp, TrendingDown, PiggyBank, Calendar, Users, Home,
-  Plus, FileText, Calculator, ArrowRight
+  Plus, FileText, Calculator, ArrowRight, AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import { ChartIngresosGastos } from '@/components/dashboard/chart-ingresos-gasto
 import { ChartIvaTrimestral } from '@/components/dashboard/chart-iva-trimestral'
 import { ChartAlquiler } from '@/components/dashboard/chart-alquiler'
 import { ChartEvolucion } from '@/components/dashboard/chart-evolucion'
+import { SkeletonDashboard } from '@/components/dashboard/skeleton-dashboard'
 
 interface Factura {
   id: string
@@ -60,75 +61,59 @@ export default function DashboardPage() {
   const [propiedades, setPropiedades] = useState<Propiedad[]>([])
   const [gastosAlquiler, setGastosAlquiler] = useState<GastoAlquiler[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [nombre, setNombre] = useState('')
   const getSupabase = useCallback(() => createClient(), [])
   const { perfilActivoId, personas, esPropio } = usePersonaActiva()
 
   useEffect(() => {
     const fetchData = async () => {
-      const supabase = getSupabase()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoading(false); return }
+      try {
+        const supabase = getSupabase()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { setLoading(false); return }
 
-      // Determinar el perfilId activo: propia (user.id) o persona asociada
-      let perfilId = user.id
-      let mostrarNombre: string | undefined
-      if (perfilActivoId) {
-        perfilId = perfilActivoId
-        const persona = personas.find(p => p.perfilId === perfilActivoId)
-        mostrarNombre = persona?.nombre ?? persona?.email ?? undefined
-      }
-
-      // Fetch perfil for name (del perfil activo)
-      const { data: perfil } = await supabase
-        .from('perfiles')
-        .select('nombre')
-        .eq('id', perfilId)
-        .single()
-      if (perfil?.nombre) setNombre(perfil.nombre)
-      else if (mostrarNombre) setNombre(mostrarNombre)
-
-      const currentYear = new Date().getFullYear()
-
-      // Fetch facturas del año actual del perfil activo
-      const { data: facturasData } = await supabase
-        .from('facturas')
-        .select('*')
-        .eq('perfilId', perfilId)
-        .gte('fechaEmision', `${currentYear}-01-01`)
-        .lt('fechaEmision', `${currentYear + 1}-01-01`)
-        .order('fechaEmision', { ascending: false })
-
-      // Fetch nominas del año actual
-      const { data: nominasData } = await supabase
-        .from('nominas')
-        .select('*')
-        .eq('perfilId', perfilId)
-        .eq('anyo', currentYear)
-        .order('mes', { ascending: false })
-
-      // Fetch propiedades alquiler
-      const { data: propsData } = await supabase
-        .from('propiedades_alquiler')
-        .select('*')
-        .eq('perfilId', perfilId)
-
-      if (facturasData) setFacturas(facturasData as Factura[])
-      if (nominasData) setNominas(nominasData as Nomina[])
-      if (propsData) {
-        setPropiedades(propsData as Propiedad[])
-        if (propsData.length > 0) {
-          const ids = propsData.map(p => p.id)
-          const { data: gastosData } = await supabase
-            .from('gastos_alquiler')
-            .select('*')
-            .in('propiedadId', ids)
-            .gte('fecha', `${currentYear}-01-01`)
-            .lt('fecha', `${currentYear + 1}-01-01`)
-          if (gastosData) setGastosAlquiler(gastosData as GastoAlquiler[])
+        let perfilId = user.id
+        let mostrarNombre: string | undefined
+        if (perfilActivoId) {
+          perfilId = perfilActivoId
+          const persona = personas.find(p => p.perfilId === perfilActivoId)
+          mostrarNombre = persona?.nombre ?? persona?.email ?? undefined
         }
+
+        const currentYear = new Date().getFullYear()
+
+        // Queries en paralelo
+        const [perfilRes, facturasRes, nominasRes, propsRes] = await Promise.all([
+          supabase.from('perfiles').select('nombre').eq('id', perfilId).single(),
+          supabase.from('facturas').select('*').eq('perfilId', perfilId)
+            .gte('fechaEmision', `${currentYear}-01-01`).lt('fechaEmision', `${currentYear + 1}-01-01`)
+            .order('fechaEmision', { ascending: false }),
+          supabase.from('nominas').select('*').eq('perfilId', perfilId).eq('anyo', currentYear).order('mes', { ascending: false }),
+          supabase.from('propiedades_alquiler').select('*').eq('perfilId', perfilId),
+        ])
+
+        if (perfilRes.data?.nombre) setNombre(perfilRes.data.nombre)
+        else if (mostrarNombre) setNombre(mostrarNombre)
+
+        if (facturasRes.data) setFacturas(facturasRes.data as Factura[])
+        if (nominasRes.data) setNominas(nominasRes.data as Nomina[])
+
+        if (propsRes.data) {
+          setPropiedades(propsRes.data as Propiedad[])
+          if (propsRes.data.length > 0) {
+            const ids = propsRes.data.map(p => p.id)
+            const { data: gastosData } = await supabase
+              .from('gastos_alquiler').select('*').in('propiedadId', ids)
+              .gte('fecha', `${currentYear}-01-01`).lt('fecha', `${currentYear + 1}-01-01`)
+            if (gastosData) setGastosAlquiler(gastosData as GastoAlquiler[])
+          }
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Error al cargar datos')
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     fetchData()
   }, [getSupabase, perfilActivoId, personas])
@@ -157,6 +142,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {loading && <SkeletonDashboard />}
+      {error && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+      {!loading && (
+      <>
       {/* Saludo + acciones rápidas */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -405,6 +399,8 @@ export default function DashboardPage() {
           <CalendarioFiscalDashboard />
         </CardContent>
       </Card>
+      </>
+      )}
     </div>
   )
 }
