@@ -27,6 +27,7 @@ model Perfil {
   notificaciones     Notificacion[]
   preferenciasNotificaciones PreferenciaNotificacion[]
   propiedadesAlquiler PropiedadAlquiler[]
+  nominas            Nomina[]
 
   @@map("perfiles")
 }
@@ -62,6 +63,23 @@ model Factura {
   @@index([perfilId, tipo])
   @@index([perfilId, fechaEmision])
   @@map("facturas")
+}
+
+model Nomina {
+  id            String   @id @default(cuid())
+  perfilId      String
+  perfil        Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  empleada      String
+  mes           Int
+  anyo          Int
+  salarioBruto  Int      // en céntimos
+  irpf          Float    // porcentaje (ej: 15.0)
+  neto          Int      // en céntimos
+  rol           String   // 'jefe' | 'empleado'
+  createdAt     DateTime @default(now())
+
+  @@index([perfilId, anyo])
+  @@map("nominas")
 }
 
 model Documento {
