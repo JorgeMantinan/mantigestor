@@ -1,3 +1,10 @@
+import { sugerirModelos } from '@mantigestor/utils'
+
+export interface ModeloSugeridoOcr {
+  modelo: string
+  razon: string
+}
+
 export interface OcrResult {
   numero: string | null
   emisorReceptor: string | null
@@ -7,6 +14,7 @@ export interface OcrResult {
   iva: number | null
   total: number | null
   tipo: 'ingreso' | 'gasto' | null
+  modelosSugeridos: ModeloSugeridoOcr[]
 }
 
 export async function extractInvoiceData(pdfUrl: string): Promise<OcrResult> {
@@ -57,10 +65,21 @@ Devuelve SOLO un objeto JSON válido sin explicaciones adicionales, con estos ca
   "baseImponible": 123.45,
   "iva": 21,
   "total": 149.37,
-  "tipo": "ingreso" si es una factura emitida, "gasto" si es recibida
+  "tipo": "ingreso" si es una factura emitida, "gasto" si es recibida,
+  "modelosSugeridos": [
+    {"modelo": "303", "razon": "IVA repercutido en liquidación trimestral"},
+    {"modelo": "130", "razon": "Ingreso en pagos fraccionados IRPF"}
+  ]
 }
 
-Si no encuentras un valor, pon null.`,
+Para modelosSugeridos, incluye SOLO los modelos AEAT realmente afectados por esta factura:
+- Toda factura afecta a 303 (IVA) y 390 (resumen anual)
+- Si es ingreso/gasto de autónomo, afecta a 130/131 (IRPF trimestral)
+- Si el NIF empieza por letras de país UE (DE, FR, IT...), afecta a 349 (intracomunitaria)
+- Si IVA es 0% y es intracomunitaria, añadir nota de exenta en 303
+- Si parece retención de profesional (ingreso, NIF empresa), sugerir 111
+
+Si no encuentras un valor, pon null. Si no puedes determinar modelos, devuelve un array vacío [].`,
             },
           ],
         },
@@ -79,7 +98,19 @@ Si no encuentras un valor, pon null.`,
   try {
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('No se encontró JSON en la respuesta')
-    return JSON.parse(jsonMatch[0]) as OcrResult
+    const parsed = JSON.parse(jsonMatch[0]) as OcrResult
+
+    // Si Claude no devolvió modelos, calcular con la util local
+    if (!parsed.modelosSugeridos || parsed.modelosSugeridos.length === 0) {
+      parsed.modelosSugeridos = sugerirModelos({
+        tipo: parsed.tipo,
+        iva: parsed.iva,
+        baseImponible: parsed.baseImponible,
+        nifContraparte: parsed.nifContraparte,
+      }).map(m => ({ modelo: m.modelo, razon: m.razon }))
+    }
+
+    return parsed
   } catch {
     throw new Error('No se pudieron extraer los datos de la factura')
   }

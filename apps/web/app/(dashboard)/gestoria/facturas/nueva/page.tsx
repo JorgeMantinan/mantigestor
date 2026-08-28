@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, ScanLine, Mic, MicOff, Loader2 } from 'lucide-react'
+import { ChevronLeft, ScanLine, Mic, MicOff, Loader2, Lightbulb } from 'lucide-react'
 import { FileUpload } from '@/components/upload/FileUpload'
 import Link from 'next/link'
-import type { OcrResult } from '@/lib/ocr'
+import type { OcrResult, ModeloSugeridoOcr } from '@/lib/ocr'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
@@ -24,6 +24,7 @@ export default function NuevaFacturaPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [escanendo, setEscanendo] = useState(false)
   const [parseandoVoz, setParseandoVoz] = useState(false)
+  const [modelosSugeridos, setModelosSugeridos] = useState<ModeloSugeridoOcr[]>([])
 
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
@@ -51,6 +52,7 @@ export default function NuevaFacturaPage() {
         return
       }
       const data: OcrResult = await res.json()
+      setModelosSugeridos(data.modelosSugeridos ?? [])
       if (!formRef.current) { setEscanendo(false); return }
       const f = formRef.current
       if (data.tipo) (f.elements.namedItem('tipo') as HTMLSelectElement).value = data.tipo
@@ -379,6 +381,40 @@ export default function NuevaFacturaPage() {
           )}
         </CardContent>
       </Card>
+
+      {modelosSugeridos.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lightbulb className="h-4 w-4 text-yellow-500" aria-hidden="true" />
+              Modelos fiscales afectados
+            </CardTitle>
+            <CardDescription>Esta factura afecta a los siguientes modelos de la AEAT</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {modelosSugeridos.map(m => (
+                <li key={m.modelo} className="flex items-start justify-between rounded-lg border p-3">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                      {m.modelo}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium">Modelo {m.modelo}</p>
+                      <p className="text-xs text-muted-foreground">{m.razon}</p>
+                    </div>
+                  </div>
+                  <Link href={`/fiscal?seccion=modelo${m.modelo}`}>
+                    <Button variant="ghost" size="sm" className="shrink-0">
+                      Abrir
+                    </Button>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
