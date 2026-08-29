@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { BotonPDF } from '@/components/boton-pdf'
 import { toast, Toaster } from 'sonner'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 
 interface Factura {
@@ -64,7 +65,6 @@ export default function FacturasPage() {
   useEffect(() => { fetchFacturas() }, [fetchFacturas])
 
   const eliminar = async (id: string) => {
-    if (!confirm('¿Eliminar esta factura?')) return
     await getSupabase().from('facturas').delete().eq('id', id)
     setFacturas(prev => prev.filter(f => f.id !== id))
     toast.success('Factura eliminada')
@@ -243,9 +243,23 @@ export default function FacturasPage() {
                           <Link href={`/gestoria/facturas/${f.id}`}>
                             <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Ver factura"><ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Button>
                           </Link>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => eliminar(f.id)} aria-label="Eliminar factura">
-                            <Trash2 className="h-4 w-4" aria-hidden="true" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label="Eliminar factura">
+                                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Eliminar esta factura?</AlertDialogTitle>
+                                <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => void eliminar(f.id)}>Eliminar</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </td>
                     </tr>

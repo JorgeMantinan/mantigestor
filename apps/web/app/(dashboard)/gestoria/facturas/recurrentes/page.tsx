@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw } from 'lucide-react'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -110,7 +111,6 @@ export default function FacturasRecurrentesPage() {
   }
 
   const eliminar = async (id: string) => {
-    if (!confirm('¿Eliminar esta plantilla recurrente?')) return
     await fetch(`/api/facturas/recurrentes/${id}`, { method: 'DELETE' })
     setPlantillas(prev => prev.filter(p => p.id !== id))
   }
@@ -276,9 +276,23 @@ export default function FacturasRecurrentesPage() {
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleActiva(p.id, p.activa)} aria-label={p.activa ? 'Desactivar recurrente' : 'Activar recurrente'}>
                     {p.activa ? <Pause className="h-3 w-3" aria-hidden="true" /> : <Play className="h-3 w-3" aria-hidden="true" />}
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => void eliminar(p.id)} aria-label="Eliminar recurrente">
-                    <Trash2 className="h-3 w-3" aria-hidden="true" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label="Eliminar recurrente">
+                        <Trash2 className="h-3 w-3" aria-hidden="true" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar esta plantilla recurrente?</AlertDialogTitle>
+                        <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => void eliminar(p.id)}>Eliminar</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>

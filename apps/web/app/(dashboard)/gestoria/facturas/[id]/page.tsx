@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ChevronLeft, Pencil, Trash2 } from 'lucide-react'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useParsearVoz } from '@/hooks/use-parsear-voz'
 import { VoiceInput } from '@/components/facturas/voice-input'
 
@@ -86,7 +87,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   }
 
   const handleDelete = async () => {
-    if (!factura || !confirm('¿Eliminar esta factura definitivamente?')) return
+    if (!factura) return
     await getSupabase().from('facturas').delete().eq('id', factura.id)
     router.push('/gestoria/facturas')
   }
@@ -126,10 +127,24 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             <Pencil className="mr-2 h-4 w-4" />
             Editar
           </Button>
-          <Button variant="destructive" size="sm" onClick={handleDelete}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Eliminar
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Eliminar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Eliminar esta factura definitivamente?</AlertDialogTitle>
+                <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={() => void handleDelete()}>Eliminar</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 

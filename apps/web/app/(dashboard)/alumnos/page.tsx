@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { FileText, GraduationCap, Trash2, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 import { FileUpload } from '@/components/upload/FileUpload'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 
 interface Documento {
   id: string
@@ -40,7 +41,6 @@ export default function AlumnosPage() {
   useEffect(() => { fetchDocumentos() }, [fetchDocumentos])
 
   const eliminar = async (id: string) => {
-    if (!confirm('¿Eliminar este documento?')) return
     await getSupabase().from('documentos').delete().eq('id', id)
     setDocumentos((prev) => prev.filter((d) => d.id !== id))
   }
@@ -104,15 +104,28 @@ export default function AlumnosPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <FileText className="h-8 w-8 text-primary" />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => eliminar(doc.id)}
-                    aria-label="Eliminar documento"
-                  >
-                    <Trash2 className="h-4 w-4" aria-hidden="true" />
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Eliminar documento"
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar este documento?</AlertDialogTitle>
+                        <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => void eliminar(doc.id)}>Eliminar</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
                 <CardTitle className="mt-2 text-base truncate">{doc.nombre}</CardTitle>
                 <CardDescription>{formatSize(doc.tamañoBytes)}</CardDescription>
