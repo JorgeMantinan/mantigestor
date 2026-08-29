@@ -10,6 +10,7 @@ import { NominaForm } from '@/components/nominas/nomina-form'
 import { NominaTable } from '@/components/nominas/nomina-table'
 import { Toaster, toast } from 'sonner'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
+import { Kbd } from '@/components/ui/kbd'
 
 type OrdenCampo = 'empleada' | 'mes' | 'salarioBruto' | 'neto'
 type OrdenDireccion = 'asc' | 'desc'
@@ -243,6 +244,9 @@ export default function NominasPage() {
               className="pl-9"
               aria-label="Buscar nóminas"
             />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Kbd>/</Kbd>
+            </div>
           </div>
           <div className="flex gap-2">
             {(['todas', 'jefe', 'empleado'] as const).map(f => (

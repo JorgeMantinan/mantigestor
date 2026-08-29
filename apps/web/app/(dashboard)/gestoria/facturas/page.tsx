@@ -12,6 +12,7 @@ import { BotonPDF } from '@/components/boton-pdf'
 import { toast, Toaster } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
+import { Kbd } from '@/components/ui/kbd'
 
 interface Factura {
   id: string
@@ -155,6 +156,9 @@ export default function FacturasPage() {
             aria-label="Buscar facturas"
             data-search-input
           />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <Kbd>/</Kbd>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Input type="date" value={fechaDesde} onChange={e => { setFechaDesde(e.target.value); setPage(0) }}
