@@ -12,6 +12,7 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { Home, Plus, Search, Download } from 'lucide-react'
 import { PropertyCard } from '@/components/alquiler/property-card'
 import { descargarCsv } from '@/lib/descargar-csv'
+import { logAccion } from '@/lib/audit-log'
 
 type OrdenCampo = 'direccion' | 'ingresos' | 'gastos' | 'balance'
 type OrdenDir = 'asc' | 'desc'
@@ -193,7 +194,9 @@ export default function AlquilerPage() {
   }
 
   const handleDelete = async (id: string) => {
+    const prop = propiedades.find(p => p.id === id)
     await getSupabase().from('propiedades_alquiler').delete().eq('id', id)
+    await logAccion('eliminar', 'propiedad', id, `Propiedad ${prop?.direccion ?? ''} eliminada`)
     setPropiedades(propiedades.filter((p) => p.id !== id))
     toast.success('Propiedad eliminada')
   }

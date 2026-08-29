@@ -15,6 +15,7 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { Kbd } from '@/components/ui/kbd'
 import { Download } from 'lucide-react'
 import { descargarCsv } from '@/lib/descargar-csv'
+import { logAccion } from '@/lib/audit-log'
 
 interface Factura {
   id: string
@@ -68,7 +69,9 @@ export default function FacturasPage() {
   useEffect(() => { fetchFacturas() }, [fetchFacturas])
 
   const eliminar = async (id: string) => {
+    const factura = facturas.find(f => f.id === id)
     await getSupabase().from('facturas').delete().eq('id', id)
+    await logAccion('eliminar', 'factura', id, `Factura ${factura?.numero ?? ''} eliminada`)
     setFacturas(prev => prev.filter(f => f.id !== id))
     toast.success('Factura eliminada')
   }

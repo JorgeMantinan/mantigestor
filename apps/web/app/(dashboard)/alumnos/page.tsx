@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { FileUpload } from '@/components/upload/FileUpload'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
+import { logAccion } from '@/lib/audit-log'
 
 interface Documento {
   id: string
@@ -44,7 +45,9 @@ export default function AlumnosPage() {
   useEffect(() => { fetchDocumentos() }, [fetchDocumentos])
 
   const eliminar = async (id: string) => {
+    const doc = documentos.find(d => d.id === id)
     await getSupabase().from('documentos').delete().eq('id', id)
+    await logAccion('eliminar', 'alumno', id, `Documento ${doc?.nombre ?? ''} eliminado`)
     setDocumentos((prev) => prev.filter((d) => d.id !== id))
   }
 

@@ -13,6 +13,7 @@ import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useParsearVoz } from '@/hooks/use-parsear-voz'
 import { VoiceInput } from '@/components/facturas/voice-input'
+import { logAccion } from '@/lib/audit-log'
 
 interface Factura {
   id: string
@@ -89,6 +90,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const handleDelete = async () => {
     if (!factura) return
     await getSupabase().from('facturas').delete().eq('id', factura.id)
+    await logAccion('eliminar', 'factura', factura.id, `Factura ${factura.numero} eliminada`)
     router.push('/gestoria/facturas')
   }
 

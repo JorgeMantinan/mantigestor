@@ -729,3 +729,19 @@ model DataQualityError {
   @@index([runId])
   @@map("data_quality_errors")
 }
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  perfilId   String
+  perfil     Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  accion     String   // 'crear' | 'editar' | 'eliminar' | 'cambio_estado'
+  entidad    String   // 'factura' | 'propiedad' | 'nomina' | 'alumno' | 'suscripcion'
+  entidadId  String?
+  detalle    String?  // descripción legible de la acción
+  meta       String?  // JSON con datos adicionales (campos cambiados, estado anterior/nuevo)
+  createdAt  DateTime @default(now())
+
+  @@index([perfilId])
+  @@index([createdAt])
+  @@map("audit_log")
+}
