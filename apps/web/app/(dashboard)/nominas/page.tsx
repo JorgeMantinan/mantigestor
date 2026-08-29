@@ -226,12 +226,13 @@ export default function NominasPage() {
         {/* Búsqueda + filtros */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <Input
               placeholder="Buscar por empleada..."
               value={busqueda}
               onChange={e => { setBusqueda(e.target.value); setPage(0) }}
               className="pl-9"
+              aria-label="Buscar nóminas"
             />
           </div>
           <div className="flex gap-2">

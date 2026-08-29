@@ -136,12 +136,13 @@ export default function FacturasPage() {
       {/* Búsqueda + filtros */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
             placeholder="Buscar por contraparte, nº factura..."
             value={busqueda}
             onChange={e => { setBusqueda(e.target.value); setPage(0) }}
             className="pl-9"
+            aria-label="Buscar facturas"
             data-search-input
           />
         </div>
@@ -230,10 +231,10 @@ export default function FacturasPage() {
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">
                           <Link href={`/gestoria/facturas/${f.id}`}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8"><ArrowUpRight className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Ver factura"><ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Button>
                           </Link>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => eliminar(f.id)}>
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => eliminar(f.id)} aria-label="Eliminar factura">
+                            <Trash2 className="h-4 w-4" aria-hidden="true" />
                           </Button>
                         </div>
                       </td>

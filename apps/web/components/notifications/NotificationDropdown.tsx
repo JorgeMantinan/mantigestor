@@ -46,11 +46,11 @@ export function NotificationDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8">
+        <Button variant="ghost" className="relative h-8 w-8" aria-label={`Notificaciones${noLeidas > 0 ? ` (${noLeidas} sin leer)` : ''}`}>
           {noLeidas > 0 ? (
-            <BellRing className="h-5 w-5 text-yellow-500" />
+            <BellRing className="h-5 w-5 text-yellow-500" aria-hidden="true" />
           ) : (
-            <Bell className="h-5 w-5" />
+            <Bell className="h-5 w-5" aria-hidden="true" />
           )}
           {noLeidas > 0 && (
             <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">

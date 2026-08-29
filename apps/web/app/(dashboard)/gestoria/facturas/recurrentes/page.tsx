@@ -125,8 +125,8 @@ export default function FacturasRecurrentesPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/gestoria/facturas">
-            <Button variant="ghost" size="icon">
-              <ChevronLeft className="h-4 w-4" />
+            <Button variant="ghost" size="icon" aria-label="Volver a facturas">
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             </Button>
           </Link>
           <div>
@@ -155,7 +155,7 @@ export default function FacturasRecurrentesPage() {
               <div className="space-y-2">
                 <Label>Tipo</Label>
                 <select value={tipo} onChange={e => setTipo(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   <option value="ingreso">Ingreso (emitida)</option>
                   <option value="gasto">Gasto (recibida)</option>
                 </select>
@@ -184,14 +184,14 @@ export default function FacturasRecurrentesPage() {
               <div className="space-y-2">
                 <Label>IVA (%)</Label>
                 <select value={iva} onChange={e => setIva(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   {TIPOS_IVA.map(t => <option key={t} value={t}>{t}%</option>)}
                 </select>
               </div>
               <div className="space-y-2">
                 <Label>Día del mes</Label>
                 <select value={diaGeneracion} onChange={e => setDiaGeneracion(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
                     <option key={d} value={d}>{d}</option>
                   ))}
@@ -202,7 +202,7 @@ export default function FacturasRecurrentesPage() {
               <div className="space-y-2">
                 <Label>Día de aviso por email</Label>
                 <select value={diaEmail} onChange={e => setDiaEmail(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   <option value="">Sin aviso</option>
                   {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
                     <option key={d} value={d}>{d}</option>
@@ -273,11 +273,11 @@ export default function FacturasRecurrentesPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{formatMoney(p.baseImponible)}</span>
                   <span className="text-xs text-muted-foreground">+{p.iva}%</span>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleActiva(p.id, p.activa)}>
-                    {p.activa ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleActiva(p.id, p.activa)} aria-label={p.activa ? 'Desactivar recurrente' : 'Activar recurrente'}>
+                    {p.activa ? <Pause className="h-3 w-3" aria-hidden="true" /> : <Play className="h-3 w-3" aria-hidden="true" />}
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => void eliminar(p.id)}>
-                    <Trash2 className="h-3 w-3" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => void eliminar(p.id)} aria-label="Eliminar recurrente">
+                    <Trash2 className="h-3 w-3" aria-hidden="true" />
                   </Button>
                 </div>
               </CardContent>

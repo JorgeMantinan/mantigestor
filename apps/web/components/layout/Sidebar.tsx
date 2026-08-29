@@ -88,8 +88,10 @@ export function Sidebar() {
         size="icon"
         className="fixed left-4 top-3 z-50 lg:hidden"
         onClick={() => setMobileOpen(!mobileOpen)}
+        aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+        aria-expanded={mobileOpen}
       >
-        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {mobileOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
       </Button>
 
       {mobileOpen && (
@@ -167,12 +169,13 @@ export function Sidebar() {
             size={collapsed ? 'icon' : 'default'}
             className={cn('w-full', collapsed && 'mx-auto')}
             onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
           >
             {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             ) : (
               <>
-                <ChevronLeft className="h-4 w-4 mr-2" />
+                <ChevronLeft className="h-4 w-4 mr-2" aria-hidden="true" />
                 Colapsar
               </>
             )}

@@ -107,8 +107,8 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/gestoria/facturas">
-            <Button variant="ghost" size="icon">
-              <ChevronLeft className="h-4 w-4" />
+            <Button variant="ghost" size="icon" aria-label="Volver a facturas">
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             </Button>
           </Link>
           <div>

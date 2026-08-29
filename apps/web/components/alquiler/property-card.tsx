@@ -77,13 +77,13 @@ export function PropertyCard({
             </div>
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => setEditingId(editingId === p.id ? null : p.id)}>
-              <Pencil className="h-4 w-4" />
+            <Button variant="ghost" size="icon" onClick={() => setEditingId(editingId === p.id ? null : p.id)} aria-label="Editar propiedad">
+              <Pencil className="h-4 w-4" aria-hidden="true" />
             </Button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Trash2 className="h-4 w-4 text-destructive" />
+                <Button variant="ghost" size="icon" aria-label="Eliminar propiedad">
+                  <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -209,8 +209,8 @@ export function PropertyCard({
                       <span className="font-medium text-red-600">-{(g.importe / 100).toFixed(2)} €</span>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6">
-                            <Trash2 className="h-3 w-3 text-destructive" />
+                          <Button variant="ghost" size="icon" className="h-6 w-6" aria-label="Eliminar gasto">
+                            <Trash2 className="h-3 w-3 text-destructive" aria-hidden="true" />
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>

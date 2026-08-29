@@ -109,8 +109,9 @@ export default function AlumnosPage() {
                     size="icon"
                     className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => eliminar(doc.id)}
+                    aria-label="Eliminar documento"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
                   </Button>
                 </div>
                 <CardTitle className="mt-2 text-base truncate">{doc.nombre}</CardTitle>

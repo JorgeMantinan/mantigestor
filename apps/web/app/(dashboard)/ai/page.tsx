@@ -143,8 +143,8 @@ export default function AiPage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 disabled={loading || !auth}
               />
-              <Button onClick={handleSend} disabled={loading || !input.trim() || !auth}>
-                <Send className="h-4 w-4" />
+              <Button onClick={handleSend} disabled={loading || !input.trim() || !auth} aria-label="Enviar mensaje">
+                <Send className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
             {!auth && (
