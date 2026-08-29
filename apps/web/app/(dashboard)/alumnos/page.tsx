@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 
@@ -9,6 +9,7 @@ import { FileText, GraduationCap, Trash2, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 import { FileUpload } from '@/components/upload/FileUpload'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 
 interface Documento {
   id: string
@@ -24,6 +25,8 @@ export default function AlumnosPage() {
   const [userId, setUserId] = useState<string | null>(null)
 
   const getSupabase = useCallback(() => createClient(), [])
+
+  useKeyboardShortcuts({})
 
   const fetchDocumentos = useCallback(async () => {
     const { data: { user } } = await getSupabase().auth.getUser()

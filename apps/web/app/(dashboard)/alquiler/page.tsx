@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Toaster, toast } from 'sonner'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { Home, Plus, Search } from 'lucide-react'
 import { PropertyCard } from '@/components/alquiler/property-card'
 
@@ -42,7 +43,14 @@ export default function AlquilerPage() {
   const [busqueda, setBusqueda] = useState('')
   const [ordenCampo, setOrdenCampo] = useState<OrdenCampo>('direccion')
   const [ordenDir, setOrdenDir] = useState<OrdenDir>('asc')
+  const searchRef = useRef<HTMLInputElement>(null)
   const getSupabase = useCallback(() => createClient(), [])
+
+  useKeyboardShortcuts({
+    onSearch: () => searchRef.current?.focus(),
+    onNew: () => setShowForm(true),
+    onEscape: () => setShowForm(false),
+  })
 
   const cargar = useCallback(async () => {
     const { data: { user } } = await getSupabase().auth.getUser()
@@ -289,10 +297,12 @@ export default function AlquilerPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
         <Input
+          ref={searchRef}
           placeholder="Buscar por dirección o inquilino..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="pl-9"
+          aria-label="Buscar propiedades"
         />
       </div>
 
