@@ -182,6 +182,31 @@ export function Sidebar() {
           </Button>
         </div>
       </aside>
+
+      {/* Mobile bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background lg:hidden" aria-label="Navegación móvil">
+        <div className="flex items-center justify-around py-2">
+          {[
+            { label: 'Panel', href: '/dashboard', icon: LayoutDashboard },
+            { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
+            { label: 'Fiscal', href: '/fiscal', icon: Calculator },
+            { label: 'Alquiler', href: '/alquiler', icon: Home },
+            { label: 'Ajustes', href: '/ajustes', icon: Settings },
+          ].map(item => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            return (
+              <Link key={item.href} href={item.href}
+                className={cn(
+                  'flex flex-col items-center gap-1 px-3 py-1 text-xs',
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                )}>
+                <item.icon className="h-5 w-5" aria-hidden="true" />
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
     </>
   )
 }
