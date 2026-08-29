@@ -13,6 +13,8 @@ import { toast, Toaster } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { Kbd } from '@/components/ui/kbd'
+import { Download } from 'lucide-react'
+import { descargarCsv } from '@/lib/descargar-csv'
 
 interface Factura {
   id: string
@@ -175,6 +177,22 @@ export default function FacturasPage() {
             </Button>
           ))}
         </div>
+        <div className="flex-1" />
+        <Button variant="outline" size="sm" disabled={visibles.length === 0}
+          onClick={() => {
+            const filas: string[][] = [
+              ['Fecha', 'Tipo', 'Nº Factura', 'Contraparte', 'Base Imponible', 'IVA', 'Total', 'Estado'],
+              ...visibles.map(v => [
+                v.fechaEmision.slice(0, 10), v.tipo === 'ingreso' ? 'Ingreso' : 'Gasto',
+                v.numero || '', v.emisorReceptor || '',
+                v.baseImponible.toFixed(2), v.iva.toFixed(2), v.total.toFixed(2),
+                v.estado || ''
+              ])
+            ]
+            descargarCsv(filas, `facturas-${new Date().toISOString().slice(0, 10)}.csv`)
+          }}>
+          <Download className="mr-1 h-4 w-4" /> Exportar
+        </Button>
       </div>
 
       {loading ? (

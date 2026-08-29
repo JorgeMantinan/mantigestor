@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Landmark, Download, ExternalLink } from 'lucide-react'
 import { calcularModelo130 } from '@mantigestor/utils'
 import type { Factura as FacturaType } from '@mantigestor/types'
+import { descargarCsv } from '@/lib/descargar-csv'
 
 export default function RentaPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
@@ -170,7 +171,22 @@ export default function RentaPage() {
                 </p>
               )}
               <div className="pt-4 flex gap-2">
-                <Button variant="outline" className="flex-1">
+                <Button variant="outline" className="flex-1" disabled={!resultado}
+                  onClick={() => {
+                    if (!resultado) return
+                    const filas: string[][] = [
+                      ['Concepto', 'Importe (€)'],
+                      ['Ingresos acumulados', (resultado.ingresosAcumuladosAño / 100).toFixed(2)],
+                      ['Gastos deducibles', (resultado.gastosDeduciblesAcumulados / 100).toFixed(2)],
+                      ['Rendimiento neto', (resultado.rendimientoNeto / 100).toFixed(2)],
+                      ['Cuota integra (20%)', (resultado.cuotaIntegra / 100).toFixed(2)],
+                      ['Pagos anteriores', (resultado.pagosAnterioresAño / 100).toFixed(2)],
+                      ['Retenciones nóminas', (resultado.retencionesNomina / 100).toFixed(2)],
+                      ['Resultado final', (resultado.resultadoFinal / 100).toFixed(2)],
+                      ['A ingresar', (resultado.aIngresar / 100).toFixed(2)]
+                    ]
+                    descargarCsv(filas, `renta-modelo130-${selectedYear}.csv`)
+                  }}>
                   <Download className="mr-2 h-4 w-4" />
                   Exportar resumen
                 </Button>

@@ -11,6 +11,8 @@ import { NominaTable } from '@/components/nominas/nomina-table'
 import { Toaster, toast } from 'sonner'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { Kbd } from '@/components/ui/kbd'
+import { Download } from 'lucide-react'
+import { descargarCsv } from '@/lib/descargar-csv'
 
 type OrdenCampo = 'empleada' | 'mes' | 'salarioBruto' | 'neto'
 type OrdenDireccion = 'asc' | 'desc'
@@ -256,6 +258,22 @@ export default function NominasPage() {
               </Button>
             ))}
           </div>
+          <div className="flex-1" />
+          <Button variant="outline" size="sm" disabled={visibles.length === 0}
+            onClick={() => {
+              const filas: string[][] = [
+                ['Empleada', 'Rol', 'Mes', 'Año', 'Salario Bruto', 'IRPF', 'Seg. Social', 'Neto'],
+                ...visibles.map(n => [
+                  n.empleada, n.rol === 'jefe' ? 'Jefe' : 'Empleada',
+                  n.mes.toString(), n.anyo.toString(),
+                  (n.salarioBruto / 100).toFixed(2), (n.irpf / 100).toFixed(2),
+                  (n.seguridadSocial / 100).toFixed(2), (n.neto / 100).toFixed(2)
+                ])
+              ]
+              descargarCsv(filas, `nominas-${new Date().toISOString().slice(0, 10)}.csv`)
+            }}>
+            <Download className="mr-1 h-4 w-4" /> Exportar
+          </Button>
         </div>
 
         {showForm && (

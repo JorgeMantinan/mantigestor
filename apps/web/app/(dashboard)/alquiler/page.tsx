@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Toaster, toast } from 'sonner'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
-import { Home, Plus, Search } from 'lucide-react'
+import { Home, Plus, Search, Download } from 'lucide-react'
 import { PropertyCard } from '@/components/alquiler/property-card'
+import { descargarCsv } from '@/lib/descargar-csv'
 
 type OrdenCampo = 'direccion' | 'ingresos' | 'gastos' | 'balance'
 type OrdenDir = 'asc' | 'desc'
@@ -288,10 +289,27 @@ export default function AlquilerPage() {
           <h1 className="text-3xl font-heading font-bold tracking-tight">Alquiler</h1>
           <p className="text-muted-foreground">Gestión de propiedades en alquiler</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Añadir propiedad
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled={visibles.length === 0}
+            onClick={() => {
+              const filas: string[][] = [
+                ['Dirección', 'Inquilino', 'Ingresos', 'Gastos', 'Balance'],
+                ...visibles.map(p => [
+                  p.direccion, p.inquilinoNombre || 'Sin inquilino',
+                  p.ingresos.toFixed(2),
+                  p.gastos.reduce((s, g) => s + g.importe, 0).toFixed(2),
+                  (p.ingresos - p.gastos.reduce((s, g) => s + g.importe, 0)).toFixed(2)
+                ])
+              ]
+              descargarCsv(filas, `propiedades-alquiler-${new Date().toISOString().slice(0, 10)}.csv`)
+            }}>
+            <Download className="mr-1 h-4 w-4" /> Exportar
+          </Button>
+          <Button onClick={() => setShowForm(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Añadir propiedad
+          </Button>
+        </div>
       </div>
 
       <div className="relative max-w-md">
