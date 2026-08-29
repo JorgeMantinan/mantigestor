@@ -3,6 +3,6 @@
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 
 export function DashboardShortcuts() {
-  useKeyboardShortcuts()
+  useKeyboardShortcuts({})
   return null
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +9,7 @@ import { Users, Plus, Briefcase, User, TrendingDown, TrendingUp, Search } from '
 import { NominaForm } from '@/components/nominas/nomina-form'
 import { NominaTable } from '@/components/nominas/nomina-table'
 import { Toaster, toast } from 'sonner'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 
 type OrdenCampo = 'empleada' | 'mes' | 'salarioBruto' | 'neto'
 type OrdenDireccion = 'asc' | 'desc'
@@ -43,7 +44,14 @@ export default function NominasPage() {
   const [page, setPage] = useState(0)
   const [ordenCampo, setOrdenCampo] = useState<OrdenCampo>('empleada')
   const [ordenDir, setOrdenDir] = useState<OrdenDireccion>('asc')
+  const searchRef = useRef<HTMLInputElement>(null)
   const getSupabase = useCallback(() => createClient(), [])
+
+  useKeyboardShortcuts({
+    onSearch: () => searchRef.current?.focus(),
+    onNew: () => setShowForm(true),
+    onEscape: () => setShowForm(false),
+  })
 
   useEffect(() => {
     const init = async () => {
@@ -228,6 +236,7 @@ export default function NominasPage() {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <Input
+              ref={searchRef}
               placeholder="Buscar por empleada..."
               value={busqueda}
               onChange={e => { setBusqueda(e.target.value); setPage(0) }}

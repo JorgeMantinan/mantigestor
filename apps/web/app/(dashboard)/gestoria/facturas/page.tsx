@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { BotonPDF } from '@/components/boton-pdf'
 import { toast, Toaster } from 'sonner'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 
 interface Factura {
   id: string
@@ -36,8 +38,15 @@ export default function FacturasPage() {
   const [ordenDir, setOrdenDir] = useState<OrdenDireccion>('desc')
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
+  const searchRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
 
   const getSupabase = useCallback(() => createClient(), [])
+
+  useKeyboardShortcuts({
+    onSearch: () => searchRef.current?.focus(),
+    onNew: () => router.push('/gestoria/facturas/nueva'),
+  })
 
   const fetchFacturas = useCallback(async () => {
     setLoading(true)
@@ -138,6 +147,7 @@ export default function FacturasPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
+            ref={searchRef}
             placeholder="Buscar por contraparte, nº factura..."
             value={busqueda}
             onChange={e => { setBusqueda(e.target.value); setPage(0) }}

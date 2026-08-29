@@ -1,26 +1,44 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 
-export function useKeyboardShortcuts() {
-  const router = useRouter()
+interface ShortcutHandlers {
+  onSearch?: () => void
+  onNew?: () => void
+  onEscape?: () => void
+}
 
+export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return
-      switch (e.key.toLowerCase()) {
-        case 'n':
-          e.preventDefault()
-          router.push('/gestoria/facturas/nueva')
-          break
-        case 'f':
-          e.preventDefault()
-          document.querySelector<HTMLInputElement>('[data-search-input]')?.focus()
-          break
+    function handleKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement
+      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable
+
+      if (e.key === 'Escape' && handlers.onEscape) {
+        handlers.onEscape()
+        return
+      }
+
+      if (e.key === '/' && !isInput && handlers.onSearch) {
+        e.preventDefault()
+        handlers.onSearch()
+        return
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k' && handlers.onSearch) {
+        e.preventDefault()
+        handlers.onSearch()
+        return
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !isInput && handlers.onNew) {
+        e.preventDefault()
+        handlers.onNew()
+        return
       }
     }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [router])
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [handlers.onSearch, handlers.onNew, handlers.onEscape])
 }
