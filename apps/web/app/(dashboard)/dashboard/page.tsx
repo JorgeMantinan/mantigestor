@@ -11,6 +11,7 @@ import {
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { proximosPlazos, getCalendarioFiscal } from '@mantigestor/utils'
+import { Kbd } from '@/components/ui/kbd'
 import { ChartIngresosGastos } from '@/components/dashboard/chart-ingresos-gastos'
 import { ChartIvaTrimestral } from '@/components/dashboard/chart-iva-trimestral'
 import { ChartAlquiler } from '@/components/dashboard/chart-alquiler'
@@ -166,7 +167,7 @@ export default function DashboardPage() {
         <div className="flex flex-wrap gap-2">
           <Link href="/gestoria/facturas/nueva">
             <Button size="sm">
-              <Plus className="mr-1.5 h-4 w-4" /> Nueva factura
+              <Plus className="mr-1.5 h-4 w-4" /> Nueva factura <Kbd className="ml-2">Ctrl+N</Kbd>
             </Button>
           </Link>
           <Link href="/fiscal">
@@ -176,7 +177,7 @@ export default function DashboardPage() {
           </Link>
           <Link href="/gestoria/facturas">
             <Button variant="outline" size="sm">
-              <FileText className="mr-1.5 h-4 w-4" /> Facturas
+              <FileText className="mr-1.5 h-4 w-4" /> Facturas <Kbd className="ml-2">/</Kbd>
             </Button>
           </Link>
         </div>
