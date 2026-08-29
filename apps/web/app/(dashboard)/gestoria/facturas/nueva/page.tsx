@@ -4,15 +4,17 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, ScanLine, Mic, MicOff, Loader2, Lightbulb } from 'lucide-react'
+import { ChevronLeft, ScanLine, Loader2, Lightbulb } from 'lucide-react'
 import { FileUpload } from '@/components/upload/FileUpload'
 import Link from 'next/link'
 import type { OcrResult, ModeloSugeridoOcr } from '@/lib/ocr'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
+import { useParsearVoz } from '@/hooks/use-parsear-voz'
+import { rellenarFormularioDesdeOcr } from '@/lib/factura-utils'
+import { VoiceInput } from '@/components/facturas/voice-input'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -23,11 +25,11 @@ export default function NuevaFacturaPage() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [escanendo, setEscanendo] = useState(false)
-  const [parseandoVoz, setParseandoVoz] = useState(false)
   const [modelosSugeridos, setModelosSugeridos] = useState<ModeloSugeridoOcr[]>([])
 
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
+  const { parseandoVoz, parsearVoz } = useParsearVoz({ formRef })
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -48,58 +50,20 @@ export default function NuevaFacturaPage() {
       if (!res.ok) {
         const err = await res.json()
         setError(err.error || 'Error al escanear la factura')
-        setEscanendo(false)
         return
       }
       const data: OcrResult = await res.json()
       setModelosSugeridos(data.modelosSugeridos ?? [])
-      if (!formRef.current) { setEscanendo(false); return }
-      const f = formRef.current
-      if (data.tipo) (f.elements.namedItem('tipo') as HTMLSelectElement).value = data.tipo
-      if (data.numero) (f.elements.namedItem('numero') as HTMLInputElement).value = data.numero
-      if (data.emisorReceptor) (f.elements.namedItem('emisorReceptor') as HTMLInputElement).value = data.emisorReceptor
-      if (data.nifContraparte) (f.elements.namedItem('nifContraparte') as HTMLInputElement).value = data.nifContraparte
-      if (data.fechaEmision) (f.elements.namedItem('fechaEmision') as HTMLInputElement).value = data.fechaEmision
-      if (data.baseImponible !== null) (f.elements.namedItem('baseImponible') as HTMLInputElement).value = data.baseImponible.toString()
-      if (data.iva !== null) (f.elements.namedItem('iva') as HTMLSelectElement).value = data.iva.toString()
+      rellenarFormularioDesdeOcr(formRef, data)
     } catch {
       setError('Error al conectar con el servicio de OCR')
     }
     setEscanendo(false)
   }
 
-  async function parsearVoz() {
-    const texto = speech.transcripcion.trim()
-    if (!texto) return
-    setParseandoVoz(true)
-    setError('')
-    try {
-      const res = await fetch('/api/facturas/parsear-voz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto }),
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        setError(err.error || 'Error al procesar el audio')
-        setParseandoVoz(false)
-        return
-      }
-      const data: OcrResult = await res.json()
-      if (!formRef.current) { setParseandoVoz(false); return }
-      const f = formRef.current
-      if (data.tipo) (f.elements.namedItem('tipo') as HTMLSelectElement).value = data.tipo
-      if (data.numero) (f.elements.namedItem('numero') as HTMLInputElement).value = data.numero
-      if (data.emisorReceptor) (f.elements.namedItem('emisorReceptor') as HTMLInputElement).value = data.emisorReceptor
-      if (data.nifContraparte) (f.elements.namedItem('nifContraparte') as HTMLInputElement).value = data.nifContraparte
-      if (data.fechaEmision) (f.elements.namedItem('fechaEmision') as HTMLInputElement).value = data.fechaEmision
-      if (data.baseImponible !== null) (f.elements.namedItem('baseImponible') as HTMLInputElement).value = data.baseImponible.toString()
-      if (data.iva !== null) (f.elements.namedItem('iva') as HTMLSelectElement).value = data.iva.toString()
-      speech.limpiar()
-    } catch {
-      setError('Error al conectar con el servicio de IA')
-    }
-    setParseandoVoz(false)
+  function handleParsearVoz() {
+    void parsearVoz(speech.transcripcion, setError)
+    speech.limpiar()
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -280,77 +244,17 @@ export default function NuevaFacturaPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mic className="h-4 w-4" aria-hidden="true" />
-            Entrada por voz
-          </CardTitle>
+          <CardTitle>Entrada por voz</CardTitle>
           <CardDescription>
             Describe la factura con el microfono y auto-rellena los campos
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {!speech.soportado ? (
-            <p className="text-sm text-muted-foreground">
-              Tu navegador no soporta reconocimiento de voz. Prueba con Chrome o Edge.
-            </p>
-          ) : (
-            <>
-              <div className="flex gap-2">
-                {!speech.escuchando ? (
-                  <Button type="button" variant="outline" size="sm" onClick={speech.iniciar}>
-                    <Mic className="mr-1 h-3 w-3" aria-hidden="true" />
-                    Empezar a hablar
-                  </Button>
-                ) : (
-                  <Button type="button" variant="destructive" size="sm" onClick={speech.parar}>
-                    <MicOff className="mr-1 h-3 w-3" aria-hidden="true" />
-                    Detener
-                  </Button>
-                )}
-                {speech.transcripcion && (
-                  <Button type="button" variant="ghost" size="sm" onClick={speech.limpiar}>
-                    Borrar
-                  </Button>
-                )}
-              </div>
-
-              {speech.escuchando && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" />
-                  Escuchando...
-                </div>
-              )}
-
-              {(speech.transcripcion || speech.transcripcionInterina) && (
-                <div className="rounded-md border bg-muted/50 p-3 text-sm">
-                  {speech.transcripcion}
-                  {speech.transcripcionInterina && (
-                    <span className="text-muted-foreground">{speech.transcripcionInterina}</span>
-                  )}
-                </div>
-              )}
-
-              {speech.error && (
-                <p className="text-sm text-destructive">{speech.error}</p>
-              )}
-
-              {speech.transcripcion && (
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => void parsearVoz()}
-                  disabled={parseandoVoz}
-                >
-                  {parseandoVoz ? (
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <Mic className="mr-1 h-3 w-3" aria-hidden="true" />
-                  )}
-                  {parseandoVoz ? 'Procesando...' : 'Auto-rellenar desde el audio'}
-                </Button>
-              )}
-            </>
-          )}
+        <CardContent>
+          <VoiceInput
+            speech={speech}
+            parseandoVoz={parseandoVoz}
+            onParsear={handleParsearVoz}
+          />
         </CardContent>
       </Card>
 

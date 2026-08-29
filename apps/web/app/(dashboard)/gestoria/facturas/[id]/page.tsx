@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, Pencil, Trash2, Mic, MicOff, Loader2 } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2 } from 'lucide-react'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
-import type { OcrResult } from '@/lib/ocr'
+import { useParsearVoz } from '@/hooks/use-parsear-voz'
+import { VoiceInput } from '@/components/facturas/voice-input'
 
 interface Factura {
   id: string
@@ -32,9 +33,9 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [parseandoVoz, setParseandoVoz] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
+  const { parseandoVoz, parsearVoz } = useParsearVoz({ formRef })
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -90,37 +91,9 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
     router.push('/gestoria/facturas')
   }
 
-  async function parsearVoz() {
-    const texto = speech.transcripcion.trim()
-    if (!texto) return
-    setParseandoVoz(true)
-    try {
-      const res = await fetch('/api/facturas/parsear-voz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ texto }),
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        alert(err.error || 'Error al procesar el audio')
-        setParseandoVoz(false)
-        return
-      }
-      const data: OcrResult = await res.json()
-      if (!formRef.current) { setParseandoVoz(false); return }
-      const f = formRef.current
-      if (data.tipo) (f.elements.namedItem('tipo') as HTMLSelectElement).value = data.tipo
-      if (data.numero) (f.elements.namedItem('numero') as HTMLInputElement).value = data.numero
-      if (data.emisorReceptor) (f.elements.namedItem('emisorReceptor') as HTMLInputElement).value = data.emisorReceptor
-      if (data.nifContraparte) (f.elements.namedItem('nifContraparte') as HTMLInputElement).value = data.nifContraparte
-      if (data.fechaEmision) (f.elements.namedItem('fechaEmision') as HTMLInputElement).value = data.fechaEmision
-      if (data.baseImponible !== null) (f.elements.namedItem('baseImponible') as HTMLInputElement).value = data.baseImponible.toString()
-      if (data.iva !== null) (f.elements.namedItem('iva') as HTMLSelectElement).value = data.iva.toString()
-      speech.limpiar()
-    } catch {
-      alert('Error al conectar con el servicio de IA')
-    }
-    setParseandoVoz(false)
+  function handleParsearVoz() {
+    void parsearVoz(speech.transcripcion)
+    speech.limpiar()
   }
 
   const formatMoney = (cents: number) =>
@@ -243,46 +216,13 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               </div>
 
               {speech.soportado && (
-                <div className="rounded-md border p-3 space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Entrada por voz</p>
-                  <div className="flex gap-2">
-                    {!speech.escuchando ? (
-                      <Button type="button" variant="outline" size="sm" onClick={speech.iniciar}>
-                        <Mic className="mr-1 h-3 w-3" aria-hidden="true" />
-                        Hablar
-                      </Button>
-                    ) : (
-                      <Button type="button" variant="destructive" size="sm" onClick={speech.parar}>
-                        <MicOff className="mr-1 h-3 w-3" aria-hidden="true" />
-                        Detener
-                      </Button>
-                    )}
-                    {speech.transcripcion && (
-                      <Button type="button" variant="ghost" size="sm" onClick={speech.limpiar}>
-                        Borrar
-                      </Button>
-                    )}
-                  </div>
-                  {speech.escuchando && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />
-                      Escuchando...
-                    </div>
-                  )}
-                  {(speech.transcripcion || speech.transcripcionInterina) && (
-                    <div className="rounded bg-muted/50 p-2 text-xs">
-                      {speech.transcripcion}
-                      {speech.transcripcionInterina && (
-                        <span className="text-muted-foreground">{speech.transcripcionInterina}</span>
-                      )}
-                    </div>
-                  )}
-                  {speech.transcripcion && (
-                    <Button type="button" size="sm" variant="secondary" onClick={() => void parsearVoz()} disabled={parseandoVoz}>
-                      {parseandoVoz ? <Loader2 className="mr-1 h-3 w-3 animate-spin" aria-hidden="true" /> : <Mic className="mr-1 h-3 w-3" aria-hidden="true" />}
-                      {parseandoVoz ? 'Procesando...' : 'Auto-rellenar'}
-                    </Button>
-                  )}
+                <div className="rounded-md border p-3">
+                  <VoiceInput
+                    speech={speech}
+                    parseandoVoz={parseandoVoz}
+                    onParsear={handleParsearVoz}
+                    compact
+                  />
                 </div>
               )}
             </form>
