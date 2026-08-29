@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { UseSpeechRecognitionReturn } from '@/hooks/use-speech-recognition'
 
@@ -10,7 +11,7 @@ interface Props {
   compact?: boolean
 }
 
-export function VoiceInput({ speech, parseandoVoz, onParsear, compact }: Props) {
+export const VoiceInput = memo(function VoiceInput({ speech, parseandoVoz, onParsear, compact }: Props) {
   if (!speech.soportado) return null
 
   return (
@@ -42,4 +43,4 @@ export function VoiceInput({ speech, parseandoVoz, onParsear, compact }: Props) 
       )}
     </div>
   )
-}
+})

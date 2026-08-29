@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -50,7 +50,7 @@ interface Props {
   setGastoPropiedadId: (id: string | null) => void
 }
 
-export function PropertyCard({
+export const PropertyCard = memo(function PropertyCard({
   propiedad: p,
   editingId,
   gastoPropiedadId,
@@ -234,4 +234,4 @@ export function PropertyCard({
       </CardContent>
     </Card>
   )
-}
+})

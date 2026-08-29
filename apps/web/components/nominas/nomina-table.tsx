@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { ChevronLeft, ChevronRight, Briefcase, User, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
@@ -41,7 +42,7 @@ interface Props {
   onDelete: (id: string) => void
 }
 
-export function NominaTable({ paginadas, visibles, page, totalPages, ordenCampo, ordenDir, busqueda, toggleSort, setPage, onDelete }: Props) {
+export const NominaTable = memo(function NominaTable({ paginadas, visibles, page, totalPages, ordenCampo, ordenDir, busqueda, toggleSort, setPage, onDelete }: Props) {
   const SortIcon = ({ campo }: { campo: OrdenCampo }) => {
     if (ordenCampo !== campo) return <ArrowUpDown className="ml-1 h-3 w-3 opacity-40" />
     return ordenDir === 'asc'
@@ -161,4 +162,4 @@ export function NominaTable({ paginadas, visibles, page, totalPages, ordenCampo,
       )}
     </>
   )
-}
+})
