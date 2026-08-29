@@ -12,6 +12,7 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { Home, Plus, Search, Download } from 'lucide-react'
 import { PropertyCard } from '@/components/alquiler/property-card'
 import { descargarCsv } from '@/lib/descargar-csv'
+import { descargarExcel } from '@/lib/descargar-excel'
 import { logAccion } from '@/lib/audit-log'
 
 type OrdenCampo = 'direccion' | 'ingresos' | 'gastos' | 'balance'
@@ -295,18 +296,16 @@ export default function AlquilerPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled={visibles.length === 0}
             onClick={() => {
-              const filas: string[][] = [
-                ['Dirección', 'Inquilino', 'Ingresos', 'Gastos', 'Balance'],
-                ...visibles.map(p => [
-                  p.direccion, p.inquilinoNombre || 'Sin inquilino',
-                  p.ingresos.toFixed(2),
-                  p.gastos.reduce((s, g) => s + g.importe, 0).toFixed(2),
-                  (p.ingresos - p.gastos.reduce((s, g) => s + g.importe, 0)).toFixed(2)
-                ])
-              ]
-              descargarCsv(filas, `propiedades-alquiler-${new Date().toISOString().slice(0, 10)}.csv`)
+              const headers = ['Dirección', 'Inquilino', 'Ingresos', 'Gastos', 'Balance']
+              const rows = visibles.map(p => [
+                p.direccion, p.inquilinoNombre || 'Sin inquilino',
+                p.ingresos.toFixed(2),
+                p.gastos.reduce((s, g) => s + g.importe, 0).toFixed(2),
+                (p.ingresos - p.gastos.reduce((s, g) => s + g.importe, 0)).toFixed(2)
+              ])
+              descargarExcel(headers, rows, `propiedades-alquiler-${new Date().toISOString().slice(0, 10)}.xlsx`, 'Propiedades')
             }}>
-            <Download className="mr-1 h-4 w-4" /> Exportar
+            <Download className="mr-1 h-4 w-4" /> Exportar Excel
           </Button>
           <Button onClick={() => setShowForm(true)}>
             <Plus className="mr-2 h-4 w-4" />
