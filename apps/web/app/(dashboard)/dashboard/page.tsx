@@ -3,13 +3,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Receipt, TrendingUp, TrendingDown, PiggyBank, Calendar, Users, Home,
-  Plus, FileText, Calculator, ArrowRight, AlertCircle
+  Plus, FileText, Calculator, ArrowRight, AlertCircle, ChevronLeft, ChevronRight
 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { proximosPlazos, getCalendarioFiscal } from '@mantigestor/utils'
 import { Kbd } from '@/components/ui/kbd'
 import { ChartIngresosGastos } from '@/components/dashboard/chart-ingresos-gastos'
@@ -65,6 +65,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [nombre, setNombre] = useState('')
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const getSupabase = useCallback(() => createClient(), [])
   const { perfilActivoId, personas, esPropio } = usePersonaActiva()
 
@@ -83,15 +84,13 @@ export default function DashboardPage() {
           mostrarNombre = persona?.nombre ?? persona?.email ?? undefined
         }
 
-        const currentYear = new Date().getFullYear()
-
         // Queries en paralelo
         const [perfilRes, facturasRes, nominasRes, propsRes] = await Promise.all([
           supabase.from('perfiles').select('nombre').eq('id', perfilId).single(),
           supabase.from('facturas').select('*').eq('perfilId', perfilId)
-            .gte('fechaEmision', `${currentYear}-01-01`).lt('fechaEmision', `${currentYear + 1}-01-01`)
+            .gte('fechaEmision', `${selectedYear}-01-01`).lt('fechaEmision', `${selectedYear + 1}-01-01`)
             .order('fechaEmision', { ascending: false }),
-          supabase.from('nominas').select('*').eq('perfilId', perfilId).eq('anyo', currentYear).order('mes', { ascending: false }),
+          supabase.from('nominas').select('*').eq('perfilId', perfilId).eq('anyo', selectedYear).order('mes', { ascending: false }),
           supabase.from('propiedades_alquiler').select('*').eq('perfilId', perfilId),
         ])
 
@@ -107,7 +106,7 @@ export default function DashboardPage() {
             const ids = propsRes.data.map(p => p.id)
             const { data: gastosData } = await supabase
               .from('gastos_alquiler').select('*').in('propiedadId', ids)
-              .gte('fecha', `${currentYear}-01-01`).lt('fecha', `${currentYear + 1}-01-01`)
+              .gte('fecha', `${selectedYear}-01-01`).lt('fecha', `${selectedYear + 1}-01-01`)
             if (gastosData) setGastosAlquiler(gastosData as GastoAlquiler[])
           }
         }
@@ -118,7 +117,7 @@ export default function DashboardPage() {
       }
     }
     fetchData()
-  }, [getSupabase, perfilActivoId, personas])
+  }, [getSupabase, perfilActivoId, personas, selectedYear])
 
   const ingresos = facturas.filter(f => f.tipo === 'ingreso')
   const gastos = facturas.filter(f => f.tipo === 'gasto')
@@ -160,9 +159,21 @@ export default function DashboardPage() {
             {saludo}{nombre ? `, ${nombre}` : ''}
           </h1>
           <p className="text-muted-foreground">
-            {MESES[ahora.getMonth()]} {ahora.getFullYear()} · Panel de control fiscal
+            Panel de control fiscal
             {!esPropio && ' · Gestionando otra persona'}
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" className="h-8 w-8"
+            onClick={() => setSelectedYear(y => y - 1)} aria-label="Año anterior">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium min-w-[4rem] text-center">{selectedYear}</span>
+          <Button variant="outline" size="icon" className="h-8 w-8"
+            onClick={() => setSelectedYear(y => y + 1)} aria-label="Año siguiente"
+            disabled={selectedYear >= new Date().getFullYear()}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/gestoria/facturas/nueva">
