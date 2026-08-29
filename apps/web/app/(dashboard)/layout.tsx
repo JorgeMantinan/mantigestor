@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header'
 import { FiscalRemindersProvider } from '@/components/layout/FiscalRemindersProvider'
 import { DashboardShortcuts } from '@/components/layout/DashboardShortcuts'
 import { PersonaActivaProvider } from '@/contexts/persona-activa-context'
+import { CommandPalette } from '@/components/command-palette'
 
 export const metadata: Metadata = {
   title: 'Panel - MantiGestor',
@@ -26,6 +27,7 @@ export default function DashboardLayout({
           </main>
         </div>
         <DashboardShortcuts />
+        <CommandPalette />
       </div>
     </PersonaActivaProvider>
   )
