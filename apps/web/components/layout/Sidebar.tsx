@@ -69,6 +69,7 @@ const menuItems = [
     items: [
       { label: 'IA', href: '/ai', icon: PiggyBank },
       { label: 'Conversiones', href: '/conversiones', icon: FileSpreadsheet },
+      { label: 'Dividir gasto', href: '/herramientas/dividir-gasto', icon: Users },
       { label: 'Notificaciones', href: '/ajustes/notificaciones', icon: Bell },
       { label: 'Ajustes', href: '/ajustes', icon: Settings },
     ],
