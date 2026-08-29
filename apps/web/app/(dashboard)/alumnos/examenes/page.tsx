@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { GraduationCap, Brain, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
+import { toast, Toaster } from 'sonner'
 
 interface Examen {
   id: string
@@ -58,7 +59,7 @@ export default function ExamenesPage() {
       if (!res.ok) throw new Error(data.error ?? 'Error al generar')
       setExamenes((prev) => [data as Examen, ...prev])
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al generar el examen')
+      toast.error(err instanceof Error ? err.message : 'Error al generar el examen')
     } finally {
       setGenerando(false)
     }
@@ -204,6 +205,7 @@ export default function ExamenesPage() {
           })}
         </div>
       )}
+      <Toaster richColors position="top-right" />
     </div>
   )
 }
