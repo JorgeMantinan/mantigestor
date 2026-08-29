@@ -18,6 +18,7 @@ import { ChartAlquiler } from '@/components/dashboard/chart-alquiler'
 import { ChartEvolucion } from '@/components/dashboard/chart-evolucion'
 import { SkeletonDashboard } from '@/components/dashboard/skeleton-dashboard'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
+import { CalendarioFiscal } from '@/components/dashboard/calendario-fiscal'
 
 interface Factura {
   id: string
@@ -264,7 +265,10 @@ export default function DashboardPage() {
       )}
 
       {/* Contenido principal */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {/* Calendario fiscal */}
+        <CalendarioFiscal />
+
         {/* Últimas facturas */}
         <Card>
           <CardHeader>
