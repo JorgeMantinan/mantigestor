@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Bell, Mail, Save, Loader2 } from 'lucide-react'
+import { Bell, Mail, Save, Loader2, Zap, Shield, BellOff } from 'lucide-react'
 
 interface Preferencia {
   canal: 'in_app' | 'email'
@@ -125,6 +125,41 @@ export function NotificacionesPageClient() {
         <h1 className="text-3xl font-heading font-bold tracking-tight">Preferencias de notificaciones</h1>
         <p className="text-muted-foreground">Configura cómo y cuándo recibir recordatorios fiscales</p>
       </div>
+
+      {/* Presets */}
+      <Card className="border-dashed">
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm font-medium text-muted-foreground">Atajos:</span>
+            <Button variant="outline" size="sm"
+              onClick={() => {
+                setPreferencias(prev => prev.map(p => ({
+                  ...p,
+                  activo: p.canal === 'in_app',
+                  diasAntelacion: p.canal === 'email' ? 1 : 15,
+                })))
+              }}>
+              <Zap className="mr-1 h-3 w-3" /> Recomendado
+            </Button>
+            <Button variant="outline" size="sm"
+              onClick={() => {
+                setPreferencias(prev => prev.map(p => ({
+                  ...p,
+                  activo: true,
+                  diasAntelacion: p.canal === 'email' ? 7 : 15,
+                })))
+              }}>
+              <Shield className="mr-1 h-3 w-3" /> Máximo (todos activos)
+            </Button>
+            <Button variant="outline" size="sm"
+              onClick={() => {
+                setPreferencias(prev => prev.map(p => ({ ...p, activo: false })))
+              }}>
+              <BellOff className="mr-1 h-3 w-3" /> Desactivar todos
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {CATEGORIAS.map(cat => (
         <Card key={cat.key}>
