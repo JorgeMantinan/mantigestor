@@ -1,6 +1,6 @@
 import type { PerfilFiscal } from './perfil'
 
-export type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'modelo100' | 'modelo131' | 'modelo115' | 'modelo123' | 'modelo347' | 'modelo349' | 'modelo721' | 'modelo714' | 'modelo232' | 'modelo210' | 'modelo220' | 'modelo309' | 'modelo184' | 'modelo296' | 'modelo345' | 'modelo193' | 'modelo369' | 'modelo130' | 'modelo303' | 'modelo170' | 'modelo179' | 'modelo600' | 'modelo233' | 'modelo036' | 'modelo145' | 'modelo590' | 'modelo222' | 'modelo211' | 'modelo104' | 'plusvalia' | 'modelo110' | 'modelo117' | 'plazos' | 'minimos' | 'resumen' | 'packTrimestre' | 'presupuestoAnual' | 'guias'
+export type SeccionKey = 'irpf' | 'iva' | 'reta' | 'sociedades' | 'patrimonio' | 'deducciones' | 'documentos' | 'modelo111' | 'modelo190' | 'modelo390' | 'modelo180' | 'modelo202' | 'modelo200' | 'modelo720' | 'modelo151' | 'modelo100' | 'modelo131' | 'modelo115' | 'modelo123' | 'modelo347' | 'modelo349' | 'modelo721' | 'modelo714' | 'modelo232' | 'modelo210' | 'modelo220' | 'modelo309' | 'modelo184' | 'modelo296' | 'modelo345' | 'modelo193' | 'modelo369' | 'modelo130' | 'modelo303' | 'modelo170' | 'modelo179' | 'modelo600' | 'modelo233' | 'modelo036' | 'modelo145' | 'modelo590' | 'modelo222' | 'modelo211' | 'modelo104' | 'plusvalia' | 'modelo110' | 'modelo117' | 'modelo236' | 'modelo282' | 'modelo715' | 'plazos' | 'minimos' | 'resumen' | 'packTrimestre' | 'presupuestoAnual' | 'guias'
 
 export const SECCIONES_CALCULADORAS: Array<{ key: SeccionKey; label: string }> = [
   { key: 'irpf', label: 'IRPF' },
@@ -53,6 +53,9 @@ export const SECCIONES_MODELOS: Array<{ key: SeccionKey; label: string }> = [
   { key: 'plusvalia', label: 'Plusvalía municipal (IIVTNU)' },
   { key: 'modelo110', label: 'Modelo 110 (otras retenciones IRPF)' },
   { key: 'modelo117', label: 'Modelo 117 (agrícolas y ganaderas)' },
+  { key: 'modelo236', label: 'Modelo 236 (bienes en el extranjero)' },
+  { key: 'modelo282', label: 'Modelo 282 (sociedades transparentes)' },
+  { key: 'modelo715', label: 'Modelo 715 (inversiones en el extranjero)' },
 ]
 
 export const SECCIONES_UTILIDADES: Array<{ key: SeccionKey; label: string }> = [

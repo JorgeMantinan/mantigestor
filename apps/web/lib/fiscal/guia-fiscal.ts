@@ -1577,6 +1577,454 @@ export const GUIA_MODELO_145: Record<string, GuiaCampo> = {
   },
 }
 
+export const GUIA_MODELO_206: Record<string, GuiaCampo> = {
+  baseImponible: {
+    titulo: 'Base imponible del ejercicio',
+    contenido: 'Es el resultado positivo de la actividad de la sociedad antes de restar las bases negativas pendientes de compensación. Sobre ella se aplica el tipo de gravamen para calcular la cuota íntegra.',
+    ejemplos: [
+      'Beneficio de 200.000€ → base imponible 200.000€',
+      'Si tuviste pérdidas, pon 0 (no hay pago fraccionado)',
+    ],
+    dondeVer: 'Cuenta de resultados del ejercicio corriente. Casilla 001 del modelo 200.',
+  },
+  tipoGravamen: {
+    titulo: 'Tipo de gravamen',
+    contenido: 'El porcentaje que se aplica sobre la base imponible. El 18% es el tipo general para la mayoría de sociedades. El 24% aplica a grandes empresas con cifra de negocios ≥ 6 millones de euros.',
+    ejemplos: [
+      'General: 18% — para cifra de negocios < 6.000.000€',
+      'Grandes empresas: 24% — para cifra de negocios ≥ 6.000.000€',
+    ],
+    dondeVer: 'Art. 40.1 y 40.3 de la Ley del Impuesto sobre Sociedades.',
+  },
+  pagosAnteriores: {
+    titulo: 'Pagos fraccionados anteriores',
+    contenido: 'La suma de los pagos fraccionados ya ingresados en trimestres anteriores del mismo ejercicio. Se restan de la cuota para calcular el resultado a ingresar del trimestre actual.',
+    ejemplos: [
+      'Si en trimestres anteriores pagaste 5.000€, pon 5.000€',
+      'Si es el primer trimestre, deja en 0',
+    ],
+    dondeVer: 'Modelos 202/222 de trimestres anteriores del mismo ejercicio.',
+  },
+  compensaciones: {
+    titulo: 'Compensaciones de bases negativas',
+    contenido: 'Son pérdidas fiscales de ejercicios anteriores pendientes de compensar. Se restan de la base imponible antes de calcular la cuota. El límite es el 25% de la base positiva (75% para grandes empresas).',
+    ejemplos: [
+      'Si tienes 30.000€ de bases negativas pendientes, pon 30.000€',
+      'La compensación no puede reducir la base más del 25%',
+    ],
+    dondeVer: 'Modelo 200 del ejercicio anterior. Hoja de bases negativas.',
+  },
+}
+
+export const GUIA_MODELO_216: Record<string, GuiaCampo> = {
+  nifBeneficiario: {
+    titulo: 'NIF del beneficiario',
+    contenido: 'El número de identificación fiscal del perceptor no residente. Puede ser NIF español (si lo tiene), NIE o número de identificación del país de residencia.',
+    ejemplos: [
+      'B12345678 (empresa no residente con NIF español)',
+      'DE123456789 (NIF alemán)',
+      'GB123456789 (NIF británico)',
+    ],
+    dondeVer: 'Contratos y facturas con el perceptor no residente.',
+  },
+  nombreBeneficiario: {
+    titulo: 'Nombre del beneficiario',
+    contenido: 'Nombre completo o razón social del perceptor no residente al que se le practica la retención.',
+    ejemplos: [
+      'Acme GmbH (empresa alemana)',
+      'John Smith (persona física británica)',
+    ],
+    dondeVer: 'Contratos, facturas o escrituras con la contraparte.',
+  },
+  paisResidencia: {
+    titulo: 'País de residencia',
+    contenido: 'El país donde resides habitualmente. Determina el tipo de retención aplicable según los convenios de doble imposición vigentes.',
+    ejemplos: [
+      'Alemania: tipo general 24% (sin convenio específico)',
+      'Francia: 15% por convenio de doble imposición',
+      'Reino Unido: 24% (post-Brexit, sin convenio específico)',
+    ],
+    dondeVer: 'Certificado de residencia fiscal del perceptor.',
+  },
+  rentasPercibidas: {
+    titulo: 'Rentas percibidas',
+    contenido: 'El importe bruto de los rendimientos obtenidos por el perceptor no residente en España. Puede ser por trabajo, arrendamiento u otro concepto.',
+    ejemplos: [
+      'Salario de 3.000€ mensuales → 9.000€ trimestrales',
+      'Alquiler de un inmueble: renta trimestral',
+    ],
+    dondeVer: 'Nóminas, contratos o facturas que generan la renta.',
+  },
+  tipoRetencion: {
+    titulo: 'Tipo de retención',
+    contenido: 'El porcentaje que se aplica sobre las rentas. Varía según el convenio de doble imposición con el país de residencia del perceptor.',
+    ejemplos: [
+      '24% general (sin convenio)',
+      '15% convenio general (Alemania, Francia, Italia...)',
+      '10% convenio reducido',
+      '0% exento por convenio',
+    ],
+    dondeVer: 'Convenio de doble imposición con el país del perceptor. Art. 81-83 Reglamento IRNR.',
+  },
+}
+
+export const GUIA_MODELO_231: Record<string, GuiaCampo> = {
+  fecha: {
+    titulo: 'Fecha de la operación',
+    contenido: 'La fecha en que se realizó la operación de compraventa o canje de criptomonedas. Debe estar dentro del ejercicio fiscal que se declara.',
+    ejemplos: [
+      '15/03/2025 para una compra de Bitcoin',
+      '20/06/2025 para una venta de Ethereum',
+    ],
+    dondeVer: 'Historial de transacciones del exchange o plataforma.',
+  },
+  tipoOperacion: {
+    titulo: 'Tipo de operación',
+    contenido: 'La naturaleza de la operación realizada con criptomonedas. Las compras y ventas tributan como ganancias o pérdidas patrimoniales. Los canjes (swaps) entre criptomonedas también tributan.',
+    ejemplos: [
+      'Compra: adquisición de criptomoneda con euros',
+      'Venta: transmisión de criptomoneda por euros',
+      'Cambio: canje de una criptomoneda por otra (tributa como ganancia/pérdida)',
+    ],
+    dondeVer: 'Historial de transacciones del exchange.',
+  },
+  criptomoneda: {
+    titulo: 'Criptomoneda',
+    contenido: 'El nombre o símbolo de la criptomoneda involucrada en la operación (BTC, ETH, SOL, etc.).',
+    ejemplos: [
+      'BTC (Bitcoin)',
+      'ETH (Ethereum)',
+      'SOL (Solana)',
+    ],
+    dondeVer: 'En tu wallet o exchange: activos poseídos.',
+  },
+  unidades: {
+    titulo: 'Unidades',
+    contenido: 'El número de unidades de criptomoneda compradas, vendidas o canjeadas en la operación.',
+    ejemplos: [
+      '0,5 BTC en una compra',
+      '10 ETH en una venta',
+    ],
+    dondeVer: 'Historial de transacciones del exchange.',
+  },
+  valorEur: {
+    titulo: 'Valor en euros',
+    contenido: 'El valor de mercado de la operación en euros al momento de realizarse. Para ventas es el precio de venta. Para compras es el precio pagado.',
+    ejemplos: [
+      'Venta de 0,5 BTC a 21.000€ → valor 21.000€',
+      'Compra de 10 ETH a 25.000€ → valor 25.000€',
+    ],
+    dondeVer: 'Historial del exchange o plataforma de trading.',
+  },
+  wallets: {
+    titulo: 'Wallets origen y destino',
+    contenido: 'Las direcciones de las wallets involucradas en la operación. La wallet de origen es de donde salen los fondos y la de destino es donde llegan.',
+    ejemplos: [
+      'Wallet origen: dirección de tu wallet personal',
+      'Wallet destino: dirección de la wallet del exchange',
+    ],
+    dondeVer: 'Historial de transacciones blockchain o extracto del exchange.',
+  },
+}
+
+export const GUIA_MODELO_182: Record<string, GuiaCampo> = {
+  donante: {
+    titulo: 'Nombre del donante',
+    contenido: 'Nombre y apellidos de la persona física o jurídica que realiza la donación. Las donaciones a entidades sin fines lucrativos generan derecho a deducción en IRPF (art. 19 LIRPF).',
+    ejemplos: [
+      'Fundación Española del Corazón',
+      'Cruz Roja Española',
+      'Cáritas Diocesana',
+    ],
+    dondeVer: 'Justificante de la donación o recibo de la entidad.',
+  },
+  nifDonante: {
+    titulo: 'NIF del donante',
+    contenido: 'Número de Identificación Fiscal de quien dona. Es obligatorio identificar al donante en la declaración informativa.',
+    ejemplos: [
+      'Persona física: 12345678Z',
+      'Entidad: A12345678',
+    ],
+    dondeVer: 'En el justificante de la donación.',
+  },
+  ccaaDonante: {
+    titulo: 'CCAA del donante',
+    contenido: 'Comunidad Autónoma donde reside el donante. La deducción autonómica varía según la CCAA: algunas aplican un 10-25% sobre la cuota estatal, otras tienen porcentajes propios.',
+    ejemplos: [
+      'Andalucía, Madrid, Cataluña, etc.',
+      'Las deducciones autonómicas difieren en cuantía y límites',
+    ],
+    dondeVer: 'Domicilio fiscal del donante en el justificante.',
+  },
+  importeDonaciones: {
+    titulo: 'Importe de la donación (€)',
+    contenido: 'Cantidad total donada en euros. Solo se incluyen donaciones a entidades del art. 19 LIRPF (beneficiosas para la actividad socio-sanitaria, educativa, etc.). NO se incluyen cuotas de sociedades, herencias o legados.',
+    ejemplos: [
+      'Donación de 200€ a una fundación → 200€',
+      'Cuota de socio de 50€ → NO se incluye',
+    ],
+    dondeVer: 'Justificante bancario o recibo de la entidad donataria.',
+  },
+}
+
+export const GUIA_MODELO_189: Record<string, GuiaCampo> = {
+  beneficiario: {
+    titulo: 'Nombre del beneficiario',
+    contenido: 'Nombre de la persona que recibe la renta exenta. Las rentas exentas del IRPF deben comunicarse a la AEAT por parte de las Administraciones Públicas y otros obligados.',
+    ejemplos: [
+      'Becario de estudios universitarios',
+      'Pensionista por invalidez',
+    ],
+    dondeVer: 'Resolución de la entidad que concede la renta exenta.',
+  },
+  nif: {
+    titulo: 'NIF del beneficiario',
+    contenido: 'Número de Identificación Fiscal del perceptor de la renta exenta.',
+    ejemplos: [
+      '12345678Z',
+    ],
+    dondeVer: 'Documento de identidad del beneficiario.',
+  },
+  tipoRenta: {
+    titulo: 'Tipo de renta exenta',
+    contenido: 'Categoría de la renta exenta: becas, seguros de vida, invalideces, pensiones públicas, ayudas públicas u otras. Cada tipo tiene un tratamiento fiscal específico (art. 13-15 LIRPF).',
+    ejemplos: [
+      'Beca: exenta si es para estudios',
+      'Seguro de vida: indemnización por invalidez',
+      'Pensión pública: exenta si no supera ciertos límites',
+    ],
+    dondeVer: 'Art. 13-15 LIRPF y normativa autonómica.',
+  },
+  importe: {
+    titulo: 'Importe de la renta exenta (€)',
+    contenido: 'Cuantía total de la renta percibida exenta de IRPF. Debe indicarse el importe íntegro sin descontar gastos.',
+    ejemplos: [
+      'Beca de 6.000€ anuales → 6.000€',
+      'Pensión por invalidez de 12.000€ → 12.000€',
+    ],
+    dondeVer: 'Certificado de la entidad que paga la renta exenta.',
+  },
+  descripcion: {
+    titulo: 'Descripción',
+    contenido: 'Detalle breve de la renta exenta para identificarla en la declaración informativa.',
+    ejemplos: [
+      'Beca de estudios en la Universidad Complutense',
+      'Indemnización por accidente de tráfico',
+    ],
+    dondeVer: 'En la resolución o certificado de la entidad.',
+  },
+}
+
+export const GUIA_MODELO_194: Record<string, GuiaCampo> = {
+  baseImponible111: {
+    titulo: 'Base imponible modelo 111 (€)',
+    contenido: 'Suma de las bases de retención de los trimestres del modelo 111 (rendimientos del trabajo, actividades profesionales, premios, etc.). Se presenta anualmente como resumen.',
+    ejemplos: [
+      'Si pagaste 4.000€ de retención por nóminas → base del 111',
+      'Suma de las 4 trimestrales del 111',
+    ],
+    dondeVer: 'En los resúmenes trimestrales del modelo 111.',
+  },
+  retencion111: {
+    titulo: 'Retención modelo 111 (€)',
+    contenido: 'Total de retenciones practicadas en el modelo 111 durante el año. Es la suma de las retenciones trimestrales ingresadas.',
+    ejemplos: [
+      'Retención total del 111: 4.000€',
+    ],
+    dondeVer: 'Justificantes de ingreso del modelo 111.',
+  },
+  baseImponible115: {
+    titulo: 'Base imponible modelo 115 (€)',
+    contenido: 'Suma de las bases de retención del modelo 115 (arrendamiento de inmuebles urbanos). Incluye todas las rentas satisfechas a arrendadores durante el año.',
+    ejemplos: [
+      'Alquiler mensual 800€ × 12 = 9.600€ base anual del 115',
+    ],
+    dondeVer: 'Contratos de alquiler y recibos de transferencia.',
+  },
+  retencion115: {
+    titulo: 'Retención modelo 115 (€)',
+    contenido: 'Total de retenciones practicadas en el modelo 115 durante el año.',
+    ejemplos: [
+      'Retención 19% sobre 9.600€ = 1.824€',
+    ],
+    dondeVer: 'Justificantes de ingreso del modelo 115.',
+  },
+  baseImponible117: {
+    titulo: 'Base imponible modelo 117 (€)',
+    contenido: 'Suma de las bases de retención del modelo 117 (premios de loterías, concursos y juegos). Si no se han presentado trimestrales, se incluye el total anual.',
+    ejemplos: [
+      'Premio de lotería de 1.000€ → base del 117',
+    ],
+    dondeVer: 'Certificados de premios de loterías y concursos.',
+  },
+  retencion117: {
+    titulo: 'Retención modelo 117 (€)',
+    contenido: 'Total de retenciones practicadas en el modelo 117 durante el año.',
+    ejemplos: [
+      'Retención 20% sobre premio de 1.000€ = 200€',
+    ],
+    dondeVer: 'Certificado de retención del organizador.',
+  },
+  baseImponible123: {
+    titulo: 'Base imponible modelo 123 (€)',
+    contenido: 'Suma de las bases de retención del modelo 123 (capital mobiliario: intereses, dividendos, arrendamientos financieros, seguros de vida, etc.).',
+    ejemplos: [
+      'Intereses de cuenta: 500€ → base del 123',
+      'Dividendos: 1.200€ → base del 123',
+    ],
+    dondeVer: 'Certificados de retenciones de entidades financieras.',
+  },
+  retencion123: {
+    titulo: 'Retención modelo 123 (€)',
+    contenido: 'Total de retenciones practicadas en el modelo 123 durante el año.',
+    ejemplos: [
+      'Retención 19% sobre 500€ de intereses = 95€',
+    ],
+    dondeVer: 'Certificados de retenciones de tu banco.',
+  },
+}
+
+export const GUIA_MODELO_236: Record<string, GuiaCampo> = {
+  entidad: {
+    titulo: 'Entidad financiera',
+    contenido: 'Nombre de la entidad bancaria, aseguradora o depositaria donde se encuentra el bien o derecho en el extranjero.',
+    ejemplos: ['Deutsche Bank', 'HSBC', 'UBS', 'Interactive Brokers'],
+    dondeVer: 'Extracto bancario o contrato con la entidad.',
+  },
+  pais: {
+    titulo: 'País del bien',
+    contenido: 'País donde se encuentra la entidad o el inmueble. Se usa el código ISO del país.',
+    ejemplos: ['Alemania: DE', 'Reino Unido: GB', 'Estados Unidos: US', 'Suiza: CH'],
+    dondeVer: 'Dirección de la entidad en el extracto o escritura.',
+  },
+  iban: {
+    titulo: 'IBAN de la cuenta',
+    contenido: 'Número de cuenta internacional (IBAN) de la cuenta bancaria en el extranjero.',
+    ejemplos: ['DE89 3704 0044 0532 0130 00', 'GB29 NWBK 6016 1331 9268 19'],
+    dondeVer: 'Extracto bancario o tarjeta de la cuenta.',
+  },
+  saldoFinal: {
+    titulo: 'Saldo a 31 de diciembre',
+    contenido: 'Saldo de la cuenta a 31 de diciembre del año fiscal. Si el saldo del último trimestre es superior, se usa la media del último trimestre.',
+    ejemplos: ['Si a 31/12 tienes 75.000€, pon 75.000€', 'Si el saldo medio del último trimestre es mayor, usa ese'],
+    dondeVer: 'Extracto bancario a 31/12 o certificado anual de la entidad.',
+  },
+  saldoMaximo: {
+    titulo: 'Saldo máximo del año',
+    contenido: 'Saldo más alto alcanzado durante el año fiscal en esa cuenta.',
+    ejemplos: ['Si en julio tu cuenta llegó a 120.000€, pon 120.000€'],
+    dondeVer: 'Extractos mensuales o certificado de movimientos de la entidad.',
+  },
+  direccion: {
+    titulo: 'Dirección del inmueble',
+    contenido: 'Dirección completa del bien inmueble situado en el extranjero.',
+    ejemplos: ['15 Downing Street, London SW1A 2AA', '123 Main St, New York, NY 10001'],
+    dondeVer: 'Escritura de compraventa o contrato de alquiler.',
+  },
+  valorInmueble: {
+    titulo: 'Valor del inmueble',
+    contenido: 'Valor de adquisición o valor comprobado del inmueble en el extranjero.',
+    ejemplos: ['Precio de compra en la escritura', 'Valor catastral si no hay escritura reciente'],
+    dondeVer: 'Escritura de compraventa o certificado catastral.',
+  },
+  valorFinal: {
+    titulo: 'Valor a 31 de diciembre',
+    contenido: 'Valor o cotización del valor o participación a 31 de diciembre del año fiscal.',
+    ejemplos: ['Cotización de la acción a 31/12 × número de participaciones'],
+    dondeVer: 'Certificado de valores o extracto de bróker.',
+  },
+  capital: {
+    titulo: 'Capital o valor del seguro',
+    contenido: 'Capital asegurado o valor del contrato de seguro de vida o renta vitalicia a 31 de diciembre.',
+    ejemplos: ['Capital del seguro de vida: 100.000€', 'Valor acumulado de renta vitalicia'],
+    dondeVer: 'Certificado de la aseguradora o póliza.',
+  },
+}
+
+export const GUIA_MODELO_282: Record<string, GuiaCampo> = {
+  razonSocial: {
+    titulo: 'Razón social',
+    contenido: 'Nombre oficial de la entidad sometida al régimen de transparencia fiscal.',
+    ejemplos: ['Fondo de Inversión XYZ, SICAV Europa, ETF Global'],
+    dondeVer: 'Escritura de constitución o registro de la entidad.',
+  },
+  nif: {
+    titulo: 'NIF de la entidad',
+    contenido: 'Número de Identificación Fiscal de la entidad transparente.',
+    ejemplos: ['B12345678', 'A87654321'],
+    dondeVer: 'Certificado fiscal o documento oficial de la entidad.',
+  },
+  tipoEntidad: {
+    titulo: 'Tipo de entidad',
+    contenido: 'Clasificación de la entidad according to the type of collective investment vehicle.',
+    ejemplos: ['Fondo de inversión', 'SICAV', 'FICVM', 'SOCIMI'],
+    dondeVer: 'Estatutos de la entidad o registro oficial.',
+  },
+  tipoRenta: {
+    titulo: 'Tipo de renta',
+    contenido: 'Naturaleza de la renta imputada por la entidad transparente.',
+    ejemplos: ['Dividendos', 'Intereses', 'Plusvalías', 'Rentas de arrendamiento'],
+    dondeVer: 'Certificado anual de la entidad o informe de gestores.',
+  },
+  importeRenta: {
+    titulo: 'Importe de la renta',
+    contenido: 'Importe bruto de la renta imputada en céntimos.',
+    ejemplos: ['Dividendos recibidos: 5.000€', 'Plusvalías realizadas: 3.200€'],
+    dondeVer: 'Certificado de retenciones o informe anual de la entidad.',
+  },
+  sociedad: {
+    titulo: 'Sociedad participada',
+    contenido: 'Nombre de la sociedad en la que se tiene participación.',
+    ejemplos: ['Empresa ABC, S.L.', 'Corporación XYZ, Inc.'],
+    dondeVer: 'Escritura de constitución o pactos de socios.',
+  },
+  porcentaje: {
+    titulo: 'Porcentaje de participación',
+    contenido: 'Porcentaje de participación en el capital o derechos de voto de la sociedad.',
+    ejemplos: ['25%', '100%', '15.5%'],
+    dondeVer: 'Escritura de constitución o registro mercantil.',
+  },
+}
+
+export const GUIA_MODELO_715: Record<string, GuiaCampo> = {
+  tipo: {
+    titulo: 'Tipo de inversión',
+    contenido: 'Clasificación de la inversión en el extranjero según su naturaleza.',
+    ejemplos: ['Valores: acciones, bonos, participaciones de fondos', 'Participaciones: capital social de empresas', 'Muebles: bienes muebles de uso o arrendamiento'],
+    dondeVer: 'Extracto de bróker o escritura de compraventa.',
+  },
+  entidad: {
+    titulo: 'Entidad o depositario',
+    contenido: 'Nombre de la entidad financiera o depositario donde se custodia la inversión.',
+    ejemplos: ['Interactive Brokers', 'Deutsche Bank', 'Vanguard'],
+    dondeVer: 'Extracto bancario o contrato con la entidad.',
+  },
+  pais: {
+    titulo: 'País de la inversión',
+    contenido: 'País donde se encuentra la entidad depositaria o el bien.',
+    ejemplos: ['Estados Unidos: US', 'Reino Unido: GB', 'Alemania: DE'],
+    dondeVer: 'Dirección de la entidad en el extracto.',
+  },
+  fechaAdquisicion: {
+    titulo: 'Fecha de adquisición',
+    contenido: 'Fecha en que se adquirió la inversión. Se usa para calcular ganancias o pérdidas patrimoniales.',
+    ejemplos: ['2020-03-15', '2019-07-01'],
+    dondeVer: 'Ticket de compra o contrato de compraventa.',
+  },
+  valorAdquisicion: {
+    titulo: 'Valor de adquisición',
+    contenido: 'Importe pagado por la inversión en el momento de su compra, incluyendo gastos.',
+    ejemplos: ['Precio de compra + comisiones + impuestos'],
+    dondeVer: 'Ticket de compra o escritura de compraventa.',
+  },
+  valorActual: {
+    titulo: 'Valor actual a 31 de diciembre',
+    contenido: 'Valor de mercado de la inversión a 31 de diciembre del año fiscal.',
+    ejemplos: ['Cotización de la acción a 31/12 × número de participaciones', 'Valor liquidativo del fondo a 31/12'],
+    dondeVer: 'Extracto de bróker o certificado de la entidad.',
+  },
+}
+
 export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
   const guias: Record<string, Record<string, GuiaCampo>> = {
     irpf: GUIA_IRPF,
@@ -1618,6 +2066,12 @@ export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
     plusvalia: GUIA_PLUSVALIA,
     modelo110: GUIA_MODELO_110,
     modelo117: GUIA_MODELO_117,
+    modelo182: GUIA_MODELO_182,
+    modelo189: GUIA_MODELO_189,
+    modelo194: GUIA_MODELO_194,
+    modelo236: GUIA_MODELO_236,
+    modelo282: GUIA_MODELO_282,
+    modelo715: GUIA_MODELO_715,
   }
   return guias[seccion]?.[campo] ?? null
 }

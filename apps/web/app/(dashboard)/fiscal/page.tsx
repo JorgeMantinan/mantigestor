@@ -59,6 +59,9 @@ import { CalculadoraModelo104 } from './calculadoras/calculadora-104'
 import { CalculadoraPlusvalia } from './calculadoras/calculadora-plusvalia'
 import { CalculadoraModelo110 } from './calculadoras/calculadora-110'
 import { CalculadoraModelo117 } from './calculadoras/calculadora-117'
+import { CalculadoraModelo236 } from './calculadoras/calculadora-236'
+import { CalculadoraModelo282 } from './calculadoras/calculadora-282'
+import { CalculadoraModelo715 } from './calculadoras/calculadora-715'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { GUIAS_PERFIL } from '@/lib/fiscal/guias-perfil'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -417,6 +420,9 @@ function PaginaFiscalInner() {
           {seccion === 'plusvalia' && <CalculadoraPlusvalia />}
           {seccion === 'modelo110' && <CalculadoraModelo110 />}
           {seccion === 'modelo117' && <CalculadoraModelo117 />}
+          {seccion === 'modelo236' && <CalculadoraModelo236 />}
+          {seccion === 'modelo282' && <CalculadoraModelo282 />}
+          {seccion === 'modelo715' && <CalculadoraModelo715 />}
           {seccion === 'guias' && (() => {
             const guia = GUIAS_PERFIL[perfil ?? 'autonomo'] ?? GUIAS_PERFIL['autonomo']
             if (!guia) return null
