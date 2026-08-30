@@ -28,6 +28,7 @@ model Perfil {
   preferenciasNotificaciones PreferenciaNotificacion[]
   propiedadesAlquiler PropiedadAlquiler[]
   nominas            Nomina[]
+  auditLogs          AuditLog[]
 
   @@map("perfiles")
 }
@@ -58,6 +59,7 @@ model Factura {
   total           Int      // en céntimos
   estado          String   @default("pendiente")
   categoriaGasto  String?  // etiqueta: suministros, alquiler, nomina, seguridad, marketing, otros
+  notas           String?  // notas internas sobre la factura
   pdfUrl          String?
   createdAt       DateTime @default(now())
 

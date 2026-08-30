@@ -39,6 +39,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [categoriaGasto, setCategoriaGasto] = useState<string | null>(null)
+  const [notas, setNotas] = useState<string>('')
   const [perfil, setPerfil] = useState<{ nombre: string | null; empresa_nombre: string | null; empresa_nif: string | null; empresa_direccion: string | null } | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
@@ -59,6 +60,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       if (data) {
         setFactura(data as Factura)
         setCategoriaGasto((data as Factura).categoriaGasto ?? null)
+        setNotas((data as unknown as { notas: string | null }).notas ?? '')
       }
       const { data: perfilData } = await getSupabase()
         .from('perfiles')
@@ -93,6 +95,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       iva,
       total,
       categoriaGasto: form.get('tipo') === 'gasto' ? (form.get('categoriaGasto') as string || null) : null,
+      notas: notas || null,
     }).eq('id', factura.id)
 
     if (!error) {
@@ -260,6 +263,17 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   <Label htmlFor="total">Total (€)</Label>
                   <Input id="total" disabled value={(factura.total / 100).toFixed(2)} />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="notas">Notas internas</Label>
+                <textarea
+                  id="notas"
+                  value={notas}
+                  onChange={(e) => setNotas(e.target.value)}
+                  placeholder="Notas sobre esta factura..."
+                  rows={3}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
               </div>
               <div className="flex gap-4 pt-4">
                 <Button variant="outline" type="button" onClick={() => setEditing(false)} className="flex-1">
