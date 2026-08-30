@@ -14,6 +14,7 @@ export interface OcrResult {
   iva: number | null
   total: number | null
   tipo: 'ingreso' | 'gasto' | null
+  categoriaGasto: string | null
   modelosSugeridos: ModeloSugeridoOcr[]
 }
 
@@ -66,11 +67,26 @@ Devuelve SOLO un objeto JSON válido sin explicaciones adicionales, con estos ca
   "iva": 21,
   "total": 149.37,
   "tipo": "ingreso" si es una factura emitida, "gasto" si es recibida,
+  "categoriaGasto": "suministros" | "alquiler" | "nómina" | "seguridad-social" | "marketing" | "seguros" | "profesionales" | "material" | "transporte" | "comunicaciones" | "formación" | "otros" | null,
   "modelosSugeridos": [
     {"modelo": "303", "razon": "IVA repercutido en liquidación trimestral"},
     {"modelo": "130", "razon": "Ingreso en pagos fraccionados IRPF"}
   ]
 }
+
+Para categoriaGasto, si es gasto, clasifícalo según el concepto:
+- suministros: luz, agua, gas, telefonía, internet
+- alquiler: alquiler de local/oficina
+- nómina: salarios
+- seguridad-social: cuotas SS
+- marketing: publicidad, redes sociales
+- seguros: pólizas
+- profesionales: honorarios abogados, contables, etc.
+- material: material de oficina, ordenadores
+- transporte: gasolina, parking, transportes
+- comunicaciones: teléfono, internet
+- formación: cursos, libros
+- otros: si no encaja en ninguno
 
 Para modelosSugeridos, incluye SOLO los modelos AEAT realmente afectados por esta factura:
 - Toda factura afecta a 303 (IVA) y 390 (resumen anual)

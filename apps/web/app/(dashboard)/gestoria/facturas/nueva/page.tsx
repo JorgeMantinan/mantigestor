@@ -70,6 +70,7 @@ export default function NuevaFacturaPage() {
       }
       const data: OcrResult = await res.json()
       setModelosSugeridos(data.modelosSugeridos ?? [])
+      if (data.categoriaGasto) setCategoriaGasto(data.categoriaGasto)
       rellenarFormularioDesdeOcr(formRef, data)
     } catch {
       setError('Error al conectar con el servicio de OCR')
