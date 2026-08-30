@@ -8,13 +8,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, Pencil, Trash2 } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, Download } from 'lucide-react'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useParsearVoz } from '@/hooks/use-parsear-voz'
 import { VoiceInput } from '@/components/facturas/voice-input'
 import { logAccion } from '@/lib/audit-log'
 import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
+import { generarFacturaClientePDF } from '@/lib/factura-cliente-pdf'
 
 interface Factura {
   id: string
@@ -132,6 +133,19 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => void generarFacturaClientePDF({
+            numero: factura.numero,
+            emisorReceptor: factura.emisorReceptor,
+            nifContraparte: factura.nifContraparte,
+            fechaEmision: factura.fechaEmision,
+            baseImponible: factura.baseImponible,
+            iva: factura.iva,
+            total: factura.total,
+            tipo: factura.tipo,
+          })}>
+            <Download className="mr-2 h-4 w-4" />
+            Descargar PDF
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setEditing(!editing)}>
             <Pencil className="mr-2 h-4 w-4" />
             Editar
