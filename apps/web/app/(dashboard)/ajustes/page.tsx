@@ -74,6 +74,9 @@ function PerfilTab() {
   const [nif, setNif] = useState('')
   const [provincia, setProvincia] = useState('')
   const [situacion, setSituacion] = useState('')
+  const [empresaNombre, setEmpresaNombre] = useState('')
+  const [empresaNif, setEmpresaNif] = useState('')
+  const [empresaDireccion, setEmpresaDireccion] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
@@ -86,7 +89,7 @@ function PerfilTab() {
 
       const { data } = await getSupabase()
         .from('perfiles')
-        .select('nombre, nif, provincia, situacion')
+        .select('nombre, nif, provincia, situacion, empresa_nombre, empresa_nif, empresa_direccion')
         .eq('id', user.id)
         .single()
 
@@ -95,6 +98,9 @@ function PerfilTab() {
         setNif(data.nif ?? '')
         setProvincia(data.provincia ?? '')
         setSituacion(data.situacion ?? '')
+        setEmpresaNombre(data.empresa_nombre ?? '')
+        setEmpresaNif(data.empresa_nif ?? '')
+        setEmpresaDireccion(data.empresa_direccion ?? '')
       }
       setCargando(false)
     }
@@ -108,7 +114,7 @@ function PerfilTab() {
 
     const { error } = await getSupabase()
       .from('perfiles')
-      .upsert({ id: user.id, nombre, nif, provincia, situacion })
+      .upsert({ id: user.id, nombre, nif, provincia, situacion, empresa_nombre: empresaNombre, empresa_nif: empresaNif, empresa_direccion: empresaDireccion })
       .eq('id', user.id)
 
     if (error) {
@@ -164,6 +170,24 @@ function PerfilTab() {
                 <option value="pensionista">Pensionista</option>
                 <option value="desempleado">Desempleado</option>
               </select>
+            </div>
+            <Separator />
+            <div>
+              <h3 className="text-sm font-medium mb-3">Datos de empresa (para facturas)</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="empresaNombre">Nombre de empresa</Label>
+                  <Input id="empresaNombre" value={empresaNombre} onChange={(e) => setEmpresaNombre(e.target.value)} placeholder="Mi Empresa S.L." />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="empresaNif">NIF de empresa</Label>
+                  <Input id="empresaNif" value={empresaNif} onChange={(e) => setEmpresaNif(e.target.value)} placeholder="B00000000" />
+                </div>
+              </div>
+              <div className="mt-4 space-y-2">
+                <Label htmlFor="empresaDireccion">Dirección fiscal</Label>
+                <Input id="empresaDireccion" value={empresaDireccion} onChange={(e) => setEmpresaDireccion(e.target.value)} placeholder="Calle Ejemplo 123, 28001 Madrid" />
+              </div>
             </div>
             <Button onClick={guardar} disabled={guardando || cargando}>
               {guardando ? 'Guardando...' : 'Guardar cambios'}

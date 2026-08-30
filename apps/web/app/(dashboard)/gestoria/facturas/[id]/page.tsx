@@ -39,6 +39,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [categoriaGasto, setCategoriaGasto] = useState<string | null>(null)
+  const [perfil, setPerfil] = useState<{ nombre: string | null; empresa_nombre: string | null; empresa_nif: string | null; empresa_direccion: string | null } | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
   const { parseandoVoz, parsearVoz } = useParsearVoz({ formRef })
@@ -59,6 +60,12 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         setFactura(data as Factura)
         setCategoriaGasto((data as Factura).categoriaGasto ?? null)
       }
+      const { data: perfilData } = await getSupabase()
+        .from('perfiles')
+        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion')
+        .eq('id', user.id)
+        .single()
+      if (perfilData) setPerfil(perfilData)
       setLoading(false)
     }
     fetchFactura()
@@ -142,6 +149,9 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             iva: factura.iva,
             total: factura.total,
             tipo: factura.tipo,
+            empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
+            empresaDireccion: perfil?.empresa_direccion ?? undefined,
+            empresaNif: perfil?.empresa_nif ?? undefined,
           })}>
             <Download className="mr-2 h-4 w-4" />
             Descargar PDF
