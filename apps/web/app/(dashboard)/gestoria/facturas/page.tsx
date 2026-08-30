@@ -44,6 +44,7 @@ export default function FacturasPage() {
   const [ordenDir, setOrdenDir] = useState<OrdenDireccion>('desc')
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
+  const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set())
   const searchRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -88,6 +89,44 @@ export default function FacturasPage() {
       setOrdenDir('asc')
     }
     setPage(0)
+  }
+
+  const toggleSeleccion = (id: string) => {
+    setSeleccionadas(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSeleccionAll = () => {
+    if (seleccionadas.size === visibles.length) {
+      setSeleccionadas(new Set())
+    } else {
+      setSeleccionadas(new Set(visibles.map(f => f.id)))
+    }
+  }
+
+  const eliminarSeleccionadas = async () => {
+    const ids = Array.from(seleccionadas)
+    await getSupabase().from('facturas').delete().in('id', ids)
+    await logAccion('eliminar', 'factura', ids.join(','), `${ids.length} facturas eliminadas`)
+    setFacturas(prev => prev.filter(f => !seleccionadas.has(f.id)))
+    setSeleccionadas(new Set())
+    toast.success(`${ids.length} factura${ids.length !== 1 ? 's' : ''} eliminada${ids.length !== 1 ? 's' : ''}`)
+  }
+
+  const exportarSeleccionadas = () => {
+    const seleccionadasFacturas = facturas.filter(f => seleccionadas.has(f.id))
+    const headers = ['Fecha', 'Tipo', 'Nº Factura', 'Contraparte', 'Base Imponible', 'IVA', 'Total', 'Estado']
+    const rows = seleccionadasFacturas.map(v => [
+      v.fechaEmision.slice(0, 10), v.tipo === 'ingreso' ? 'Ingreso' : 'Gasto',
+      v.numero || '', v.emisorReceptor || '',
+      v.baseImponible.toFixed(2), v.iva.toFixed(2), v.total.toFixed(2),
+      v.estado || ''
+    ])
+    descargarExcel(headers, rows, `facturas-seleccion-${new Date().toISOString().slice(0, 10)}.xlsx`, 'Facturas')
   }
 
   const SortIcon = ({ campo }: { campo: OrdenCampo }) => {
@@ -223,11 +262,48 @@ export default function FacturasPage() {
             {busqueda && ` · Buscando "${busqueda}"`}
           </p>
 
+          {seleccionadas.size > 0 && (
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/50 p-2">
+              <span className="text-sm font-medium">{seleccionadas.size} seleccionada{seleccionadas.size !== 1 ? 's' : ''}</span>
+              <div className="flex-1" />
+              <Button variant="outline" size="sm" onClick={exportarSeleccionadas}>
+                <Download className="mr-1 h-3 w-3" /> Exportar seleccionadas
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                    <Trash2 className="mr-1 h-3 w-3" /> Eliminar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Eliminar {seleccionadas.size} factura{seleccionadas.size !== 1 ? 's' : ''}?</AlertDialogTitle>
+                    <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => void eliminarSeleccionadas()}>Eliminar</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button variant="ghost" size="sm" onClick={() => setSeleccionadas(new Set())}>Cancelar</Button>
+            </div>
+          )}
+
           <div id="tabla-facturas" className="rounded-lg border">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
+                    <th className="px-4 py-3 w-10">
+                      <input
+                        type="checkbox"
+                        className="rounded border-input"
+                        checked={visibles.length > 0 && seleccionadas.size === visibles.length}
+                        onChange={toggleSeleccionAll}
+                        aria-label="Seleccionar todas"
+                      />
+                    </th>
                     <th className="px-4 py-3 text-left font-medium cursor-pointer select-none" onClick={() => toggleSort('numero')}>
                       Nº <SortIcon campo="numero" />
                     </th>
@@ -250,6 +326,15 @@ export default function FacturasPage() {
                 <tbody>
                   {paginadas.map(f => (
                     <tr key={f.id} className="border-b last:border-0 hover:bg-muted/30">
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          className="rounded border-input"
+                          checked={seleccionadas.has(f.id)}
+                          onChange={() => toggleSeleccion(f.id)}
+                          aria-label={`Seleccionar factura ${f.numero}`}
+                        />
+                      </td>
                       <td className="px-4 py-3 font-medium">{f.numero}</td>
                       <td className="px-4 py-3 capitalize">{f.tipo === 'ingreso' ? 'Emitida' : 'Recibida'}</td>
                       <td className="px-4 py-3">{f.emisorReceptor}</td>
