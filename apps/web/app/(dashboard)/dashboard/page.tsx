@@ -22,6 +22,7 @@ import { CalendarioFiscal } from '@/components/dashboard/calendario-fiscal'
 import { ChartCategorias } from '@/components/dashboard/chart-categorias'
 import { ChartPresupuesto } from '@/components/dashboard/chart-presupuesto'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
+import { ChartComparativa } from '@/components/dashboard/chart-comparativa'
 
 interface Factura {
   id: string
@@ -303,6 +304,7 @@ export default function DashboardPage() {
           <ChartAlquiler ingresos={totalIngresosAlquiler} gastos={totalGastosAlquiler} />
           <ChartCategorias facturas={facturas} />
           <ChartPresupuesto facturas={facturas} />
+          <ChartComparativa facturas={facturas} />
         </div>
       )}
 
