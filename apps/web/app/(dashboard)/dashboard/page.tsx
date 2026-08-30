@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import {
   Receipt, TrendingUp, TrendingDown, PiggyBank, Calendar, Users, Home,
-  Plus, FileText, Calculator, ArrowRight, AlertCircle, ChevronLeft, ChevronRight
+  Plus, FileText, Calculator, ArrowRight, AlertCircle, ChevronLeft, ChevronRight, Clock
 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -28,9 +28,11 @@ interface Factura {
   total: number
   iva: number
   fechaEmision: string
+  fechaVencimiento: string | null
   numero: string
   emisorReceptor: string
   categoriaGasto: string | null
+  estado: string
 }
 
 interface Nomina {
@@ -141,6 +143,12 @@ export default function DashboardPage() {
 
   const beneficio = totalIngresos - totalGastos - totalNominasJefe
 
+  const pendientes = facturas.filter(f => f.estado === 'pendiente')
+  const totalPendientes = pendientes.reduce((s, f) => s + f.total, 0)
+  const proximoVencimiento = pendientes
+    .filter(f => f.fechaVencimiento)
+    .sort((a, b) => a.fechaVencimiento!.localeCompare(b.fechaVencimiento!))[0] ?? null
+
   const ahora = new Date()
   const saludo = ahora.getHours() < 14 ? 'Buenos días' : ahora.getHours() < 20 ? 'Buenas tardes' : 'Buenas noches'
 
@@ -243,6 +251,34 @@ export default function DashboardPage() {
               {formatMoney(beneficio)}
             </div>
             <p className="text-xs text-muted-foreground">Ingresos − gastos − nóminas</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
+            <Clock className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-500">{pendientes.length}</div>
+            <p className="text-xs text-muted-foreground">{formatMoney(totalPendientes)} por cobrar/pagar</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Próximo vencimiento</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {proximoVencimiento ? (
+              <>
+                <div className="text-2xl font-bold">
+                  {new Date(proximoVencimiento.fechaVencimiento!).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                </div>
+                <p className="text-xs text-muted-foreground">{proximoVencimiento.emisorReceptor} · {formatMoney(proximoVencimiento.total)}</p>
+              </>
+            ) : (
+              <div className="text-2xl font-bold text-muted-foreground">—</div>
+            )}
           </CardContent>
         </Card>
       </div>
