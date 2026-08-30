@@ -17,6 +17,7 @@ import { Download } from 'lucide-react'
 import { descargarCsv } from '@/lib/descargar-csv'
 import { descargarExcel } from '@/lib/descargar-excel'
 import { generarPDFDeHTML } from '@/lib/pdf'
+import { exportarTodoZIP } from '@/lib/exportar-zip'
 import { logAccion } from '@/lib/audit-log'
 import { detectarDuplicados } from '@mantigestor/utils'
 
@@ -270,6 +271,10 @@ export default function FacturasPage() {
             descargarExcel(headers, rows, `facturas-${new Date().toISOString().slice(0, 10)}.xlsx`, 'Facturas')
           }}>
           <Download className="mr-1 h-4 w-4" /> Exportar Excel
+        </Button>
+        <Button variant="outline" size="sm" disabled={visibles.length === 0}
+          onClick={() => void exportarTodoZIP(visibles)}>
+          <Download className="mr-1 h-4 w-4" /> Exportar ZIP
         </Button>
       </div>
 
