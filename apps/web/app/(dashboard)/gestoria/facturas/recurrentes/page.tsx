@@ -115,6 +115,47 @@ export default function FacturasRecurrentesPage() {
     setPlantillas(prev => prev.filter(p => p.id !== id))
   }
 
+  const generarFactura = async (plantilla: FacturaRecurrente) => {
+    const ahora = new Date()
+    const mes = ahora.getMonth() + 1
+    const anyo = ahora.getFullYear()
+    const numero = `${plantilla.numero}-${anyo}-${String(mes).padStart(2, '0')}`
+    const baseImponible = plantilla.baseImponible
+    const importeIva = Math.round(baseImponible * (plantilla.iva / 100))
+    const total = baseImponible + importeIva
+
+    const { data: { user } } = await getSupabase().auth.getUser()
+    if (!user) return
+
+    const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
+    if (!perfil) return
+
+    const { error } = await getSupabase().from('facturas').insert({
+      id: crypto.randomUUID(),
+      perfilId: perfil.id,
+      numero,
+      tipo: plantilla.tipo,
+      emisorReceptor: plantilla.emisorReceptor,
+      nifContraparte: plantilla.nifContraparte,
+      fechaEmision: ahora.toISOString().slice(0, 10),
+      baseImponible,
+      iva: plantilla.iva,
+      total,
+      estado: 'pendiente',
+    })
+
+    if (!error) {
+      await fetch(`/api/facturas/recurrentes/${plantilla.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ultimaGeneracion: ahora.toISOString() }),
+      })
+      setPlantillas(prev => prev.map(p =>
+        p.id === plantilla.id ? { ...p, ultimaGeneracion: ahora.toISOString() } : p
+      ))
+    }
+  }
+
   const formatMoney = (cents: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
@@ -273,6 +314,10 @@ export default function FacturasRecurrentesPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{formatMoney(p.baseImponible)}</span>
                   <span className="text-xs text-muted-foreground">+{p.iva}%</span>
+                  <Button variant="outline" size="sm" className="h-7 text-xs"
+                    onClick={() => void generarFactura(p)} disabled={!p.activa}>
+                    Generar ahora
+                  </Button>
                   <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleActiva(p.id, p.activa)} aria-label={p.activa ? 'Desactivar recurrente' : 'Activar recurrente'}>
                     {p.activa ? <Pause className="h-3 w-3" aria-hidden="true" /> : <Play className="h-3 w-3" aria-hidden="true" />}
                   </Button>
