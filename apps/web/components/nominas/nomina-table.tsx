@@ -3,7 +3,7 @@
 import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { ChevronLeft, ChevronRight, Briefcase, User, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Briefcase, User, ArrowUpDown, ArrowUp, ArrowDown, Download } from 'lucide-react'
 
 const MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -40,9 +40,10 @@ interface Props {
   toggleSort: (campo: OrdenCampo) => void
   setPage: (page: number) => void
   onDelete: (id: string) => void
+  onDownloadPdf: (nomina: Nomina) => void
 }
 
-export const NominaTable = memo(function NominaTable({ paginadas, visibles, page, totalPages, ordenCampo, ordenDir, busqueda, toggleSort, setPage, onDelete }: Props) {
+export const NominaTable = memo(function NominaTable({ paginadas, visibles, page, totalPages, ordenCampo, ordenDir, busqueda, toggleSort, setPage, onDelete, onDownloadPdf }: Props) {
   const SortIcon = ({ campo }: { campo: OrdenCampo }) => {
     if (ordenCampo !== campo) return <ArrowUpDown className="ml-1 h-3 w-3 opacity-40" />
     return ordenDir === 'asc'
@@ -101,7 +102,17 @@ export const NominaTable = memo(function NominaTable({ paginadas, visibles, page
                   <td className="px-4 py-3 text-right">{formatMoney(n.salarioBruto)}</td>
                   <td className="px-4 py-3 text-right font-medium">{formatMoney(n.neto)}</td>
                   <td className="px-4 py-3 text-right">
-                    <AlertDialog>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => onDownloadPdf(n)}
+                      >
+                        <Download className="h-3 w-3 mr-1" /> PDF
+                      </Button>
+                      <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
                           type="button"
@@ -127,6 +138,7 @@ export const NominaTable = memo(function NominaTable({ paginadas, visibles, page
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
+                    </div>
                   </td>
                 </tr>
               ))}

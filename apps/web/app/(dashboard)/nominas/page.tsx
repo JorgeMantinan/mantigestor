@@ -14,6 +14,7 @@ import { Kbd } from '@/components/ui/kbd'
 import { Download } from 'lucide-react'
 import { descargarCsv } from '@/lib/descargar-csv'
 import { descargarExcel } from '@/lib/descargar-excel'
+import { generarNominaPDF } from '@/lib/nomina-pdf'
 
 type OrdenCampo = 'empleada' | 'mes' | 'salarioBruto' | 'neto'
 type OrdenDireccion = 'asc' | 'desc'
@@ -368,6 +369,7 @@ export default function NominasPage() {
             toggleSort={toggleSort}
             setPage={setPage}
             onDelete={handleDelete}
+            onDownloadPdf={(n) => void generarNominaPDF(n)}
           />
         )}
       </div>
