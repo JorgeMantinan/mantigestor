@@ -16,6 +16,7 @@ import { Kbd } from '@/components/ui/kbd'
 import { Download } from 'lucide-react'
 import { descargarCsv } from '@/lib/descargar-csv'
 import { descargarExcel } from '@/lib/descargar-excel'
+import { generarPDFDeHTML } from '@/lib/pdf'
 import { logAccion } from '@/lib/audit-log'
 import { detectarDuplicados } from '@mantigestor/utils'
 
@@ -128,6 +129,39 @@ export default function FacturasPage() {
       v.estado || ''
     ])
     descargarExcel(headers, rows, `facturas-seleccion-${new Date().toISOString().slice(0, 10)}.xlsx`, 'Facturas')
+  }
+
+  const exportarSeleccionadasPDF = async () => {
+    const seleccionadasFacturas = facturas.filter(f => seleccionadas.has(f.id))
+    const rows = seleccionadasFacturas.map(v =>
+      `<tr>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb">${new Date(v.fechaEmision).toLocaleDateString('es-ES')}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb">${v.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb">${v.numero}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb">${v.emisorReceptor}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right">${formatMoney(v.baseImponible)}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right">${v.iva}%</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">${formatMoney(v.total)}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center">${v.estado}</td>
+      </tr>`
+    ).join('')
+    const html = `
+      <h1 style="font-size:18px;margin-bottom:16px">Facturas seleccionadas (${seleccionadasFacturas.length})</h1>
+      <table style="width:100%;border-collapse:collapse;font-size:10px">
+        <thead><tr style="background:#f3f4f6">
+          <th style="padding:6px;text-align:left;border-bottom:2px solid #d1d5db">Fecha</th>
+          <th style="padding:6px;text-align:left;border-bottom:2px solid #d1d5db">Tipo</th>
+          <th style="padding:6px;text-align:left;border-bottom:2px solid #d1d5db">Nº</th>
+          <th style="padding:6px;text-align:left;border-bottom:2px solid #d1d5db">Contraparte</th>
+          <th style="padding:6px;text-align:right;border-bottom:2px solid #d1d5db">Base</th>
+          <th style="padding:6px;text-align:right;border-bottom:2px solid #d1d5db">IVA</th>
+          <th style="padding:6px;text-align:right;border-bottom:2px solid #d1d5db">Total</th>
+          <th style="padding:6px;text-align:center;border-bottom:2px solid #d1d5db">Estado</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `
+    await generarPDFDeHTML(html, `facturas-seleccion-${new Date().toISOString().slice(0, 10)}`, { orientacion: 'landscape' })
   }
 
   const SortIcon = ({ campo }: { campo: OrdenCampo }) => {
@@ -288,8 +322,11 @@ export default function FacturasPage() {
             <div className="flex items-center gap-2 rounded-lg border bg-muted/50 p-2">
               <span className="text-sm font-medium">{seleccionadas.size} seleccionada{seleccionadas.size !== 1 ? 's' : ''}</span>
               <div className="flex-1" />
+              <Button variant="outline" size="sm" onClick={() => void exportarSeleccionadasPDF()}>
+                <Download className="mr-1 h-3 w-3" /> PDF
+              </Button>
               <Button variant="outline" size="sm" onClick={exportarSeleccionadas}>
-                <Download className="mr-1 h-3 w-3" /> Exportar seleccionadas
+                <Download className="mr-1 h-3 w-3" /> Excel
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
