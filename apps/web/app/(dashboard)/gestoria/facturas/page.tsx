@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertCircle } from 'lucide-react'
 import { BotonPDF } from '@/components/boton-pdf'
 import { toast, Toaster } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -17,6 +17,7 @@ import { Download } from 'lucide-react'
 import { descargarCsv } from '@/lib/descargar-csv'
 import { descargarExcel } from '@/lib/descargar-excel'
 import { logAccion } from '@/lib/audit-log'
+import { detectarDuplicados } from '@mantigestor/utils'
 
 interface Factura {
   id: string
@@ -168,6 +169,8 @@ export default function FacturasPage() {
   const totalPages = Math.ceil(visibles.length / PAGE_SIZE)
   const paginadas = visibles.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
+  const duplicados = useMemo(() => detectarDuplicados(facturas), [facturas])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -235,6 +238,25 @@ export default function FacturasPage() {
           <Download className="mr-1 h-4 w-4" /> Exportar Excel
         </Button>
       </div>
+
+      {duplicados.length > 0 && (
+        <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm dark:border-orange-800 dark:bg-orange-950">
+          <div className="flex items-center gap-2 font-medium text-orange-800 dark:text-orange-200">
+            <AlertCircle className="h-4 w-4" />
+            Posibles duplicados detectados ({duplicados.length})
+          </div>
+          <ul className="mt-1 space-y-1 text-orange-700 dark:text-orange-300">
+            {duplicados.slice(0, 3).map((d, i) => (
+              <li key={i} className="text-xs">
+                {d.factura1.numero} ↔ {d.factura2.numero}: {d.razon}
+              </li>
+            ))}
+            {duplicados.length > 3 && (
+              <li className="text-xs">... y {duplicados.length - 3} más</li>
+            )}
+          </ul>
+        </div>
+      )}
 
       {loading ? (
         <Card><CardContent className="py-8 text-center text-muted-foreground">Cargando facturas...</CardContent></Card>
