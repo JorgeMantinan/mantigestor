@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, ScanLine, Loader2, Lightbulb } from 'lucide-react'
+import { ChevronLeft, ScanLine, Loader2, Lightbulb, Camera } from 'lucide-react'
 import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
 import { generarSiguienteNumeroFactura } from '@mantigestor/utils'
 import { FileUpload } from '@/components/upload/FileUpload'
@@ -27,6 +27,7 @@ export default function NuevaFacturaPage() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [escanendo, setEscanendo] = useState(false)
+  const [escaneandoImagen, setEscaneandoImagen] = useState(false)
   const [modelosSugeridos, setModelosSugeridos] = useState<ModeloSugeridoOcr[]>([])
   const [categoriaGasto, setCategoriaGasto] = useState<string | null>(null)
   const [tipoSeleccionado, setTipoSeleccionado] = useState<string>('ingreso')
@@ -76,6 +77,39 @@ export default function NuevaFacturaPage() {
       setError('Error al conectar con el servicio de OCR')
     }
     setEscanendo(false)
+  }
+
+  async function escanearImagen(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setEscaneandoImagen(true)
+    setError('')
+    try {
+      const reader = new FileReader()
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+      const res = await fetch('/api/ocr-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64, mediaType: file.type }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        setError(err.error || 'Error al escanear la imagen')
+        return
+      }
+      const data: OcrResult = await res.json()
+      setModelosSugeridos(data.modelosSugeridos ?? [])
+      if (data.categoriaGasto) setCategoriaGasto(data.categoriaGasto)
+      rellenarFormularioDesdeOcr(formRef, data)
+    } catch {
+      setError('Error al conectar con el servicio de OCR')
+    }
+    setEscaneandoImagen(false)
+    event.target.value = ''
   }
 
   function handleParsearVoz() {
@@ -310,6 +344,19 @@ export default function NuevaFacturaPage() {
               {escanendo ? 'Escaneando...' : 'Escanear factura con IA'}
             </Button>
           )}
+          <div className="relative">
+            <input
+              type="file"
+              accept="image/*"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={escanearImagen}
+              disabled={escaneandoImagen}
+            />
+            <Button variant="outline" className="w-full" disabled={escaneandoImagen}>
+              <Camera className="mr-2 h-4 w-4" />
+              {escaneandoImagen ? 'Escaneando...' : 'Escanear foto o ticket'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
