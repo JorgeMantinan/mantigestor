@@ -20,6 +20,7 @@ import { SkeletonDashboard } from '@/components/dashboard/skeleton-dashboard'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
 import { CalendarioFiscal } from '@/components/dashboard/calendario-fiscal'
 import { ChartCategorias } from '@/components/dashboard/chart-categorias'
+import { ChartPresupuesto } from '@/components/dashboard/chart-presupuesto'
 
 interface Factura {
   id: string
@@ -300,6 +301,7 @@ export default function DashboardPage() {
           <ChartIvaTrimestral facturas={facturas} />
           <ChartAlquiler ingresos={totalIngresosAlquiler} gastos={totalGastosAlquiler} />
           <ChartCategorias facturas={facturas} />
+          <ChartPresupuesto facturas={facturas} />
         </div>
       )}
 
