@@ -21,6 +21,7 @@ import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist
 import { CalendarioFiscal } from '@/components/dashboard/calendario-fiscal'
 import { ChartCategorias } from '@/components/dashboard/chart-categorias'
 import { ChartPresupuesto } from '@/components/dashboard/chart-presupuesto'
+import { ActivityFeed } from '@/components/dashboard/activity-feed'
 
 interface Factura {
   id: string
@@ -309,6 +310,9 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Calendario fiscal */}
         <CalendarioFiscal />
+
+        {/* Actividad reciente */}
+        <ActivityFeed />
 
         {/* Últimas facturas */}
         <Card>
