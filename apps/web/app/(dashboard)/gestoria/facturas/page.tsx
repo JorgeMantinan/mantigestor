@@ -19,13 +19,14 @@ import { descargarExcel } from '@/lib/descargar-excel'
 import { generarPDFDeHTML } from '@/lib/pdf'
 import { exportarTodoZIP } from '@/lib/exportar-zip'
 import { logAccion } from '@/lib/audit-log'
-import { detectarDuplicados } from '@mantigestor/utils'
+import { detectarDuplicados, verificarPoliticaGasto } from '@mantigestor/utils'
 
 interface Factura {
   id: string
   numero: string
   tipo: string
   emisorReceptor: string
+  nifContraparte: string | null
   fechaEmision: string
   baseImponible: number
   iva: number
@@ -206,6 +207,11 @@ export default function FacturasPage() {
 
   const duplicados = useMemo(() => detectarDuplicados(facturas), [facturas])
 
+  const politicas = useMemo(() => {
+    const incumplimientos = facturas.flatMap(f => verificarPoliticaGasto(f))
+    return incumplimientos.slice(0, 5)
+  }, [facturas])
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -293,6 +299,22 @@ export default function FacturasPage() {
             {duplicados.length > 3 && (
               <li className="text-xs">... y {duplicados.length - 3} más</li>
             )}
+          </ul>
+        </div>
+      )}
+
+      {politicas.length > 0 && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm dark:border-blue-800 dark:bg-blue-950">
+          <div className="flex items-center gap-2 font-medium text-blue-800 dark:text-blue-200">
+            <AlertCircle className="h-4 w-4" />
+            Políticas de gasto ({politicas.length} alertas)
+          </div>
+          <ul className="mt-1 space-y-1 text-blue-700 dark:text-blue-300">
+            {politicas.map((p, i) => (
+              <li key={i} className="text-xs">
+                <span className="font-medium">{p.facturaNumero}</span>: {p.descripcion}
+              </li>
+            ))}
           </ul>
         </div>
       )}
