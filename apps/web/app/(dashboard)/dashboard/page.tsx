@@ -19,6 +19,7 @@ import { ChartEvolucion } from '@/components/dashboard/chart-evolucion'
 import { SkeletonDashboard } from '@/components/dashboard/skeleton-dashboard'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
 import { CalendarioFiscal } from '@/components/dashboard/calendario-fiscal'
+import { ChartCategorias } from '@/components/dashboard/chart-categorias'
 
 interface Factura {
   id: string
@@ -29,6 +30,7 @@ interface Factura {
   fechaEmision: string
   numero: string
   emisorReceptor: string
+  categoriaGasto: string | null
 }
 
 interface Nomina {
@@ -261,6 +263,7 @@ export default function DashboardPage() {
           <ChartEvolucion facturas={facturas} nominas={nominas} />
           <ChartIvaTrimestral facturas={facturas} />
           <ChartAlquiler ingresos={totalIngresosAlquiler} gastos={totalGastosAlquiler} />
+          <ChartCategorias facturas={facturas} />
         </div>
       )}
 

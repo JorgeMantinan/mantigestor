@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useParsearVoz } from '@/hooks/use-parsear-voz'
 import { VoiceInput } from '@/components/facturas/voice-input'
 import { logAccion } from '@/lib/audit-log'
+import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
 
 interface Factura {
   id: string
@@ -27,6 +28,7 @@ interface Factura {
   iva: number
   total: number
   estado: string
+  categoriaGasto: string | null
 }
 
 export default function FacturaDetailPage({ params }: { params: { id: string } }) {
@@ -35,6 +37,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [categoriaGasto, setCategoriaGasto] = useState<string | null>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
   const { parseandoVoz, parsearVoz } = useParsearVoz({ formRef })
@@ -51,7 +54,10 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         .eq('id', params.id)
         .eq('perfilId', user.id)
         .single()
-      if (data) setFactura(data as Factura)
+      if (data) {
+        setFactura(data as Factura)
+        setCategoriaGasto((data as Factura).categoriaGasto ?? null)
+      }
       setLoading(false)
     }
     fetchFactura()
@@ -78,6 +84,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       baseImponible,
       iva,
       total,
+      categoriaGasto: form.get('tipo') === 'gasto' ? (form.get('categoriaGasto') as string || null) : null,
     }).eq('id', factura.id)
 
     if (!error) {
@@ -180,6 +187,13 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   <Input id="numero" name="numero" defaultValue={factura.numero} required />
                 </div>
               </div>
+              {factura.tipo === 'gasto' && (
+                <div className="space-y-2">
+                  <Label>Categoría del gasto</Label>
+                  <input type="hidden" name="categoriaGasto" value={categoriaGasto ?? ''} />
+                  <CategoriaGastoPicker value={categoriaGasto} onChange={setCategoriaGasto} />
+                </div>
+              )}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="emisorReceptor">Contraparte</Label>

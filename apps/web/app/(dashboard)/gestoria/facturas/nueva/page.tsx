@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ChevronLeft, ScanLine, Loader2, Lightbulb } from 'lucide-react'
+import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
 import { FileUpload } from '@/components/upload/FileUpload'
 import Link from 'next/link'
 import type { OcrResult, ModeloSugeridoOcr } from '@/lib/ocr'
@@ -26,6 +27,8 @@ export default function NuevaFacturaPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [escanendo, setEscanendo] = useState(false)
   const [modelosSugeridos, setModelosSugeridos] = useState<ModeloSugeridoOcr[]>([])
+  const [categoriaGasto, setCategoriaGasto] = useState<string | null>(null)
+  const [tipoSeleccionado, setTipoSeleccionado] = useState<string>('ingreso')
 
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
@@ -124,6 +127,7 @@ export default function NuevaFacturaPage() {
       iva,
       total,
       estado: 'pendiente',
+      categoriaGasto: form.get('tipo') === 'gasto' ? categoriaGasto : null,
       pdfUrl: pdfUrl || null,
     })
 
@@ -164,6 +168,8 @@ export default function NuevaFacturaPage() {
                   id="tipo"
                   name="tipo"
                   required
+                  value={tipoSeleccionado}
+                  onChange={e => { setTipoSeleccionado(e.target.value); if (e.target.value !== 'gasto') setCategoriaGasto(null) }}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="ingreso">Ingreso (emitida)</option>
@@ -175,6 +181,13 @@ export default function NuevaFacturaPage() {
                 <Input id="numero" name="numero" required placeholder="F-2024-001" />
               </div>
             </div>
+
+            {tipoSeleccionado === 'gasto' && (
+              <div className="space-y-2">
+                <Label>Categoría del gasto</Label>
+                <CategoriaGastoPicker value={categoriaGasto} onChange={setCategoriaGasto} />
+              </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">

@@ -57,6 +57,7 @@ model Factura {
   iva             Int      // 0, 4, 10 o 21
   total           Int      // en céntimos
   estado          String   @default("pendiente")
+  categoriaGasto  String?  // etiqueta: suministros, alquiler, nomina, seguridad, marketing, otros
   pdfUrl          String?
   createdAt       DateTime @default(now())
 
