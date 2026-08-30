@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ChevronLeft, ScanLine, Loader2, Lightbulb } from 'lucide-react'
 import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
+import { generarSiguienteNumeroFactura } from '@mantigestor/utils'
 import { FileUpload } from '@/components/upload/FileUpload'
 import Link from 'next/link'
 import type { OcrResult, ModeloSugeridoOcr } from '@/lib/ocr'
@@ -37,7 +38,19 @@ export default function NuevaFacturaPage() {
   const getSupabase = useCallback(() => createClient(), [])
 
   useEffect(() => {
-    getSupabase().auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null))
+    getSupabase().auth.getUser().then(({ data }) => {
+      if (data.user?.id) {
+        setUserId(data.user.id)
+        getSupabase().from('facturas').select('numero').eq('perfilId', data.user.id).then(({ data: facturas }) => {
+          if (facturas) {
+            const nums = facturas.map(f => f.numero).filter(Boolean)
+            const siguiente = generarSiguienteNumeroFactura(nums)
+            const input = document.getElementById('numero') as HTMLInputElement | null
+            if (input) input.value = siguiente
+          }
+        })
+      }
+    })
   }, [getSupabase])
 
   async function escanearFactura() {
