@@ -407,7 +407,13 @@ export default function FacturasPage() {
                       <td className="px-4 py-3 text-right">{f.iva}%</td>
                       <td className="px-4 py-3 text-right font-medium">{formatMoney(f.total)}</td>
                       <td className="px-4 py-3 text-center">
-                        <span className="inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900 dark:text-green-300">
+                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                          f.estado === 'pagada'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                            : f.estado === 'vencida'
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                              : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                        }`}>
                           {f.estado}
                         </span>
                       </td>

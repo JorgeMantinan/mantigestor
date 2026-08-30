@@ -297,10 +297,31 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               </div>
               <div className="col-span-2">
                 <dt className="text-muted-foreground">Estado</dt>
-                <dd>
-                  <span className="inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700 dark:bg-green-900 dark:text-green-300">
+                <dd className="flex items-center gap-2">
+                  <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
+                    factura.estado === 'pagada'
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                      : factura.estado === 'vencida'
+                        ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+                  }`}>
                     {factura.estado}
                   </span>
+                  {factura.estado !== 'pagada' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={async () => {
+                        const { error } = await getSupabase().from('facturas').update({
+                          estado: 'pagada',
+                        }).eq('id', factura.id)
+                        if (!error) setFactura({ ...factura, estado: 'pagada' })
+                      }}
+                    >
+                      Marcar como pagada
+                    </Button>
+                  )}
                 </dd>
               </div>
             </dl>
