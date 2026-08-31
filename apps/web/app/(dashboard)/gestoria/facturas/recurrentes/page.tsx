@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Eye } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -314,6 +315,28 @@ export default function FacturasRecurrentesPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{formatMoney(p.baseImponible)}</span>
                   <span className="text-xs text-muted-foreground">+{p.iva}%</span>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Vista previa">
+                        <Eye className="h-3 w-3" aria-hidden="true" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-sm">
+                      <DialogHeader>
+                        <DialogTitle>Vista previa</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between"><span className="text-muted-foreground">Tipo</span><span className="capitalize">{p.tipo}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">{p.tipo === 'gasto' ? 'Proveedor' : 'Cliente'}</span><span className="font-medium">{p.emisorReceptor}</span></div>
+                        {p.nifContraparte && <div className="flex justify-between"><span className="text-muted-foreground">NIF</span><span>{p.nifContraparte}</span></div>}
+                        <div className="flex justify-between"><span className="text-muted-foreground">Base imponible</span><span>{formatMoney(p.baseImponible)}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">IVA ({p.iva}%)</span><span>{formatMoney(Math.round(p.baseImponible * (p.iva / 100)))}</span></div>
+                        <div className="border-t pt-2 flex justify-between font-bold"><span>Total</span><span>{formatMoney(p.baseImponible + Math.round(p.baseImponible * (p.iva / 100)))}</span></div>
+                        <div className="flex justify-between text-xs text-muted-foreground"><span>Día generación</span><span>Cada mes día {p.diaGeneracion}</span></div>
+                        {p.diaEmail && <div className="flex justify-between text-xs text-muted-foreground"><span>Día email</span><span>Día {p.diaEmail}</span></div>}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                   <Button variant="outline" size="sm" className="h-7 text-xs"
                     onClick={() => void generarFactura(p)} disabled={!p.activa}>
                     Generar ahora

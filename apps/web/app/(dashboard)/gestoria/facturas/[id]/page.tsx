@@ -17,6 +17,7 @@ import { logAccion } from '@/lib/audit-log'
 import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
 import { generarFacturaClientePDF, NOMBRES_PLANTILLAS, type PlantillaFactura } from '@/lib/factura-cliente-pdf'
 import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
+import { TimelineFactura } from '@/components/timeline-factura'
 
 interface Factura {
   id: string
@@ -384,6 +385,14 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               </div>
             </dl>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Historial de cambios */}
+      <Card>
+        <CardContent className="pt-6">
+          <h3 className="text-sm font-medium mb-4">Historial de cambios</h3>
+          <TimelineFactura facturaId={factura.id} />
         </CardContent>
       </Card>
     </div>

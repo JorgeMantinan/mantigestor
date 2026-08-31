@@ -274,6 +274,52 @@ export default function NominasPage() {
             }}>
             <Download className="mr-1 h-4 w-4" /> Exportar Excel
           </Button>
+          <Button variant="outline" size="sm" onClick={async () => {
+            const { generarPDFDeHTML } = await import('@/lib/pdf')
+            const formatEuro = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
+            const totalBruto = visibles.reduce((s, n) => s + n.salarioBruto, 0)
+            const totalIrpf = visibles.reduce((s, n) => s + n.irpf, 0)
+            const totalSs = visibles.reduce((s, n) => s + n.seguridadSocial, 0)
+            const totalNeto = visibles.reduce((s, n) => s + n.neto, 0)
+            const html = `
+              <div style="font-family:system-ui,sans-serif;padding:40px;color:#1a1a1a">
+                <h1 style="font-size:24px;font-weight:800;margin:0 0 4px 0">Resumen de nóminas</h1>
+                <p style="font-size:13px;color:#6b7280;margin:0 0 24px 0">Periodo: ${anyoFiltro}</p>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+                  <thead><tr style="background:#1a1a1a;color:white">
+                    <th style="padding:10px 12px;text-align:left;font-size:11px">Empleada</th>
+                    <th style="padding:10px 12px;text-align:left;font-size:11px">Rol</th>
+                    <th style="padding:10px 12px;text-align:center;font-size:11px">Mes</th>
+                    <th style="padding:10px 12px;text-align:right;font-size:11px">Bruto</th>
+                    <th style="padding:10px 12px;text-align:right;font-size:11px">IRPF</th>
+                    <th style="padding:10px 12px;text-align:right;font-size:11px">Seg. Social</th>
+                    <th style="padding:10px 12px;text-align:right;font-size:11px">Neto</th>
+                  </tr></thead>
+                  <tbody>${visibles.map((n, i) => `
+                    <tr style="border-bottom:1px solid #e5e7eb;${i % 2 ? 'background:#f9fafb' : ''}">
+                      <td style="padding:8px 12px;font-size:12px">${n.empleada}</td>
+                      <td style="padding:8px 12px;font-size:12px">${n.rol === 'jefe' ? 'Jefe' : 'Empleada'}</td>
+                      <td style="padding:8px 12px;font-size:12px;text-align:center">${n.mes}/${n.anyo}</td>
+                      <td style="padding:8px 12px;font-size:12px;text-align:right">${formatEuro(n.salarioBruto)}</td>
+                      <td style="padding:8px 12px;font-size:12px;text-align:right;color:#ef4444">${formatEuro(n.irpf)}</td>
+                      <td style="padding:8px 12px;font-size:12px;text-align:right;color:#f97316">${formatEuro(n.seguridadSocial)}</td>
+                      <td style="padding:8px 12px;font-size:12px;text-align:right;font-weight:600">${formatEuro(n.neto)}</td>
+                    </tr>`).join('')}
+                  </tbody>
+                  <tfoot><tr style="background:#f3f4f6;font-weight:700">
+                    <td style="padding:10px 12px;font-size:12px" colspan="3">Total (${visibles.length} nóminas)</td>
+                    <td style="padding:10px 12px;font-size:12px;text-align:right">${formatEuro(totalBruto)}</td>
+                    <td style="padding:10px 12px;font-size:12px;text-align:right;color:#ef4444">${formatEuro(totalIrpf)}</td>
+                    <td style="padding:10px 12px;font-size:12px;text-align:right;color:#f97316">${formatEuro(totalSs)}</td>
+                    <td style="padding:10px 12px;font-size:12px;text-align:right">${formatEuro(totalNeto)}</td>
+                  </tr></tfoot>
+                </table>
+                <p style="font-size:9px;color:#9ca3af;text-align:center">Generado por MantiGestor</p>
+              </div>`
+            await generarPDFDeHTML(html, `nominas-${anyoFiltro}`, { orientacion: 'landscape' })
+          }}>
+            <Download className="mr-1 h-4 w-4" /> Informe PDF
+          </Button>
         </div>
 
         {showForm && (

@@ -26,6 +26,7 @@ import { ChartComparativa } from '@/components/dashboard/chart-comparativa'
 import { ChartInteranual } from '@/components/dashboard/chart-interanual'
 import { ChartPrediccion } from '@/components/dashboard/chart-prediccion'
 import { ChartGastosCategoria } from '@/components/dashboard/chart-gastos-categoria'
+import { SparkLine } from '@/components/ui/sparkline'
 
 interface Factura {
   id: string
@@ -167,6 +168,28 @@ export default function DashboardPage() {
   const ahora = new Date()
   const saludo = ahora.getHours() < 14 ? 'Buenos días' : ahora.getHours() < 20 ? 'Buenas tardes' : 'Buenas noches'
 
+  const sparkIngresos = useMemo(() => {
+    const meses: number[] = Array.from({ length: 12 }, () => 0)
+    facturas.forEach(f => {
+      if (f.tipo === 'ingreso') {
+        const m = new Date(f.fechaEmision).getMonth()
+        meses[m] = (meses[m] ?? 0) + f.total
+      }
+    })
+    return meses.slice(0, ahora.getMonth() + 1)
+  }, [facturas])
+
+  const sparkGastos = useMemo(() => {
+    const meses: number[] = Array.from({ length: 12 }, () => 0)
+    facturas.forEach(f => {
+      if (f.tipo === 'gasto') {
+        const m = new Date(f.fechaEmision).getMonth()
+        meses[m] = (meses[m] ?? 0) + f.total
+      }
+    })
+    return meses.slice(0, ahora.getMonth() + 1)
+  }, [facturas])
+
   return (
     <div className="space-y-6">
       {loading && <SkeletonDashboard />}
@@ -238,7 +261,10 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ingresos</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-2">
+              <SparkLine data={sparkIngresos} color="#16a34a" />
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{formatMoney(totalIngresos)}</div>
@@ -248,7 +274,10 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Gastos</CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-600" />
+            <div className="flex items-center gap-2">
+              <SparkLine data={sparkGastos} color="#ef4444" />
+              <TrendingDown className="h-4 w-4 text-red-600" />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{formatMoney(totalGastos + totalNominasJefe)}</div>
