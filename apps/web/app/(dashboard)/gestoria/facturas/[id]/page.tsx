@@ -16,6 +16,7 @@ import { VoiceInput } from '@/components/facturas/voice-input'
 import { logAccion } from '@/lib/audit-log'
 import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
 import { generarFacturaClientePDF, NOMBRES_PLANTILLAS, type PlantillaFactura } from '@/lib/factura-cliente-pdf'
+import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
 
 interface Factura {
   id: string
@@ -144,6 +145,19 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
         <div className="flex gap-2">
+          <VistaPreviaPlantilla datos={{
+            numero: factura.numero,
+            emisorReceptor: factura.emisorReceptor,
+            nifContraparte: factura.nifContraparte,
+            fechaEmision: factura.fechaEmision,
+            baseImponible: factura.baseImponible,
+            iva: factura.iva,
+            total: factura.total,
+            tipo: factura.tipo,
+            empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
+            empresaDireccion: perfil?.empresa_direccion ?? undefined,
+            empresaNif: perfil?.empresa_nif ?? undefined,
+          }} />
           <select value={plantilla} onChange={(e) => setPlantilla(e.target.value as PlantillaFactura)} className="h-8 rounded border border-input bg-background px-2 text-xs">
             {(Object.entries(NOMBRES_PLANTILLAS) as Array<[PlantillaFactura, string]>).map(([k, v]) => (
               <option key={k} value={k}>{v}</option>

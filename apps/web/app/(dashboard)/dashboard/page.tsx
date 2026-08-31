@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import {
@@ -77,6 +77,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const [nombre, setNombre] = useState('')
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+  const [selectedMonth, setSelectedMonth] = useState(0) // 0 = todos
   const getSupabase = useCallback(() => createClient(), [])
   const { perfilActivoId, personas, esPropio } = usePersonaActiva()
 
@@ -130,8 +131,16 @@ export default function DashboardPage() {
     fetchData()
   }, [getSupabase, perfilActivoId, personas, selectedYear])
 
-  const ingresos = facturas.filter(f => f.tipo === 'ingreso')
-  const gastos = facturas.filter(f => f.tipo === 'gasto')
+  const facturasFiltradas = useMemo(() => {
+    if (selectedMonth === 0) return facturas
+    return facturas.filter(f => {
+      const mes = new Date(f.fechaEmision).getMonth() + 1
+      return mes === selectedMonth
+    })
+  }, [facturas, selectedMonth])
+
+  const ingresos = facturasFiltradas.filter(f => f.tipo === 'ingreso')
+  const gastos = facturasFiltradas.filter(f => f.tipo === 'gasto')
   const totalIngresos = ingresos.reduce((s, f) => s + f.total, 0)
   const totalGastos = gastos.reduce((s, f) => s + f.total, 0)
   const ivaAingresar = ingresos.reduce((s, f) => s + Math.round(f.baseImponible * (f.iva / 100)), 0)
@@ -191,6 +200,19 @@ export default function DashboardPage() {
             disabled={selectedYear >= new Date().getFullYear()}>
             <ChevronRight className="h-4 w-4" />
           </Button>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+            className="h-8 rounded border border-input bg-background px-2 text-xs"
+            aria-label="Filtrar por mes"
+          >
+            <option value={0}>Todos los meses</option>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>
+                {new Date(2024, i).toLocaleDateString('es-ES', { month: 'long' })}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/gestoria/facturas/nueva">
@@ -301,16 +323,16 @@ export default function DashboardPage() {
       {/* Gráficas */}
       {!loading && facturas.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2" role="region" aria-label="Gráficas del dashboard">
-          <ChartIngresosGastos facturas={facturas} />
-          <ChartEvolucion facturas={facturas} nominas={nominas} />
-          <ChartIvaTrimestral facturas={facturas} />
+          <ChartIngresosGastos facturas={facturasFiltradas} />
+          <ChartEvolucion facturas={facturasFiltradas} nominas={nominas} />
+          <ChartIvaTrimestral facturas={facturasFiltradas} />
           <ChartAlquiler ingresos={totalIngresosAlquiler} gastos={totalGastosAlquiler} />
-          <ChartCategorias facturas={facturas} />
-          <ChartPresupuesto facturas={facturas} />
-          <ChartComparativa facturas={facturas} />
-          <ChartInteranual facturas={facturas} />
-          <ChartPrediccion facturas={facturas} />
-          <ChartGastosCategoria facturas={facturas} />
+          <ChartCategorias facturas={facturasFiltradas} />
+          <ChartPresupuesto facturas={facturasFiltradas} />
+          <ChartComparativa facturas={facturasFiltradas} />
+          <ChartInteranual facturas={facturasFiltradas} />
+          <ChartPrediccion facturas={facturasFiltradas} />
+          <ChartGastosCategoria facturas={facturasFiltradas} />
         </div>
       )}
 

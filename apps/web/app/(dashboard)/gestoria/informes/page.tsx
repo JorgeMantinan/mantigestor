@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import { descargarExcel } from '@/lib/descargar-excel'
+import { generarReporteGastosPDF } from '@/lib/reporte-gastos-pdf'
 import { FileText, Download, Filter } from 'lucide-react'
 import { SELECT_CLS } from '@/lib/ui-constants'
 
@@ -77,6 +78,26 @@ export default function InformesPage() {
     descargarExcel(headers, rows, `informe-${new Date().toISOString().slice(0, 10)}.xlsx`, 'Informe')
   }
 
+  const exportarPDF = async () => {
+    const periodo = `${fechaDesde || 'Inicio'} al ${fechaHasta || 'Fin'}`
+    await generarReporteGastosPDF({
+      titulo: 'Informe de gastos',
+      periodo,
+      lineas: resultados.map(f => ({
+        fecha: f.fechaEmision,
+        numero: f.numero,
+        contraparte: f.emisorReceptor,
+        baseImponible: f.baseImponible,
+        iva: Math.round(f.baseImponible * f.iva / 100),
+        total: f.total,
+        categoria: f.categoriaGasto ?? 'otros',
+      })),
+      totalBase: resultados.reduce((s, f) => s + f.baseImponible, 0),
+      totalIva: totalIvaSoportado,
+      total: totalGastos,
+    })
+  }
+
   const totalIngresos = resultados.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + f.total, 0)
   const totalGastos = resultados.filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.total, 0)
   const totalIvaRepercutido = resultados.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + Math.round(f.baseImponible * f.iva / 100), 0)
@@ -126,9 +147,14 @@ export default function InformesPage() {
           <div className="flex gap-2 mt-4">
             <Button onClick={generarInforme}>Generar informe</Button>
             {resultados.length > 0 && (
-              <Button variant="outline" onClick={exportarExcel}>
-                <Download className="mr-2 h-4 w-4" /> Exportar Excel
-              </Button>
+              <>
+                <Button variant="outline" onClick={() => void exportarPDF()}>
+                  <FileText className="mr-2 h-4 w-4" /> Exportar PDF
+                </Button>
+                <Button variant="outline" onClick={exportarExcel}>
+                  <Download className="mr-2 h-4 w-4" /> Exportar Excel
+                </Button>
+              </>
             )}
           </div>
         </CardContent>

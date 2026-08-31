@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertCircle, CheckCircle } from 'lucide-react'
+import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react'
 import { BotonPDF } from '@/components/boton-pdf'
 import { toast, Toaster } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -355,18 +355,30 @@ export default function FacturasPage() {
           </p>
 
           {seleccionadas.size > 0 && (
-            <div className="flex items-center gap-2 rounded-lg border bg-muted/50 p-2">
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/50 p-2 flex-wrap">
               <span className="text-sm font-medium">{seleccionadas.size} seleccionada{seleccionadas.size !== 1 ? 's' : ''}</span>
               <div className="flex-1" />
-              <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('pagada')}>
-                <CheckCircle className="mr-1 h-3 w-3" /> Pagada
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => void exportarSeleccionadasPDF()}>
-                <Download className="mr-1 h-3 w-3" /> PDF
-              </Button>
-              <Button variant="outline" size="sm" onClick={exportarSeleccionadas}>
-                <Download className="mr-1 h-3 w-3" /> Excel
-              </Button>
+              <div className="flex items-center gap-1 border-r pr-2">
+                <span className="text-xs text-muted-estado">Estado:</span>
+                <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('pendiente')}>
+                  <Clock className="mr-1 h-3 w-3" /> Pendiente
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('pagada')}>
+                  <CheckCircle className="mr-1 h-3 w-3" /> Pagada
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('vencida')}>
+                  <XCircle className="mr-1 h-3 w-3" /> Vencida
+                </Button>
+              </div>
+              <div className="flex items-center gap-1 border-r pr-2">
+                <span className="text-xs text-muted-foreground">Exportar:</span>
+                <Button variant="outline" size="sm" onClick={() => void exportarSeleccionadasPDF()}>
+                  <Download className="mr-1 h-3 w-3" /> PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={exportarSeleccionadas}>
+                  <Download className="mr-1 h-3 w-3" /> Excel
+                </Button>
+              </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
