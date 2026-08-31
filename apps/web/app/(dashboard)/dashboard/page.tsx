@@ -25,6 +25,7 @@ import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { ChartComparativa } from '@/components/dashboard/chart-comparativa'
 import { ChartInteranual } from '@/components/dashboard/chart-interanual'
 import { ChartPrediccion } from '@/components/dashboard/chart-prediccion'
+import { ChartGastosCategoria } from '@/components/dashboard/chart-gastos-categoria'
 
 interface Factura {
   id: string
@@ -299,7 +300,7 @@ export default function DashboardPage() {
 
       {/* Gráficas */}
       {!loading && facturas.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2" role="region" aria-label="Gráficas del dashboard">
           <ChartIngresosGastos facturas={facturas} />
           <ChartEvolucion facturas={facturas} nominas={nominas} />
           <ChartIvaTrimestral facturas={facturas} />
@@ -309,6 +310,7 @@ export default function DashboardPage() {
           <ChartComparativa facturas={facturas} />
           <ChartInteranual facturas={facturas} />
           <ChartPrediccion facturas={facturas} />
+          <ChartGastosCategoria facturas={facturas} />
         </div>
       )}
 

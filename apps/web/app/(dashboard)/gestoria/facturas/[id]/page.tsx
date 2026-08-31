@@ -15,7 +15,7 @@ import { useParsearVoz } from '@/hooks/use-parsear-voz'
 import { VoiceInput } from '@/components/facturas/voice-input'
 import { logAccion } from '@/lib/audit-log'
 import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
-import { generarFacturaClientePDF } from '@/lib/factura-cliente-pdf'
+import { generarFacturaClientePDF, NOMBRES_PLANTILLAS, type PlantillaFactura } from '@/lib/factura-cliente-pdf'
 
 interface Factura {
   id: string
@@ -41,6 +41,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [categoriaGasto, setCategoriaGasto] = useState<string | null>(null)
   const [notas, setNotas] = useState<string>('')
   const [perfil, setPerfil] = useState<{ nombre: string | null; empresa_nombre: string | null; empresa_nif: string | null; empresa_direccion: string | null } | null>(null)
+  const [plantilla, setPlantilla] = useState<PlantillaFactura>('clasico')
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
   const { parseandoVoz, parsearVoz } = useParsearVoz({ formRef })
@@ -143,6 +144,11 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           </div>
         </div>
         <div className="flex gap-2">
+          <select value={plantilla} onChange={(e) => setPlantilla(e.target.value as PlantillaFactura)} className="h-8 rounded border border-input bg-background px-2 text-xs">
+            {(Object.entries(NOMBRES_PLANTILLAS) as Array<[PlantillaFactura, string]>).map(([k, v]) => (
+              <option key={k} value={k}>{v}</option>
+            ))}
+          </select>
           <Button variant="outline" size="sm" onClick={() => void generarFacturaClientePDF({
             numero: factura.numero,
             emisorReceptor: factura.emisorReceptor,
@@ -155,7 +161,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
             empresaDireccion: perfil?.empresa_direccion ?? undefined,
             empresaNif: perfil?.empresa_nif ?? undefined,
-          })}>
+          }, plantilla)}>
             <Download className="mr-2 h-4 w-4" />
             Descargar PDF
           </Button>
