@@ -17,6 +17,9 @@ const shortcuts = [
   { keys: ['G', 'N'], description: 'Ir a Nóminas' },
   { keys: ['Ctrl', 'E'], description: 'Exportar Excel' },
   { keys: ['Ctrl', 'P'], description: 'Exportar PDF' },
+  { keys: ['F'], description: 'Buscar en facturas' },
+  { keys: ['E'], description: 'Filtrar por estado (pendiente/pagada/vencida)' },
+  { keys: ['T'], description: 'Filtrar por tipo (ingreso/gasto)' },
 ]
 
 const links = [

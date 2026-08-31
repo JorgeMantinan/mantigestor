@@ -82,8 +82,8 @@ export function ChartInteranual({ facturas }: ChartInteranualProps) {
               <div key={i} className="grid grid-cols-[32px_1fr] gap-2 items-center text-xs">
                 <span className="capitalize text-muted-foreground">{m.nombre}</span>
                 <div className="flex gap-1 items-center">
-                  <div className="h-2 bg-yellow-500/80 rounded" style={{ width: `${(m.actual / max) * 100}%` }} />
-                  <div className="h-2 bg-muted rounded" style={{ width: `${(m.anterior / max) * 100}%` }} />
+                  <div className="h-2 bg-yellow-500/80 rounded" style={{ width: `${(m.actual / max) * 100}%` }} title={`${m.nombre} ${new Date().getFullYear()}: ${formatEuro(m.actual)}`} />
+                  <div className="h-2 bg-muted rounded" style={{ width: `${(m.anterior / max) * 100}%` }} title={`${m.nombre} ${new Date().getFullYear() - 1}: ${formatEuro(m.anterior)}`} />
                 </div>
               </div>
             )

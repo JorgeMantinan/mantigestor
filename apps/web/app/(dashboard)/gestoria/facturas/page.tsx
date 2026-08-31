@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react'
+import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertCircle, CheckCircle, Clock, XCircle, FileText } from 'lucide-react'
 import { BotonPDF } from '@/components/boton-pdf'
 import { toast, Toaster } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -32,6 +32,7 @@ interface Factura {
   iva: number
   total: number
   estado: string
+  categoriaGasto: string | null
 }
 
 type OrdenCampo = 'fechaEmision' | 'emisorReceptor' | 'total' | 'numero'
@@ -42,6 +43,7 @@ export default function FacturasPage() {
   const [facturas, setFacturas] = useState<Factura[]>([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState<'todas' | 'ingreso' | 'gasto'>('todas')
+  const [filtroEstado, setFiltroEstado] = useState<'todos' | 'pendiente' | 'pagada' | 'vencida'>('todos')
   const [busqueda, setBusqueda] = useState('')
   const [page, setPage] = useState(0)
   const [ordenCampo, setOrdenCampo] = useState<OrdenCampo>('fechaEmision')
@@ -57,6 +59,17 @@ export default function FacturasPage() {
   useKeyboardShortcuts({
     onSearch: () => searchRef.current?.focus(),
     onNew: () => router.push('/gestoria/facturas/nueva'),
+    onFocusSearch: () => searchRef.current?.focus(),
+    onFilterEstado: () => setFiltroEstado(prev => {
+      const cycle: Array<'todos' | 'pendiente' | 'pagada' | 'vencida'> = ['todos', 'pendiente', 'pagada', 'vencida']
+      const idx = cycle.indexOf(prev)
+      return cycle[(idx + 1) % cycle.length]!
+    }),
+    onFilterTipo: () => setFiltro(prev => {
+      const cycle: Array<'todas' | 'ingreso' | 'gasto'> = ['todas', 'ingreso', 'gasto']
+      const idx = cycle.indexOf(prev)
+      return cycle[(idx + 1) % cycle.length]!
+    }),
   })
 
   const fetchFacturas = useCallback(async () => {
@@ -184,6 +197,7 @@ export default function FacturasPage() {
 
   const visibles = useMemo(() => {
     let result = filtro === 'todas' ? facturas : facturas.filter(f => f.tipo === filtro)
+    if (filtroEstado !== 'todos') result = result.filter(f => f.estado === filtroEstado)
 
     if (busqueda.trim()) {
       const q = busqueda.toLowerCase()
@@ -273,6 +287,14 @@ export default function FacturasPage() {
             </Button>
           ))}
         </div>
+        <div className="flex gap-2">
+          {(['todos', 'pendiente', 'pagada', 'vencida'] as const).map(e => (
+            <Button key={e} variant={filtroEstado === e ? 'secondary' : 'outline'} size="sm"
+              onClick={() => { setFiltroEstado(e); setPage(0) }}>
+              {e === 'todos' ? 'Todos' : e.charAt(0).toUpperCase() + e.slice(1)}
+            </Button>
+          ))}
+        </div>
         <div className="flex-1" />
         <Button variant="outline" size="sm" disabled={visibles.length === 0}
           onClick={() => {
@@ -290,6 +312,29 @@ export default function FacturasPage() {
         <Button variant="outline" size="sm" disabled={visibles.length === 0}
           onClick={() => void exportarTodoZIP(visibles)}>
           <Download className="mr-1 h-4 w-4" /> Exportar ZIP
+        </Button>
+        <Button variant="outline" size="sm" disabled={visibles.length === 0}
+          onClick={async () => {
+            const { generarReporteGastosPDF } = await import('@/lib/reporte-gastos-pdf')
+            const totalBase = visibles.reduce((s, v) => s + v.baseImponible, 0)
+            const totalIva = visibles.reduce((s, v) => s + Math.round(v.baseImponible * v.iva / 100), 0)
+            const total = visibles.reduce((s, v) => s + v.total, 0)
+            await generarReporteGastosPDF({
+              titulo: 'Listado de facturas',
+              periodo: `${fechaDesde || 'Inicio'} — ${fechaHasta || 'Fin'}`,
+              lineas: visibles.map(v => ({
+                fecha: v.fechaEmision,
+                numero: v.numero,
+                contraparte: v.emisorReceptor,
+                baseImponible: v.baseImponible,
+                iva: Math.round(v.baseImponible * v.iva / 100),
+                total: v.total,
+                categoria: v.categoriaGasto ?? 'otros',
+              })),
+              totalBase, totalIva, total,
+            })
+          }}>
+          <FileText className="mr-1 h-4 w-4" /> Informe PDF
         </Button>
       </div>
 
