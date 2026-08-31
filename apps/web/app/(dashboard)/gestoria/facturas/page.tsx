@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertCircle } from 'lucide-react'
+import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertCircle, CheckCircle } from 'lucide-react'
 import { BotonPDF } from '@/components/boton-pdf'
 import { toast, Toaster } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -119,6 +119,15 @@ export default function FacturasPage() {
     setFacturas(prev => prev.filter(f => !seleccionadas.has(f.id)))
     setSeleccionadas(new Set())
     toast.success(`${ids.length} factura${ids.length !== 1 ? 's' : ''} eliminada${ids.length !== 1 ? 's' : ''}`)
+  }
+
+  const cambiarEstadoSeleccionadas = async (nuevoEstado: string) => {
+    const ids = Array.from(seleccionadas)
+    await getSupabase().from('facturas').update({ estado: nuevoEstado }).in('id', ids)
+    await logAccion('cambio_estado', 'factura', ids.join(','), `${ids.length} facturas → ${nuevoEstado}`)
+    setFacturas(prev => prev.map(f => seleccionadas.has(f.id) ? { ...f, estado: nuevoEstado } : f))
+    setSeleccionadas(new Set())
+    toast.success(`${ids.length} factura${ids.length !== 1 ? 's' : ''} marcada${ids.length !== 1 ? 's' : ''} como ${nuevoEstado}`)
   }
 
   const exportarSeleccionadas = () => {
@@ -349,6 +358,9 @@ export default function FacturasPage() {
             <div className="flex items-center gap-2 rounded-lg border bg-muted/50 p-2">
               <span className="text-sm font-medium">{seleccionadas.size} seleccionada{seleccionadas.size !== 1 ? 's' : ''}</span>
               <div className="flex-1" />
+              <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('pagada')}>
+                <CheckCircle className="mr-1 h-3 w-3" /> Pagada
+              </Button>
               <Button variant="outline" size="sm" onClick={() => void exportarSeleccionadasPDF()}>
                 <Download className="mr-1 h-3 w-3" /> PDF
               </Button>

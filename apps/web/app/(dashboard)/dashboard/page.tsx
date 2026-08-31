@@ -24,6 +24,7 @@ import { ChartPresupuesto } from '@/components/dashboard/chart-presupuesto'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { ChartComparativa } from '@/components/dashboard/chart-comparativa'
 import { ChartInteranual } from '@/components/dashboard/chart-interanual'
+import { ChartPrediccion } from '@/components/dashboard/chart-prediccion'
 
 interface Factura {
   id: string
@@ -307,6 +308,7 @@ export default function DashboardPage() {
           <ChartPresupuesto facturas={facturas} />
           <ChartComparativa facturas={facturas} />
           <ChartInteranual facturas={facturas} />
+          <ChartPrediccion facturas={facturas} />
         </div>
       )}
 

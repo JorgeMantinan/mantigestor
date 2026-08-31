@@ -25,6 +25,7 @@ import {
   Bell,
   Calendar,
   Upload,
+  Clock,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -58,6 +59,13 @@ const menuItems = [
     ],
   },
   {
+    group: 'Gestoría',
+    items: [
+      { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
+      { label: 'Documentos', href: '/gestoria/documentos', icon: FileText },
+    ],
+  },
+  {
     group: 'Alumnos',
     items: [
       { label: 'Documentos', href: '/alumnos', icon: FileText },
@@ -70,6 +78,7 @@ const menuItems = [
       { label: 'IA', href: '/ai', icon: PiggyBank },
       { label: 'Conversiones', href: '/conversiones', icon: FileSpreadsheet },
       { label: 'Dividir gasto', href: '/herramientas/dividir-gasto', icon: Users },
+      { label: 'Temporizador', href: '/herramientas/temporizador', icon: Clock },
       { label: 'Notificaciones', href: '/ajustes/notificaciones', icon: Bell },
       { label: 'Ajustes', href: '/ajustes', icon: Settings },
     ],
