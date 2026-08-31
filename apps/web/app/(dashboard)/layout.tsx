@@ -6,6 +6,7 @@ import { DashboardShortcuts } from '@/components/layout/DashboardShortcuts'
 import { PersonaActivaProvider } from '@/contexts/persona-activa-context'
 import { CommandPalette } from '@/components/command-palette'
 import { HelpDialog } from '@/components/help-dialog'
+import { MilestoneProvider } from '@/components/milestone-provider'
 
 export const metadata: Metadata = {
   title: 'Panel - MantiGestor',
@@ -30,6 +31,7 @@ export default function DashboardLayout({
         <DashboardShortcuts />
         <CommandPalette />
         <HelpDialog />
+        <MilestoneProvider />
       </div>
     </PersonaActivaProvider>
   )
