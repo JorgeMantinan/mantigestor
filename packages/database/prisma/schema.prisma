@@ -61,10 +61,12 @@ model Factura {
   categoriaGasto  String?  // etiqueta: suministros, alquiler, nomina, seguridad, marketing, otros
   notas           String?  // notas internas sobre la factura
   pdfUrl          String?
+  tokenCliente    String?  // token compartido para portal de cliente (mismo token = mismo cliente)
   createdAt       DateTime @default(now())
 
   @@index([perfilId, tipo])
   @@index([perfilId, fechaEmision])
+  @@index([tokenCliente])
   @@map("facturas")
 }
 
