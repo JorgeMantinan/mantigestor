@@ -190,7 +190,8 @@ export function Sidebar() {
           {[
             { label: 'Panel', href: '/dashboard', icon: LayoutDashboard },
             { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
-            { label: 'Fiscal', href: '/fiscal', icon: Calculator },
+      { label: 'Fiscal', href: '/fiscal', icon: Calculator },
+      { label: 'Asistente Fiscal', href: '/fiscal/asistente', icon: Calculator },
             { label: 'Alquiler', href: '/alquiler', icon: Home },
             { label: 'Ajustes', href: '/ajustes', icon: Settings },
           ].map(item => {
