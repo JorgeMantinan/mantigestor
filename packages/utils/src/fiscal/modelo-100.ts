@@ -7,6 +7,76 @@
  * Fuentes: LIRPF, RIRPF, Manual Renta AEAT 2025.
  */
 
+/**
+ * Mínimo personal y familiar del Modelo 100 (art. 56 LIRPF).
+ * Incluye mínimo por contribuyente + descendientes + ascendientes + discapacidad.
+ */
+export interface MinimoPersonalFamiliar {
+  contribuyente: number     // 5.550€ siempre
+  ascendientes65: number    // 1.150€ por cada ascendiente ≥65
+  descendientesMenores3: number  // 2.800€ por descendiente <3
+  descendientes3_65: number // 2.800€ por descendiente 3-65
+  descendientesDiscapacidad: number // 3.000€ o 6.000€ por descendiente discapacitado
+  ascendientesDiscapacidad: number  // 3.000€ o 6.000€ por ascendiente discapacitado
+  discapacidadContribuyente: number // 3.000€ o 6.000€
+}
+
+export const MINIMO_CONTRIBUYENTE = 555_00 // 5.550€
+export const MINIMO_ASCENDIENTE_65 = 115_00 // 1.150€
+export const MINIMO_DESCENDIENTE_MENOR_3 = 280_00 // 2.800€
+export const MINIMO_DESCENDIENTE_3_65 = 280_00 // 2.800€
+export const MINIMO_DISCAPACIDAD_GRAVE = 300_00 // 3.000°
+export const MINIMO_DISCAPACIDAD_GRAVE_GRAVE = 600_00 // 6.000°
+
+export function calcularMinimoPersonalFamiliar(params: {
+  numAscendientes65?: number
+  numDescendientesMenores3?: number
+  numDescendientes3_65?: number
+  numDescendientesDiscapacidad?: number
+  gradoDiscapacidadDescendiente?: 'leve' | 'grave' | 'grave_grave'
+  numAscendientesDiscapacidad?: number
+  gradoDiscapacidadAscendiente?: 'leve' | 'grave' | 'grave_grave'
+  contribuyenteDiscapacidad?: boolean
+  gradoDiscapacidadContribuyente?: 'leve' | 'grave' | 'grave_grave'
+}): MinimoPersonalFamiliar {
+  const minimoDiscapacidad = (grado: 'leve' | 'grave' | 'grave_grave' | undefined) => {
+    if (grado === 'grave_grave') return MINIMO_DISCAPACIDAD_GRAVE_GRAVE
+    if (grado === 'grave') return MINIMO_DISCAPACIDAD_GRAVE
+    return 0
+  }
+
+  return {
+    contribuyente: MINIMO_CONTRIBUYENTE,
+    ascendientes65: (params.numAscendientes65 ?? 0) * MINIMO_ASCENDIENTE_65,
+    descendientesMenores3: (params.numDescendientesMenores3 ?? 0) * MINIMO_DESCENDIENTE_MENOR_3,
+    descendientes3_65: (params.numDescendientes3_65 ?? 0) * MINIMO_DESCENDIENTE_3_65,
+    descendientesDiscapacidad: (params.numDescendientesDiscapacidad ?? 0) * minimoDiscapacidad(params.gradoDiscapacidadDescendiente),
+    ascendientesDiscapacidad: (params.numAscendientesDiscapacidad ?? 0) * minimoDiscapacidad(params.gradoDiscapacidadAscendiente),
+    discapacidadContribuyente: params.contribuyenteDiscapacidad ? minimoDiscapacidad(params.gradoDiscapacidadContribuyente) : 0,
+  }
+}
+
+export function totalMinimoPersonalFamiliar(m: MinimoPersonalFamiliar): number {
+  return m.contribuyente + m.ascendientes65 + m.descendientesMenores3 + m.descendientes3_65 +
+    m.descendientesDiscapacidad + m.ascendientesDiscapacidad + m.discapacidadContribuyente
+}
+
+/**
+ * Reducción art. 20 LIRPF por rendimientos del trabajo:
+ * - Rendimientos ≤ 14.047,50€: reducción 6.498€
+ * - 14.047,50 - 19.747,50€: reducción progresiva
+ * - ≥ 19.747,50€: sin reducción
+ */
+export function reduccionTrabajo20(rendimientosTrabajoCents: number): number {
+  const r = rendimientosTrabajoCents
+  if (r <= 1_404_750) return 649_800 // 6.498€
+  if (r >= 1_974_750) return 0
+  const exceso = r - 1_404_750
+  const rango = 1_974_750 - 1_404_750
+  const reduccion = 649_800 - Math.round((exceso / rango) * 649_800)
+  return Math.max(0, reduccion)
+}
+
 export interface DatosModelo100 {
   /** Rendimiento neto general previo a reducciones (céntimos) */
   baseImponibleGeneral: number

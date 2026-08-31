@@ -33,7 +33,7 @@ describe('calcularModelo231 — operaciones con criptomonedas', () => {
     })
     expect(r.numOperaciones).toBe(1)
     expect(r.volumenTotalCents).toBe(15_000_000)
-    expect(r.resumenPorTipo[0].numOperaciones).toBe(1)
+    expect(r.resumenPorTipo[0]?.numOperaciones).toBe(1)
   })
 
   it('resume compras, ventas y cambios por separado', () => {

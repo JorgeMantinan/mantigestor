@@ -1,3 +1,29 @@
+/**
+ * Mínimo multi-annual: reducción del 2% por cada año de actividad anteriores
+ * al primer año en que la cuota íntegra del trimestre supera el 70% de la
+ * cuota media de los tres primeros trimestres del ejercicio anterior.
+ * Máximo 15%. Solo aplica a autónomos con más de 1 año de actividad.
+ */
+export function calcularMinimoMultiannual(aniosActividad: number): number {
+  const reduccion = Math.min(15, Math.max(0, (aniosActividad - 1) * 2))
+  return reduccion
+}
+
+/**
+ * Reducción por rendimientos irregulares (art. 32 LIRPF):
+ * Aplicable cuando más del 75% de los ingresos tienen un período > 1 año.
+ * Reducción del 30% sobre el rendimiento neto (con límite de 300.000€/año).
+ */
+export function calcularReduccionIrregular(
+  rendimientoNeto: number,
+  esIrregular: boolean
+): number {
+  if (!esIrregular || rendimientoNeto <= 0) return 0
+  const reduccion = Math.round(rendimientoNeto * 0.30)
+  const limite = 300_000_00 // 300.000€ en céntimos
+  return Math.min(reduccion, Math.round(limite * 0.30))
+}
+
 export interface ResultadoModelo130 {
   ingresosAcumuladosAño: number
   gastosDeduciblesAcumulados: number
@@ -9,32 +35,45 @@ export interface ResultadoModelo130 {
   resultadoFinal: number
   aIngresar: number
   sinActividad: boolean
+  reduccionMultiannual: number
+  reduccionIrregular: number
+  rendimientoNetoTrasReducciones: number
 }
 
 export function calcularModelo130(
   ingresosAcumulados: number,
   gastosDeducibles: number,
   pagosAnteriores: number,
-  retencionesNomina: number = 0
+  retencionesNomina: number = 0,
+  aniosActividad: number = 1,
+  esIrregular: boolean = false
 ): ResultadoModelo130 {
-  const rendimientoNeto = Math.max(0, ingresosAcumulados - gastosDeducibles)
+  const rendimientoNetoBruto = Math.max(0, ingresosAcumulados - gastosDeducibles)
   const PORCENTAJE = 0.20
 
-  const cuotaIntegra = Math.round(rendimientoNeto * PORCENTAJE)
+  const reduccionMulti = Math.round(rendimientoNetoBruto * (calcularMinimoMultiannual(aniosActividad) / 100))
+  const desReducMulti = rendimientoNetoBruto - reduccionMulti
+  const reduccionIrreg = calcularReduccionIrregular(desReducMulti, esIrregular)
+  const rendimientoNetoTras = Math.max(0, desReducMulti - reduccionIrreg)
+
+  const cuotaIntegra = Math.round(rendimientoNetoTras * PORCENTAJE)
   const resultadoFinal = cuotaIntegra - pagosAnteriores - retencionesNomina
   const aIngresar = Math.max(0, resultadoFinal)
 
   return {
     ingresosAcumuladosAño: ingresosAcumulados,
     gastosDeduciblesAcumulados: gastosDeducibles,
-    rendimientoNeto,
+    rendimientoNeto: rendimientoNetoBruto,
     porcentajeRetencion: PORCENTAJE * 100,
     cuotaIntegra,
     pagosAnterioresAño: pagosAnteriores,
     retencionesNomina,
     resultadoFinal,
     aIngresar,
-    sinActividad: rendimientoNeto <= 0,
+    sinActividad: rendimientoNetoBruto <= 0,
+    reduccionMultiannual: reduccionMulti,
+    reduccionIrregular: reduccionIrreg,
+    rendimientoNetoTrasReducciones: rendimientoNetoTras,
   }
 }
 

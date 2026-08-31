@@ -113,3 +113,57 @@ export const TIPOS_RETENCION_HABITUALES = {
   arrendamientoUrbano: 19,
   premios: 19,
 } as const
+
+/**
+ * Calcula la retención sobre un bruto dado.
+ */
+export function calcularRetencion(brutoCents: number, tipoRetencionPct: number): number {
+  return Math.round(brutoCents * tipoRetencionPct / 100)
+}
+
+/**
+ * Calcula el resumen anual de retenciones (Modelo 190) a partir de 4 trimestres.
+ */
+export function resumenAnualRetenciones111(
+  trimestres: Array<ResultadoModelo111>
+): {
+  totalTrabajoBruto: number
+  totalTrabajoRetenciones: number
+  totalProfesionalBruto: number
+  totalProfesionalRetenciones: number
+  totalArrendamientoBruto: number
+  totalArrendamientoRetenciones: number
+  totalOtrosBruto: number
+  totalOtrosRetenciones: number
+  totalBruto: number
+  totalRetenciones: number
+} {
+  let totalTrabajoBruto = 0, totalTrabajoRetenciones = 0
+  let totalProfesionalBruto = 0, totalProfesionalRetenciones = 0
+  let totalArrendamientoBruto = 0, totalArrendamientoRetenciones = 0
+  let totalOtrosBruto = 0, totalOtrosRetenciones = 0
+
+  for (const t of trimestres) {
+    totalTrabajoBruto += t.trabajoBruto
+    totalTrabajoRetenciones += t.trabajoRetenciones
+    totalProfesionalBruto += t.profesionalBruto
+    totalProfesionalRetenciones += t.profesionalRetenciones
+    totalArrendamientoBruto += t.arrendamientoBruto
+    totalArrendamientoRetenciones += t.arrendamientoRetenciones
+    totalOtrosBruto += t.otrosBruto
+    totalOtrosRetenciones += t.otrosRetenciones
+  }
+
+  return {
+    totalTrabajoBruto,
+    totalTrabajoRetenciones,
+    totalProfesionalBruto,
+    totalProfesionalRetenciones,
+    totalArrendamientoBruto,
+    totalArrendamientoRetenciones,
+    totalOtrosBruto,
+    totalOtrosRetenciones,
+    totalBruto: totalTrabajoBruto + totalProfesionalBruto + totalArrendamientoBruto + totalOtrosBruto,
+    totalRetenciones: totalTrabajoRetenciones + totalProfesionalRetenciones + totalArrendamientoRetenciones + totalOtrosRetenciones,
+  }
+}
