@@ -28,6 +28,7 @@ import {
   Clock,
   Download,
   History,
+  RefreshCw,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -74,6 +75,8 @@ export function Sidebar() {
         { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
         { label: t('nav.documentos'), href: '/gestoria/documentos', icon: FileText },
         { label: t('nav.informes'), href: '/gestoria/informes', icon: FileSpreadsheet },
+        { label: 'Conciliación', href: '/gestoria/conciliacion', icon: RefreshCw },
+        { label: 'Informe trimestral', href: '/gestoria/informe-trimestral', icon: FileSpreadsheet },
         { label: t('nav.backup'), href: '/gestoria/backup', icon: Download },
         { label: t('nav.registro'), href: '/gestoria/audit-log', icon: History },
       ],
@@ -92,6 +95,7 @@ export function Sidebar() {
         { label: t('nav.conversiones'), href: '/conversiones', icon: FileSpreadsheet },
         { label: t('nav.dividirGasto'), href: '/herramientas/dividir-gasto', icon: Users },
         { label: t('nav.temporizador'), href: '/herramientas/temporizador', icon: Clock },
+        { label: 'Simulador retenciones', href: '/herramientas/simulador-retenciones', icon: Calculator },
         { label: t('nav.notificaciones'), href: '/ajustes/notificaciones', icon: Bell },
         { label: t('nav.ajustes'), href: '/ajustes', icon: Settings },
       ],
