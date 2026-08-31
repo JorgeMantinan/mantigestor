@@ -26,6 +26,7 @@ import {
   Calendar,
   Upload,
   Clock,
+  Download,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -63,6 +64,8 @@ const menuItems = [
     items: [
       { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
       { label: 'Documentos', href: '/gestoria/documentos', icon: FileText },
+      { label: 'Informes', href: '/gestoria/informes', icon: FileSpreadsheet },
+      { label: 'Backup', href: '/gestoria/backup', icon: Download },
     ],
   },
   {

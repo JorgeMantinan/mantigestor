@@ -11,6 +11,12 @@ const shortcuts = [
   { keys: ['Ctrl', 'N'], description: 'Crear nuevo registro' },
   { keys: ['Esc'], description: 'Cerrar panel / cancelar' },
   { keys: ['?'], description: 'Mostrar esta ayuda' },
+  { keys: ['G', 'F'], description: 'Ir a Facturas' },
+  { keys: ['G', 'D'], description: 'Ir a Dashboard' },
+  { keys: ['G', 'A'], description: 'Ir a Alquiler' },
+  { keys: ['G', 'N'], description: 'Ir a Nóminas' },
+  { keys: ['Ctrl', 'E'], description: 'Exportar Excel' },
+  { keys: ['Ctrl', 'P'], description: 'Exportar PDF' },
 ]
 
 const links = [

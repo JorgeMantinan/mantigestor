@@ -40,7 +40,7 @@ export function CommandPalette() {
 
     const term = `%${q}%`
     const [facturas, propiedades, nominas, alumnos] = await Promise.all([
-      supabase.from('facturas').select('id, numero, emisorReceptor').eq('perfilId', user.id).or(`numero.ilike.${term},emisorReceptor.ilike.${term}`).limit(5),
+      supabase.from('facturas').select('id, numero, emisorReceptor, nifContraparte').eq('perfilId', user.id).or(`numero.ilike.${term},emisorReceptor.ilike.${term},nifContraparte.ilike.${term}`).limit(5),
       supabase.from('propiedades_alquiler').select('id, direccion, inquilinoNombre').eq('perfilId', user.id).or(`direccion.ilike.${term},inquilinoNombre.ilike.${term}`).limit(5),
       supabase.from('nominas').select('id, empleada, mes, anyo').eq('perfilId', user.id).ilike('empleada', term).limit(5),
       supabase.from('alumnos').select('id, nombre').eq('perfilId', user.id).ilike('nombre', term).limit(5),
