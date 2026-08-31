@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
+import { useLanguage } from '@/contexts/language-context'
 import {
   Receipt, TrendingUp, TrendingDown, PiggyBank, Calendar, Users, Home,
   Plus, FileText, Calculator, ArrowRight, AlertCircle, ChevronLeft, ChevronRight, Clock
@@ -81,6 +82,7 @@ export default function DashboardPage() {
   const [selectedMonth, setSelectedMonth] = useState(0) // 0 = todos
   const getSupabase = useCallback(() => createClient(), [])
   const { perfilActivoId, personas, esPropio } = usePersonaActiva()
+  const { t } = useLanguage()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -166,7 +168,7 @@ export default function DashboardPage() {
     .sort((a, b) => a.fechaVencimiento!.localeCompare(b.fechaVencimiento!))[0] ?? null
 
   const ahora = new Date()
-  const saludo = ahora.getHours() < 14 ? 'Buenos días' : ahora.getHours() < 20 ? 'Buenas tardes' : 'Buenas noches'
+  const saludo = ahora.getHours() < 14 ? t('dashboard.buenosDias') : ahora.getHours() < 20 ? t('dashboard.buenasTardes') : t('dashboard.buenasNoches')
 
   const sparkIngresos = useMemo(() => {
     const meses: number[] = Array.from({ length: 12 }, () => 0)
@@ -208,8 +210,8 @@ export default function DashboardPage() {
             {saludo}{nombre ? `, ${nombre}` : ''}
           </h1>
           <p className="text-muted-foreground">
-            Panel de control fiscal
-            {!esPropio && ' · Gestionando otra persona'}
+            {t('dashboard.subtitulo')}
+            {!esPropio && ` · ${t('dashboard.gestionandoOtraPersona')}`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -240,12 +242,12 @@ export default function DashboardPage() {
         <div className="flex flex-wrap gap-2">
           <Link href="/gestoria/facturas/nueva">
             <Button size="sm">
-              <Plus className="mr-1.5 h-4 w-4" /> Nueva factura <Kbd className="ml-2">Ctrl+N</Kbd>
+              <Plus className="mr-1.5 h-4 w-4" /> {t('dashboard.nuevaFactura')} <Kbd className="ml-2">Ctrl+N</Kbd>
             </Button>
           </Link>
           <Link href="/fiscal">
             <Button variant="outline" size="sm">
-              <Calculator className="mr-1.5 h-4 w-4" /> Calculadoras
+              <Calculator className="mr-1.5 h-4 w-4" /> {t('dashboard.calculadoras')}
             </Button>
           </Link>
           <Link href="/gestoria/facturas">
@@ -260,7 +262,7 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ingresos</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.ingresos')}</CardTitle>
             <div className="flex items-center gap-2">
               <SparkLine data={sparkIngresos} color="#16a34a" />
               <TrendingUp className="h-4 w-4 text-green-600" />
@@ -268,12 +270,12 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{formatMoney(totalIngresos)}</div>
-            <p className="text-xs text-muted-foreground">{ingresos.length} facturas emitidas</p>
+            <p className="text-xs text-muted-foreground">{ingresos.length} {t('dashboard.facturasEmitidas')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Gastos</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.gastos')}</CardTitle>
             <div className="flex items-center gap-2">
               <SparkLine data={sparkGastos} color="#ef4444" />
               <TrendingDown className="h-4 w-4 text-red-600" />
@@ -288,7 +290,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">IVA neto</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.ivaNeto')}</CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -300,7 +302,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Beneficio neto</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.beneficio')}</CardTitle>
             <PiggyBank className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -312,7 +314,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.pendientes')}</CardTitle>
             <Clock className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
@@ -322,7 +324,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Próximo vencimiento</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.proximoVencimiento')}</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -351,7 +353,7 @@ export default function DashboardPage() {
 
       {/* Gráficas */}
       {!loading && facturas.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2" role="region" aria-label="Gráficas del dashboard">
+        <div className="grid gap-4 md:grid-cols-2" role="region" aria-label={t('dashboard.graficas')}>
           <ChartIngresosGastos facturas={facturasFiltradas} />
           <ChartEvolucion facturas={facturasFiltradas} nominas={nominas} />
           <ChartIvaTrimestral facturas={facturasFiltradas} />
@@ -377,7 +379,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Últimas facturas</CardTitle>
+              <CardTitle className="text-lg">{t('dashboard.ultimasFacturas')}</CardTitle>
               <Link href="/gestoria/facturas">
                 <Button variant="ghost" size="sm">Ver todas <ArrowRight className="ml-1 h-3 w-3" /></Button>
               </Link>

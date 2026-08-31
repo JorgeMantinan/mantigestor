@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown'
 import { PersonaSelector } from './persona-selector'
+import { LanguageSwitcher } from '@/components/language-switcher'
 import { LogOut, User, Settings, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 
@@ -31,6 +32,7 @@ export function Header() {
       <div className="flex-1" />
 
       <div className="flex items-center gap-2">
+        {user && <LanguageSwitcher />}
         {user && <PersonaSelector />}
         {user && <NotificationDropdown />}
         {user ? (

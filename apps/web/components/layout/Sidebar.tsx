@@ -31,70 +31,72 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
+import { useLanguage } from '@/contexts/language-context'
 import { Badge } from '@/components/ui/badge'
-
-const menuItems = [
-  {
-    group: 'Gestoría',
-    items: [
-      { label: 'Panel', href: '/dashboard', icon: LayoutDashboard },
-      { label: 'Expediente', href: '/gestoria/expediente', icon: FolderOpen },
-      { label: 'Agenda', href: '/gestoria/agenda', icon: Calendar },
-      { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
-      { label: 'Trimestres', href: '/gestoria/trimestres', icon: BarChart3 },
-      { label: 'Renta', href: '/gestoria/renta', icon: Landmark },
-      { label: 'Pack anual', href: '/gestoria/pack-anual', icon: FileText },
-      { label: 'Importar extracto', href: '/gestoria/importar-extracto', icon: Upload },
-      { label: 'Fiscal', href: '/fiscal', icon: Calculator },
-      { label: 'Alquiler', href: '/alquiler', icon: Home },
-      { label: 'Nóminas', href: '/nominas', icon: Users },
-    ],
-  },
-  {
-    group: 'Modelos rápidos',
-    items: [
-      { label: 'IVA trimestral (303)', href: '/fiscal?seccion=modelo303', icon: Receipt },
-      { label: 'Pago fraccionado (130)', href: '/fiscal?seccion=modelo130', icon: Landmark },
-      { label: 'Retenciones (111)', href: '/fiscal?seccion=modelo111', icon: Receipt },
-      { label: 'Renta anual (100)', href: '/fiscal?seccion=modelo100', icon: FileText },
-      { label: 'Reta (autónomos)', href: '/fiscal?seccion=reta', icon: Users },
-    ],
-  },
-  {
-    group: 'Gestoría',
-    items: [
-      { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
-      { label: 'Documentos', href: '/gestoria/documentos', icon: FileText },
-      { label: 'Informes', href: '/gestoria/informes', icon: FileSpreadsheet },
-      { label: 'Backup', href: '/gestoria/backup', icon: Download },
-      { label: 'Registro', href: '/gestoria/audit-log', icon: History },
-    ],
-  },
-  {
-    group: 'Alumnos',
-    items: [
-      { label: 'Documentos', href: '/alumnos', icon: FileText },
-      { label: 'Exámenes', href: '/alumnos/examenes', icon: GraduationCap },
-    ],
-  },
-  {
-    group: 'Herramientas',
-    items: [
-      { label: 'IA', href: '/ai', icon: PiggyBank },
-      { label: 'Conversiones', href: '/conversiones', icon: FileSpreadsheet },
-      { label: 'Dividir gasto', href: '/herramientas/dividir-gasto', icon: Users },
-      { label: 'Temporizador', href: '/herramientas/temporizador', icon: Clock },
-      { label: 'Notificaciones', href: '/ajustes/notificaciones', icon: Bell },
-      { label: 'Ajustes', href: '/ajustes', icon: Settings },
-    ],
-  },
-]
 
 export function Sidebar() {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const { esPropio } = usePersonaActiva()
+  const { t } = useLanguage()
+
+  const menuItems = [
+    {
+      group: t('nav.gestoria'),
+      items: [
+        { label: t('nav.panel'), href: '/dashboard', icon: LayoutDashboard },
+        { label: 'Expediente', href: '/gestoria/expediente', icon: FolderOpen },
+        { label: 'Agenda', href: '/gestoria/agenda', icon: Calendar },
+        { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
+        { label: 'Trimestres', href: '/gestoria/trimestres', icon: BarChart3 },
+        { label: 'Renta', href: '/gestoria/renta', icon: Landmark },
+        { label: 'Pack anual', href: '/gestoria/pack-anual', icon: FileText },
+        { label: 'Importar extracto', href: '/gestoria/importar-extracto', icon: Upload },
+        { label: t('nav.fiscal'), href: '/fiscal', icon: Calculator },
+        { label: t('nav.alquiler'), href: '/alquiler', icon: Home },
+        { label: t('nav.nominas'), href: '/nominas', icon: Users },
+      ],
+    },
+    {
+      group: 'Modelos rápidos',
+      items: [
+        { label: 'IVA trimestral (303)', href: '/fiscal?seccion=modelo303', icon: Receipt },
+        { label: 'Pago fraccionado (130)', href: '/fiscal?seccion=modelo130', icon: Landmark },
+        { label: 'Retenciones (111)', href: '/fiscal?seccion=modelo111', icon: Receipt },
+        { label: 'Renta anual (100)', href: '/fiscal?seccion=modelo100', icon: FileText },
+        { label: 'Reta (autónomos)', href: '/fiscal?seccion=reta', icon: Users },
+      ],
+    },
+    {
+      group: t('nav.gestoria'),
+      items: [
+        { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
+        { label: t('nav.documentos'), href: '/gestoria/documentos', icon: FileText },
+        { label: t('nav.informes'), href: '/gestoria/informes', icon: FileSpreadsheet },
+        { label: t('nav.backup'), href: '/gestoria/backup', icon: Download },
+        { label: t('nav.registro'), href: '/gestoria/audit-log', icon: History },
+      ],
+    },
+    {
+      group: t('nav.alumnos'),
+      items: [
+        { label: t('nav.documentos'), href: '/alumnos', icon: FileText },
+        { label: 'Exámenes', href: '/alumnos/examenes', icon: GraduationCap },
+      ],
+    },
+    {
+      group: t('nav.herramientas'),
+      items: [
+        { label: t('nav.ia'), href: '/ai', icon: PiggyBank },
+        { label: t('nav.conversiones'), href: '/conversiones', icon: FileSpreadsheet },
+        { label: t('nav.dividirGasto'), href: '/herramientas/dividir-gasto', icon: Users },
+        { label: t('nav.temporizador'), href: '/herramientas/temporizador', icon: Clock },
+        { label: t('nav.notificaciones'), href: '/ajustes/notificaciones', icon: Bell },
+        { label: t('nav.ajustes'), href: '/ajustes', icon: Settings },
+      ],
+    },
+  ]
 
   return (
     <>
@@ -202,12 +204,12 @@ export function Sidebar() {
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background lg:hidden" aria-label="Navegación móvil">
         <div className="flex items-center justify-around py-2">
           {[
-            { label: 'Panel', href: '/dashboard', icon: LayoutDashboard },
-            { label: 'Facturas', href: '/gestoria/facturas', icon: Receipt },
-            { label: 'Fiscal', href: '/fiscal', icon: Calculator },
-            { label: 'Nóminas', href: '/nominas', icon: FileText },
-            { label: 'Alquiler', href: '/alquiler', icon: Home },
-            { label: 'Ajustes', href: '/ajustes', icon: Settings },
+            { label: t('nav.panel'), href: '/dashboard', icon: LayoutDashboard },
+            { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
+            { label: t('nav.fiscal'), href: '/fiscal', icon: Calculator },
+            { label: t('nav.nominas'), href: '/nominas', icon: FileText },
+            { label: t('nav.alquiler'), href: '/alquiler', icon: Home },
+            { label: t('nav.ajustes'), href: '/ajustes', icon: Settings },
           ].map(item => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
