@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Eye } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
+import { generarFacturaClientePDF } from '@/lib/factura-cliente-pdf'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -28,12 +29,22 @@ interface FacturaRecurrente {
   createdAt: string
 }
 
+interface PerfilEmpresa {
+  nombre: string | null
+  empresa_nombre: string | null
+  empresa_nif: string | null
+  empresa_direccion: string | null
+}
+
 export default function FacturasRecurrentesPage() {
   const [plantillas, setPlantillas] = useState<FacturaRecurrente[]>([])
   const [loading, setLoading] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
+  const [perfil, setPerfil] = useState<PerfilEmpresa | null>(null)
+  const [generandoPdfId, setGenerandoPdfId] = useState<string | null>(null)
+  const [creandoAhoraId, setCreandoAhoraId] = useState<string | null>(null)
 
   // Form state
   const [tipo, setTipo] = useState('gasto')
@@ -50,12 +61,22 @@ export default function FacturasRecurrentesPage() {
   const fetchPlantillas = useCallback(async () => {
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) { setLoading(false); return }
-    const { data } = await getSupabase()
-      .from('facturas_recurrentes')
-      .select('*')
-      .eq('perfilId', user.id)
-      .order('createdAt', { ascending: false })
-    setPlantillas((data as FacturaRecurrente[]) ?? [])
+
+    const [plantillasRes, perfilRes] = await Promise.all([
+      getSupabase()
+        .from('facturas_recurrentes')
+        .select('*')
+        .eq('perfilId', user.id)
+        .order('createdAt', { ascending: false }),
+      getSupabase()
+        .from('perfiles')
+        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion')
+        .eq('userId', user.id)
+        .single(),
+    ])
+
+    setPlantillas((plantillasRes.data as FacturaRecurrente[]) ?? [])
+    if (perfilRes.data) setPerfil(perfilRes.data as PerfilEmpresa)
     setLoading(false)
   }, [getSupabase])
 
@@ -154,6 +175,41 @@ export default function FacturasRecurrentesPage() {
       setPlantillas(prev => prev.map(p =>
         p.id === plantilla.id ? { ...p, ultimaGeneracion: ahora.toISOString() } : p
       ))
+    }
+  }
+
+  const descargarPdfPlantilla = async (p: FacturaRecurrente) => {
+    setGenerandoPdfId(p.id)
+    try {
+      const ahora = new Date()
+      const numeroSiguiente = `${p.numero}-${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`
+      const importeIva = Math.round(p.baseImponible * (p.iva / 100))
+      const total = p.baseImponible + importeIva
+
+      await generarFacturaClientePDF({
+        numero: numeroSiguiente,
+        emisorReceptor: p.emisorReceptor,
+        nifContraparte: p.nifContraparte,
+        fechaEmision: ahora.toISOString().slice(0, 10),
+        baseImponible: p.baseImponible,
+        iva: p.iva,
+        total,
+        tipo: p.tipo,
+        empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
+        empresaDireccion: perfil?.empresa_direccion ?? undefined,
+        empresaNif: perfil?.empresa_nif ?? undefined,
+      })
+    } finally {
+      setGenerandoPdfId(null)
+    }
+  }
+
+  const generarFacturaAhora = async (plantilla: FacturaRecurrente) => {
+    setCreandoAhoraId(plantilla.id)
+    try {
+      await generarFactura(plantilla)
+    } finally {
+      setCreandoAhoraId(null)
     }
   }
 
@@ -282,89 +338,131 @@ export default function FacturasRecurrentesPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {plantillas.map(p => (
-            <Card key={p.id} className={!p.activa ? 'opacity-60' : ''}>
-              <CardContent className="flex items-center justify-between py-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-block h-2 w-2 rounded-full ${p.activa ? 'bg-green-500' : 'bg-gray-400'}`} />
-                    <span className="font-medium">{p.emisorReceptor}</span>
-                    {p.nifContraparte && (
-                      <span className="text-xs text-muted-foreground">({p.nifContraparte})</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span>{p.numero}-YYYY-MM</span>
-                    <span>·</span>
-                    <span>{nombreMes(p.diaGeneracion)}</span>
-                    {p.diaEmail && (
-                      <>
-                        <span>·</span>
-                        <span className="text-blue-600">Email día {p.diaEmail}</span>
-                      </>
-                    )}
-                    <span>·</span>
-                    <span className="capitalize">{p.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}</span>
-                  </div>
-                  {p.ultimaGeneracion && (
-                    <p className="text-xs text-muted-foreground">
-                      Última generación: {new Date(p.ultimaGeneracion).toLocaleDateString('es-ES')}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{formatMoney(p.baseImponible)}</span>
-                  <span className="text-xs text-muted-foreground">+{p.iva}%</span>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Vista previa">
-                        <Eye className="h-3 w-3" aria-hidden="true" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-sm">
-                      <DialogHeader>
-                        <DialogTitle>Vista previa</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-3 text-sm">
-                        <div className="flex justify-between"><span className="text-muted-foreground">Tipo</span><span className="capitalize">{p.tipo}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">{p.tipo === 'gasto' ? 'Proveedor' : 'Cliente'}</span><span className="font-medium">{p.emisorReceptor}</span></div>
-                        {p.nifContraparte && <div className="flex justify-between"><span className="text-muted-foreground">NIF</span><span>{p.nifContraparte}</span></div>}
-                        <div className="flex justify-between"><span className="text-muted-foreground">Base imponible</span><span>{formatMoney(p.baseImponible)}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">IVA ({p.iva}%)</span><span>{formatMoney(Math.round(p.baseImponible * (p.iva / 100)))}</span></div>
-                        <div className="border-t pt-2 flex justify-between font-bold"><span>Total</span><span>{formatMoney(p.baseImponible + Math.round(p.baseImponible * (p.iva / 100)))}</span></div>
-                        <div className="flex justify-between text-xs text-muted-foreground"><span>Día generación</span><span>Cada mes día {p.diaGeneracion}</span></div>
-                        {p.diaEmail && <div className="flex justify-between text-xs text-muted-foreground"><span>Día email</span><span>Día {p.diaEmail}</span></div>}
+          {plantillas.map(p => {
+            const importeIva = Math.round(p.baseImponible * (p.iva / 100))
+            const total = p.baseImponible + importeIva
+            const ahora = new Date()
+            const numeroSiguiente = `${p.numero}-${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`
+
+            return (
+              <Card key={p.id} className={!p.activa ? 'opacity-60' : ''}>
+                <CardContent className="py-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-block h-2 w-2 rounded-full ${p.activa ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        <span className="font-medium">{p.emisorReceptor}</span>
+                        {p.nifContraparte && (
+                          <span className="text-xs text-muted-foreground">({p.nifContraparte})</span>
+                        )}
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                  <Button variant="outline" size="sm" className="h-7 text-xs"
-                    onClick={() => void generarFactura(p)} disabled={!p.activa}>
-                    Generar ahora
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleActiva(p.id, p.activa)} aria-label={p.activa ? 'Desactivar recurrente' : 'Activar recurrente'}>
-                    {p.activa ? <Pause className="h-3 w-3" aria-hidden="true" /> : <Play className="h-3 w-3" aria-hidden="true" />}
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label="Eliminar recurrente">
-                        <Trash2 className="h-3 w-3" aria-hidden="true" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>¿Eliminar esta plantilla recurrente?</AlertDialogTitle>
-                        <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => void eliminar(p.id)}>Eliminar</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        <span>{p.numero}-YYYY-MM</span>
+                        <span>·</span>
+                        <span>{nombreMes(p.diaGeneracion)}</span>
+                        {p.diaEmail && (
+                          <>
+                            <span>·</span>
+                            <span className="text-blue-600">Email día {p.diaEmail}</span>
+                          </>
+                        )}
+                        <span>·</span>
+                        <span className="capitalize">{p.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}</span>
+                      </div>
+                      {p.ultimaGeneracion && (
+                        <p className="text-xs text-muted-foreground">
+                          Última generación: {new Date(p.ultimaGeneracion).toLocaleDateString('es-ES')}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{formatMoney(p.baseImponible)}</span>
+                      <span className="text-xs text-muted-foreground">+{p.iva}%</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap border-t pt-3">
+                    <VistaPreviaPlantilla datos={{
+                      numero: numeroSiguiente,
+                      emisorReceptor: p.emisorReceptor,
+                      nifContraparte: p.nifContraparte,
+                      fechaEmision: ahora.toISOString().slice(0, 10),
+                      baseImponible: p.baseImponible,
+                      iva: p.iva,
+                      total,
+                      tipo: p.tipo,
+                      empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
+                      empresaDireccion: perfil?.empresa_direccion ?? undefined,
+                      empresaNif: perfil?.empresa_nif ?? undefined,
+                    }} />
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      disabled={generandoPdfId === p.id}
+                      onClick={() => void descargarPdfPlantilla(p)}
+                    >
+                      {generandoPdfId === p.id ? (
+                        <RefreshCw className="mr-1 h-3 w-3 animate-spin" />
+                      ) : (
+                        <Download className="mr-1 h-3 w-3" />
+                      )}
+                      Descargar PDF
+                    </Button>
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 text-xs" disabled={!p.activa || creandoAhoraId === p.id}>
+                          {creandoAhoraId === p.id ? (
+                            <RefreshCw className="mr-1 h-3 w-3 animate-spin" />
+                          ) : (
+                            <FileText className="mr-1 h-3 w-3" />
+                          )}
+                          Generar ahora
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Generar factura ahora</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Se creará la factura <strong>{numeroSiguiente}</strong> con fecha de hoy ({ahora.toLocaleDateString('es-ES')}) por importe de <strong>{formatMoney(total)}</strong> (IVA {p.iva}% incluido).
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => void generarFacturaAhora(p)}>
+                            Confirmar generación
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleActiva(p.id, p.activa)} aria-label={p.activa ? 'Desactivar recurrente' : 'Activar recurrente'}>
+                      {p.activa ? <Pause className="h-3 w-3" aria-hidden="true" /> : <Play className="h-3 w-3" aria-hidden="true" />}
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label="Eliminar recurrente">
+                          <Trash2 className="h-3 w-3" aria-hidden="true" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Eliminar esta plantilla recurrente?</AlertDialogTitle>
+                          <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => void eliminar(p.id)}>Eliminar</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
       )}
 

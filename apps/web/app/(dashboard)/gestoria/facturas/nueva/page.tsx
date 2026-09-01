@@ -17,6 +17,7 @@ import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
 import { useParsearVoz } from '@/hooks/use-parsear-voz'
 import { rellenarFormularioDesdeOcr } from '@/lib/factura-utils'
 import { VoiceInput } from '@/components/facturas/voice-input'
+import { MOEDAS, obtenerTasaCambio, formatoMoneda } from '@/lib/divisas'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -31,6 +32,9 @@ export default function NuevaFacturaPage() {
   const [modelosSugeridos, setModelosSugeridos] = useState<ModeloSugeridoOcr[]>([])
   const [categoriaGasto, setCategoriaGasto] = useState<string | null>(null)
   const [tipoSeleccionado, setTipoSeleccionado] = useState<string>('ingreso')
+  const [moneda, setMoneda] = useState('EUR')
+  const [tipoCambio, setTipoCambio] = useState(1)
+  const [cargandoTasa, setCargandoTasa] = useState(false)
 
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
@@ -117,6 +121,18 @@ export default function NuevaFacturaPage() {
     speech.limpiar()
   }
 
+  async function handleMonedaChange(nuevaMoneda: string) {
+    setMoneda(nuevaMoneda)
+    if (nuevaMoneda === 'EUR') {
+      setTipoCambio(1)
+      return
+    }
+    setCargandoTasa(true)
+    const tasa = await obtenerTasaCambio(nuevaMoneda, 'EUR')
+    setTipoCambio(tasa)
+    setCargandoTasa(false)
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
@@ -177,6 +193,8 @@ export default function NuevaFacturaPage() {
       estado: 'pendiente',
       categoriaGasto: form.get('tipo') === 'gasto' ? categoriaGasto : null,
       pdfUrl: pdfUrl || null,
+      moneda,
+      tipoCambio,
     })
 
     if (insertError) {
@@ -237,6 +255,51 @@ export default function NuevaFacturaPage() {
               </div>
             )}
 
+            <div className="space-y-2">
+              <Label htmlFor="moneda">Moneda</Label>
+              <select
+                id="moneda"
+                value={moneda}
+                onChange={(e) => void handleMonedaChange(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                {MOEDAS.map(m => (
+                  <option key={m.code} value={m.code}>{m.symbol} — {m.name} ({m.code})</option>
+                ))}
+              </select>
+            </div>
+
+            {moneda !== 'EUR' && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="tipoCambio">Tipo de cambio ({moneda} → EUR)</Label>
+                  <Input
+                    id="tipoCambio"
+                    type="number"
+                    step="0.0001"
+                    value={tipoCambio}
+                    onChange={(e) => setTipoCambio(parseFloat(e.target.value) || 1)}
+                    disabled={cargandoTasa}
+                  />
+                  {cargandoTasa && <p className="text-xs text-muted-foreground">Obteniendo tipo de cambio...</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label>Total en EUR</Label>
+                  <Input
+                    disabled
+                    value={(() => {
+                      const baseInput = document.getElementById('baseImponible') as HTMLInputElement | null
+                      const ivaSelect = document.getElementById('iva') as HTMLSelectElement | null
+                      const base = parseFloat(baseInput?.value || '0')
+                      const iva = parseInt(ivaSelect?.value || '0', 10)
+                      const totalLocal = base + base * (iva / 100)
+                      return formatoMoneda(totalLocal * tipoCambio, 'EUR')
+                    })()}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="emisorReceptor">Nombre/cliente o proveedor</Label>
@@ -261,7 +324,7 @@ export default function NuevaFacturaPage() {
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="baseImponible">Base imponible (€)</Label>
+                <Label htmlFor="baseImponible">Base imponible ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
                 <Input id="baseImponible" name="baseImponible" type="number" step="0.01" required placeholder="100.00" />
               </div>
               <div className="space-y-2">
@@ -280,7 +343,7 @@ export default function NuevaFacturaPage() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="importeTotal">Total (€)</Label>
+                <Label htmlFor="importeTotal">Total ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
                 <Input id="importeTotal" disabled placeholder="Se calcula automáticamente" />
               </div>
             </div>

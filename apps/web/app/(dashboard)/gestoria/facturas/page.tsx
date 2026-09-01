@@ -14,12 +14,13 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { Kbd } from '@/components/ui/kbd'
 import { Download } from 'lucide-react'
-import { descargarCsv } from '@/lib/descargar-csv'
-import { descargarExcel } from '@/lib/descargar-excel'
+import { descargarExcelConResumen } from '@/lib/descargar-excel'
 import { generarPDFDeHTML } from '@/lib/pdf'
 import { exportarTodoZIP } from '@/lib/exportar-zip'
 import { logAccion } from '@/lib/audit-log'
 import { detectarDuplicados, verificarPoliticaGasto } from '@mantigestor/utils'
+import { MOEDAS, formatoMoneda } from '@/lib/divisas'
+import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, obtenerNombreTag } from '@/lib/tags'
 
 interface Factura {
   id: string
@@ -33,6 +34,9 @@ interface Factura {
   total: number
   estado: string
   categoriaGasto: string | null
+  tags?: string | null
+  moneda?: string
+  tipoCambio?: number
 }
 
 type OrdenCampo = 'fechaEmision' | 'emisorReceptor' | 'total' | 'numero'
@@ -51,6 +55,9 @@ export default function FacturasPage() {
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set())
+  const [filtroTag, setFiltroTag] = useState<string[]>([])
+  const [mostrarFiltroTag, setMostrarFiltroTag] = useState(false)
+  const filtroTagRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -87,6 +94,17 @@ export default function FacturasPage() {
 
   useEffect(() => { fetchFacturas() }, [fetchFacturas])
 
+  useEffect(() => {
+    if (!mostrarFiltroTag) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (filtroTagRef.current && !filtroTagRef.current.contains(e.target as Node)) {
+        setMostrarFiltroTag(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [mostrarFiltroTag])
+
   const eliminar = async (id: string) => {
     const factura = facturas.find(f => f.id === id)
     await getSupabase().from('facturas').delete().eq('id', id)
@@ -95,8 +113,8 @@ export default function FacturasPage() {
     toast.success('Factura eliminada')
   }
 
-  const formatMoney = (cents: number) =>
-    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
+  const formatMoney = (cents: number, moneda?: string) =>
+    formatoMoneda(cents / 100, moneda ?? 'EUR')
 
   const toggleSort = (campo: OrdenCampo) => {
     if (ordenCampo === campo) {
@@ -145,14 +163,47 @@ export default function FacturasPage() {
 
   const exportarSeleccionadas = () => {
     const seleccionadasFacturas = facturas.filter(f => seleccionadas.has(f.id))
-    const headers = ['Fecha', 'Tipo', 'Nº Factura', 'Contraparte', 'Base Imponible', 'IVA', 'Total', 'Estado']
-    const rows = seleccionadasFacturas.map(v => [
-      v.fechaEmision.slice(0, 10), v.tipo === 'ingreso' ? 'Ingreso' : 'Gasto',
-      v.numero || '', v.emisorReceptor || '',
-      v.baseImponible.toFixed(2), v.iva.toFixed(2), v.total.toFixed(2),
-      v.estado || ''
+    exportarExcelConResumenFacturas(seleccionadasFacturas, `facturas-seleccion-${new Date().toISOString().slice(0, 10)}`)
+  }
+
+  const exportarExcelConResumenFacturas = async (datos: Factura[], nombreBase: string) => {
+    const totalIngresos = datos.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + f.total, 0)
+    const totalGastos = datos.filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.total, 0)
+    const totalIva = datos.reduce((s, f) => s + f.iva, 0)
+    const facturasPendientes = datos.filter(f => f.estado === 'pendiente').length
+    const facturasPagadas = datos.filter(f => f.estado === 'pagada').length
+
+    const resumen = [
+      { label: 'Total facturas', value: datos.length },
+      { label: 'Total ingresos', value: `${(totalIngresos / 100).toFixed(2)} €` },
+      { label: 'Total gastos', value: `${(totalGastos / 100).toFixed(2)} €` },
+      { label: 'Saldo neto', value: `${((totalIngresos - totalGastos) / 100).toFixed(2)} €` },
+      { label: 'IVA total', value: `${(totalIva / 100).toFixed(2)} €` },
+      { label: 'Facturas pendientes', value: facturasPendientes },
+      { label: 'Facturas pagadas', value: facturasPagadas },
+    ]
+
+    const headers = [
+      'Fecha', 'Tipo', 'Nº Factura', 'Contraparte', 'NIF',
+      'Base Imponible', 'IVA', 'Total', 'Estado', 'Moneda',
+      'Tipo Cambio', 'Etiquetas',
+    ]
+    const rows = datos.map(v => [
+      v.fechaEmision.slice(0, 10),
+      v.tipo === 'ingreso' ? 'Ingreso' : 'Gasto',
+      v.numero || '',
+      v.emisorReceptor || '',
+      v.nifContraparte || '',
+      (v.baseImponible / 100).toFixed(2),
+      (v.iva / 100).toFixed(2),
+      (v.total / 100).toFixed(2),
+      v.estado || '',
+      v.moneda || 'EUR',
+      v.tipoCambio ?? '',
+      parsearTags(v.tags).map(id => obtenerNombreTag(id)).join(', '),
     ])
-    descargarExcel(headers, rows, `facturas-seleccion-${new Date().toISOString().slice(0, 10)}.xlsx`, 'Facturas')
+
+    await descargarExcelConResumen(headers, rows, resumen, `${nombreBase}.xlsx`, 'Facturas')
   }
 
   const exportarSeleccionadasPDF = async () => {
@@ -163,9 +214,9 @@ export default function FacturasPage() {
         <td style="padding:6px;border-bottom:1px solid #e5e7eb">${v.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}</td>
         <td style="padding:6px;border-bottom:1px solid #e5e7eb">${v.numero}</td>
         <td style="padding:6px;border-bottom:1px solid #e5e7eb">${v.emisorReceptor}</td>
-        <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right">${formatMoney(v.baseImponible)}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right">${formatMoney(v.baseImponible, v.moneda)}</td>
         <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right">${v.iva}%</td>
-        <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">${formatMoney(v.total)}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">${formatMoney(v.total, v.moneda)}</td>
         <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center">${v.estado}</td>
       </tr>`
     ).join('')
@@ -211,6 +262,13 @@ export default function FacturasPage() {
     if (fechaDesde) result = result.filter(f => f.fechaEmision >= fechaDesde)
     if (fechaHasta) result = result.filter(f => f.fechaEmision <= fechaHasta)
 
+    if (filtroTag.length > 0) {
+      result = result.filter(f => {
+        const tags = parsearTags(f.tags)
+        return filtroTag.some(ft => tags.includes(ft))
+      })
+    }
+
     result.sort((a, b) => {
       let cmp = 0
       switch (ordenCampo) {
@@ -223,7 +281,7 @@ export default function FacturasPage() {
     })
 
     return result
-  }, [facturas, filtro, busqueda, fechaDesde, fechaHasta, ordenCampo, ordenDir])
+  }, [facturas, filtro, busqueda, fechaDesde, fechaHasta, ordenCampo, ordenDir, filtroTag])
 
   const totalPages = Math.ceil(visibles.length / PAGE_SIZE)
   const paginadas = visibles.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -295,18 +353,48 @@ export default function FacturasPage() {
             </Button>
           ))}
         </div>
+        <div className="relative" ref={filtroTagRef}>
+          <Button variant={filtroTag.length > 0 ? 'secondary' : 'outline'} size="sm"
+            onClick={() => setMostrarFiltroTag(!mostrarFiltroTag)}>
+            <span className="mr-1 h-3 w-3 rounded-full bg-purple-500 inline-block" />
+            Etiquetas{filtroTag.length > 0 ? ` (${filtroTag.length})` : ''}
+          </Button>
+          {mostrarFiltroTag && (
+            <div className="absolute z-50 mt-1 right-0 w-56 rounded-md border bg-popover p-2 shadow-md">
+              <div className="max-h-60 overflow-y-auto space-y-1">
+                {TAGS_PREDEFINIDOS.map(tag => (
+                  <label key={tag.id} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent">
+                    <input
+                      type="checkbox"
+                      className="rounded border-input"
+                      checked={filtroTag.includes(tag.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFiltroTag(prev => [...prev, tag.id])
+                        } else {
+                          setFiltroTag(prev => prev.filter(t => t !== tag.id))
+                        }
+                        setPage(0)
+                      }}
+                    />
+                    <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: tag.color }} />
+                    {tag.nombre}
+                  </label>
+                ))}
+              </div>
+              {filtroTag.length > 0 && (
+                <div className="mt-2 border-t pt-2">
+                  <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => { setFiltroTag([]); setPage(0) }}>
+                    Limpiar filtros
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         <div className="flex-1" />
         <Button variant="outline" size="sm" disabled={visibles.length === 0}
-          onClick={() => {
-            const headers = ['Fecha', 'Tipo', 'Nº Factura', 'Contraparte', 'Base Imponible', 'IVA', 'Total', 'Estado']
-            const rows = visibles.map(v => [
-              v.fechaEmision.slice(0, 10), v.tipo === 'ingreso' ? 'Ingreso' : 'Gasto',
-              v.numero || '', v.emisorReceptor || '',
-              v.baseImponible.toFixed(2), v.iva.toFixed(2), v.total.toFixed(2),
-              v.estado || ''
-            ])
-            descargarExcel(headers, rows, `facturas-${new Date().toISOString().slice(0, 10)}.xlsx`, 'Facturas')
-          }}>
+          onClick={() => exportarExcelConResumenFacturas(visibles, `facturas-${new Date().toISOString().slice(0, 10)}`)}>
           <Download className="mr-1 h-4 w-4" /> Exportar Excel
         </Button>
         <Button variant="outline" size="sm" disabled={visibles.length === 0}
@@ -475,6 +563,7 @@ export default function FacturasPage() {
                       Total <SortIcon campo="total" />
                     </th>
                     <th className="px-4 py-3 text-center font-medium">Estado</th>
+                    <th className="px-4 py-3 text-left font-medium">Etiquetas</th>
                     <th className="px-4 py-3 text-right font-medium"></th>
                   </tr>
                 </thead>
@@ -494,9 +583,9 @@ export default function FacturasPage() {
                       <td className="px-4 py-3 capitalize">{f.tipo === 'ingreso' ? 'Emitida' : 'Recibida'}</td>
                       <td className="px-4 py-3">{f.emisorReceptor}</td>
                       <td className="px-4 py-3">{new Date(f.fechaEmision).toLocaleDateString('es-ES')}</td>
-                      <td className="px-4 py-3 text-right">{formatMoney(f.baseImponible)}</td>
+                      <td className="px-4 py-3 text-right">{formatMoney(f.baseImponible, f.moneda)}</td>
                       <td className="px-4 py-3 text-right">{f.iva}%</td>
-                      <td className="px-4 py-3 text-right font-medium">{formatMoney(f.total)}</td>
+                      <td className="px-4 py-3 text-right font-medium">{formatMoney(f.total, f.moneda)}</td>
                       <td className="px-4 py-3 text-center">
                         <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                           f.estado === 'pagada'
@@ -507,6 +596,25 @@ export default function FacturasPage() {
                         }`}>
                           {f.estado}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {parsearTags(f.tags).slice(0, 3).map(tagId => (
+                            <span
+                              key={tagId}
+                              className="inline-block rounded-full px-1.5 py-0.5 text-[10px] font-medium text-white leading-tight"
+                              style={{ backgroundColor: obtenerColorTag(tagId) }}
+                              title={obtenerNombreTag(tagId)}
+                            >
+                              {obtenerNombreTag(tagId)}
+                            </span>
+                          ))}
+                          {parsearTags(f.tags).length > 3 && (
+                            <span className="inline-block rounded-full px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground leading-tight">
+                              +{parsearTags(f.tags).length - 3}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">

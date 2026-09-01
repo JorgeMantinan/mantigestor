@@ -20,8 +20,8 @@ import { ChartEvolucion } from '@/components/dashboard/chart-evolucion'
 import { SkeletonDashboard } from '@/components/dashboard/skeleton-dashboard'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
 import { CalendarioFiscal } from '@/components/dashboard/calendario-fiscal'
-import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { ChartComparativa } from '@/components/dashboard/chart-comparativa'
+import { useWidgetConfig } from '@/components/dashboard/widget-config'
 import { SparkLine } from '@/components/ui/sparkline'
 import dynamic from 'next/dynamic'
 
@@ -39,6 +39,18 @@ const ChartPrediccion = dynamic(() => import('@/components/dashboard/chart-predi
 })
 const ChartGastosCategoria = dynamic(() => import('@/components/dashboard/chart-gastos-categoria').then(m => m.ChartGastosCategoria), {
   loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
+const WidgetAlertasIVA = dynamic(() => import('@/components/dashboard/widget-alertas-iva').then(m => m.WidgetAlertasIVA), {
+  loading: () => <div className="h-[120px] animate-pulse bg-muted rounded" />,
+})
+const WidgetComparativa = dynamic(() => import('@/components/dashboard/widget-comparativa').then(m => m.WidgetComparativa), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
+const WidgetTopGastos = dynamic(() => import('@/components/dashboard/widget-top-gastos').then(m => m.WidgetTopGastos), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
+const WidgetActivity = dynamic(() => import('@/components/dashboard/widget-activity').then(m => m.WidgetActivity), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
 })
 
 interface Factura {
@@ -95,6 +107,7 @@ export default function DashboardPage() {
   const getSupabase = useCallback(() => createClient(), [])
   const { perfilActivoId, personas, esPropio } = usePersonaActiva()
   const { t } = useLanguage()
+  const { isVisible } = useWidgetConfig()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -379,13 +392,22 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Widgets adicionales */}
+      {!loading && facturas.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {isVisible('alertas-iva') && <WidgetAlertasIVA facturas={facturasFiltradas} />}
+          {isVisible('comparativa-sector') && <WidgetComparativa facturas={facturasFiltradas} />}
+          {isVisible('top-gastos') && <WidgetTopGastos facturas={facturasFiltradas} />}
+        </div>
+      )}
+
       {/* Contenido principal */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Calendario fiscal */}
         <CalendarioFiscal />
 
         {/* Actividad reciente */}
-        <ActivityFeed />
+        {isVisible('actividad') && <WidgetActivity />}
 
         {/* Últimas facturas */}
         <Card>

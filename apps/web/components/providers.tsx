@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { ThemeProvider } from 'next-themes'
 import { LanguageProvider } from '@/contexts/language-context'
 import { RegisterSW } from '@/components/register-sw'
+import { OnboardingProvider } from '@/components/onboarding/onboarding-provider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -24,7 +25,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <LanguageProvider>
         <QueryClientProvider client={queryClient}>
           <RegisterSW />
-          {children}
+          <OnboardingProvider>
+            {children}
+          </OnboardingProvider>
         </QueryClientProvider>
       </LanguageProvider>
     </ThemeProvider>

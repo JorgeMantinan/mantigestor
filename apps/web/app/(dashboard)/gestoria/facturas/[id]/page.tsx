@@ -8,7 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, Pencil, Trash2, Download } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, Download, Mail } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
+import { toast } from 'sonner'
+import { enviarFacturaPorEmail } from '@/lib/factura-email'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useParsearVoz } from '@/hooks/use-parsear-voz'
@@ -18,6 +21,8 @@ import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-pick
 import { generarFacturaClientePDF, NOMBRES_PLANTILLAS, type PlantillaFactura } from '@/lib/factura-cliente-pdf'
 import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
 import { TimelineFactura } from '@/components/timeline-factura'
+import { MOEDAS, formatoMoneda, obtenerTasaCambio } from '@/lib/divisas'
+import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, serializarTags, obtenerNombreTag } from '@/lib/tags'
 
 interface Factura {
   id: string
@@ -32,6 +37,9 @@ interface Factura {
   total: number
   estado: string
   categoriaGasto: string | null
+  tags?: string | null
+  moneda?: string
+  tipoCambio?: number
 }
 
 export default function FacturaDetailPage({ params }: { params: { id: string } }) {
@@ -42,9 +50,19 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [saving, setSaving] = useState(false)
   const [categoriaGasto, setCategoriaGasto] = useState<string | null>(null)
   const [notas, setNotas] = useState<string>('')
+  const [tagsSeleccionados, setTagsSeleccionados] = useState<string[]>([])
+  const [nuevoTagCustom, setNuevoTagCustom] = useState('')
+  const [mostrarTagsDropdown, setMostrarTagsDropdown] = useState(false)
   const [perfil, setPerfil] = useState<{ nombre: string | null; empresa_nombre: string | null; empresa_nif: string | null; empresa_direccion: string | null } | null>(null)
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+  const [emailDestino, setEmailDestino] = useState('')
+  const [enviandoEmail, setEnviandoEmail] = useState(false)
   const [plantilla, setPlantilla] = useState<PlantillaFactura>('clasico')
+  const [monedaEdit, setMonedaEdit] = useState('EUR')
+  const [tipoCambioEdit, setTipoCambioEdit] = useState(1)
+  const [cargandoTasaEdit, setCargandoTasaEdit] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+  const tagsDropdownRef = useRef<HTMLDivElement>(null)
   const speech = useSpeechRecognition()
   const { parseandoVoz, parsearVoz } = useParsearVoz({ formRef })
 
@@ -64,6 +82,9 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         setFactura(data as Factura)
         setCategoriaGasto((data as Factura).categoriaGasto ?? null)
         setNotas((data as unknown as { notas: string | null }).notas ?? '')
+        setTagsSeleccionados(parsearTags((data as unknown as { tags: string | null }).tags))
+        setMonedaEdit((data as Factura).moneda ?? 'EUR')
+        setTipoCambioEdit((data as Factura).tipoCambio ?? 1)
       }
       const { data: perfilData } = await getSupabase()
         .from('perfiles')
@@ -75,6 +96,17 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
     }
     fetchFactura()
   }, [params.id, getSupabase])
+
+  useEffect(() => {
+    if (!mostrarTagsDropdown) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tagsDropdownRef.current && !tagsDropdownRef.current.contains(e.target as Node)) {
+        setMostrarTagsDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [mostrarTagsDropdown])
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -99,10 +131,13 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       total,
       categoriaGasto: form.get('tipo') === 'gasto' ? (form.get('categoriaGasto') as string || null) : null,
       notas: notas || null,
+      tags: serializarTags(tagsSeleccionados) || null,
+      moneda: monedaEdit,
+      tipoCambio: tipoCambioEdit,
     }).eq('id', factura.id)
 
     if (!error) {
-      setFactura({ ...factura, ...Object.fromEntries(form) } as unknown as Factura)
+      setFactura({ ...factura, ...Object.fromEntries(form), moneda: monedaEdit, tipoCambio: tipoCambioEdit } as unknown as Factura)
       setEditing(false)
     }
     setSaving(false)
@@ -115,13 +150,48 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
     router.push('/gestoria/facturas')
   }
 
+  const handleEnviarEmail = async () => {
+    if (!factura || !emailDestino) return
+    setEnviandoEmail(true)
+    try {
+      const result = await enviarFacturaPorEmail(
+        factura.id,
+        emailDestino,
+        {
+          numero: factura.numero,
+          emisorReceptor: factura.emisorReceptor,
+          nifContraparte: factura.nifContraparte,
+          fechaEmision: factura.fechaEmision,
+          baseImponible: factura.baseImponible,
+          iva: factura.iva,
+          total: factura.total,
+          tipo: factura.tipo,
+          empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
+          empresaDireccion: perfil?.empresa_direccion ?? undefined,
+          empresaNif: perfil?.empresa_nif ?? undefined,
+          notas: notas || null,
+        },
+        plantilla
+      )
+      if (result.ok) {
+        toast.success(result.skipped ? 'Email no enviado (sin API key configurada)' : `Email enviado a ${emailDestino}`)
+        setEmailDialogOpen(false)
+      } else {
+        toast.error(result.error || 'Error al enviar el email')
+      }
+    } catch {
+      toast.error('Error al enviar el email')
+    }
+    setEnviandoEmail(false)
+  }
+
   function handleParsearVoz() {
     void parsearVoz(speech.transcripcion)
     speech.limpiar()
   }
 
   const formatMoney = (cents: number) =>
-    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
+    formatoMoneda(cents / 100, factura?.moneda ?? 'EUR')
 
   if (loading) return <div className="text-center text-muted-foreground py-12">Cargando...</div>
   if (!factura) return <div className="text-center text-muted-foreground py-12">Factura no encontrada</div>
@@ -164,6 +234,14 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               <option key={k} value={k}>{v}</option>
             ))}
           </select>
+          <Button variant="outline" size="sm" onClick={() => {
+            const looksLikeEmail = /@.*\./.test(factura.emisorReceptor)
+            setEmailDestino(looksLikeEmail ? factura.emisorReceptor : '')
+            setEmailDialogOpen(true)
+          }}>
+            <Mail className="mr-2 h-4 w-4" />
+            Enviar por email
+          </Button>
           <Button variant="outline" size="sm" onClick={() => void generarFacturaClientePDF({
             numero: factura.numero,
             emisorReceptor: factura.emisorReceptor,
@@ -242,6 +320,44 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   <CategoriaGastoPicker value={categoriaGasto} onChange={setCategoriaGasto} />
                 </div>
               )}
+              <div className="space-y-2">
+                <Label htmlFor="moneda-edit">Moneda</Label>
+                <select
+                  id="moneda-edit"
+                  value={monedaEdit}
+                  onChange={async (e) => {
+                    const nuevaMoneda = e.target.value
+                    setMonedaEdit(nuevaMoneda)
+                    if (nuevaMoneda === 'EUR') {
+                      setTipoCambioEdit(1)
+                      return
+                    }
+                    setCargandoTasaEdit(true)
+                    const tasa = await obtenerTasaCambio(nuevaMoneda, 'EUR')
+                    setTipoCambioEdit(tasa)
+                    setCargandoTasaEdit(false)
+                  }}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  {MOEDAS.map(m => (
+                    <option key={m.code} value={m.code}>{m.symbol} — {m.name} ({m.code})</option>
+                  ))}
+                </select>
+              </div>
+              {monedaEdit !== 'EUR' && (
+                <div className="space-y-2">
+                  <Label htmlFor="tipoCambio-edit">Tipo de cambio ({monedaEdit} → EUR)</Label>
+                  <Input
+                    id="tipoCambio-edit"
+                    type="number"
+                    step="0.0001"
+                    value={tipoCambioEdit}
+                    onChange={(e) => setTipoCambioEdit(parseFloat(e.target.value) || 1)}
+                    disabled={cargandoTasaEdit}
+                  />
+                  {cargandoTasaEdit && <p className="text-xs text-muted-foreground">Obteniendo tipo de cambio...</p>}
+                </div>
+              )}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="emisorReceptor">Contraparte</Label>
@@ -264,7 +380,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="baseImponible">Base imponible (€)</Label>
+                  <Label htmlFor="baseImponible">Base imponible ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
                   <Input id="baseImponible" name="baseImponible" type="number" step="0.01" defaultValue={(factura.baseImponible / 100).toFixed(2)} required />
                 </div>
                 <div className="space-y-2">
@@ -281,7 +397,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="total">Total (€)</Label>
+                  <Label htmlFor="total">Total ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
                   <Input id="total" disabled value={(factura.total / 100).toFixed(2)} />
                 </div>
               </div>
@@ -295,6 +411,101 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   rows={3}
                   className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Etiquetas</Label>
+                <div className="relative" ref={tagsDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setMostrarTagsDropdown(!mostrarTagsDropdown)}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <span className={tagsSeleccionados.length === 0 ? 'text-muted-foreground' : ''}>
+                      {tagsSeleccionados.length === 0 ? 'Seleccionar etiquetas...' : `${tagsSeleccionados.length} etiqueta${tagsSeleccionados.length !== 1 ? 's' : ''}`}
+                    </span>
+                    <svg className="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  {mostrarTagsDropdown && (
+                    <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover p-2 shadow-md">
+                      <div className="max-h-60 overflow-y-auto space-y-1">
+                        {TAGS_PREDEFINIDOS.map(tag => (
+                          <label key={tag.id} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent">
+                            <input
+                              type="checkbox"
+                              className="rounded border-input"
+                              checked={tagsSeleccionados.includes(tag.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setTagsSeleccionados(prev => [...prev, tag.id])
+                                } else {
+                                  setTagsSeleccionados(prev => prev.filter(t => t !== tag.id))
+                                }
+                              }}
+                            />
+                            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: tag.color }} />
+                            {tag.nombre}
+                          </label>
+                        ))}
+                      </div>
+                      <div className="mt-2 border-t pt-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Etiqueta personalizada..."
+                            value={nuevoTagCustom}
+                            onChange={(e) => setNuevoTagCustom(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                const val = nuevoTagCustom.trim().toLowerCase().replace(/\s+/g, '-')
+                                if (val && !tagsSeleccionados.includes(val)) {
+                                  setTagsSeleccionados(prev => [...prev, val])
+                                  setNuevoTagCustom('')
+                                }
+                              }
+                            }}
+                            className="flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const val = nuevoTagCustom.trim().toLowerCase().replace(/\s+/g, '-')
+                              if (val && !tagsSeleccionados.includes(val)) {
+                                setTagsSeleccionados(prev => [...prev, val])
+                                setNuevoTagCustom('')
+                              }
+                            }}
+                          >
+                            Añadir
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {tagsSeleccionados.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {tagsSeleccionados.map(tagId => (
+                      <span
+                        key={tagId}
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                        style={{ backgroundColor: obtenerColorTag(tagId) }}
+                      >
+                        {obtenerNombreTag(tagId)}
+                        <button
+                          type="button"
+                          onClick={() => setTagsSeleccionados(prev => prev.filter(t => t !== tagId))}
+                          className="ml-0.5 rounded-full hover:bg-white/20 h-3.5 w-3.5 flex items-center justify-center"
+                          aria-label={`Quitar ${obtenerNombreTag(tagId)}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex gap-4 pt-4">
                 <Button variant="outline" type="button" onClick={() => setEditing(false)} className="flex-1">
@@ -383,6 +594,38 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   )}
                 </dd>
               </div>
+              {(factura.moneda && factura.moneda !== 'EUR') && (
+                <>
+                  <div>
+                    <dt className="text-muted-foreground">Moneda</dt>
+                    <dd className="font-medium">{MOEDAS.find(m => m.code === factura.moneda)?.name} ({factura.moneda})</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Tipo de cambio</dt>
+                    <dd className="font-medium">1 {factura.moneda} = {factura.tipoCambio?.toFixed(4)} EUR</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Total en EUR</dt>
+                    <dd className="font-medium">{formatoMoneda((factura.total / 100) * (factura.tipoCambio ?? 1), 'EUR')}</dd>
+                  </div>
+                </>
+              )}
+              {parsearTags(factura.tags).length > 0 && (
+                <div className="col-span-2">
+                  <dt className="text-muted-foreground">Etiquetas</dt>
+                  <dd className="flex flex-wrap gap-1 mt-1">
+                    {parsearTags(factura.tags).map(tagId => (
+                      <span
+                        key={tagId}
+                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white"
+                        style={{ backgroundColor: obtenerColorTag(tagId) }}
+                      >
+                        {obtenerNombreTag(tagId)}
+                      </span>
+                    ))}
+                  </dd>
+                </div>
+              )}
             </dl>
           )}
         </CardContent>
@@ -395,6 +638,35 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           <TimelineFactura facturaId={factura.id} />
         </CardContent>
       </Card>
+
+      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar factura por email</DialogTitle>
+            <DialogDescription>
+              Se enviará la factura {factura.numero} como PDF adjunto a la dirección indicada.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="email-destino">Dirección de email</Label>
+            <Input
+              id="email-destino"
+              type="email"
+              placeholder="ejemplo@email.com"
+              value={emailDestino}
+              onChange={(e) => setEmailDestino(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmailDialogOpen(false)} disabled={enviandoEmail}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void handleEnviarEmail()} disabled={!emailDestino || enviandoEmail}>
+              {enviandoEmail ? 'Enviando...' : 'Enviar email'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

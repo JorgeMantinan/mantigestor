@@ -61,8 +61,11 @@ model Factura {
   estado          String   @default("pendiente")
   categoriaGasto  String?  // etiqueta: suministros, alquiler, nomina, seguridad, marketing, otros
   notas           String?  // notas internas sobre la factura
+  tags            String?  // etiquetas separadas por coma: marketing,software,custom
   pdfUrl          String?
   tokenCliente    String?  // token compartido para portal de cliente (mismo token = mismo cliente)
+  moneda          String   @default("EUR") // código ISO 4217: EUR, USD, GBP, etc.
+  tipoCambio      Float    @default(1.0)   // tasa de cambio vs EUR (1.0 si es EUR)
   createdAt       DateTime @default(now())
 
   @@index([perfilId, tipo])

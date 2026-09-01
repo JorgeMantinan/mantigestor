@@ -27,6 +27,9 @@ const WIDGETS_PREDETERMINADOS: Omit<WidgetConfig, 'visible'>[] = [
   { id: 'calendario', label: 'Calendario fiscal' },
   { id: 'actividad', label: 'Actividad reciente' },
   { id: 'ultimas-facturas', label: 'Últimas facturas' },
+  { id: 'alertas-iva', label: 'Alertas IVA' },
+  { id: 'comparativa-sector', label: 'Comparativa sector' },
+  { id: 'top-gastos', label: 'Top gastos' },
 ]
 
 const STORAGE_KEY = 'dashboard-widgets'

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { notificarVencimientosProximos } from '@/lib/enviar-push'
 
 /**
  * Cron job: /api/cron/recordatorios-facturas
@@ -115,7 +116,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ notified, emails })
+  // Enviar push notifications a todos los perfiles con suscripciones activas
+  const pushResult = await notificarVencimientosProximos(pendientes, supabase)
+
+  return NextResponse.json({ notified, emails, pushEnviados: pushResult.pushEnviados, pushFallidos: pushResult.pushFallidos })
 }
 
 function formatearFactura(f: FacturaVencimiento): string {

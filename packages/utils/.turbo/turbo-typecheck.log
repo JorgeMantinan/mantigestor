@@ -1,3 +1,1 @@
 $ tsc --noEmit
-src/fiscal/__tests__/modelo-231.test.ts(36,12): error TS2532: Object is possibly 'undefined'.
-[ELIFECYCLE] Command failed with exit code 2.
