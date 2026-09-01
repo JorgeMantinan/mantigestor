@@ -1,7 +1,5 @@
 'use client'
 
-import JSZip from 'jszip'
-
 interface FacturaExport {
   numero: string
   tipo: string
@@ -14,6 +12,7 @@ interface FacturaExport {
 }
 
 export async function exportarTodoZIP(facturas: FacturaExport[]): Promise<void> {
+  const { default: JSZip } = await import('jszip')
   const zip = new JSZip()
 
   // Excel de facturas como CSV

@@ -1,11 +1,11 @@
-import * as XLSX from 'xlsx'
-
-export function descargarExcel(
+export async function descargarExcel(
   headers: string[],
   rows: (string | number)[][],
   nombreFichero: string,
   sheetName = 'Datos'
 ) {
+  const XLSX = await import('xlsx')
+
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])
 
   // Auto-width columns
@@ -29,10 +29,12 @@ export interface SheetData {
   rows: (string | number)[][]
 }
 
-export function descargarExcelMultiplesHojas(
+export async function descargarExcelMultiplesHojas(
   sheets: SheetData[],
   nombreFichero: string
 ) {
+  const XLSX = await import('xlsx')
+
   const wb = XLSX.utils.book_new()
 
   for (const sheet of sheets) {
@@ -71,13 +73,15 @@ export function descargarExcelMultiplesHojas(
   XLSX.writeFile(wb, nombreFichero)
 }
 
-export function descargarExcelConResumen(
+export async function descargarExcelConResumen(
   headers: string[],
   rows: (string | number)[][],
   resumen: { label: string; value: string | number }[],
   nombreFichero: string,
   sheetName = 'Datos'
 ) {
+  const XLSX = await import('xlsx')
+
   const wb = XLSX.utils.book_new()
 
   // Sheet 1: Resumen

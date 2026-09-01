@@ -4,9 +4,11 @@ import { Header } from '@/components/layout/Header'
 import { FiscalRemindersProvider } from '@/components/layout/FiscalRemindersProvider'
 import { DashboardShortcuts } from '@/components/layout/DashboardShortcuts'
 import { PersonaActivaProvider } from '@/contexts/persona-activa-context'
-import { CommandPalette } from '@/components/command-palette'
-import { HelpDialog } from '@/components/help-dialog'
-import { MilestoneProvider } from '@/components/milestone-provider'
+import dynamic from 'next/dynamic'
+
+const CommandPalette = dynamic(() => import('@/components/command-palette').then(m => m.CommandPalette), { ssr: false })
+const HelpDialog = dynamic(() => import('@/components/help-dialog').then(m => m.HelpDialog), { ssr: false })
+const MilestoneProvider = dynamic(() => import('@/components/milestone-provider').then(m => m.MilestoneProvider), { ssr: false })
 
 export const metadata: Metadata = {
   title: 'Panel - MantiGestor',

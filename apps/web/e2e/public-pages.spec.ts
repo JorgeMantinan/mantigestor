@@ -27,4 +27,14 @@ test.describe('Public pages', () => {
     await expect(page.getByRole('heading', { name: 'BASIC' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'PRO' })).toBeVisible()
   })
+
+  test('API /api/tipos-cambio returns exchange rates', async ({ request }) => {
+    const response = await request.get('/api/tipos-cambio')
+    expect(response.ok()).toBeTruthy()
+
+    const data = await response.json()
+    expect(data).toHaveProperty('rates')
+    expect(data.rates).toHaveProperty('EUR')
+    expect(data.rates).toHaveProperty('USD')
+  })
 })

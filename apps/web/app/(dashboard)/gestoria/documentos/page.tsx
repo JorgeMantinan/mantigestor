@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Image, Trash2, ExternalLink, Filter } from 'lucide-react'
+import { FileText, Trash2, ExternalLink, Filter } from 'lucide-react'
+import Image from 'next/image'
 import { toast } from 'sonner'
 
 interface Documento {
@@ -116,9 +117,9 @@ export default function DocumentosPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtrados.map(doc => (
             <Card key={doc.id} className="overflow-hidden hover:shadow-md transition-shadow">
-              <div className="aspect-video bg-muted flex items-center justify-center">
+              <div className="aspect-video bg-muted flex items-center justify-center relative">
                 {esImagen(doc.nombre) ? (
-                  <img src={doc.url} alt={doc.nombre} className="w-full h-full object-cover" />
+                  <Image src={doc.url} alt={doc.nombre} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                 ) : (
                   <FileText className="h-12 w-12 text-muted-foreground/50" />
                 )}

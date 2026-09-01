@@ -1,8 +1,5 @@
 'use client'
 
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
-
 /**
  * Genera un PDF a partir de un elemento HTML.
  * @param element - El elemento DOM a capturar
@@ -14,6 +11,11 @@ export async function generarPDF(
   filename: string,
   options?: { orientacion?: 'portrait' | 'landscape'; formato?: 'a4' | 'letter' }
 ): Promise<void> {
+  const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+    import('html2canvas'),
+    import('jspdf'),
+  ])
+
   const canvas = await html2canvas(element, {
     scale: 2,
     useCORS: true,

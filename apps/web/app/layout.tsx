@@ -26,6 +26,10 @@ export const metadata: Metadata = {
     type: 'website',
   },
   robots: { index: true, follow: true },
+  manifest: '/manifest.json',
+  other: {
+    'theme-color': '#f59e0b',
+  },
 }
 
 export default function RootLayout({

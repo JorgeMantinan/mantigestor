@@ -29,6 +29,7 @@ import {
   Download,
   History,
   RefreshCw,
+  BookOpen,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -97,6 +98,7 @@ export function Sidebar() {
         { label: t('nav.temporizador'), href: '/herramientas/temporizador', icon: Clock },
         { label: 'Simulador retenciones', href: '/herramientas/simulador-retenciones', icon: Calculator },
         { label: t('nav.notificaciones'), href: '/ajustes/notificaciones', icon: Bell },
+        { label: 'API Docs', href: '/api-docs', icon: BookOpen },
         { label: t('nav.ajustes'), href: '/ajustes', icon: Settings },
       ],
     },

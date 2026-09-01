@@ -20,14 +20,26 @@ import { ChartEvolucion } from '@/components/dashboard/chart-evolucion'
 import { SkeletonDashboard } from '@/components/dashboard/skeleton-dashboard'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
 import { CalendarioFiscal } from '@/components/dashboard/calendario-fiscal'
-import { ChartCategorias } from '@/components/dashboard/chart-categorias'
-import { ChartPresupuesto } from '@/components/dashboard/chart-presupuesto'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 import { ChartComparativa } from '@/components/dashboard/chart-comparativa'
-import { ChartInteranual } from '@/components/dashboard/chart-interanual'
-import { ChartPrediccion } from '@/components/dashboard/chart-prediccion'
-import { ChartGastosCategoria } from '@/components/dashboard/chart-gastos-categoria'
 import { SparkLine } from '@/components/ui/sparkline'
+import dynamic from 'next/dynamic'
+
+const ChartCategorias = dynamic(() => import('@/components/dashboard/chart-categorias').then(m => m.ChartCategorias), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
+const ChartPresupuesto = dynamic(() => import('@/components/dashboard/chart-presupuesto').then(m => m.ChartPresupuesto), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
+const ChartInteranual = dynamic(() => import('@/components/dashboard/chart-interanual').then(m => m.ChartInteranual), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
+const ChartPrediccion = dynamic(() => import('@/components/dashboard/chart-prediccion').then(m => m.ChartPrediccion), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
+const ChartGastosCategoria = dynamic(() => import('@/components/dashboard/chart-gastos-categoria').then(m => m.ChartGastosCategoria), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
 
 interface Factura {
   id: string
