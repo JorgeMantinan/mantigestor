@@ -4,9 +4,17 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Upload, CheckCircle, AlertCircle, ArrowRight, FileText, RefreshCw } from 'lucide-react'
+import { Upload, CheckCircle, AlertCircle, ArrowRight, FileText, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { parsearExtractoCSV, encontrarCoincidencias, type Coincidencia, type LineaFactura } from '@/lib/conciliacion-bancaria'
+import {
+  parsearExtractoCSV,
+  encontrarCoincidencias,
+  BANCOS,
+  detectarBanco,
+  type BancoId,
+  type Coincidencia,
+  type LineaFactura,
+} from '@/lib/conciliacion-bancaria'
 
 export default function ConciliacionPage() {
   const [coincidencias, setCoincidencias] = useState<Coincidencia[]>([])
@@ -14,6 +22,9 @@ export default function ConciliacionPage() {
   const [procesando, setProcesando] = useState(false)
   const [extractoCargado, setExtractoCargado] = useState(false)
   const [reconciliadas, setReconciliadas] = useState<Set<string>>(new Set())
+  const [bancoDetectado, setBancoDetectado] = useState<BancoId | null>(null)
+  const [bancoManual, setBancoManual] = useState<BancoId>('generico')
+  const [textoOriginal, setTextoOriginal] = useState('')
   const getSupabase = useCallback(() => createClient(), [])
 
   useEffect(() => {
@@ -31,13 +42,9 @@ export default function ConciliacionPage() {
     cargar()
   }, [getSupabase])
 
-  const handleArchivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setProcesando(true)
-
-    const texto = await file.text()
-    const lineas = parsearExtractoCSV(texto)
+  const procesarExtracto = useCallback((texto: string, banco?: BancoId) => {
+    const { lineas, bancoDetectado: detectado } = parsearExtractoCSV(texto, banco)
+    setBancoDetectado(detectado)
     setExtractoCargado(true)
 
     const results = encontrarCoincidencias(lineas, facturas)
@@ -45,9 +52,25 @@ export default function ConciliacionPage() {
     setProcesando(false)
 
     if (results.length > 0) {
-      toast.success(`${results.length} coincidencias encontradas`)
+      toast.success(`${results.length} coincidencias encontradas (${BANCOS[detectado].nombre})`)
     } else {
-      toast.info('No se encontraron coincidencias automáticas')
+      toast.info(`No se encontraron coincidencias (banco: ${BANCOS[detectado].nombre})`)
+    }
+  }, [facturas])
+
+  const handleArchivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setProcesando(true)
+    const texto = await file.text()
+    setTextoOriginal(texto)
+    procesarExtracto(texto)
+  }
+
+  const handleCambioBanco = (nuevoBanco: BancoId) => {
+    setBancoManual(nuevoBanco)
+    if (textoOriginal) {
+      procesarExtracto(textoOriginal, nuevoBanco)
     }
   }
 
@@ -76,19 +99,96 @@ export default function ConciliacionPage() {
 
   const formatEuro = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
+  const bancosTradicionales = Object.values(BANCOS).filter(b => b.tipo === 'tradicional')
+  const bancosFintech = Object.values(BANCOS).filter(b => b.tipo === 'fintech' || b.tipo === 'neobanco')
+  const bancosPagos = Object.values(BANCOS).filter(b => b.tipo === 'pagos')
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Conciliación bancaria</h1>
-        <p className="text-muted-foreground">Importa un extracto del banco y casalo con tus facturas pendientes</p>
+        <p className="text-muted-foreground">Importa un extracto del banco y concílalo con tus facturas pendientes</p>
       </div>
 
+      {/* Selector de banco */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Building2 className="h-4 w-4" /> Banco o entidad
+          </CardTitle>
+          <CardDescription>
+            Selecciona tu banco o déjalo en automático para detectar el formato
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {bancoDetectado && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                  Detectado: {BANCOS[bancoDetectado].nombre}
+                </span>
+              </div>
+            )}
+
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-2 block">Tradicional</label>
+              <div className="flex flex-wrap gap-2">
+                {bancosTradicionales.map(b => (
+                  <Button
+                    key={b.id}
+                    variant={bancoManual === b.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => void handleCambioBanco(b.id)}
+                  >
+                    {b.nombre}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-2 block">Neobancos y Fintech</label>
+              <div className="flex flex-wrap gap-2">
+                {bancosFintech.map(b => (
+                  <Button
+                    key={b.id}
+                    variant={bancoManual === b.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => void handleCambioBanco(b.id)}
+                  >
+                    {b.nombre}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-2 block">Pagos</label>
+              <div className="flex flex-wrap gap-2">
+                {bancosPagos.map(b => (
+                  <Button
+                    key={b.id}
+                    variant={bancoManual === b.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => void handleCambioBanco(b.id)}
+                  >
+                    {b.nombre}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Importar extracto */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Upload className="h-4 w-4" /> Importar extracto
           </CardTitle>
-          <CardDescription>Formato CSV con separador punto y coma: fecha;concepto;importe</CardDescription>
+          <CardDescription>CSV con separador punto y coma o coma — auto-detecta el banco</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
@@ -99,15 +199,16 @@ export default function ConciliacionPage() {
               </label>
             </Button>
             {procesando && <span className="text-sm text-muted-foreground">Procesando...</span>}
-            {extractoCargado && (
+            {extractoCargado && bancoDetectado && (
               <span className="text-sm text-muted-foreground">
-                {coincidencias.length} coincidencias de {facturas.length} facturas pendientes
+                {coincidencias.length} coincidencias de {facturas.length} pendientes — {BANCOS[bancoDetectado].nombre}
               </span>
             )}
           </div>
         </CardContent>
       </Card>
 
+      {/* Coincidencias */}
       {coincidencias.length > 0 && (
         <>
           <div className="flex items-center justify-between">
