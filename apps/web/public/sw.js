@@ -1,8 +1,9 @@
-const CACHE_NAME = 'mantigestor-v1'
+const CACHE_NAME = 'mantigestor-v2'
 const SHELL_ASSETS = [
   '/',
   '/dashboard',
   '/favicon.ico',
+  '/globals.css',
 ]
 
 self.addEventListener('install', (event) => {
@@ -27,21 +28,44 @@ self.addEventListener('fetch', (event) => {
 
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(request).catch(() => caches.match(request))
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => caches.match(request))
+    )
+    return
+  }
+
+  if (request.destination === 'image' || request.destination === 'font' || request.destination === 'style' || request.destination === 'script') {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+      })
     )
     return
   }
 
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetched = fetch(request).then((response) => {
+    fetch(request)
+      .then((response) => {
         if (response.ok) {
           const clone = response.clone()
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
         }
         return response
       })
-      return cached || fetched
-    })
+      .catch(() => caches.match(request))
   )
 })

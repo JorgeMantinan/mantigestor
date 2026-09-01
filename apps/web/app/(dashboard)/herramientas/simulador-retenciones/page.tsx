@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Calculator } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 const TIPOS_CONTRATO = [
-  { id: 'general', label: 'General', retencion: 19 },
-  { id: 'renda', label: 'Rendimientos capital inmobiliario', retencion: 19 },
-  { id: 'actividades', label: 'Actividades económicas', retencion: 21 },
-  { id: 'profesionales', label: 'Profesionales', retencion: 15 },
-  { id: 'arrendamiento', label: 'Arrendamiento local negocio', retencion: 19 },
+  { id: 'general', labelEs: 'General', labelEn: 'General', retencion: 19 },
+  { id: 'renda', labelEs: 'Rendimientos capital inmobiliario', labelEn: 'Real estate capital income', retencion: 19 },
+  { id: 'actividades', labelEs: 'Actividades económicas', labelEn: 'Economic activities', retencion: 21 },
+  { id: 'profesionales', labelEs: 'Profesionales', labelEn: 'Professionals', retencion: 15 },
+  { id: 'arrendamiento', labelEs: 'Arrendamiento local negocio', labelEn: 'Business premises lease', retencion: 19 },
 ] as const
 
 const TRAMOS_IRPF_2026 = [
@@ -28,10 +29,11 @@ export default function SimuladorRetencionesPage() {
   const [tipoContrato, setTipoContrato] = useState('profesionales')
   const [seguridadSocial, setSeguridadSocial] = useState<number>(2965.20)
   const [reduccionIRPF, setReduccionIRPF] = useState<number>(2000)
+  const { idioma, t } = useLanguage()
 
   const resultado = useMemo(() => {
     const brutoMensual = brutoAnual / 12
-    const tipoRetencion = TIPOS_CONTRATO.find(t => t.id === tipoContrato)?.retencion ?? 19
+    const tipoRetencion = TIPOS_CONTRATO.find(tipo => tipo.id === tipoContrato)?.retencion ?? 19
 
     // Base para retención: bruto anual - cuota SS trabajador (50% - 2965.20 en 2026)
     const baseRetencion = Math.max(0, brutoAnual - seguridadSocial - reduccionIRPF)
@@ -75,37 +77,37 @@ export default function SimuladorRetencionesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Simulador de retenciones</h1>
-        <p className="text-muted-foreground">Calcula tu salario neto, retenciones y coste para la empresa</p>
+        <h1 className="text-2xl font-bold">{t('simuladorRetenciones.titulo')}</h1>
+        <p className="text-muted-foreground">{t('simuladorRetenciones.subtitulo')}</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Calculator className="h-4 w-4" /> Datos de entrada
+              <Calculator className="h-4 w-4" /> {t('simuladorRetenciones.datosEntrada')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Salario bruto anual (€)</Label>
+              <Label>{t('simuladorRetenciones.salarioBrutoAnual')}</Label>
               <Input type="number" value={brutoAnual / 100} onChange={(e) => setBrutoAnual(Math.round(parseFloat(e.target.value || '0') * 100))} />
             </div>
             <div className="space-y-2">
-              <Label>Tipo de retención</Label>
+              <Label>{t('simuladorRetenciones.tipoRetencion')}</Label>
               <select value={tipoContrato} onChange={(e) => setTipoContrato(e.target.value)}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
-                {TIPOS_CONTRATO.map(t => (
-                  <option key={t.id} value={t.id}>{t.label} ({t.retencion}%)</option>
+                {TIPOS_CONTRATO.map(tipo => (
+                  <option key={tipo.id} value={tipo.id}>{idioma === 'en' ? tipo.labelEn : tipo.labelEs} ({tipo.retencion}%)</option>
                 ))}
               </select>
             </div>
             <div className="space-y-2">
-              <Label>Cuota SS trabajador anual (€)</Label>
+              <Label>{t('simuladorRetenciones.cuotaSSTrabajador')}</Label>
               <Input type="number" step="0.01" value={seguridadSocial / 100} onChange={(e) => setSeguridadSocial(Math.round(parseFloat(e.target.value || '0') * 100))} />
             </div>
             <div className="space-y-2">
-              <Label>Reducción IRPF (€)</Label>
+              <Label>{t('simuladorRetenciones.reduccionIRPF')}</Label>
               <Input type="number" step="0.01" value={reduccionIRPF / 100} onChange={(e) => setReduccionIRPF(Math.round(parseFloat(e.target.value || '0') * 100))} />
             </div>
           </CardContent>
@@ -113,40 +115,40 @@ export default function SimuladorRetencionesPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Resultado</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('simuladorRetenciones.resultado')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-sm text-muted-foreground">Bruto anual</span>
+                <span className="text-sm text-muted-foreground">{t('simuladorRetenciones.brutoAnual')}</span>
                 <span className="text-sm font-bold">{formatEuro(resultado.brutoMensual * 12)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-sm text-muted-foreground">Base retención</span>
+                <span className="text-sm text-muted-foreground">{t('simuladorRetenciones.baseRetencion')}</span>
                 <span className="text-sm">{formatEuro(resultado.baseRetencion)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-sm text-muted-foreground">IRPF ({resultado.tipoRetencion}%)</span>
+                <span className="text-sm text-muted-foreground">{t('simuladorRetenciones.irpf')} ({resultado.tipoRetencion}%)</span>
                 <span className="text-sm text-red-600">-{formatEuro(resultado.retencionAnual)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-sm text-muted-foreground">Seguridad Social</span>
+                <span className="text-sm text-muted-foreground">{t('simuladorRetenciones.seguridadSocial')}</span>
                 <span className="text-sm text-red-600">-{formatEuro(resultado.seguridadSocial)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b bg-muted/50 -mx-3 px-3 rounded">
-                <span className="text-sm font-bold">Neto anual</span>
+                <span className="text-sm font-bold">{t('simuladorRetenciones.netoAnual')}</span>
                 <span className="text-lg font-bold text-green-600">{formatEuro(resultado.netoAnual)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-sm text-muted-foreground">Neto mensual</span>
+                <span className="text-sm text-muted-foreground">{t('simuladorRetenciones.netoMensual')}</span>
                 <span className="text-lg font-bold text-green-600">{formatEuro(resultado.netoMensual)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-sm text-muted-foreground">IRPF retención mensual</span>
+                <span className="text-sm text-muted-foreground">{t('simuladorRetenciones.irpfRetencionMensual')}</span>
                 <span className="text-sm">{formatEuro(resultado.retencionMensual)}</span>
               </div>
               <div className="flex justify-between items-center py-2">
-                <span className="text-sm text-muted-foreground">Coste total empresa</span>
+                <span className="text-sm text-muted-foreground">{t('simuladorRetenciones.costeTotalEmpresa')}</span>
                 <span className="text-sm font-medium">{formatEuro(resultado.costeEmpresa)}</span>
               </div>
             </div>

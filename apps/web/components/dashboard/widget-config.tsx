@@ -29,6 +29,7 @@ const WIDGETS_PREDETERMINADOS: Omit<WidgetConfig, 'visible'>[] = [
   { id: 'ultimas-facturas', label: 'Últimas facturas' },
   { id: 'alertas-iva', label: 'Alertas IVA' },
   { id: 'comparativa-sector', label: 'Comparativa sector' },
+  { id: 'heatmap', label: 'Mapa de ingresos' },
   { id: 'top-gastos', label: 'Top gastos' },
 ]
 

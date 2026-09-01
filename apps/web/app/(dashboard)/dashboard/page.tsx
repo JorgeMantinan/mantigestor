@@ -52,6 +52,9 @@ const WidgetTopGastos = dynamic(() => import('@/components/dashboard/widget-top-
 const WidgetActivity = dynamic(() => import('@/components/dashboard/widget-activity').then(m => m.WidgetActivity), {
   loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
 })
+const ChartHeatmap = dynamic(() => import('@/components/dashboard/chart-heatmap').then(m => m.ChartHeatmap), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
 
 interface Factura {
   id: string
@@ -396,6 +399,7 @@ export default function DashboardPage() {
       {!loading && facturas.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {isVisible('alertas-iva') && <WidgetAlertasIVA facturas={facturasFiltradas} />}
+          {isVisible('heatmap') && <ChartHeatmap facturas={facturasFiltradas} />}
           {isVisible('comparativa-sector') && <WidgetComparativa facturas={facturasFiltradas} />}
           {isVisible('top-gastos') && <WidgetTopGastos facturas={facturasFiltradas} />}
         </div>

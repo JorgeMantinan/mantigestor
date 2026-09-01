@@ -11,6 +11,7 @@ import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText }
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
 import { generarFacturaClientePDF } from '@/lib/factura-cliente-pdf'
+import { DragDropList } from '@/components/drag-drop-list'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -56,6 +57,28 @@ export default function FacturasRecurrentesPage() {
   const [diaGeneracion, setDiaGeneracion] = useState('5')
   const [diaEmail, setDiaEmail] = useState('')
 
+  const ORDER_KEY = 'facturas-recurrentes-orden'
+
+  const loadSavedOrder = useCallback((ids: string[]): string[] => {
+    try {
+      const saved = localStorage.getItem(ORDER_KEY)
+      if (!saved) return ids
+      const order: string[] = JSON.parse(saved)
+      const idSet = new Set(ids)
+      const ordered = order.filter(id => idSet.has(id))
+      const remaining = ids.filter(id => !order.includes(id))
+      return [...ordered, ...remaining]
+    } catch {
+      return ids
+    }
+  }, [])
+
+  const saveOrder = useCallback((ids: string[]) => {
+    try {
+      localStorage.setItem(ORDER_KEY, JSON.stringify(ids))
+    } catch { /* ignore */ }
+  }, [])
+
   const getSupabase = useCallback(() => createClient(), [])
 
   const fetchPlantillas = useCallback(async () => {
@@ -75,12 +98,21 @@ export default function FacturasRecurrentesPage() {
         .single(),
     ])
 
-    setPlantillas((plantillasRes.data as FacturaRecurrente[]) ?? [])
+    const raw = (plantillasRes.data as FacturaRecurrente[]) ?? []
+    const ids = raw.map(p => p.id)
+    const orderedIds = loadSavedOrder(ids)
+    const ordered = orderedIds.map(id => raw.find(p => p.id === id)).filter(Boolean) as FacturaRecurrente[]
+    setPlantillas(ordered)
     if (perfilRes.data) setPerfil(perfilRes.data as PerfilEmpresa)
     setLoading(false)
   }, [getSupabase])
 
   useEffect(() => { fetchPlantillas() }, [fetchPlantillas])
+
+  const handleReorder = useCallback((reordered: FacturaRecurrente[]) => {
+    setPlantillas(reordered)
+    saveOrder(reordered.map(p => p.id))
+  }, [saveOrder])
 
   const crearPlantilla = async () => {
     if (!numero || !emisorReceptor || !baseImponible) {
@@ -337,43 +369,49 @@ export default function FacturasRecurrentesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {plantillas.map(p => {
+        <DragDropList
+          items={plantillas}
+          onReorder={handleReorder}
+          keyExtractor={p => p.id}
+          renderItem={(p, _index, dragHandle) => {
             const importeIva = Math.round(p.baseImponible * (p.iva / 100))
             const total = p.baseImponible + importeIva
             const ahora = new Date()
             const numeroSiguiente = `${p.numero}-${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`
 
             return (
-              <Card key={p.id} className={!p.activa ? 'opacity-60' : ''}>
+              <Card className={!p.activa ? 'opacity-60' : ''}>
                 <CardContent className="py-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-block h-2 w-2 rounded-full ${p.activa ? 'bg-green-500' : 'bg-gray-400'}`} />
-                        <span className="font-medium">{p.emisorReceptor}</span>
-                        {p.nifContraparte && (
-                          <span className="text-xs text-muted-foreground">({p.nifContraparte})</span>
+                    <div className="flex items-start gap-2">
+                      {dragHandle}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-block h-2 w-2 rounded-full ${p.activa ? 'bg-green-500' : 'bg-gray-400'}`} />
+                          <span className="font-medium">{p.emisorReceptor}</span>
+                          {p.nifContraparte && (
+                            <span className="text-xs text-muted-foreground">({p.nifContraparte})</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                          <span>{p.numero}-YYYY-MM</span>
+                          <span>·</span>
+                          <span>{nombreMes(p.diaGeneracion)}</span>
+                          {p.diaEmail && (
+                            <>
+                              <span>·</span>
+                              <span className="text-blue-600">Email día {p.diaEmail}</span>
+                            </>
+                          )}
+                          <span>·</span>
+                          <span className="capitalize">{p.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}</span>
+                        </div>
+                        {p.ultimaGeneracion && (
+                          <p className="text-xs text-muted-foreground">
+                            Última generación: {new Date(p.ultimaGeneracion).toLocaleDateString('es-ES')}
+                          </p>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <span>{p.numero}-YYYY-MM</span>
-                        <span>·</span>
-                        <span>{nombreMes(p.diaGeneracion)}</span>
-                        {p.diaEmail && (
-                          <>
-                            <span>·</span>
-                            <span className="text-blue-600">Email día {p.diaEmail}</span>
-                          </>
-                        )}
-                        <span>·</span>
-                        <span className="capitalize">{p.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}</span>
-                      </div>
-                      {p.ultimaGeneracion && (
-                        <p className="text-xs text-muted-foreground">
-                          Última generación: {new Date(p.ultimaGeneracion).toLocaleDateString('es-ES')}
-                        </p>
-                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{formatMoney(p.baseImponible)}</span>
@@ -462,8 +500,8 @@ export default function FacturasRecurrentesPage() {
                 </CardContent>
               </Card>
             )
-          })}
-        </div>
+          }}
+        />
       )}
 
       <p className="text-xs text-muted-foreground text-center">

@@ -3,14 +3,15 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BookOpen, ExternalLink } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
-type Param = { name: string; type: string; required: boolean; description: string }
-type ResponseField = { field: string; type: string; description: string }
+type Param = { name: string; type: string; required: boolean; descriptionEs: string; descriptionEn: string }
+type ResponseField = { field: string; type: string; descriptionEs: string; descriptionEn: string }
 type Route = {
   path: string
   method: 'GET' | 'POST' | 'DELETE'
-  title: string
-  description: string
+  titleKey: string
+  descriptionKey: string
   auth: boolean
   params?: Param[]
   queryParams?: Param[]
@@ -23,11 +24,11 @@ const routes: Route[] = [
   {
     path: '/api/ocr',
     method: 'POST',
-    title: 'OCR de factura (PDF)',
-    description: 'Extrae datos de una factura a partir de su URL de PDF usando IA (Claude).',
+    titleKey: 'apiDocs.ocrFacturaPdf',
+    descriptionKey: 'apiDocs.ocrFacturaPdfDesc',
     auth: true,
     params: [
-      { name: 'pdfUrl', type: 'string', required: true, description: 'URL pública del PDF de la factura' },
+      { name: 'pdfUrl', type: 'string', required: true, descriptionEs: 'URL pública del PDF de la factura', descriptionEn: 'Public URL of the invoice PDF' },
     ],
     responseExample: `{
   "numero": "F-2026-001",
@@ -44,27 +45,27 @@ const routes: Route[] = [
   ]
 }`,
     responseFields: [
-      { field: 'numero', type: 'string | null', description: 'Número de factura' },
-      { field: 'emisorReceptor', type: 'string | null', description: 'Nombre del emisor o receptor' },
-      { field: 'nifContraparte', type: 'string | null', description: 'NIF/CIF de la contraparte' },
-      { field: 'fechaEmision', type: 'string | null', description: 'Fecha YYYY-MM-DD' },
-      { field: 'baseImponible', type: 'number | null', description: 'Base imponible en céntimos' },
-      { field: 'iva', type: 'number | null', description: 'Porcentaje de IVA' },
-      { field: 'total', type: 'number | null', description: 'Total en céntimos' },
-      { field: 'tipo', type: 'string | null', description: '"ingreso" o "gasto"' },
-      { field: 'categoriaGasto', type: 'string | null', description: 'Categoría del gasto' },
-      { field: 'modelosSugeridos', type: 'array', description: 'Modelos AEAT sugeridos' },
+      { field: 'numero', type: 'string | null', descriptionEs: 'Número de factura', descriptionEn: 'Invoice number' },
+      { field: 'emisorReceptor', type: 'string | null', descriptionEs: 'Nombre del emisor o receptor', descriptionEn: 'Issuer or recipient name' },
+      { field: 'nifContraparte', type: 'string | null', descriptionEs: 'NIF/CIF de la contraparte', descriptionEn: 'Counterparty tax ID' },
+      { field: 'fechaEmision', type: 'string | null', descriptionEs: 'Fecha YYYY-MM-DD', descriptionEn: 'Date YYYY-MM-DD' },
+      { field: 'baseImponible', type: 'number | null', descriptionEs: 'Base imponible en céntimos', descriptionEn: 'Tax base in cents' },
+      { field: 'iva', type: 'number | null', descriptionEs: 'Porcentaje de IVA', descriptionEn: 'VAT percentage' },
+      { field: 'total', type: 'number | null', descriptionEs: 'Total en céntimos', descriptionEn: 'Total in cents' },
+      { field: 'tipo', type: 'string | null', descriptionEs: '"ingreso" o "gasto"', descriptionEn: '"income" or "expense"' },
+      { field: 'categoriaGasto', type: 'string | null', descriptionEs: 'Categoría del gasto', descriptionEn: 'Expense category' },
+      { field: 'modelosSugeridos', type: 'array', descriptionEs: 'Modelos AEAT sugeridos', descriptionEn: 'Suggested tax forms' },
     ],
   },
   {
     path: '/api/ocr-image',
     method: 'POST',
-    title: 'OCR de imagen',
-    description: 'Extrae datos de una factura, recibo o ticket a partir de una imagen en base64.',
+    titleKey: 'apiDocs.ocrImagen',
+    descriptionKey: 'apiDocs.ocrImagenDesc',
     auth: false,
     params: [
-      { name: 'image', type: 'string', required: true, description: 'Imagen en base64 (data URL o raw)' },
-      { name: 'mediaType', type: 'string', required: false, description: 'MIME type (image/jpeg, image/png, etc.)' },
+      { name: 'image', type: 'string', required: true, descriptionEs: 'Imagen en base64 (data URL o raw)', descriptionEn: 'Base64 image (data URL or raw)' },
+      { name: 'mediaType', type: 'string', required: false, descriptionEs: 'MIME type (image/jpeg, image/png, etc.)', descriptionEn: 'MIME type (image/jpeg, image/png, etc.)' },
     ],
     responseExample: `{
   "numero": "T-456",
@@ -79,26 +80,26 @@ const routes: Route[] = [
   "modelosSugeridos": []
 }`,
     responseFields: [
-      { field: 'numero', type: 'string | null', description: 'Número de factura/recibo' },
-      { field: 'emisorReceptor', type: 'string | null', description: 'Nombre del emisor' },
-      { field: 'nifContraparte', type: 'string | null', description: 'NIF/CIF' },
-      { field: 'fechaEmision', type: 'string | null', description: 'Fecha YYYY-MM-DD' },
-      { field: 'baseImponible', type: 'number | null', description: 'Base imponible en céntimos' },
-      { field: 'iva', type: 'number | null', description: 'Porcentaje de IVA' },
-      { field: 'total', type: 'number | null', description: 'Total en céntimos' },
-      { field: 'tipo', type: 'string | null', description: '"ingreso" o "gasto"' },
-      { field: 'categoriaGasto', type: 'string | null', description: 'Categoría del gasto' },
-      { field: 'modelosSugeridos', type: 'array', description: 'Modelos AEAT sugeridos' },
+      { field: 'numero', type: 'string | null', descriptionEs: 'Número de factura/recibo', descriptionEn: 'Invoice/receipt number' },
+      { field: 'emisorReceptor', type: 'string | null', descriptionEs: 'Nombre del emisor', descriptionEn: 'Issuer name' },
+      { field: 'nifContraparte', type: 'string | null', descriptionEs: 'NIF/CIF', descriptionEn: 'Tax ID' },
+      { field: 'fechaEmision', type: 'string | null', descriptionEs: 'Fecha YYYY-MM-DD', descriptionEn: 'Date YYYY-MM-DD' },
+      { field: 'baseImponible', type: 'number | null', descriptionEs: 'Base imponible en céntimos', descriptionEn: 'Tax base in cents' },
+      { field: 'iva', type: 'number | null', descriptionEs: 'Porcentaje de IVA', descriptionEn: 'VAT percentage' },
+      { field: 'total', type: 'number | null', descriptionEs: 'Total en céntimos', descriptionEn: 'Total in cents' },
+      { field: 'tipo', type: 'string | null', descriptionEs: '"ingreso" o "gasto"', descriptionEn: '"income" or "expense"' },
+      { field: 'categoriaGasto', type: 'string | null', descriptionEs: 'Categoría del gasto', descriptionEn: 'Expense category' },
+      { field: 'modelosSugeridos', type: 'array', descriptionEs: 'Modelos AEAT sugeridos', descriptionEn: 'Suggested tax forms' },
     ],
   },
   {
     path: '/api/factura-publica',
     method: 'GET',
-    title: 'Factura pública',
-    description: 'Devuelve los datos de una factura emitida para visualización pública (portal de cliente).',
+    titleKey: 'apiDocs.facturaPublica',
+    descriptionKey: 'apiDocs.facturaPublicaDesc',
     auth: false,
     queryParams: [
-      { name: 'token', type: 'string', required: true, description: 'ID de la factura' },
+      { name: 'token', type: 'string', required: true, descriptionEs: 'ID de la factura', descriptionEn: 'Invoice ID' },
     ],
     responseExample: `{
   "id": "uuid-factura",
@@ -114,24 +115,24 @@ const routes: Route[] = [
   "notas": null
 }`,
     responseFields: [
-      { field: 'id', type: 'string', description: 'UUID de la factura' },
-      { field: 'numero', type: 'string', description: 'Número de factura' },
-      { field: 'tipo', type: 'string', description: '"ingreso"' },
-      { field: 'emisorReceptor', type: 'string', description: 'Nombre del cliente' },
-      { field: 'baseImponible', type: 'number', description: 'Base imponible en céntimos' },
-      { field: 'iva', type: 'number', description: 'IVA en céntimos' },
-      { field: 'total', type: 'number', description: 'Total en céntimos' },
-      { field: 'estado', type: 'string', description: 'Estado de la factura' },
+      { field: 'id', type: 'string', descriptionEs: 'UUID de la factura', descriptionEn: 'Invoice UUID' },
+      { field: 'numero', type: 'string', descriptionEs: 'Número de factura', descriptionEn: 'Invoice number' },
+      { field: 'tipo', type: 'string', descriptionEs: '"ingreso"', descriptionEn: '"income"' },
+      { field: 'emisorReceptor', type: 'string', descriptionEs: 'Nombre del cliente', descriptionEn: 'Client name' },
+      { field: 'baseImponible', type: 'number', descriptionEs: 'Base imponible en céntimos', descriptionEn: 'Tax base in cents' },
+      { field: 'iva', type: 'number', descriptionEs: 'IVA en céntimos', descriptionEn: 'VAT in cents' },
+      { field: 'total', type: 'number', descriptionEs: 'Total en céntimos', descriptionEn: 'Total in cents' },
+      { field: 'estado', type: 'string', descriptionEs: 'Estado de la factura', descriptionEn: 'Invoice status' },
     ],
   },
   {
     path: '/api/cliente-portal',
     method: 'GET',
-    title: 'Portal de cliente',
-    description: 'Devuelve todas las facturas emitidas de un cliente identificado por token. Retrocompatible con tokens de factura individual.',
+    titleKey: 'apiDocs.portalCliente',
+    descriptionKey: 'apiDocs.portalClienteDesc',
     auth: false,
     queryParams: [
-      { name: 'token', type: 'string', required: true, description: 'Token del cliente o ID de factura' },
+      { name: 'token', type: 'string', required: true, descriptionEs: 'Token del cliente o ID de factura', descriptionEn: 'Client token or invoice ID' },
     ],
     responseExample: `{
   "facturas": [
@@ -151,15 +152,15 @@ const routes: Route[] = [
   "tokenCliente": "token-del-cliente"
 }`,
     responseFields: [
-      { field: 'facturas', type: 'array', description: 'Lista de facturas emitidas del cliente' },
-      { field: 'tokenCliente', type: 'string | null', description: 'Token del cliente' },
+      { field: 'facturas', type: 'array', descriptionEs: 'Lista de facturas emitidas del cliente', descriptionEn: 'List of client issued invoices' },
+      { field: 'tokenCliente', type: 'string | null', descriptionEs: 'Token del cliente', descriptionEn: 'Client token' },
     ],
   },
   {
     path: '/api/tipos-cambio',
     method: 'GET',
-    title: 'Tipos de cambio',
-    description: 'Proxy de la API de Frankfurter para obtener tasas de cambio en tiempo real desde EUR.',
+    titleKey: 'apiDocs.tiposCambio',
+    descriptionKey: 'apiDocs.tiposCambioDesc',
     auth: false,
     responseExample: `{
   "rates": {
@@ -174,58 +175,58 @@ const routes: Route[] = [
   "base": "EUR"
 }`,
     responseFields: [
-      { field: 'rates', type: 'object', description: 'Tasas de cambio desde EUR' },
-      { field: 'date', type: 'string', description: 'Fecha de las tasas' },
-      { field: 'base', type: 'string', description: 'Moneda base' },
+      { field: 'rates', type: 'object', descriptionEs: 'Tasas de cambio desde EUR', descriptionEn: 'Exchange rates from EUR' },
+      { field: 'date', type: 'string', descriptionEs: 'Fecha de las tasas', descriptionEn: 'Rate date' },
+      { field: 'base', type: 'string', descriptionEs: 'Moneda base', descriptionEn: 'Base currency' },
     ],
   },
   {
     path: '/api/stripe/checkout',
     method: 'POST',
-    title: 'Stripe Checkout',
-    description: 'Crea una sesión de checkout de Stripe para suscripción PRO.',
+    titleKey: 'apiDocs.stripeCheckout',
+    descriptionKey: 'apiDocs.stripeCheckoutDesc',
     auth: true,
     responseExample: `{
   "url": "https://checkout.stripe.com/pay/cs_test_..."
 }`,
     responseFields: [
-      { field: 'url', type: 'string', description: 'URL de la sesión de checkout de Stripe' },
+      { field: 'url', type: 'string', descriptionEs: 'URL de la sesión de checkout de Stripe', descriptionEn: 'Stripe checkout session URL' },
     ],
   },
   {
     path: '/api/stripe/portal',
     method: 'POST',
-    title: 'Stripe Portal',
-    description: 'Crea una sesión del portal de cliente de Stripe para gestionar la suscripción.',
+    titleKey: 'apiDocs.stripePortal',
+    descriptionKey: 'apiDocs.stripePortalDesc',
     auth: true,
     responseExample: `{
   "url": "https://billing.stripe.com/p/session/..."
 }`,
     responseFields: [
-      { field: 'url', type: 'string', description: 'URL del portal de Stripe' },
+      { field: 'url', type: 'string', descriptionEs: 'URL del portal de Stripe', descriptionEn: 'Stripe portal URL' },
     ],
   },
   {
     path: '/api/stripe/webhook',
     method: 'POST',
-    title: 'Stripe Webhook',
-    description: 'Endpoint de webhook para eventos de Stripe (checkout.session.completed, invoice.paid, subscription updates/deletions).',
+    titleKey: 'apiDocs.stripeWebhook',
+    descriptionKey: 'apiDocs.stripeWebhookDesc',
     auth: false,
     params: [
-      { name: 'stripe-signature', type: 'header', required: true, description: 'Firma del webhook de Stripe' },
+      { name: 'stripe-signature', type: 'header', required: true, descriptionEs: 'Firma del webhook de Stripe', descriptionEn: 'Stripe webhook signature' },
     ],
     responseExample: `{
   "received": true
 }`,
     responseFields: [
-      { field: 'received', type: 'boolean', description: 'Confirmación de recepción' },
+      { field: 'received', type: 'boolean', descriptionEs: 'Confirmación de recepción', descriptionEn: 'Receipt confirmation' },
     ],
   },
   {
     path: '/api/fiscal/mis-personas',
     method: 'GET',
-    title: 'Mis personas',
-    description: 'Lista las personas asociadas al usuario actual (gestiones de otros usuarios).',
+    titleKey: 'apiDocs.misPersonas',
+    descriptionKey: 'apiDocs.misPersonasDesc',
     auth: true,
     responseExample: `{
   "personas": [
@@ -239,48 +240,48 @@ const routes: Route[] = [
   "perfilPropioId": "uuid-del-perfil-propio"
 }`,
     responseFields: [
-      { field: 'personas', type: 'array', description: 'Lista de personas asociadas' },
-      { field: 'personas[].perfilId', type: 'string', description: 'ID del perfil asociado' },
-      { field: 'personas[].nombre', type: 'string', description: 'Nombre de la persona' },
-      { field: 'personas[].email', type: 'string', description: 'Email de la persona' },
-      { field: 'personas[].rol', type: 'string', description: 'Rol de la asociación' },
-      { field: 'perfilPropioId', type: 'string | null', description: 'ID del propio perfil' },
+      { field: 'personas', type: 'array', descriptionEs: 'Lista de personas asociadas', descriptionEn: 'List of associated people' },
+      { field: 'personas[].perfilId', type: 'string', descriptionEs: 'ID del perfil asociado', descriptionEn: 'Associated profile ID' },
+      { field: 'personas[].nombre', type: 'string', descriptionEs: 'Nombre de la persona', descriptionEn: 'Person name' },
+      { field: 'personas[].email', type: 'string', descriptionEs: 'Email de la persona', descriptionEn: 'Person email' },
+      { field: 'personas[].rol', type: 'string', descriptionEs: 'Rol de la asociación', descriptionEn: 'Association role' },
+      { field: 'perfilPropioId', type: 'string | null', descriptionEs: 'ID del propio perfil', descriptionEn: 'Own profile ID' },
     ],
   },
   {
     path: '/api/fiscal/asociar-persona',
     method: 'POST',
-    title: 'Asociar persona',
-    description: 'Crea un perfil temporal y asocia una persona al usuario actual. Envía email de invitación si Resend está configurado.',
+    titleKey: 'apiDocs.asociarPersona',
+    descriptionKey: 'apiDocs.asociarPersonaDesc',
     auth: true,
     params: [
-      { name: 'email', type: 'string', required: true, description: 'Email de la persona a asociar' },
-      { name: 'nombre', type: 'string', required: false, description: 'Nombre de la persona' },
-      { name: 'nif', type: 'string', required: false, description: 'NIF/CIF de la persona' },
+      { name: 'email', type: 'string', required: true, descriptionEs: 'Email de la persona a asociar', descriptionEn: 'Email of the person to add' },
+      { name: 'nombre', type: 'string', required: false, descriptionEs: 'Nombre de la persona', descriptionEn: 'Person name' },
+      { name: 'nif', type: 'string', required: false, descriptionEs: 'NIF/CIF de la persona', descriptionEn: 'Person tax ID' },
     ],
     responseExample: `{
   "ok": true,
   "perfilId": "uuid-del-nuevo-perfil"
 }`,
     responseFields: [
-      { field: 'ok', type: 'boolean', description: 'true si se creó correctamente' },
-      { field: 'perfilId', type: 'string', description: 'ID del perfil creado' },
+      { field: 'ok', type: 'boolean', descriptionEs: 'true si se creó correctamente', descriptionEn: 'true if created successfully' },
+      { field: 'perfilId', type: 'string', descriptionEs: 'ID del perfil creado', descriptionEn: 'Created profile ID' },
     ],
   },
   {
     path: '/api/fiscal/desasociar-persona',
     method: 'DELETE',
-    title: 'Desasociar persona',
-    description: 'Elimina la asociación entre el usuario actual y una persona gestionada.',
+    titleKey: 'apiDocs.desasociarPersona',
+    descriptionKey: 'apiDocs.desasociarPersonaDesc',
     auth: true,
     queryParams: [
-      { name: 'perfilId', type: 'string', required: true, description: 'ID del perfil a desasociar' },
+      { name: 'perfilId', type: 'string', required: true, descriptionEs: 'ID del perfil a desasociar', descriptionEn: 'Profile ID to remove' },
     ],
     responseExample: `{
   "ok": true
 }`,
     responseFields: [
-      { field: 'ok', type: 'boolean', description: 'true si se eliminó correctamente' },
+      { field: 'ok', type: 'boolean', descriptionEs: 'true si se eliminó correctamente', descriptionEn: 'true if removed successfully' },
     ],
   },
 ]
@@ -298,7 +299,7 @@ function MethodBadge({ method }: { method: string }) {
   )
 }
 
-function RouteCard({ route }: { route: Route }) {
+function RouteCard({ route, t }: { route: Route; t: (key: string) => string }) {
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -306,24 +307,24 @@ function RouteCard({ route }: { route: Route }) {
           <MethodBadge method={route.method} />
           <code className="text-sm font-mono font-semibold">{route.path}</code>
           {route.auth && (
-            <Badge variant="secondary" className="text-[10px] ml-auto">Auth requerida</Badge>
+            <Badge variant="secondary" className="text-[10px] ml-auto">{t('apiDocs.authRequerida')}</Badge>
           )}
         </div>
-        <CardTitle className="text-lg mt-2">{route.title}</CardTitle>
-        <CardDescription>{route.description}</CardDescription>
+        <CardTitle className="text-lg mt-2">{t(route.titleKey)}</CardTitle>
+        <CardDescription>{t(route.descriptionKey)}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {(route.params && route.params.length > 0) && (
           <div>
-            <h4 className="text-sm font-semibold mb-2">Body params</h4>
+            <h4 className="text-sm font-semibold mb-2">{t('apiDocs.bodyParams')}</h4>
             <div className="rounded-md border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="px-3 py-2 text-left font-medium">Campo</th>
-                    <th className="px-3 py-2 text-left font-medium">Tipo</th>
-                    <th className="px-3 py-2 text-left font-medium">Req.</th>
-                    <th className="px-3 py-2 text-left font-medium">Descripción</th>
+                    <th className="px-3 py-2 text-left font-medium">{t('apiDocs.campo')}</th>
+                    <th className="px-3 py-2 text-left font-medium">{t('apiDocs.tipo')}</th>
+                    <th className="px-3 py-2 text-left font-medium">{t('apiDocs.req')}</th>
+                    <th className="px-3 py-2 text-left font-medium">{t('apiDocs.descripcion')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -331,8 +332,8 @@ function RouteCard({ route }: { route: Route }) {
                     <tr key={p.name} className="border-b last:border-0">
                       <td className="px-3 py-2 font-mono text-xs">{p.name}</td>
                       <td className="px-3 py-2 text-muted-foreground">{p.type}</td>
-                      <td className="px-3 py-2">{p.required ? <span className="text-destructive font-medium">Sí</span> : 'No'}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{p.description}</td>
+                      <td className="px-3 py-2">{p.required ? <span className="text-destructive font-medium">{t('apiDocs.si')}</span> : t('apiDocs.no')}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{p.descriptionEs}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -343,15 +344,15 @@ function RouteCard({ route }: { route: Route }) {
 
         {(route.queryParams && route.queryParams.length > 0) && (
           <div>
-            <h4 className="text-sm font-semibold mb-2">Query params</h4>
+            <h4 className="text-sm font-semibold mb-2">{t('apiDocs.queryParams')}</h4>
             <div className="rounded-md border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="px-3 py-2 text-left font-medium">Param</th>
-                    <th className="px-3 py-2 text-left font-medium">Tipo</th>
-                    <th className="px-3 py-2 text-left font-medium">Req.</th>
-                    <th className="px-3 py-2 text-left font-medium">Descripción</th>
+                    <th className="px-3 py-2 text-left font-medium">{t('apiDocs.campo')}</th>
+                    <th className="px-3 py-2 text-left font-medium">{t('apiDocs.tipo')}</th>
+                    <th className="px-3 py-2 text-left font-medium">{t('apiDocs.req')}</th>
+                    <th className="px-3 py-2 text-left font-medium">{t('apiDocs.descripcion')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -359,8 +360,8 @@ function RouteCard({ route }: { route: Route }) {
                     <tr key={p.name} className="border-b last:border-0">
                       <td className="px-3 py-2 font-mono text-xs">{p.name}</td>
                       <td className="px-3 py-2 text-muted-foreground">{p.type}</td>
-                      <td className="px-3 py-2">{p.required ? <span className="text-destructive font-medium">Sí</span> : 'No'}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{p.description}</td>
+                      <td className="px-3 py-2">{p.required ? <span className="text-destructive font-medium">{t('apiDocs.si')}</span> : t('apiDocs.no')}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{p.descriptionEs}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -370,14 +371,14 @@ function RouteCard({ route }: { route: Route }) {
         )}
 
         <div>
-          <h4 className="text-sm font-semibold mb-2">Respuesta</h4>
+          <h4 className="text-sm font-semibold mb-2">{t('apiDocs.respuesta')}</h4>
           <div className="rounded-md border">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="px-3 py-2 text-left font-medium">Campo</th>
-                  <th className="px-3 py-2 text-left font-medium">Tipo</th>
-                  <th className="px-3 py-2 text-left font-medium">Descripción</th>
+                  <th className="px-3 py-2 text-left font-medium">{t('apiDocs.campo')}</th>
+                  <th className="px-3 py-2 text-left font-medium">{t('apiDocs.tipo')}</th>
+                  <th className="px-3 py-2 text-left font-medium">{t('apiDocs.descripcion')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -385,7 +386,7 @@ function RouteCard({ route }: { route: Route }) {
                   <tr key={f.field} className="border-b last:border-0">
                     <td className="px-3 py-2 font-mono text-xs">{f.field}</td>
                     <td className="px-3 py-2 text-muted-foreground">{f.type}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{f.description}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{f.descriptionEs}</td>
                   </tr>
                 ))}
               </tbody>
@@ -394,7 +395,7 @@ function RouteCard({ route }: { route: Route }) {
         </div>
 
         <div>
-          <h4 className="text-sm font-semibold mb-2">Ejemplo de respuesta</h4>
+          <h4 className="text-sm font-semibold mb-2">{t('apiDocs.ejemploRespuesta')}</h4>
           <pre className="rounded-md bg-muted p-4 text-xs overflow-x-auto font-mono">
             {route.responseExample}
           </pre>
@@ -405,29 +406,30 @@ function RouteCard({ route }: { route: Route }) {
 }
 
 export default function ApiDocsPage() {
+  const { t } = useLanguage()
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <BookOpen className="h-6 w-6 text-primary" aria-hidden="true" />
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">API Docs</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('apiDocs.titulo')}</h1>
           <p className="text-sm text-muted-foreground">
-            Documentación de las rutas públicas y autenticadas de MantiGestor.
+            {t('apiDocs.subtitulo')}
           </p>
         </div>
       </div>
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Badge variant="outline" className="font-mono">POST</Badge> <span>Requiere body JSON</span>
+        <Badge variant="outline" className="font-mono">POST</Badge> <span>{t('apiDocs.requiereBodyJson')}</span>
         <span className="mx-1">·</span>
-        <Badge variant="outline" className="font-mono">GET</Badge> <span>Query params en URL</span>
+        <Badge variant="outline" className="font-mono">GET</Badge> <span>{t('apiDocs.queryParamsUrl')}</span>
         <span className="mx-1">·</span>
-        <Badge variant="outline" className="font-mono">DELETE</Badge> <span>Query params en URL</span>
+        <Badge variant="outline" className="font-mono">DELETE</Badge> <span>{t('apiDocs.queryParamsUrl')}</span>
       </div>
 
       <div className="grid gap-6">
         {routes.map((route) => (
-          <RouteCard key={`${route.method}-${route.path}`} route={route} />
+          <RouteCard key={`${route.method}-${route.path}`} route={route} t={t} />
         ))}
       </div>
     </div>

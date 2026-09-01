@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Upload, CheckCircle, AlertCircle, ArrowRight, FileText, Building2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useLanguage } from '@/contexts/language-context'
 import {
   parsearExtractoCSV,
   encontrarCoincidencias,
@@ -26,6 +27,7 @@ export default function ConciliacionPage() {
   const [bancoManual, setBancoManual] = useState<BancoId>('generico')
   const [textoOriginal, setTextoOriginal] = useState('')
   const getSupabase = useCallback(() => createClient(), [])
+  const { t } = useLanguage()
 
   useEffect(() => {
     const cargar = async () => {
@@ -52,11 +54,11 @@ export default function ConciliacionPage() {
     setProcesando(false)
 
     if (results.length > 0) {
-      toast.success(`${results.length} coincidencias encontradas (${BANCOS[detectado].nombre})`)
+      toast.success(`${results.length} ${t('conciliacion.coincidenciasEncontradas')} (${BANCOS[detectado].nombre})`)
     } else {
-      toast.info(`No se encontraron coincidencias (banco: ${BANCOS[detectado].nombre})`)
+      toast.info(`${t('conciliacion.sinCoincidenciasToast')} ${BANCOS[detectado].nombre})`)
     }
-  }, [facturas])
+  }, [facturas, t])
 
   const handleArchivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -83,7 +85,7 @@ export default function ConciliacionPage() {
     if (!error) {
       setReconciliadas(prev => new Set(prev).add(coincidencia.factura.id))
       setFacturas(prev => prev.filter(f => f.id !== coincidencia.factura.id))
-      toast.success('Factura marcada como pagada')
+      toast.success(t('conciliacion.facturaMarcada'))
     }
   }
 
@@ -94,7 +96,7 @@ export default function ConciliacionPage() {
       setReconciliadas(prev => new Set(prev).add(c.factura.id))
     }
     setFacturas(prev => prev.filter(f => !pendientes.some(c => c.factura.id === f.id)))
-    toast.success(`${pendientes.length} facturas reconciliadas`)
+    toast.success(`${pendientes.length} ${t('conciliacion.facturasReconciliadas')}`)
   }
 
   const formatEuro = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
@@ -106,18 +108,18 @@ export default function ConciliacionPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Conciliación bancaria</h1>
-        <p className="text-muted-foreground">Importa un extracto del banco y concílalo con tus facturas pendientes</p>
+        <h1 className="text-2xl font-bold">{t('conciliacion.titulo')}</h1>
+        <p className="text-muted-foreground">{t('conciliacion.subtitulo')}</p>
       </div>
 
       {/* Selector de banco */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Building2 className="h-4 w-4" /> Banco o entidad
+            <Building2 className="h-4 w-4" /> {t('conciliacion.bancoEntidad')}
           </CardTitle>
           <CardDescription>
-            Selecciona tu banco o déjalo en automático para detectar el formato
+            {t('conciliacion.seleccionaBanco')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -126,13 +128,13 @@ export default function ConciliacionPage() {
               <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                  Detectado: {BANCOS[bancoDetectado].nombre}
+                  {t('conciliacion.detectado')}: {BANCOS[bancoDetectado].nombre}
                 </span>
               </div>
             )}
 
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-2 block">Tradicional</label>
+              <label className="text-xs font-medium text-muted-foreground mb-2 block">{t('conciliacion.tradicional')}</label>
               <div className="flex flex-wrap gap-2">
                 {bancosTradicionales.map(b => (
                   <Button
@@ -148,7 +150,7 @@ export default function ConciliacionPage() {
             </div>
 
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-2 block">Neobancos y Fintech</label>
+              <label className="text-xs font-medium text-muted-foreground mb-2 block">{t('conciliacion.neobancosFintech')}</label>
               <div className="flex flex-wrap gap-2">
                 {bancosFintech.map(b => (
                   <Button
@@ -164,7 +166,7 @@ export default function ConciliacionPage() {
             </div>
 
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-2 block">Pagos</label>
+              <label className="text-xs font-medium text-muted-foreground mb-2 block">{t('conciliacion.pagos')}</label>
               <div className="flex flex-wrap gap-2">
                 {bancosPagos.map(b => (
                   <Button
@@ -186,22 +188,22 @@ export default function ConciliacionPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Upload className="h-4 w-4" /> Importar extracto
+            <Upload className="h-4 w-4" /> {t('conciliacion.importarExtracto')}
           </CardTitle>
-          <CardDescription>CSV con separador punto y coma o coma — auto-detecta el banco</CardDescription>
+          <CardDescription>{t('conciliacion.descripcionCsv')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
             <input type="file" accept=".csv,.txt" onChange={(e) => void handleArchivo(e)} className="hidden" id="extracto-input" />
             <Button variant="outline" asChild>
               <label htmlFor="extracto-input" className="cursor-pointer">
-                <FileText className="mr-2 h-4 w-4" /> Seleccionar extracto
+                <FileText className="mr-2 h-4 w-4" /> {t('conciliacion.seleccionarExtracto')}
               </label>
             </Button>
-            {procesando && <span className="text-sm text-muted-foreground">Procesando...</span>}
+            {procesando && <span className="text-sm text-muted-foreground">{t('conciliacion.procesando')}</span>}
             {extractoCargado && bancoDetectado && (
               <span className="text-sm text-muted-foreground">
-                {coincidencias.length} coincidencias de {facturas.length} pendientes — {BANCOS[bancoDetectado].nombre}
+                {coincidencias.length} {t('conciliacion.coincidenciasPendientes')} {facturas.length} {t('conciliacion.pendientes')} — {BANCOS[bancoDetectado].nombre}
               </span>
             )}
           </div>
@@ -212,9 +214,9 @@ export default function ConciliacionPage() {
       {coincidencias.length > 0 && (
         <>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Coincidencias encontradas ({coincidencias.length})</h2>
+            <h2 className="text-lg font-semibold">{t('conciliacion.coincidenciasEncontradas')} ({coincidencias.length})</h2>
             <Button onClick={() => void reconciliarTodas()} size="sm">
-              <CheckCircle className="mr-1 h-4 w-4" /> Reconciliar automáticas (≥70%)
+              <CheckCircle className="mr-1 h-4 w-4" /> {t('conciliacion.reconciliarAutomaticas')}
             </Button>
           </div>
 
@@ -227,14 +229,14 @@ export default function ConciliacionPage() {
                     <div className="flex items-center gap-4">
                       <div className="flex-1 grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">Extracto bancario</p>
+                          <p className="text-xs text-muted-foreground">{t('conciliacion.extractoBancario')}</p>
                           <p className="text-sm font-medium">{c.extracto.descripcion}</p>
                           <p className="text-xs text-muted-foreground">
                             {c.extracto.fecha} · {formatEuro(c.extracto.importe)}
                           </p>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">Factura</p>
+                          <p className="text-xs text-muted-foreground">{t('conciliacion.factura')}</p>
                           <p className="text-sm font-medium">{c.factura.emisorReceptor}</p>
                           <p className="text-xs text-muted-foreground">
                             {c.factura.fechaEmision.slice(0, 10)} · {formatEuro(c.factura.total)}
@@ -252,7 +254,7 @@ export default function ConciliacionPage() {
                           <CheckCircle className="h-5 w-5 text-green-600" />
                         ) : (
                           <Button size="sm" variant="outline" onClick={() => void reconciliar(c)}>
-                            <ArrowRight className="mr-1 h-3 w-3" /> Conciliar
+                            <ArrowRight className="mr-1 h-3 w-3" /> {t('conciliacion.conciliar')}
                           </Button>
                         )}
                       </div>
@@ -269,8 +271,8 @@ export default function ConciliacionPage() {
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No se encontraron coincidencias automáticas</p>
-            <p className="text-xs mt-1">Verifica el formato del extracto o las facturas pendientes</p>
+            <p>{t('conciliacion.sinCoincidencias')}</p>
+            <p className="text-xs mt-1">{t('conciliacion.verificaFormato')}</p>
           </CardContent>
         </Card>
       )}

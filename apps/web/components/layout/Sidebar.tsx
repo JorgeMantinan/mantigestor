@@ -48,26 +48,26 @@ export function Sidebar() {
       group: t('nav.gestoria'),
       items: [
         { label: t('nav.panel'), href: '/dashboard', icon: LayoutDashboard },
-        { label: 'Expediente', href: '/gestoria/expediente', icon: FolderOpen },
-        { label: 'Agenda', href: '/gestoria/agenda', icon: Calendar },
+        { label: t('nav.expediente'), href: '/gestoria/expediente', icon: FolderOpen },
+        { label: t('nav.agenda'), href: '/gestoria/agenda', icon: Calendar },
         { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
-        { label: 'Trimestres', href: '/gestoria/trimestres', icon: BarChart3 },
-        { label: 'Renta', href: '/gestoria/renta', icon: Landmark },
-        { label: 'Pack anual', href: '/gestoria/pack-anual', icon: FileText },
-        { label: 'Importar extracto', href: '/gestoria/importar-extracto', icon: Upload },
+        { label: t('nav.trimestres'), href: '/gestoria/trimestres', icon: BarChart3 },
+        { label: t('nav.renta'), href: '/gestoria/renta', icon: Landmark },
+        { label: t('nav.packAnual'), href: '/gestoria/pack-anual', icon: FileText },
+        { label: t('nav.importarExtracto'), href: '/gestoria/importar-extracto', icon: Upload },
         { label: t('nav.fiscal'), href: '/fiscal', icon: Calculator },
         { label: t('nav.alquiler'), href: '/alquiler', icon: Home },
         { label: t('nav.nominas'), href: '/nominas', icon: Users },
       ],
     },
     {
-      group: 'Modelos rápidos',
+      group: t('nav.modelosRapidos'),
       items: [
-        { label: 'IVA trimestral (303)', href: '/fiscal?seccion=modelo303', icon: Receipt },
-        { label: 'Pago fraccionado (130)', href: '/fiscal?seccion=modelo130', icon: Landmark },
-        { label: 'Retenciones (111)', href: '/fiscal?seccion=modelo111', icon: Receipt },
-        { label: 'Renta anual (100)', href: '/fiscal?seccion=modelo100', icon: FileText },
-        { label: 'Reta (autónomos)', href: '/fiscal?seccion=reta', icon: Users },
+        { label: t('nav.ivaTrimestral303'), href: '/fiscal?seccion=modelo303', icon: Receipt },
+        { label: t('nav.pagoFraccionado130'), href: '/fiscal?seccion=modelo130', icon: Landmark },
+        { label: t('nav.retenciones111'), href: '/fiscal?seccion=modelo111', icon: Receipt },
+        { label: t('nav.rentaAnual100'), href: '/fiscal?seccion=modelo100', icon: FileText },
+        { label: t('nav.retaAutonomos'), href: '/fiscal?seccion=reta', icon: Users },
       ],
     },
     {
@@ -76,8 +76,8 @@ export function Sidebar() {
         { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
         { label: t('nav.documentos'), href: '/gestoria/documentos', icon: FileText },
         { label: t('nav.informes'), href: '/gestoria/informes', icon: FileSpreadsheet },
-        { label: 'Conciliación', href: '/gestoria/conciliacion', icon: RefreshCw },
-        { label: 'Informe trimestral', href: '/gestoria/informe-trimestral', icon: FileSpreadsheet },
+        { label: t('nav.conciliacion'), href: '/gestoria/conciliacion', icon: RefreshCw },
+        { label: t('nav.informeTrimestral'), href: '/gestoria/informe-trimestral', icon: FileSpreadsheet },
         { label: t('nav.backup'), href: '/gestoria/backup', icon: Download },
         { label: t('nav.registro'), href: '/gestoria/audit-log', icon: History },
       ],
@@ -86,7 +86,7 @@ export function Sidebar() {
       group: t('nav.alumnos'),
       items: [
         { label: t('nav.documentos'), href: '/alumnos', icon: FileText },
-        { label: 'Exámenes', href: '/alumnos/examenes', icon: GraduationCap },
+        { label: t('nav.examenes'), href: '/alumnos/examenes', icon: GraduationCap },
       ],
     },
     {
@@ -96,9 +96,9 @@ export function Sidebar() {
         { label: t('nav.conversiones'), href: '/conversiones', icon: FileSpreadsheet },
         { label: t('nav.dividirGasto'), href: '/herramientas/dividir-gasto', icon: Users },
         { label: t('nav.temporizador'), href: '/herramientas/temporizador', icon: Clock },
-        { label: 'Simulador retenciones', href: '/herramientas/simulador-retenciones', icon: Calculator },
+        { label: t('nav.simuladorRetenciones'), href: '/herramientas/simulador-retenciones', icon: Calculator },
         { label: t('nav.notificaciones'), href: '/ajustes/notificaciones', icon: Bell },
-        { label: 'API Docs', href: '/api-docs', icon: BookOpen },
+        { label: t('nav.apiDocs'), href: '/api-docs', icon: BookOpen },
         { label: t('nav.ajustes'), href: '/ajustes', icon: Settings },
       ],
     },
@@ -143,7 +143,7 @@ export function Sidebar() {
         {!esPropio && !collapsed && (
           <div className="mx-3 mb-2">
             <Badge variant="outline" className="w-full justify-center text-xs">
-              Gestionando a otra persona
+              {t('nav.gestionandoOtraPersona')}
             </Badge>
           </div>
         )}
@@ -199,7 +199,7 @@ export function Sidebar() {
             ) : (
               <>
                 <ChevronLeft className="h-4 w-4 mr-2" aria-hidden="true" />
-                Colapsar
+                {t('nav.colapsar')}
               </>
             )}
           </Button>
