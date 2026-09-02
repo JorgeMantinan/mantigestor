@@ -34,6 +34,8 @@ const WIDGETS_PREDETERMINADOS: Omit<WidgetConfig, 'visible'>[] = [
   { id: 'top-gastos', label: 'Top gastos' },
   { id: 'prediccion', label: 'Predicción gastos' },
   { id: 'cobro', label: 'Ratio de cobro' },
+  { id: 'benchmarking', label: 'Benchmarking IA' },
+  { id: 'alertas-inteligentes', label: 'Alertas inteligentes' },
 ]
 
 const STORAGE_KEY = 'dashboard-widgets'

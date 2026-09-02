@@ -7,13 +7,31 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText, Zap } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText, Zap, CircleDollarSign, CalendarDays, Wallet } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
 import { generarFacturaClientePDF } from '@/lib/factura-cliente-pdf'
 import { DragDropList } from '@/components/drag-drop-list'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
+
+type TriggerTipo = 'umbral_gasto' | 'fecha_especifica' | 'saldo_bajo'
+
+interface TriggerConfig {
+  triggerTipo: TriggerTipo | null
+  triggerValor: number | null
+}
+
+function parseTriggerConfig(notas: string | null): TriggerConfig {
+  if (!notas) return { triggerTipo: null, triggerValor: null }
+  try {
+    const parsed = JSON.parse(notas)
+    if (parsed.triggerTipo && ['umbral_gasto', 'fecha_especifica', 'saldo_bajo'].includes(parsed.triggerTipo)) {
+      return { triggerTipo: parsed.triggerTipo, triggerValor: parsed.triggerValor ?? null }
+    }
+  } catch { /* not JSON or invalid */ }
+  return { triggerTipo: null, triggerValor: null }
+}
 
 interface FacturaRecurrente {
   id: string
@@ -28,6 +46,7 @@ interface FacturaRecurrente {
   activa: boolean
   ultimaGeneracion: string | null
   createdAt: string
+  notas: string | null
 }
 
 interface PerfilEmpresa {
@@ -59,6 +78,9 @@ export default function FacturasRecurrentesPage() {
   const [iva, setIva] = useState('21')
   const [diaGeneracion, setDiaGeneracion] = useState('5')
   const [diaEmail, setDiaEmail] = useState('')
+  const [triggerTipo, setTriggerTipo] = useState<TriggerTipo | null>(null)
+  const [triggerValor, setTriggerValor] = useState('')
+  const [saldoBanco, setSaldoBanco] = useState('')
 
   const ORDER_KEY = 'facturas-recurrentes-orden'
 
@@ -122,9 +144,18 @@ export default function FacturasRecurrentesPage() {
       setError('Rellena todos los campos obligatorios')
       return
     }
+    if (triggerTipo && !triggerValor) {
+      setError('Introduce un valor para el umbral del trigger')
+      return
+    }
     setGuardando(true)
     setError('')
     try {
+      const triggerConfig: TriggerConfig = triggerTipo
+        ? { triggerTipo, triggerValor: parseFloat(triggerValor) || null }
+        : { triggerTipo: null, triggerValor: null }
+      const notas = JSON.stringify(triggerConfig)
+
       const res = await fetch('/api/facturas/recurrentes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -137,6 +168,7 @@ export default function FacturasRecurrentesPage() {
           iva: parseInt(iva),
           diaGeneracion: parseInt(diaGeneracion),
           diaEmail: diaEmail ? parseInt(diaEmail) : null,
+          notas,
         }),
       })
       if (!res.ok) {
@@ -145,11 +177,12 @@ export default function FacturasRecurrentesPage() {
         setGuardando(false)
         return
       }
-      // Reset form
       setNumero('')
       setEmisorReceptor('')
       setNifContraparte('')
       setBaseImponible('')
+      setTriggerTipo(null)
+      setTriggerValor('')
       setMostrarForm(false)
       await fetchPlantillas()
     } catch {
@@ -270,6 +303,9 @@ export default function FacturasRecurrentesPage() {
     const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
     if (!perfil) return
 
+    const primerDiaMes = `${anyo}-${String(mes).padStart(2, '0')}-01`
+    const ultimoDiaMes = `${anyo}-${String(mes).padStart(2, '0')}-31`
+
     const plantillasPendientes = plantillas.filter(
       p => p.activa && p.diaGeneracion <= diaActual
     )
@@ -288,6 +324,40 @@ export default function FacturasRecurrentesPage() {
       const p = plantillasPendientes[i]
       if (!p) continue
       setBatchProgress({ actual: i + 1, total: plantillasPendientes.length })
+
+      const { triggerTipo, triggerValor } = parseTriggerConfig(p.notas)
+
+      if (triggerTipo === 'umbral_gasto' && triggerValor != null) {
+        const { data: gastos } = await getSupabase()
+          .from('facturas')
+          .select('total')
+          .eq('perfilId', perfil.id)
+          .eq('tipo', 'gasto')
+          .gte('fechaEmision', primerDiaMes)
+          .lte('fechaEmision', ultimoDiaMes)
+        const totalGastos = (gastos ?? []).reduce((sum, f) => sum + (f.total ?? 0), 0)
+        if (totalGastos < triggerValor) {
+          omitidas++
+          continue
+        }
+      }
+
+      if (triggerTipo === 'saldo_bajo' && triggerValor != null) {
+        const { data: ultimasFacturas } = await getSupabase()
+          .from('facturas')
+          .select('total, tipo')
+          .eq('perfilId', perfil.id)
+          .lte('fechaEmision', ultimoDiaMes)
+          .order('fechaEmision', { ascending: false })
+          .limit(50)
+        const saldoCalculado = (ultimasFacturas ?? []).reduce((sum, f) => {
+          return sum + (f.tipo === 'ingreso' ? (f.total ?? 0) : -(f.total ?? 0))
+        }, 0)
+        if (saldoCalculado >= triggerValor) {
+          omitidas++
+          continue
+        }
+      }
 
       const numero = `${p.numero}-${anyo}-${String(mes).padStart(2, '0')}`
 
@@ -464,6 +534,66 @@ export default function FacturasRecurrentesPage() {
                 <p className="text-xs text-muted-foreground">Email automático con recordatorio de facturas pendientes</p>
               </div>
             </div>
+            <div className="space-y-3 rounded-md border p-4">
+              <Label className="text-sm font-medium">Trigger de generación</Label>
+              <p className="text-xs text-muted-foreground">
+                Elige cuándo se genera esta factura. Por defecto se genera en el día del mes seleccionado.
+              </p>
+              <div className="space-y-2">
+                {([
+                  { value: null, label: 'Por día del mes (por defecto)', icon: CalendarDays, desc: `Se genera el día ${diaGeneracion} de cada mes` },
+                  { value: 'umbral_gasto' as TriggerTipo, label: 'Cuando los gastos superan umbral', icon: CircleDollarSign, desc: 'Genera cuando el total de gastos del mes supera un importe' },
+                  { value: 'fecha_especifica' as TriggerTipo, label: 'En fecha específica del mes', icon: CalendarDays, desc: `Se genera el día ${diaGeneracion} de cada mes (igual que por defecto)` },
+                  { value: 'saldo_bajo' as TriggerTipo, label: 'Cuando el saldo baja del umbral', icon: Wallet, desc: 'Genera cuando el saldo del banco baja de un importe' },
+                ] as const).map(opt => (
+                  <label key={opt.value ?? 'none'} className={`flex items-start gap-3 rounded-md border p-3 cursor-pointer transition-colors ${triggerTipo === opt.value ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}>
+                    <input
+                      type="radio"
+                      name="triggerTipo"
+                      checked={triggerTipo === opt.value}
+                      onChange={() => setTriggerTipo(opt.value)}
+                      className="mt-0.5"
+                    />
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <opt.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-sm font-medium">{opt.label}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{opt.desc}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+              {triggerTipo && (
+                <div className="grid gap-4 sm:grid-cols-2 pt-2">
+                  <div className="space-y-2">
+                    <Label>{triggerTipo === 'fecha_especifica' ? 'Día del mes' : 'Umbral (€)'}</Label>
+                    {triggerTipo === 'fecha_especifica' ? (
+                      <select value={triggerValor || diaGeneracion} onChange={e => setTriggerValor(e.target.value)}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                        {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Input type="number" step="0.01" value={triggerValor} onChange={e => setTriggerValor(e.target.value)} placeholder={triggerTipo === 'umbral_gasto' ? '500.00' : '1000.00'} />
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {triggerTipo === 'umbral_gasto' && 'Se genera la factura cuando los gastos del mes superen este importe'}
+                      {triggerTipo === 'fecha_especifica' && 'Se genera en el día seleccionado de cada mes'}
+                      {triggerTipo === 'saldo_bajo' && 'Se genera cuando el saldo del banco baje de este importe'}
+                    </p>
+                  </div>
+                  {triggerTipo === 'saldo_bajo' && (
+                    <div className="space-y-2">
+                      <Label>Saldo actual del banco (€) <span className="text-muted-foreground text-xs">(manual)</span></Label>
+                      <Input type="number" step="0.01" value={saldoBanco} onChange={e => setSaldoBanco(e.target.value)} placeholder="0.00" />
+                      <p className="text-xs text-muted-foreground">Introduce tu saldo actual para referencia</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setMostrarForm(false)}>Cancelar</Button>
@@ -519,7 +649,16 @@ export default function FacturasRecurrentesPage() {
                         <div className="flex items-center gap-3 text-sm text-muted-foreground">
                           <span>{p.numero}-YYYY-MM</span>
                           <span>·</span>
-                          <span>{nombreMes(p.diaGeneracion)}</span>
+                          {(() => {
+                            const { triggerTipo, triggerValor } = parseTriggerConfig(p.notas)
+                            if (triggerTipo === 'umbral_gasto' && triggerValor != null) {
+                              return <span className="inline-flex items-center gap-1 text-amber-600"><CircleDollarSign className="h-3 w-3" /> Gasto &gt; {formatMoney(triggerValor * 100)}</span>
+                            }
+                            if (triggerTipo === 'saldo_bajo' && triggerValor != null) {
+                              return <span className="inline-flex items-center gap-1 text-orange-600"><Wallet className="h-3 w-3" /> Saldo &lt; {formatMoney(triggerValor * 100)}</span>
+                            }
+                            return <span>{nombreMes(p.diaGeneracion)}</span>
+                          })()}
                           {p.diaEmail && (
                             <>
                               <span>·</span>

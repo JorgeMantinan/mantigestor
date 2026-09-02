@@ -62,6 +62,12 @@ const WidgetPrediccion = dynamic(() => import('@/components/dashboard/widget-pre
 const WidgetCobro = dynamic(() => import('@/components/dashboard/widget-cobro').then(m => m.WidgetCobro), {
   loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
 })
+const WidgetBenchmarking = dynamic(() => import('@/components/dashboard/widget-benchmarking').then(m => m.WidgetBenchmarking), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
+const WidgetAlertasInteligentes = dynamic(() => import('@/components/dashboard/widget-alertas-inteligentes').then(m => m.WidgetAlertasInteligentes), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
 
 interface Factura {
   id: string
@@ -412,6 +418,8 @@ export default function DashboardPage() {
           {isVisible('top-gastos') && <WidgetTopGastos facturas={facturasFiltradas} />}
           {isVisible('prediccion') && <WidgetPrediccion facturas={facturasFiltradas} />}
           {isVisible('cobro') && <WidgetCobro facturas={facturasFiltradas} />}
+          {isVisible('benchmarking') && <WidgetBenchmarking facturas={facturasFiltradas} />}
+          {isVisible('alertas-inteligentes') && <WidgetAlertasInteligentes facturas={facturasFiltradas} />}
         </div>
       )}
 

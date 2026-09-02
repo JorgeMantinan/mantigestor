@@ -30,6 +30,7 @@ import {
   History,
   RefreshCw,
   BookOpen,
+  Repeat,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -51,9 +52,11 @@ export function Sidebar() {
         { label: t('nav.expediente'), href: '/gestoria/expediente', icon: FolderOpen },
         { label: t('nav.agenda'), href: '/gestoria/agenda', icon: Calendar },
         { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
+        { label: t('nav.proformas'), href: '/gestoria/facturas/proformas', icon: FileText },
         { label: t('nav.trimestres'), href: '/gestoria/trimestres', icon: BarChart3 },
         { label: t('nav.renta'), href: '/gestoria/renta', icon: Landmark },
         { label: t('nav.packAnual'), href: '/gestoria/pack-anual', icon: FileText },
+        { label: t('nav.reporteAnual'), href: '/gestoria/reporte-anual', icon: FileSpreadsheet },
         { label: t('nav.importarExtracto'), href: '/gestoria/importar-extracto', icon: Upload },
         { label: t('nav.fiscal'), href: '/fiscal', icon: Calculator },
         { label: t('nav.alquiler'), href: '/alquiler', icon: Home },
@@ -74,6 +77,7 @@ export function Sidebar() {
       group: t('nav.gestoria'),
       items: [
         { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
+        { label: t('nav.cobros'), href: '/gestoria/cobros', icon: Landmark },
         { label: t('nav.documentos'), href: '/gestoria/documentos', icon: FileText },
         { label: t('nav.informes'), href: '/gestoria/informes', icon: FileSpreadsheet },
         { label: t('nav.conciliacion'), href: '/gestoria/conciliacion', icon: RefreshCw },
@@ -96,7 +100,9 @@ export function Sidebar() {
         { label: t('nav.conversiones'), href: '/conversiones', icon: FileSpreadsheet },
         { label: t('nav.dividirGasto'), href: '/herramientas/dividir-gasto', icon: Users },
         { label: t('nav.temporizador'), href: '/herramientas/temporizador', icon: Clock },
+        { label: t('nav.pagosRecurrentes'), href: '/herramientas/pagos-recurrentes', icon: Repeat },
         { label: t('nav.simuladorRetenciones'), href: '/herramientas/simulador-retenciones', icon: Calculator },
+        { label: t('nav.googleCalendar'), href: '/herramientas/google-calendar', icon: Calendar },
         { label: t('nav.notificaciones'), href: '/ajustes/notificaciones', icon: Bell },
         { label: t('nav.apiDocs'), href: '/api-docs', icon: BookOpen },
         { label: t('nav.ajustes'), href: '/ajustes', icon: Settings },

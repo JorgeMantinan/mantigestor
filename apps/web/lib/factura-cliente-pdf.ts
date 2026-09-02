@@ -1,6 +1,7 @@
 'use client'
 
 import { generarPDFDeHTML } from '@/lib/pdf'
+import { type PagoParcial, calcularSaldoPendiente } from '@/lib/pago-parcial'
 
 export type PlantillaFactura = 'clasico' | 'moderno' | 'minimalista'
 
@@ -18,6 +19,20 @@ interface FacturaPDF {
   empresaNif?: string
   notas?: string | null
   descuentoPorcentaje?: number
+  pagosParciales?: PagoParcial[]
+}
+
+function esRectificativa(tipo: string): boolean {
+  return tipo === 'rectificativa'
+}
+
+function esNotaCredito(tags: string | null | undefined): boolean {
+  return tags?.includes('nota-credito') ?? false
+}
+
+function obtenerTituloRectificativa(f: FacturaPDF): string | null {
+  if (!esRectificativa(f.tipo)) return null
+  return esNotaCredito(f.notas) ? 'NOTA DE CRÉDITO' : 'NOTA DE DÉBITO'
 }
 
 function formatEuro(cents: number): string {
@@ -29,9 +44,50 @@ function calcularImporteDescuento(baseImponible: number, descuentoPorcentaje: nu
   return Math.round(baseImponible * (descuentoPorcentaje / 100))
 }
 
+function htmlPagosParciales(pagos: PagoParcial[], total: number): string {
+  if (!pagos || pagos.length === 0) return ''
+  const pagado = pagos.reduce((s, p) => s + p.importe, 0)
+  const pendiente = calcularSaldoPendiente(total, JSON.stringify(pagos))
+  const porcentaje = Math.min(100, (pagado / total) * 100)
+
+  return `
+    <div style="margin-bottom:24px;border:1px solid #e5e7eb;border-radius:8px;padding:16px">
+      <p style="font-size:12px;font-weight:700;color:#374151;margin:0 0 12px 0;text-transform:uppercase">Estado de pago</p>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:11px;color:#6b7280">Pagado: ${formatEuro(pagado)}</span>
+        <span style="font-size:11px;color:#6b7280">Pendiente: ${formatEuro(pendiente)}</span>
+      </div>
+      <div style="background:#e5e7eb;border-radius:999px;height:8px;margin-bottom:12px">
+        <div style="background:#16a34a;border-radius:999px;height:8px;width:${porcentaje}%"></div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr style="border-bottom:1px solid #e5e7eb">
+            <th style="padding:6px 8px;text-align:left;font-weight:600;color:#6b7280">Fecha</th>
+            <th style="padding:6px 8px;text-align:right;font-weight:600;color:#6b7280">Importe</th>
+            <th style="padding:6px 8px;text-align:left;font-weight:600;color:#6b7280">Método</th>
+            <th style="padding:6px 8px;text-align:left;font-weight:600;color:#6b7280">Notas</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${pagos.map(p => `
+          <tr style="border-bottom:1px solid #f3f4f6">
+            <td style="padding:6px 8px;color:#374151">${new Date(p.fecha).toLocaleDateString('es-ES')}</td>
+            <td style="padding:6px 8px;text-align:right;font-weight:600;color:#374151">${formatEuro(p.importe)}</td>
+            <td style="padding:6px 8px;color:#6b7280;text-transform:capitalize">${p.metodo}</td>
+            <td style="padding:6px 8px;color:#6b7280">${p.notas || '—'}</td>
+          </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `
+}
+
 function htmlClasico(f: FacturaPDF): string {
   const esGasto = f.tipo === 'gasto'
-  const titulo = esGasto ? 'FACTURA RECIBIDA' : 'FACTURA EMITIDA'
+  const tituloRectificativa = obtenerTituloRectificativa(f)
+  const titulo = tituloRectificativa ?? (esGasto ? 'FACTURA RECIBIDA' : 'FACTURA EMITIDA')
   const empresa = f.empresaNombre || 'Mi Empresa S.L.'
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
@@ -93,6 +149,7 @@ function htmlClasico(f: FacturaPDF): string {
           </tr>
         </tfoot>
       </table>
+      ${f.pagosParciales && f.pagosParciales.length > 0 ? htmlPagosParciales(f.pagosParciales, f.total) : ''}
       ${f.notas ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px"><p style="font-size:12px;margin:0;color:#1e40af"><strong>Notas:</strong> ${f.notas}</p></div>` : ''}
       <div style="margin-top:48px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:10px;color:#9ca3af;text-align:center">
         <p style="margin:0">${empresa} · ${direccion} · NIF ${nifEmpresa}</p>
@@ -104,7 +161,8 @@ function htmlClasico(f: FacturaPDF): string {
 
 function htmlModerno(f: FacturaPDF): string {
   const esGasto = f.tipo === 'gasto'
-  const titulo = esGasto ? 'FACTURA RECIBIDA' : 'FACTURA EMITIDA'
+  const tituloRectificativa = obtenerTituloRectificativa(f)
+  const titulo = tituloRectificativa ?? (esGasto ? 'FACTURA RECIBIDA' : 'FACTURA EMITIDA')
   const empresa = f.empresaNombre || 'Mi Empresa S.L.'
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
@@ -165,6 +223,7 @@ function htmlModerno(f: FacturaPDF): string {
           <span style="font-size:14px;font-weight:600">TOTAL</span>
           <span style="font-size:24px;font-weight:800">${formatEuro(f.total)}</span>
         </div>
+        ${f.pagosParciales && f.pagosParciales.length > 0 ? htmlPagosParciales(f.pagosParciales, f.total) : ''}
         ${f.notas ? `<div style="background:#f0fdf4;border:1px solid #a7f3d0;border-radius:8px;padding:12px;margin-top:16px"><p style="font-size:11px;margin:0;color:#065f46"><strong>Notas:</strong> ${f.notas}</p></div>` : ''}
         <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:9px;color:#9ca3af;text-align:center">
           <p style="margin:0">${empresa} · ${direccion} · NIF ${nifEmpresa}</p>
@@ -177,7 +236,8 @@ function htmlModerno(f: FacturaPDF): string {
 
 function htmlMinimalista(f: FacturaPDF): string {
   const esGasto = f.tipo === 'gasto'
-  const titulo = esGasto ? 'FACTURA RECIBIDA' : 'FACTURA EMITIDA'
+  const tituloRectificativa = obtenerTituloRectificativa(f)
+  const titulo = tituloRectificativa ?? (esGasto ? 'FACTURA RECIBIDA' : 'FACTURA EMITIDA')
   const empresa = f.empresaNombre || 'Mi Empresa S.L.'
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
@@ -235,6 +295,7 @@ function htmlMinimalista(f: FacturaPDF): string {
         <p style="font-size:9px;color:#999;text-transform:uppercase;letter-spacing:2px;margin:0 0 4px 0">Total a pagar</p>
         <p style="font-size:36px;font-weight:200;margin:0">${formatEuro(f.total)}</p>
       </div>
+      ${f.pagosParciales && f.pagosParciales.length > 0 ? htmlPagosParciales(f.pagosParciales, f.total) : ''}
       ${f.notas ? `<p style="font-size:11px;color:#666;margin:0 0 32px 0;border-top:1px solid #eee;padding-top:16px">${f.notas}</p>` : ''}
       <div style="font-size:9px;color:#ccc;text-align:center;letter-spacing:1px">
         <p style="margin:0">${empresa.toUpperCase()} · ${nifEmpresa}</p>

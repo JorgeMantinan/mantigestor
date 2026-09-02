@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     if (!user) return unauthorized()
 
     const body = await req.json()
-    const { tipo, numero, emisorReceptor, nifContraparte, baseImponible, iva, diaGeneracion, diaEmail } = body
+    const { tipo, numero, emisorReceptor, nifContraparte, baseImponible, iva, diaGeneracion, diaEmail, notas } = body
 
     if (!tipo || !numero || !emisorReceptor || baseImponible == null || !diaGeneracion) {
       return badRequest('Faltan campos obligatorios')
@@ -49,6 +49,10 @@ export async function POST(req: NextRequest) {
       return badRequest('Día de email debe ser entre 1 y 28 o null')
     }
 
+    if (notas != null && typeof notas !== 'string') {
+      return badRequest('notas debe ser una cadena JSON')
+    }
+
     const id = crypto.randomUUID()
     const { data, error } = await (await import('@/lib/supabase/client')).createClient()
       .from('facturas_recurrentes')
@@ -64,6 +68,7 @@ export async function POST(req: NextRequest) {
         diaGeneracion,
         diaEmail: diaEmail ?? null,
         activa: true,
+        notas: notas ?? null,
       })
       .select()
       .single()

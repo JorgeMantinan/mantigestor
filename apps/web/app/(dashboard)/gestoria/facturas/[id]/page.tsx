@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, Pencil, Trash2, Download, Mail } from 'lucide-react'
+import { ChevronLeft, Pencil, Trash2, Download, Mail, FileMinus, FilePlus, ArrowUpRight } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { enviarFacturaPorEmail } from '@/lib/factura-email'
@@ -24,6 +24,8 @@ import { TimelineFactura } from '@/components/timeline-factura'
 import { MOEDAS, formatoMoneda, obtenerTasaCambio } from '@/lib/divisas'
 import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, serializarTags, obtenerNombreTag } from '@/lib/tags'
 import { calcularDescuento, formatoDescuento } from '@/lib/descuento-factura'
+import { crearRectificativa, obtenerRectificativas, calcularImporteMaximo, esNotaCredito, esNotaDebito, type RectificativaData, type TipoRectificativa } from '@/lib/rectificativa'
+import { obtenerPagos, calcularSaldoPendiente, estaPagada, registrarPago, METODOS_PAGO, type PagoParcial } from '@/lib/pago-parcial'
 
 interface Factura {
   id: string
@@ -42,6 +44,7 @@ interface Factura {
   moneda?: string
   tipoCambio?: number
   descuentoPorcentaje?: number
+  pagosParciales?: string | null
 }
 
 export default function FacturaDetailPage({ params }: { params: { id: string } }) {
@@ -64,6 +67,20 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [tipoCambioEdit, setTipoCambioEdit] = useState(1)
   const [cargandoTasaEdit, setCargandoTasaEdit] = useState(false)
   const [descuentoPorcentajeEdit, setDescuentoPorcentajeEdit] = useState(0)
+  const [rectificativaDialogOpen, setRectificativaDialogOpen] = useState(false)
+  const [tipoRectificativa, setTipoRectificativa] = useState<TipoRectificativa>('credito')
+  const [motivoRectificativa, setMotivoRectificativa] = useState('')
+  const [baseRectificativa, setBaseRectificativa] = useState(0)
+  const [ivaRectificativa, setIvaRectificativa] = useState(21)
+  const [guardandoRectificativa, setGuardandoRectificativa] = useState(false)
+  const [rectificativas, setRectificativas] = useState<RectificativaData[]>([])
+  const [cargandoRectificativas, setCargandoRectificativas] = useState(false)
+  const [pagoDialogOpen, setPagoDialogOpen] = useState(false)
+  const [pagoImporte, setPagoImporte] = useState(0)
+  const [pagoMetodo, setPagoMetodo] = useState<string>(METODOS_PAGO[0])
+  const [pagoNotas, setPagoNotas] = useState('')
+  const [guardandoPago, setGuardandoPago] = useState(false)
+  const [pagosParciales, setPagosParciales] = useState<PagoParcial[]>([])
   const formRef = useRef<HTMLFormElement>(null)
   const tagsDropdownRef = useRef<HTMLDivElement>(null)
   const speech = useSpeechRecognition()
@@ -89,6 +106,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         setMonedaEdit((data as Factura).moneda ?? 'EUR')
         setTipoCambioEdit((data as Factura).tipoCambio ?? 1)
         setDescuentoPorcentajeEdit((data as Factura).descuentoPorcentaje ?? 0)
+        setPagosParciales(obtenerPagos((data as unknown as { pagosParciales: string | null }).pagosParciales))
       }
       const { data: perfilData } = await getSupabase()
         .from('perfiles')
@@ -100,6 +118,21 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
     }
     fetchFactura()
   }, [params.id, getSupabase])
+
+  useEffect(() => {
+    if (!factura) return
+    const fetchRectificativas = async () => {
+      const { data: { user } } = await getSupabase().auth.getUser()
+      if (!user) return
+      setCargandoRectificativas(true)
+      const result = await obtenerRectificativas(user.id, factura.numero)
+      if (result.ok && result.data) {
+        setRectificativas(result.data)
+      }
+      setCargandoRectificativas(false)
+    }
+    fetchRectificativas()
+  }, [factura, getSupabase])
 
   useEffect(() => {
     if (!mostrarTagsDropdown) return
@@ -178,6 +211,51 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
     router.push('/gestoria/facturas')
   }
 
+  const handleCrearRectificativa = async () => {
+    if (!factura || !motivoRectificativa.trim()) return
+    setGuardandoRectificativa(true)
+    try {
+      const result = await crearRectificativa(
+        factura.id,
+        {
+          id: factura.id,
+          numero: factura.numero,
+          tipo: factura.tipo,
+          emisorReceptor: factura.emisorReceptor,
+          nifContraparte: factura.nifContraparte,
+          baseImponible: factura.baseImponible,
+          iva: factura.iva,
+          total: factura.total,
+          estado: factura.estado,
+        },
+        tipoRectificativa,
+        motivoRectificativa.trim(),
+        baseRectificativa,
+        ivaRectificativa
+      )
+      if (result.ok) {
+        await logAccion('crear', 'factura', factura.id, `Rectificativa ${tipoRectificativa === 'credito' ? 'nota de crédito' : 'nota de débito'} creada para factura ${factura.numero}`, {
+          tipo: 'rectificativa',
+          motivo: motivoRectificativa,
+          baseRectificativa,
+        })
+        toast.success(`Nota de ${tipoRectificativa === 'credito' ? 'crédito' : 'débito'} creada`)
+        setRectificativaDialogOpen(false)
+        setMotivoRectificativa('')
+        setBaseRectificativa(0)
+        setIvaRectificativa(21)
+        if (result.data) {
+          setRectificativas(prev => [result.data!, ...prev])
+        }
+      } else {
+        toast.error(result.error || 'Error al crear la rectificativa')
+      }
+    } catch {
+      toast.error('Error al crear la rectificativa')
+    }
+    setGuardandoRectificativa(false)
+  }
+
   const handleEnviarEmail = async () => {
     if (!factura || !emailDestino) return
     setEnviandoEmail(true)
@@ -213,6 +291,42 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       toast.error('Error al enviar el email')
     }
     setEnviandoEmail(false)
+  }
+
+  const handleRegistrarPago = async () => {
+    if (!factura || pagoImporte <= 0) return
+    setGuardandoPago(true)
+    try {
+      const nuevosPagos = registrarPago(pagoImporte, pagoMetodo, pagoNotas, factura.pagosParciales ?? null)
+      const nuevoSaldo = calcularSaldoPendiente(factura.total, nuevosPagos)
+      const nuevoEstado = nuevoSaldo <= 0 ? 'pagada' : factura.estado
+
+      const { error } = await getSupabase().from('facturas').update({
+        pagosParciales: nuevosPagos,
+        ...(nuevoEstado !== factura.estado ? { estado: nuevoEstado } : {}),
+      }).eq('id', factura.id)
+
+      if (!error) {
+        const pagosActualizados = obtenerPagos(nuevosPagos)
+        setPagosParciales(pagosActualizados)
+        if (nuevoEstado !== factura.estado) {
+          await logAccion('cambio_estado', 'factura', factura.id, `Factura ${factura.numero}: ${factura.estado} → pagada (pago parcial completado)`, { antes: { estado: factura.estado }, despues: { estado: nuevoEstado } })
+          setFactura({ ...factura, estado: nuevoEstado, pagosParciales: nuevosPagos })
+        } else {
+          setFactura({ ...factura, pagosParciales: nuevosPagos })
+        }
+        await logAccion('crear', 'factura', factura.id, `Pago registrado: ${formatMoney(pagoImporte)} (${pagoMetodo})`, { tipo: 'pago_parcial', importe: pagoImporte, metodo: pagoMetodo })
+        toast.success(`Pago de ${formatMoney(pagoImporte)} registrado`)
+        setPagoDialogOpen(false)
+        setPagoImporte(0)
+        setPagoNotas('')
+      } else {
+        toast.error('Error al registrar el pago')
+      }
+    } catch {
+      toast.error('Error al registrar el pago')
+    }
+    setGuardandoPago(false)
   }
 
   function handleParsearVoz() {
@@ -290,6 +404,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               empresaNif: perfil?.empresa_nif ?? undefined,
               notas: notas || null,
               descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
+              pagosParciales: pagosParciales.length > 0 ? pagosParciales : undefined,
             }, plantilla)
           }}>
             <Download className="mr-2 h-4 w-4" />
@@ -665,6 +780,69 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   )}
                 </dd>
               </div>
+              {factura.estado !== 'pagada' && (
+                <div className="col-span-2">
+                  <div className="rounded-md border p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium">Pagos parciales</h4>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          setPagoImporte(calcularSaldoPendiente(factura.total, factura.pagosParciales ?? null))
+                          setPagoDialogOpen(true)
+                        }}
+                      >
+                        <FilePlus className="mr-1 h-3 w-3" aria-hidden="true" />
+                        Registrar pago
+                      </Button>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Pagado: {formatMoney(pagosParciales.reduce((s, p) => s + p.importe, 0))}</span>
+                        <span className="text-muted-foreground">Pendiente: {formatMoney(calcularSaldoPendiente(factura.total, factura.pagosParciales ?? null))}</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-green-500 transition-all"
+                          style={{ width: `${Math.min(100, (pagosParciales.reduce((s, p) => s + p.importe, 0) / factura.total) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    {pagosParciales.length > 0 && (
+                      <div className="space-y-1.5">
+                        {pagosParciales.map((pago) => (
+                          <div key={pago.id} className="flex items-center justify-between rounded bg-muted/50 px-3 py-1.5 text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{formatMoney(pago.importe)}</span>
+                              <span className="text-muted-foreground capitalize">{pago.metodo}</span>
+                              {pago.notas && <span className="text-muted-foreground">— {pago.notas}</span>}
+                            </div>
+                            <span className="text-muted-foreground">{new Date(pago.fecha).toLocaleDateString('es-ES')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {(factura.estado === 'pagada' || factura.estado === 'pendiente') && factura.tipo !== 'rectificativa' && (
+                <div className="col-span-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setBaseRectificativa(factura.baseImponible)
+                      setIvaRectificativa(factura.iva)
+                      setRectificativaDialogOpen(true)
+                    }}
+                  >
+                    <FileMinus className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Crear rectificativa
+                  </Button>
+                </div>
+              )}
               {(factura.moneda && factura.moneda !== 'EUR') && (
                 <>
                   <div>
@@ -709,6 +887,215 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           <TimelineFactura facturaId={factura.id} />
         </CardContent>
       </Card>
+
+      {/* Rectificativas vinculadas */}
+      {(rectificativas.length > 0 || cargandoRectificativas) && (
+        <Card>
+          <CardContent className="pt-6">
+            <h3 className="text-sm font-medium mb-4">Rectificativas vinculadas</h3>
+            {cargandoRectificativas ? (
+              <p className="text-xs text-muted-foreground">Cargando...</p>
+            ) : (
+              <div className="space-y-2">
+                {rectificativas.map(r => (
+                  <div key={r.id} className="flex items-center justify-between rounded-md border p-3">
+                    <div className="flex items-center gap-3">
+                      {esNotaCredito(r.tags) ? (
+                        <FileMinus className="h-4 w-4 text-green-600" aria-hidden="true" />
+                      ) : (
+                        <FilePlus className="h-4 w-4 text-orange-600" aria-hidden="true" />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">{r.numero}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {esNotaCredito(r.tags) ? 'Nota de crédito' : 'Nota de débito'} —{' '}
+                          {formatMoney(r.total)} —{' '}
+                          {new Date(r.fechaEmision).toLocaleDateString('es-ES')}
+                        </p>
+                      </div>
+                    </div>
+                    <Link href={`/gestoria/facturas/${r.id}`}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Ver rectificativa ${r.numero}`}>
+                        <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                      </Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Dialog crear rectificativa */}
+      <Dialog open={rectificativaDialogOpen} onOpenChange={setRectificativaDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Crear rectificativa</DialogTitle>
+            <DialogDescription>
+              Crear nota de {tipoRectificativa === 'credito' ? 'crédito' : 'débito'} para la factura {factura?.numero}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Tipo de rectificativa</Label>
+              <div className="flex gap-2">
+                <Button
+                  variant={tipoRectificativa === 'credito' ? 'secondary' : 'outline'}
+                  size="sm"
+                  onClick={() => setTipoRectificativa('credito')}
+                  className="flex-1"
+                >
+                  <FileMinus className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Nota de crédito
+                </Button>
+                <Button
+                  variant={tipoRectificativa === 'debito' ? 'secondary' : 'outline'}
+                  size="sm"
+                  onClick={() => setTipoRectificativa('debito')}
+                  className="flex-1"
+                >
+                  <FilePlus className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Nota de débito
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {tipoRectificativa === 'credito'
+                  ? 'Reduce el importe a cobrar/pagar (devoluciones, descuentos, errores a favor del cliente).'
+                  : 'Incrementa el importe a cobrar/pagar (errores en contra del cliente, olvidos de factura).'}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="motivo-rectificativa">Motivo</Label>
+              <textarea
+                id="motivo-rectificativa"
+                value={motivoRectificativa}
+                onChange={(e) => setMotivoRectificativa(e.target.value)}
+                placeholder="Describe el motivo de la rectificación..."
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="base-rectificativa">
+                Base imponible rectificada ({MOEDAS.find(m => m.code === (factura?.moneda || 'EUR'))?.symbol ?? '€'})
+              </Label>
+              <input
+                id="base-rectificativa"
+                type="range"
+                min={0}
+                max={factura ? calcularImporteMaximo(factura.baseImponible, factura.iva) / 100 : 0}
+                step={0.01}
+                value={baseRectificativa / 100}
+                onChange={(e) => setBaseRectificativa(Math.round(parseFloat(e.target.value) * 100))}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>0 €</span>
+                <span className="font-medium text-foreground">{formatMoney(baseRectificativa)}</span>
+                <span>{factura ? formatMoney(factura.baseImponible) : '0 €'}</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="iva-rectificativa">IVA (%)</Label>
+              <select
+                id="iva-rectificativa"
+                value={ivaRectificativa}
+                onChange={(e) => setIvaRectificativa(parseInt(e.target.value, 10))}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                {[21, 10, 4, 0].map((t) => (
+                  <option key={t} value={t}>{t}%</option>
+                ))}
+              </select>
+            </div>
+            <div className="rounded-md bg-muted p-3">
+              <div className="flex justify-between text-sm">
+                <span>Base:</span>
+                <span>{formatMoney(baseRectificativa)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>IVA ({ivaRectificativa}%):</span>
+                <span>{formatMoney(Math.round(baseRectificativa * (ivaRectificativa / 100)))}</span>
+              </div>
+              <div className="flex justify-between text-sm font-medium border-t mt-1 pt-1">
+                <span>Total:</span>
+                <span>{formatMoney(baseRectificativa + Math.round(baseRectificativa * (ivaRectificativa / 100)))}</span>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRectificativaDialogOpen(false)} disabled={guardandoRectificativa}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => void handleCrearRectificativa()}
+              disabled={!motivoRectificativa.trim() || baseRectificativa <= 0 || guardandoRectificativa}
+            >
+              {guardandoRectificativa ? 'Creando...' : `Crear nota de ${tipoRectificativa === 'credito' ? 'crédito' : 'débito'}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog registrar pago parcial */}
+      <Dialog open={pagoDialogOpen} onOpenChange={setPagoDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Registrar pago parcial</DialogTitle>
+            <DialogDescription>
+              Registrar un pago para la factura {factura?.numero}. Saldo pendiente: {formatMoney(calcularSaldoPendiente(factura?.total ?? 0, factura?.pagosParciales ?? null))}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="pago-importe">Importe</Label>
+              <Input
+                id="pago-importe"
+                type="number"
+                step="0.01"
+                min="0.01"
+                max={calcularSaldoPendiente(factura?.total ?? 0, factura?.pagosParciales ?? null)}
+                value={pagoImporte / 100}
+                onChange={(e) => setPagoImporte(Math.round(parseFloat(e.target.value || '0') * 100))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pago-metodo">Método de pago</Label>
+              <select
+                id="pago-metodo"
+                value={pagoMetodo}
+                onChange={(e) => setPagoMetodo(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                {METODOS_PAGO.map((m) => (
+                  <option key={m} value={m}>{m.charAt(0).toUpperCase() + m.slice(1)}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pago-notas">Notas</Label>
+              <Input
+                id="pago-notas"
+                value={pagoNotas}
+                onChange={(e) => setPagoNotas(e.target.value)}
+                placeholder="Referencia, concepto..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPagoDialogOpen(false)} disabled={guardandoPago}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => void handleRegistrarPago()}
+              disabled={pagoImporte <= 0 || guardandoPago}
+            >
+              {guardandoPago ? 'Guardando...' : 'Registrar pago'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
         <DialogContent>

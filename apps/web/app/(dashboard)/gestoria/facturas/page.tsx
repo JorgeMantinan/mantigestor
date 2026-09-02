@@ -585,7 +585,13 @@ export default function FacturasPage() {
                         />
                       </td>
                       <td className="px-4 py-3 font-medium">{f.numero}</td>
-                      <td className="px-4 py-3 capitalize">{f.tipo === 'ingreso' ? 'Emitida' : 'Recibida'}</td>
+                      <td className="px-4 py-3 capitalize">
+                        {f.tipo === 'rectificativa' ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                            {f.tags?.includes('nota-credito') ? 'Crédito' : 'Débito'}
+                          </span>
+                        ) : f.tipo === 'ingreso' ? 'Emitida' : 'Recibida'}
+                      </td>
                       <td className="px-4 py-3">{f.emisorReceptor}</td>
                       <td className="px-4 py-3">{new Date(f.fechaEmision).toLocaleDateString('es-ES')}</td>
                       <td className="px-4 py-3 text-right">{formatMoney(f.baseImponible, f.moneda)}</td>
