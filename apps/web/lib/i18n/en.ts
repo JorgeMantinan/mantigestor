@@ -570,4 +570,17 @@ export const en: DeepTraducciones = {
     facturasPendientes: 'Pending invoices',
     actividadFiscal: 'Tax activity',
   },
+
+  // Empresa selector
+  empresa: {
+    miEmpresa: 'My company',
+    seleccionar: 'Select company',
+    nueva: 'New company...',
+    crearTitulo: 'Create new company',
+    crearDescripcion: 'Enter the new company details.',
+    nombre: 'Company name',
+    nif: 'Tax ID',
+    direccion: 'Address',
+    error: 'Error saving company',
+  },
 }

@@ -8,6 +8,7 @@ import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 const PerfilFiscalSchema = z.object({
   comunidadFiscal: z.string().max(80).nullable().optional(),
   perfilFiscal: z.enum(['autonomo', 'sociedad', 'empleado', 'alquilador']).nullable().optional(),
+  empresas: z.string().max(10000).nullable().optional(),
 })
 
 function supabaseDeReq(req: NextRequest) {
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
     let fila: Record<string, unknown> | null = null
     const porUserId = await supabase
       .from('perfiles')
-      .select('comunidadFiscal, perfilFiscal')
+      .select('comunidadFiscal, perfilFiscal, empresas')
       .eq('userId', user.id)
       .maybeSingle()
     fila = porUserId.data
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
       // compatibilidad con filas antiguas creadas con id = userId
       const porId = await supabase
         .from('perfiles')
-        .select('comunidadFiscal, perfilFiscal')
+        .select('comunidadFiscal, perfilFiscal, empresas')
         .eq('id', user.id)
         .maybeSingle()
       fila = porId.data
@@ -61,6 +62,7 @@ export async function GET(req: NextRequest) {
           ['autonomo', 'sociedad', 'empleado', 'alquilador'].includes(fila.perfilFiscal)
             ? (fila.perfilFiscal as 'autonomo' | 'sociedad' | 'empleado' | 'alquilador')
             : null,
+        empresas: fila?.empresas ?? null,
       },
     })
   } catch (error) {

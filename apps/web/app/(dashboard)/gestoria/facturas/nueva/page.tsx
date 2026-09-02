@@ -18,6 +18,9 @@ import { useParsearVoz } from '@/hooks/use-parsear-voz'
 import { rellenarFormularioDesdeOcr } from '@/lib/factura-utils'
 import { VoiceInput } from '@/components/facturas/voice-input'
 import { MOEDAS, obtenerTasaCambio, formatoMoneda } from '@/lib/divisas'
+import { obtenerNotasPieDefecto } from '@/lib/notas-pie-factura'
+import { logAccion } from '@/lib/audit-log'
+import { calcularDescuento } from '@/lib/descuento-factura'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -35,6 +38,9 @@ export default function NuevaFacturaPage() {
   const [moneda, setMoneda] = useState('EUR')
   const [tipoCambio, setTipoCambio] = useState(1)
   const [cargandoTasa, setCargandoTasa] = useState(false)
+  const [notasPie, setNotasPie] = useState<string[]>([])
+  const [ocrUsado, setOcrUsado] = useState(false)
+  const [descuentoPorcentaje, setDescuentoPorcentaje] = useState(0)
 
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
@@ -54,6 +60,7 @@ export default function NuevaFacturaPage() {
             if (input) input.value = siguiente
           }
         })
+        obtenerNotasPieDefecto(data.user.id).then(setNotasPie)
       }
     })
   }, [getSupabase])
@@ -77,6 +84,7 @@ export default function NuevaFacturaPage() {
       setModelosSugeridos(data.modelosSugeridos ?? [])
       if (data.categoriaGasto) setCategoriaGasto(data.categoriaGasto)
       rellenarFormularioDesdeOcr(formRef, data)
+      setOcrUsado(true)
     } catch {
       setError('Error al conectar con el servicio de OCR')
     }
@@ -109,6 +117,7 @@ export default function NuevaFacturaPage() {
       setModelosSugeridos(data.modelosSugeridos ?? [])
       if (data.categoriaGasto) setCategoriaGasto(data.categoriaGasto)
       rellenarFormularioDesdeOcr(formRef, data)
+      setOcrUsado(true)
     } catch {
       setError('Error al conectar con el servicio de OCR')
     }
@@ -169,7 +178,8 @@ export default function NuevaFacturaPage() {
     }
 
     const importeIva = Math.round(baseImponible * (iva / 100))
-    const total = baseImponible + importeIva
+    const descuento = calcularDescuento(baseImponible, descuentoPorcentaje)
+    const total = baseImponible + importeIva - descuento
 
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) {
@@ -178,8 +188,10 @@ export default function NuevaFacturaPage() {
       return
     }
 
+    const nuevaFacturaId = crypto.randomUUID()
+
     const { error: insertError } = await getSupabase().from('facturas').insert({
-      id: crypto.randomUUID(),
+      id: nuevaFacturaId,
       perfilId: user.id,
       numero: form.get('numero') as string,
       tipo: form.get('tipo') as string,
@@ -192,15 +204,21 @@ export default function NuevaFacturaPage() {
       total,
       estado: 'pendiente',
       categoriaGasto: form.get('tipo') === 'gasto' ? categoriaGasto : null,
+      notas: notasPie.filter(Boolean).join('\n') || null,
       pdfUrl: pdfUrl || null,
       moneda,
       tipoCambio,
+      descuentoPorcentaje,
     })
 
     if (insertError) {
       setError(insertError.message)
       setLoading(false)
       return
+    }
+
+    if (ocrUsado) {
+      await logAccion('crear', 'factura', nuevaFacturaId, `Factura creada con OCR`, { tipo: 'ocr' })
     }
 
     router.push('/gestoria/facturas')
@@ -346,6 +364,37 @@ export default function NuevaFacturaPage() {
                 <Label htmlFor="importeTotal">Total ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
                 <Input id="importeTotal" disabled placeholder="Se calcula automáticamente" />
               </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="descuentoPorcentaje">Descuento (%)</Label>
+                <Input
+                  id="descuentoPorcentaje"
+                  name="descuentoPorcentaje"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  value={descuentoPorcentaje}
+                  onChange={(e) => setDescuentoPorcentaje(parseFloat(e.target.value) || 0)}
+                  placeholder="0"
+                />
+              </div>
+              {descuentoPorcentaje > 0 && (
+                <div className="space-y-2">
+                  <Label>Importe descuento ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
+                  <Input
+                    disabled
+                    value={(() => {
+                      const baseInput = document.getElementById('baseImponible') as HTMLInputElement | null
+                      const base = parseFloat(baseInput?.value || '0')
+                      const descuento = calcularDescuento(base, descuentoPorcentaje)
+                      return `-${formatoMoneda(descuento / 100, moneda)}`
+                    })()}
+                  />
+                </div>
+              )}
             </div>
 
             {error && (

@@ -15,6 +15,7 @@ interface FacturaEmailPayload {
   empresaDireccion?: string
   empresaNif?: string
   notas?: string | null
+  descuentoPorcentaje?: number
 }
 
 function formatEuro(cents: number): string {
@@ -75,6 +76,7 @@ function pdfHTML(f: FacturaEmailPayload): string {
   const empresa = f.empresaNombre || 'Mi Empresa S.L.'
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
+  const importeDescuento = (!f.descuentoPorcentaje || f.descuentoPorcentaje <= 0) ? 0 : Math.round(f.baseImponible * (f.descuentoPorcentaje / 100))
 
   return `
     <div style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;padding:40px">
@@ -114,8 +116,16 @@ function pdfHTML(f: FacturaEmailPayload): string {
             <td style="padding:12px 16px;font-size:13px">${esGasto ? 'Gasto' : 'Servicio'} — ${f.emisorReceptor}</td>
             <td style="padding:12px 16px;text-align:right;font-size:13px">${formatEuro(f.baseImponible)}</td>
             <td style="padding:12px 16px;text-align:right;font-size:13px">${f.iva}%</td>
-            <td style="padding:12px 16px;text-align:right;font-size:13px;font-weight:600">${formatEuro(f.total)}</td>
+            <td style="padding:12px 16px;text-align:right;font-size:13px;font-weight:600">${formatEuro(f.baseImponible + Math.round(f.baseImponible * (f.iva / 100)))}</td>
           </tr>
+          ${importeDescuento > 0 ? `
+          <tr style="border-bottom:1px solid #e5e7eb">
+            <td style="padding:12px 16px;font-size:13px;color:#16a34a">Descuento (${f.descuentoPorcentaje}%)</td>
+            <td style="padding:12px 16px;text-align:right;font-size:13px;color:#16a34a">-${formatEuro(importeDescuento)}</td>
+            <td style="padding:12px 16px;text-align:right;font-size:13px"></td>
+            <td style="padding:12px 16px;text-align:right;font-size:13px;font-weight:600;color:#16a34a">-${formatEuro(importeDescuento)}</td>
+          </tr>
+          ` : ''}
         </tbody>
         <tfoot>
           <tr style="background:#f3f4f6">

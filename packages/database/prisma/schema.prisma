@@ -17,6 +17,8 @@ model Perfil {
   nif             String?
   comunidadFiscal String? // 'Madrid', 'País Vasco - Bizkaia', ... (nombre normalizado de COMUNIDADES)
   perfilFiscal    String? // 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
+  notasPie        String? // notas pie de factura por defecto (una por línea)
+  empresas        String? // JSON array de empresas: [{id,nombre,nif,direccion,activa}]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -66,6 +68,7 @@ model Factura {
   tokenCliente    String?  // token compartido para portal de cliente (mismo token = mismo cliente)
   moneda          String   @default("EUR") // código ISO 4217: EUR, USD, GBP, etc.
   tipoCambio      Float    @default(1.0)   // tasa de cambio vs EUR (1.0 si es EUR)
+  // descuentoPorcentaje Float @default(0) // porcentaje de descuento global (0-100)
   createdAt       DateTime @default(now())
 
   @@index([perfilId, tipo])

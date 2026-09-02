@@ -569,6 +569,19 @@ export const es = {
     eligeOpcion: 'Elige una opción',
     resultadoAnalisis: 'Resultado del análisis',
   },
+
+  // Empresa selector
+  empresa: {
+    miEmpresa: 'Mi empresa',
+    seleccionar: 'Seleccionar empresa',
+    nueva: 'Nueva empresa...',
+    crearTitulo: 'Crear nueva empresa',
+    crearDescripcion: 'Introduce los datos de la nueva empresa.',
+    nombre: 'Nombre de la empresa',
+    nif: 'NIF / CIF',
+    direccion: 'Dirección',
+    error: 'Error al guardar empresa',
+  },
 } as const
 
 export type Traducciones = typeof es

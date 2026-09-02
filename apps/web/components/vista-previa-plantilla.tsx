@@ -18,6 +18,8 @@ interface VistaPreviaPlantillaProps {
   empresaNombre?: string
   empresaDireccion?: string
   empresaNif?: string
+  notas?: string | null
+  descuentoPorcentaje?: number
 }
 
 function formatEuro(cents: number): string {

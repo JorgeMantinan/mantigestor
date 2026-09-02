@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header'
 import { FiscalRemindersProvider } from '@/components/layout/FiscalRemindersProvider'
 import { DashboardShortcuts } from '@/components/layout/DashboardShortcuts'
 import { PersonaActivaProvider } from '@/contexts/persona-activa-context'
+import { EmpresaActivaProvider } from '@/contexts/empresa-activa-context'
 import dynamic from 'next/dynamic'
 
 const CommandPalette = dynamic(() => import('@/components/command-palette').then(m => m.CommandPalette), { ssr: false })
@@ -22,19 +23,21 @@ export default function DashboardLayout({
 }) {
   return (
     <PersonaActivaProvider>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <Header />
-          <main className="flex-1 overflow-y-auto p-6">
-            <FiscalRemindersProvider>{children}</FiscalRemindersProvider>
-          </main>
+      <EmpresaActivaProvider>
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar />
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <Header />
+            <main className="flex-1 overflow-y-auto p-6">
+              <FiscalRemindersProvider>{children}</FiscalRemindersProvider>
+            </main>
+          </div>
+          <DashboardShortcuts />
+          <CommandPalette />
+          <HelpDialog />
+          <MilestoneProvider />
         </div>
-        <DashboardShortcuts />
-        <CommandPalette />
-        <HelpDialog />
-        <MilestoneProvider />
-      </div>
+      </EmpresaActivaProvider>
     </PersonaActivaProvider>
   )
 }

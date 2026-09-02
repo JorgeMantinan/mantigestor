@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { createClient } from '@/lib/supabase/client'
+import { NOTAS_PIE_PREDEFINIDAS, obtenerNotasPieDefecto, guardarNotasPieDefecto } from '@/lib/notas-pie-factura'
 
 type Tab = 'perfil' | 'suscripcion' | 'apariencia'
 
@@ -77,6 +78,7 @@ function PerfilTab() {
   const [empresaNombre, setEmpresaNombre] = useState('')
   const [empresaNif, setEmpresaNif] = useState('')
   const [empresaDireccion, setEmpresaDireccion] = useState('')
+  const [notasPie, setNotasPie] = useState<string[]>([])
   const [guardando, setGuardando] = useState(false)
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
@@ -102,6 +104,8 @@ function PerfilTab() {
         setEmpresaNif(data.empresa_nif ?? '')
         setEmpresaDireccion(data.empresa_direccion ?? '')
       }
+      const notas = await obtenerNotasPieDefecto(user.id)
+      setNotasPie(notas)
       setCargando(false)
     }
     cargar()
@@ -120,6 +124,7 @@ function PerfilTab() {
     if (error) {
       console.error('Error guardando perfil:', error)
     }
+    await guardarNotasPieDefecto(user.id, notasPie)
     setGuardando(false)
   }
 
@@ -187,6 +192,60 @@ function PerfilTab() {
               <div className="mt-4 space-y-2">
                 <Label htmlFor="empresaDireccion">Dirección fiscal</Label>
                 <Input id="empresaDireccion" value={empresaDireccion} onChange={(e) => setEmpresaDireccion(e.target.value)} placeholder="Calle Ejemplo 123, 28001 Madrid" />
+              </div>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <Label>Notas pie de factura</Label>
+              <p className="text-xs text-muted-foreground">Texto que aparecerá al pie de cada factura generada. Una nota por línea.</p>
+              {notasPie.length > 0 && (
+                <div className="space-y-1">
+                  {notasPie.map((nota, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <Input
+                        value={nota}
+                        onChange={(e) => {
+                          const updated = [...notasPie]
+                          updated[i] = e.target.value
+                          setNotasPie(updated)
+                        }}
+                        placeholder="Nota pie de factura..."
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0"
+                        onClick={() => setNotasPie(notasPie.filter((_, j) => j !== i))}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setNotasPie([...notasPie, ''])}
+                >
+                  Añadir nota
+                </Button>
+                {notasPie.length === 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {NOTAS_PIE_PREDEFINIDAS.slice(0, 3).map((predefinida, i) => (
+                      <Button
+                        key={i}
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => setNotasPie([predefinida])}
+                      >
+                        + {predefinida.length > 40 ? predefinida.slice(0, 40) + '…' : predefinida}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <Button onClick={guardar} disabled={guardando || cargando}>

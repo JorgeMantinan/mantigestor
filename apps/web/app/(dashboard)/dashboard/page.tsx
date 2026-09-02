@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { proximosPlazos, getCalendarioFiscal } from '@mantigestor/utils'
 import { Kbd } from '@/components/ui/kbd'
 import { ChartIngresosGastos } from '@/components/dashboard/chart-ingresos-gastos'
+import { ChartCashflow } from '@/components/dashboard/chart-cashflow'
 import { ChartIvaTrimestral } from '@/components/dashboard/chart-iva-trimestral'
 import { ChartAlquiler } from '@/components/dashboard/chart-alquiler'
 import { ChartEvolucion } from '@/components/dashboard/chart-evolucion'
@@ -53,6 +54,12 @@ const WidgetActivity = dynamic(() => import('@/components/dashboard/widget-activ
   loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
 })
 const ChartHeatmap = dynamic(() => import('@/components/dashboard/chart-heatmap').then(m => m.ChartHeatmap), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
+const WidgetPrediccion = dynamic(() => import('@/components/dashboard/widget-prediccion').then(m => m.WidgetPrediccion), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
+const WidgetCobro = dynamic(() => import('@/components/dashboard/widget-cobro').then(m => m.WidgetCobro), {
   loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
 })
 
@@ -383,6 +390,7 @@ export default function DashboardPage() {
       {!loading && facturas.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2" role="region" aria-label={t('dashboard.graficas')}>
           <ChartIngresosGastos facturas={facturasFiltradas} />
+          <ChartCashflow facturas={facturasFiltradas} />
           <ChartEvolucion facturas={facturasFiltradas} nominas={nominas} />
           <ChartIvaTrimestral facturas={facturasFiltradas} />
           <ChartAlquiler ingresos={totalIngresosAlquiler} gastos={totalGastosAlquiler} />
@@ -402,6 +410,8 @@ export default function DashboardPage() {
           {isVisible('heatmap') && <ChartHeatmap facturas={facturasFiltradas} />}
           {isVisible('comparativa-sector') && <WidgetComparativa facturas={facturasFiltradas} />}
           {isVisible('top-gastos') && <WidgetTopGastos facturas={facturasFiltradas} />}
+          {isVisible('prediccion') && <WidgetPrediccion facturas={facturasFiltradas} />}
+          {isVisible('cobro') && <WidgetCobro facturas={facturasFiltradas} />}
         </div>
       )}
 

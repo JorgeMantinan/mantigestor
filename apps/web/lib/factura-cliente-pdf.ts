@@ -17,10 +17,16 @@ interface FacturaPDF {
   empresaDireccion?: string
   empresaNif?: string
   notas?: string | null
+  descuentoPorcentaje?: number
 }
 
 function formatEuro(cents: number): string {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
+}
+
+function calcularImporteDescuento(baseImponible: number, descuentoPorcentaje: number): number {
+  if (!descuentoPorcentaje || descuentoPorcentaje <= 0) return 0
+  return Math.round(baseImponible * (descuentoPorcentaje / 100))
 }
 
 function htmlClasico(f: FacturaPDF): string {
@@ -29,6 +35,7 @@ function htmlClasico(f: FacturaPDF): string {
   const empresa = f.empresaNombre || 'Mi Empresa S.L.'
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
+  const importeDescuento = calcularImporteDescuento(f.baseImponible, f.descuentoPorcentaje ?? 0)
 
   return `
     <div style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;padding:40px">
@@ -68,8 +75,16 @@ function htmlClasico(f: FacturaPDF): string {
             <td style="padding:12px 16px;font-size:13px">${esGasto ? 'Gasto' : 'Servicio'} — ${f.emisorReceptor}</td>
             <td style="padding:12px 16px;text-align:right;font-size:13px">${formatEuro(f.baseImponible)}</td>
             <td style="padding:12px 16px;text-align:right;font-size:13px">${f.iva}%</td>
-            <td style="padding:12px 16px;text-align:right;font-size:13px;font-weight:600">${formatEuro(f.total)}</td>
+            <td style="padding:12px 16px;text-align:right;font-size:13px;font-weight:600">${formatEuro(f.baseImponible + Math.round(f.baseImponible * (f.iva / 100)))}</td>
           </tr>
+          ${importeDescuento > 0 ? `
+          <tr style="border-bottom:1px solid #e5e7eb">
+            <td style="padding:12px 16px;font-size:13px;color:#16a34a">Descuento (${f.descuentoPorcentaje}%)</td>
+            <td style="padding:12px 16px;text-align:right;font-size:13px;color:#16a34a">-${formatEuro(importeDescuento)}</td>
+            <td style="padding:12px 16px;text-align:right;font-size:13px"></td>
+            <td style="padding:12px 16px;text-align:right;font-size:13px;font-weight:600;color:#16a34a">-${formatEuro(importeDescuento)}</td>
+          </tr>
+          ` : ''}
         </tbody>
         <tfoot>
           <tr style="background:#f3f4f6">
@@ -93,6 +108,7 @@ function htmlModerno(f: FacturaPDF): string {
   const empresa = f.empresaNombre || 'Mi Empresa S.L.'
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
+  const importeDescuento = calcularImporteDescuento(f.baseImponible, f.descuentoPorcentaje ?? 0)
 
   return `
     <div style="font-family:'Segoe UI',system-ui,sans-serif;color:#111827;padding:40px;background:linear-gradient(135deg,#f0fdf4 0%,#ecfdf5 100%)">
@@ -133,8 +149,16 @@ function htmlModerno(f: FacturaPDF): string {
               <td style="padding:14px 16px;font-size:13px">${esGasto ? 'Gasto' : 'Servicio'} — ${f.emisorReceptor}</td>
               <td style="padding:14px 16px;text-align:right;font-size:13px">${formatEuro(f.baseImponible)}</td>
               <td style="padding:14px 16px;text-align:right;font-size:13px">${f.iva}%</td>
-              <td style="padding:14px 16px;text-align:right;font-size:13px;font-weight:700">${formatEuro(f.total)}</td>
+              <td style="padding:14px 16px;text-align:right;font-size:13px;font-weight:700">${formatEuro(f.baseImponible + Math.round(f.baseImponible * (f.iva / 100)))}</td>
             </tr>
+            ${importeDescuento > 0 ? `
+            <tr style="border-bottom:1px solid #e5e7eb">
+              <td style="padding:14px 16px;font-size:13px;color:#16a34a">Descuento (${f.descuentoPorcentaje}%)</td>
+              <td style="padding:14px 16px;text-align:right;font-size:13px;color:#16a34a">-${formatEuro(importeDescuento)}</td>
+              <td style="padding:14px 16px;text-align:right;font-size:13px"></td>
+              <td style="padding:14px 16px;text-align:right;font-size:13px;font-weight:700;color:#16a34a">-${formatEuro(importeDescuento)}</td>
+            </tr>
+            ` : ''}
           </tbody>
         </table>
         <div style="background:#059669;color:white;border-radius:12px;padding:16px 24px;display:flex;justify-content:space-between;align-items:center">
@@ -157,6 +181,7 @@ function htmlMinimalista(f: FacturaPDF): string {
   const empresa = f.empresaNombre || 'Mi Empresa S.L.'
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
+  const importeDescuento = calcularImporteDescuento(f.baseImponible, f.descuentoPorcentaje ?? 0)
 
   return `
     <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#000;padding:48px">
@@ -194,8 +219,16 @@ function htmlMinimalista(f: FacturaPDF): string {
             <td style="padding:16px 0;font-size:13px">${esGasto ? 'Gasto' : 'Servicio'}</td>
             <td style="padding:16px 0;text-align:right;font-size:13px">${formatEuro(f.baseImponible)}</td>
             <td style="padding:16px 0;text-align:right;font-size:13px">${f.iva}%</td>
-            <td style="padding:16px 0;text-align:right;font-size:13px;font-weight:600">${formatEuro(f.total)}</td>
+            <td style="padding:16px 0;text-align:right;font-size:13px;font-weight:600">${formatEuro(f.baseImponible + Math.round(f.baseImponible * (f.iva / 100)))}</td>
           </tr>
+          ${importeDescuento > 0 ? `
+          <tr style="border-bottom:1px solid #eee">
+            <td style="padding:16px 0;font-size:13px;color:#16a34a">Descuento (${f.descuentoPorcentaje}%)</td>
+            <td style="padding:16px 0;text-align:right;font-size:13px;color:#16a34a">-${formatEuro(importeDescuento)}</td>
+            <td style="padding:16px 0;text-align:right;font-size:13px"></td>
+            <td style="padding:16px 0;text-align:right;font-size:13px;font-weight:600;color:#16a34a">-${formatEuro(importeDescuento)}</td>
+          </tr>
+          ` : ''}
         </tbody>
       </table>
       <div style="text-align:right;margin-bottom:48px">

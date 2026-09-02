@@ -15,6 +15,7 @@ interface WidgetConfig {
 const WIDGETS_PREDETERMINADOS: Omit<WidgetConfig, 'visible'>[] = [
   { id: 'sparklines', label: 'Sparklines en KPIs' },
   { id: 'chart-ingresos', label: 'Gráfica ingresos/gastos' },
+  { id: 'chart-cashflow', label: 'Flujo de caja' },
   { id: 'chart-evolucion', label: 'Evolución mensual' },
   { id: 'chart-iva', label: 'IVA trimestral' },
   { id: 'chart-alquiler', label: 'Alquiler' },
@@ -31,6 +32,8 @@ const WIDGETS_PREDETERMINADOS: Omit<WidgetConfig, 'visible'>[] = [
   { id: 'comparativa-sector', label: 'Comparativa sector' },
   { id: 'heatmap', label: 'Mapa de ingresos' },
   { id: 'top-gastos', label: 'Top gastos' },
+  { id: 'prediccion', label: 'Predicción gastos' },
+  { id: 'cobro', label: 'Ratio de cobro' },
 ]
 
 const STORAGE_KEY = 'dashboard-widgets'

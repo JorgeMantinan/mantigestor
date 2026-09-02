@@ -23,6 +23,7 @@ import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
 import { TimelineFactura } from '@/components/timeline-factura'
 import { MOEDAS, formatoMoneda, obtenerTasaCambio } from '@/lib/divisas'
 import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, serializarTags, obtenerNombreTag } from '@/lib/tags'
+import { calcularDescuento, formatoDescuento } from '@/lib/descuento-factura'
 
 interface Factura {
   id: string
@@ -40,6 +41,7 @@ interface Factura {
   tags?: string | null
   moneda?: string
   tipoCambio?: number
+  descuentoPorcentaje?: number
 }
 
 export default function FacturaDetailPage({ params }: { params: { id: string } }) {
@@ -61,6 +63,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [monedaEdit, setMonedaEdit] = useState('EUR')
   const [tipoCambioEdit, setTipoCambioEdit] = useState(1)
   const [cargandoTasaEdit, setCargandoTasaEdit] = useState(false)
+  const [descuentoPorcentajeEdit, setDescuentoPorcentajeEdit] = useState(0)
   const formRef = useRef<HTMLFormElement>(null)
   const tagsDropdownRef = useRef<HTMLDivElement>(null)
   const speech = useSpeechRecognition()
@@ -85,6 +88,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         setTagsSeleccionados(parsearTags((data as unknown as { tags: string | null }).tags))
         setMonedaEdit((data as Factura).moneda ?? 'EUR')
         setTipoCambioEdit((data as Factura).tipoCambio ?? 1)
+        setDescuentoPorcentajeEdit((data as Factura).descuentoPorcentaje ?? 0)
       }
       const { data: perfilData } = await getSupabase()
         .from('perfiles')
@@ -116,8 +120,9 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
     const form = new FormData(e.currentTarget)
     const baseImponible = parseFloat(form.get('baseImponible') as string) * 100
     const iva = parseInt(form.get('iva') as string, 10)
+    const descuento = calcularDescuento(baseImponible, descuentoPorcentajeEdit)
     const importeIva = Math.round(baseImponible * (iva / 100))
-    const total = baseImponible + importeIva
+    const total = baseImponible + importeIva - descuento
 
     const { error } = await getSupabase().from('facturas').update({
       numero: form.get('numero') as string,
@@ -134,10 +139,33 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       tags: serializarTags(tagsSeleccionados) || null,
       moneda: monedaEdit,
       tipoCambio: tipoCambioEdit,
+      descuentoPorcentaje: descuentoPorcentajeEdit,
     }).eq('id', factura.id)
 
     if (!error) {
-      setFactura({ ...factura, ...Object.fromEntries(form), moneda: monedaEdit, tipoCambio: tipoCambioEdit } as unknown as Factura)
+      const antes = {
+        numero: factura.numero,
+        tipo: factura.tipo,
+        emisorReceptor: factura.emisorReceptor,
+        nifContraparte: factura.nifContraparte,
+        fechaEmision: factura.fechaEmision,
+        baseImponible: factura.baseImponible,
+        iva: factura.iva,
+        total: factura.total,
+        estado: factura.estado,
+      }
+      const despues = {
+        numero: form.get('numero') as string,
+        tipo: form.get('tipo') as string,
+        emisorReceptor: form.get('emisorReceptor') as string,
+        nifContraparte: form.get('nifContraparte') as string,
+        fechaEmision: form.get('fechaEmision') as string,
+        baseImponible,
+        iva,
+        total,
+      }
+      await logAccion('editar', 'factura', factura.id, `Factura ${factura.numero} editada`, { antes, despues })
+      setFactura({ ...factura, ...Object.fromEntries(form), moneda: monedaEdit, tipoCambio: tipoCambioEdit, descuentoPorcentaje: descuentoPorcentajeEdit } as unknown as Factura)
       setEditing(false)
     }
     setSaving(false)
@@ -170,10 +198,12 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           empresaDireccion: perfil?.empresa_direccion ?? undefined,
           empresaNif: perfil?.empresa_nif ?? undefined,
           notas: notas || null,
+          descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
         },
         plantilla
       )
       if (result.ok) {
+        await logAccion('crear', 'factura', factura.id, `Email enviado a ${emailDestino}`, { tipo: 'email', destinatario: emailDestino })
         toast.success(result.skipped ? 'Email no enviado (sin API key configurada)' : `Email enviado a ${emailDestino}`)
         setEmailDialogOpen(false)
       } else {
@@ -228,6 +258,8 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
             empresaDireccion: perfil?.empresa_direccion ?? undefined,
             empresaNif: perfil?.empresa_nif ?? undefined,
+            notas: notas || null,
+            descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
           }} />
           <select value={plantilla} onChange={(e) => setPlantilla(e.target.value as PlantillaFactura)} className="h-8 rounded border border-input bg-background px-2 text-xs">
             {(Object.entries(NOMBRES_PLANTILLAS) as Array<[PlantillaFactura, string]>).map(([k, v]) => (
@@ -242,19 +274,24 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             <Mail className="mr-2 h-4 w-4" />
             Enviar por email
           </Button>
-          <Button variant="outline" size="sm" onClick={() => void generarFacturaClientePDF({
-            numero: factura.numero,
-            emisorReceptor: factura.emisorReceptor,
-            nifContraparte: factura.nifContraparte,
-            fechaEmision: factura.fechaEmision,
-            baseImponible: factura.baseImponible,
-            iva: factura.iva,
-            total: factura.total,
-            tipo: factura.tipo,
-            empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
-            empresaDireccion: perfil?.empresa_direccion ?? undefined,
-            empresaNif: perfil?.empresa_nif ?? undefined,
-          }, plantilla)}>
+          <Button variant="outline" size="sm" onClick={() => {
+            void logAccion('crear', 'factura', factura.id, `PDF descargado para factura ${factura.numero}`, { tipo: 'pdf_descargada' })
+            void generarFacturaClientePDF({
+              numero: factura.numero,
+              emisorReceptor: factura.emisorReceptor,
+              nifContraparte: factura.nifContraparte,
+              fechaEmision: factura.fechaEmision,
+              baseImponible: factura.baseImponible,
+              iva: factura.iva,
+              total: factura.total,
+              tipo: factura.tipo,
+              empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
+              empresaDireccion: perfil?.empresa_direccion ?? undefined,
+              empresaNif: perfil?.empresa_nif ?? undefined,
+              notas: notas || null,
+              descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
+            }, plantilla)
+          }}>
             <Download className="mr-2 h-4 w-4" />
             Descargar PDF
           </Button>
@@ -400,6 +437,30 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   <Label htmlFor="total">Total ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
                   <Input id="total" disabled value={(factura.total / 100).toFixed(2)} />
                 </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="descuentoPorcentaje">Descuento (%)</Label>
+                  <Input
+                    id="descuentoPorcentaje"
+                    name="descuentoPorcentaje"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.5"
+                    value={descuentoPorcentajeEdit}
+                    onChange={(e) => setDescuentoPorcentajeEdit(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                {descuentoPorcentajeEdit > 0 && (
+                  <div className="space-y-2">
+                    <Label>Importe descuento ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
+                    <Input
+                      disabled
+                      value={`-${formatoMoneda(calcularDescuento(factura.baseImponible, descuentoPorcentajeEdit) / 100, monedaEdit)}`}
+                    />
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notas">Notas internas</Label>
@@ -561,6 +622,12 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                 <dt className="text-muted-foreground">IVA</dt>
                 <dd className="font-medium">{factura.iva}%</dd>
               </div>
+              {(factura.descuentoPorcentaje ?? 0) > 0 && (
+                <div>
+                  <dt className="text-muted-foreground">Descuento</dt>
+                  <dd className="font-medium text-green-600">{formatoDescuento(factura.descuentoPorcentaje!)}</dd>
+                </div>
+              )}
               <div className="col-span-2 border-t pt-2">
                 <dt className="text-muted-foreground">Total</dt>
                 <dd className="text-xl font-bold">{formatMoney(factura.total)}</dd>
@@ -583,10 +650,14 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                       size="sm"
                       className="h-7 text-xs"
                       onClick={async () => {
+                        const estadoAnterior = factura.estado
                         const { error } = await getSupabase().from('facturas').update({
                           estado: 'pagada',
                         }).eq('id', factura.id)
-                        if (!error) setFactura({ ...factura, estado: 'pagada' })
+                        if (!error) {
+                          await logAccion('cambio_estado', 'factura', factura.id, `Factura ${factura.numero}: ${estadoAnterior} → pagada`, { antes: { estado: estadoAnterior }, despues: { estado: 'pagada' } })
+                          setFactura({ ...factura, estado: 'pagada' })
+                        }
                       }}
                     >
                       Marcar como pagada

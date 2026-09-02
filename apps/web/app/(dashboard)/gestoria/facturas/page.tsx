@@ -154,8 +154,13 @@ export default function FacturasPage() {
 
   const cambiarEstadoSeleccionadas = async (nuevoEstado: string) => {
     const ids = Array.from(seleccionadas)
+    const facturasSeleccionadas = facturas.filter(f => seleccionadas.has(f.id))
+    const estadosAnteriores = facturasSeleccionadas.map(f => f.estado)
     await getSupabase().from('facturas').update({ estado: nuevoEstado }).in('id', ids)
-    await logAccion('cambio_estado', 'factura', ids.join(','), `${ids.length} facturas → ${nuevoEstado}`)
+    await logAccion('cambio_estado', 'factura', ids.join(','), `${ids.length} facturas → ${nuevoEstado}`, {
+      antes: { estados: estadosAnteriores },
+      despues: { estado: nuevoEstado },
+    })
     setFacturas(prev => prev.map(f => seleccionadas.has(f.id) ? { ...f, estado: nuevoEstado } : f))
     setSeleccionadas(new Set())
     toast.success(`${ids.length} factura${ids.length !== 1 ? 's' : ''} marcada${ids.length !== 1 ? 's' : ''} como ${nuevoEstado}`)
@@ -398,7 +403,7 @@ export default function FacturasPage() {
           <Download className="mr-1 h-4 w-4" /> Exportar Excel
         </Button>
         <Button variant="outline" size="sm" disabled={visibles.length === 0}
-          onClick={() => void exportarTodoZIP(visibles)}>
+          onClick={() => void exportarTodoZIP({ facturas: visibles as unknown as Record<string, unknown>[], documentos: [], nominas: [], perfil: null, propiedadesAlquiler: [], auditLog: [], notificaciones: [] })}>
           <Download className="mr-1 h-4 w-4" /> Exportar ZIP
         </Button>
         <Button variant="outline" size="sm" disabled={visibles.length === 0}

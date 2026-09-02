@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText, Zap } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
 import { generarFacturaClientePDF } from '@/lib/factura-cliente-pdf'
@@ -35,6 +35,7 @@ interface PerfilEmpresa {
   empresa_nombre: string | null
   empresa_nif: string | null
   empresa_direccion: string | null
+  notasPie: string | null
 }
 
 export default function FacturasRecurrentesPage() {
@@ -46,6 +47,8 @@ export default function FacturasRecurrentesPage() {
   const [perfil, setPerfil] = useState<PerfilEmpresa | null>(null)
   const [generandoPdfId, setGenerandoPdfId] = useState<string | null>(null)
   const [creandoAhoraId, setCreandoAhoraId] = useState<string | null>(null)
+  const [batchProgress, setBatchProgress] = useState<{ actual: number; total: number } | null>(null)
+  const [batchResult, setBatchResult] = useState<{ generadas: number; omitidas: number } | null>(null)
 
   // Form state
   const [tipo, setTipo] = useState('gasto')
@@ -93,7 +96,7 @@ export default function FacturasRecurrentesPage() {
         .order('createdAt', { ascending: false }),
       getSupabase()
         .from('perfiles')
-        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion')
+        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion, notasPie')
         .eq('userId', user.id)
         .single(),
     ])
@@ -230,6 +233,7 @@ export default function FacturasRecurrentesPage() {
         empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
         empresaDireccion: perfil?.empresa_direccion ?? undefined,
         empresaNif: perfil?.empresa_nif ?? undefined,
+        notas: perfil?.notasPie ?? null,
       })
     } finally {
       setGenerandoPdfId(null)
@@ -243,6 +247,97 @@ export default function FacturasRecurrentesPage() {
     } finally {
       setCreandoAhoraId(null)
     }
+  }
+
+  const calcularProximaGeneracion = (diaGeneracion: number): Date => {
+    const ahora = new Date()
+    const proxima = new Date(ahora.getFullYear(), ahora.getMonth(), diaGeneracion)
+    if (proxima <= ahora) {
+      proxima.setMonth(proxima.getMonth() + 1)
+    }
+    return proxima
+  }
+
+  const generarFacturasPendientes = async () => {
+    const ahora = new Date()
+    const mes = ahora.getMonth() + 1
+    const anyo = ahora.getFullYear()
+    const diaActual = ahora.getDate()
+
+    const { data: { user } } = await getSupabase().auth.getUser()
+    if (!user) return
+
+    const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
+    if (!perfil) return
+
+    const plantillasPendientes = plantillas.filter(
+      p => p.activa && p.diaGeneracion <= diaActual
+    )
+
+    if (plantillasPendientes.length === 0) {
+      setBatchResult({ generadas: 0, omitidas: 0 })
+      setTimeout(() => setBatchResult(null), 4000)
+      return
+    }
+
+    setBatchProgress({ actual: 0, total: plantillasPendientes.length })
+    let generadas = 0
+    let omitidas = 0
+
+    for (let i = 0; i < plantillasPendientes.length; i++) {
+      const p = plantillasPendientes[i]
+      if (!p) continue
+      setBatchProgress({ actual: i + 1, total: plantillasPendientes.length })
+
+      const numero = `${p.numero}-${anyo}-${String(mes).padStart(2, '0')}`
+
+      const { data: existente } = await getSupabase()
+        .from('facturas')
+        .select('id')
+        .eq('perfilId', perfil.id)
+        .eq('numero', numero)
+        .limit(1)
+        .maybeSingle()
+
+      if (existente) {
+        omitidas++
+        continue
+      }
+
+      const baseImponible = p.baseImponible
+      const importeIva = Math.round(baseImponible * (p.iva / 100))
+      const total = baseImponible + importeIva
+
+      const { error } = await getSupabase().from('facturas').insert({
+        id: crypto.randomUUID(),
+        perfilId: perfil.id,
+        numero,
+        tipo: p.tipo,
+        emisorReceptor: p.emisorReceptor,
+        nifContraparte: p.nifContraparte,
+        fechaEmision: ahora.toISOString().slice(0, 10),
+        baseImponible,
+        iva: p.iva,
+        total,
+        estado: 'pendiente',
+      })
+
+      if (!error) {
+        generadas++
+        await fetch(`/api/facturas/recurrentes/${p.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ultimaGeneracion: ahora.toISOString() }),
+        })
+        setPlantillas(prev => prev.map(pl =>
+          pl.id === p.id ? { ...pl, ultimaGeneracion: ahora.toISOString() } : pl
+        ))
+      }
+    }
+
+    setBatchProgress(null)
+    setBatchResult({ generadas, omitidas })
+    setTimeout(() => setBatchResult(null), 5000)
   }
 
   const formatMoney = (cents: number) =>
@@ -271,6 +366,34 @@ export default function FacturasRecurrentesPage() {
           Nueva recurrente
         </Button>
       </div>
+
+      {!loading && plantillas.length > 0 && (
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={batchProgress !== null}
+            onClick={() => void generarFacturasPendientes()}
+          >
+            {batchProgress ? (
+              <RefreshCw className="mr-1 h-3 w-3 animate-spin" />
+            ) : (
+              <Zap className="mr-1 h-3 w-3" />
+            )}
+            {batchProgress
+              ? `Generando ${batchProgress.actual}/${batchProgress.total}...`
+              : 'Generar todas las pendientes del mes'}
+          </Button>
+          {batchResult && (
+            <span className="text-sm text-muted-foreground">
+              {batchResult.generadas > 0 && `${batchResult.generadas} generada${batchResult.generadas !== 1 ? 's' : ''}`}
+              {batchResult.generadas > 0 && batchResult.omitidas > 0 && ', '}
+              {batchResult.omitidas > 0 && `${batchResult.omitidas} omitida${batchResult.omitidas !== 1 ? 's' : ''}`}
+              {batchResult.generadas === 0 && batchResult.omitidas === 0 && 'No hay pendientes este mes'}
+            </span>
+          )}
+        </div>
+      )}
 
       {mostrarForm && (
         <Card>
@@ -411,6 +534,11 @@ export default function FacturasRecurrentesPage() {
                             Última generación: {new Date(p.ultimaGeneracion).toLocaleDateString('es-ES')}
                           </p>
                         )}
+                        {p.activa && (
+                          <p className="text-xs text-muted-foreground">
+                            Próxima generación: {calcularProximaGeneracion(p.diaGeneracion).toLocaleDateString('es-ES')}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -432,6 +560,7 @@ export default function FacturasRecurrentesPage() {
                       empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
                       empresaDireccion: perfil?.empresa_direccion ?? undefined,
                       empresaNif: perfil?.empresa_nif ?? undefined,
+                      notas: perfil?.notasPie ?? null,
                     }} />
 
                     <Button

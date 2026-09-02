@@ -15,6 +15,7 @@ import {
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown'
 import { HeaderAlertasIVA } from '@/components/header-alertas-iva'
 import { PersonaSelector } from './persona-selector'
+import { EmpresaSelector } from './empresa-selector'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { LogOut, User, Settings, CreditCard } from 'lucide-react'
 import Link from 'next/link'
@@ -34,6 +35,7 @@ export function Header() {
 
       <div className="flex items-center gap-2">
         {user && <LanguageSwitcher />}
+        {user && <EmpresaSelector />}
         {user && <PersonaSelector />}
         {user && <HeaderAlertasIVA />}
         {user && <NotificationDropdown />}

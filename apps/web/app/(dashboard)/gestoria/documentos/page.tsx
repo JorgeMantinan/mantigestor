@@ -4,10 +4,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Trash2, ExternalLink, Filter } from 'lucide-react'
+import { FileText, Trash2, ExternalLink, ScanSearch, X } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
+import { OcrBatchResults, type ResultadoOcrLote } from '@/components/ocr-batch-results'
 
 interface Documento {
   id: string
@@ -49,6 +52,11 @@ export default function DocumentosPage() {
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [cargando, setCargando] = useState(true)
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
+  const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
+  const [procesandoLote, setProcesandoLote] = useState(false)
+  const [progresoLote, setProgresoLote] = useState<{ actual: number; total: number } | null>(null)
+  const [resultadosLote, setResultadosLote] = useState<ResultadoOcrLote[] | null>(null)
+  const [dialogAbierto, setDialogAbierto] = useState(false)
   const getSupabase = useCallback(() => createClient(), [])
 
   useEffect(() => {
@@ -71,11 +79,70 @@ export default function DocumentosPage() {
   const eliminar = async (doc: Documento) => {
     await getSupabase().from('documentos').delete().eq('id', doc.id)
     setDocumentos(prev => prev.filter(d => d.id !== doc.id))
+    setSeleccionados(prev => { const s = new Set(prev); s.delete(doc.id); return s })
     toast.success('Documento eliminado')
+  }
+
+  const toggleSeleccion = (id: string) => {
+    setSeleccionados(prev => {
+      const s = new Set(prev)
+      if (s.has(id)) s.delete(id)
+      else s.add(id)
+      return s
+    })
+  }
+
+  const toggleSeleccionTodos = () => {
+    if (seleccionados.size === filtrados.length) {
+      setSeleccionados(new Set())
+    } else {
+      setSeleccionados(new Set(filtrados.map(d => d.id)))
+    }
+  }
+
+  const procesarLote = async () => {
+    const docsSeleccionados = documentos.filter(d => seleccionados.has(d.id))
+    if (docsSeleccionados.length === 0) return
+
+    setProcesandoLote(true)
+    setProgresoLote({ actual: 0, total: docsSeleccionados.length })
+    setResultadosLote(null)
+    setDialogAbierto(true)
+
+    try {
+      const archivos = docsSeleccionados.map(d => ({ url: d.url, nombre: d.nombre }))
+
+      const res = await fetch('/api/ocr-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archivos }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        toast.error(err.error ?? 'Error al procesar lote')
+        setDialogAbierto(false)
+        return
+      }
+
+      const data = await res.json()
+      setResultadosLote(data.resultados)
+      setProgresoLote(null)
+
+      const exitosos = data.resultados.filter((r: ResultadoOcrLote) => r.resultado).length
+      const errores = data.resultados.filter((r: ResultadoOcrLote) => r.error).length
+      toast.success(`OCR completado: ${exitosos} exitosos, ${errores} errores`)
+    } catch {
+      toast.error('Error de conexión')
+      setDialogAbierto(false)
+    } finally {
+      setProcesandoLote(false)
+    }
   }
 
   const tipos = [...new Set(documentos.map(d => d.tipo))]
   const filtrados = filtroTipo === 'todos' ? documentos : documentos.filter(d => d.tipo === filtroTipo)
+  const haySeleccion = seleccionados.size > 0
 
   return (
     <div className="space-y-6">
@@ -104,6 +171,28 @@ export default function DocumentosPage() {
         ))}
       </div>
 
+      {filtrados.length > 0 && (
+        <div className="flex items-center gap-3">
+          <Checkbox
+            checked={seleccionados.size === filtrados.length && filtrados.length > 0}
+            onCheckedChange={toggleSeleccionTodos}
+          />
+          <span className="text-sm text-muted-foreground">
+            {seleccionados.size > 0 ? `${seleccionados.size} seleccionados` : 'Seleccionar todos'}
+          </span>
+          {haySeleccion && (
+            <Button
+              size="sm"
+              onClick={() => void procesarLote()}
+              disabled={procesandoLote}
+            >
+              <ScanSearch className="h-4 w-4 mr-1" />
+              {procesandoLote ? 'Procesando...' : `OCR en lote (${seleccionados.size})`}
+            </Button>
+          )}
+        </div>
+      )}
+
       {cargando ? (
         <p className="text-sm text-muted-foreground">Cargando documentos...</p>
       ) : filtrados.length === 0 ? (
@@ -123,6 +212,12 @@ export default function DocumentosPage() {
                 ) : (
                   <FileText className="h-12 w-12 text-muted-foreground/50" />
                 )}
+                <div className="absolute top-2 left-2">
+                  <Checkbox
+                    checked={seleccionados.has(doc.id)}
+                    onCheckedChange={() => toggleSeleccion(doc.id)}
+                  />
+                </div>
               </div>
               <CardContent className="p-3">
                 <div className="flex items-start justify-between gap-2">
@@ -156,6 +251,34 @@ export default function DocumentosPage() {
           ))}
         </div>
       )}
+
+      <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>OCR en lote</DialogTitle>
+            <DialogDescription>
+              {progresoLote
+                ? `Procesando archivo ${progresoLote.actual} de ${progresoLote.total}...`
+                : 'Resultados del procesamiento'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          {progresoLote && (
+            <div className="space-y-2">
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${(progresoLote.actual / progresoLote.total) * 100}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                {progresoLote.actual} / {progresoLote.total}
+              </p>
+            </div>
+          )}
+          {resultadosLote && <OcrBatchResults resultados={resultadosLote} />}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
