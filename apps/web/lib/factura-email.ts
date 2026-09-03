@@ -16,10 +16,36 @@ interface FacturaEmailPayload {
   empresaNif?: string
   notas?: string | null
   descuentoPorcentaje?: number
+  logoBase64?: string
+  firmaBase64?: string
 }
 
 function formatEuro(cents: number): string {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
+}
+
+function htmlFirma(firmaBase64?: string): string {
+  if (!firmaBase64) return ''
+  let imagen = ''
+  let nombre = ''
+  try {
+    const parsed = JSON.parse(firmaBase64) as { imagen?: string; nombre?: string }
+    imagen = parsed.imagen ?? ''
+    nombre = parsed.nombre ?? ''
+  } catch {
+    imagen = firmaBase64
+  }
+  if (!imagen) return ''
+  return `
+    <div style="margin-top:32px;display:flex;justify-content:flex-end">
+      <div style="text-align:center;width:240px">
+        <img src="${imagen}" style="max-height:80px;width:auto" alt="Firma digital" />
+        <div style="border-top:1px solid #374151;margin-top:4px;padding-top:4px">
+          <p style="font-size:11px;font-weight:600;color:#1a1a1a;margin:0">${nombre}</p>
+        </div>
+      </div>
+    </div>
+  `
 }
 
 function htmlEmailBody(f: FacturaEmailPayload): string {
@@ -82,6 +108,7 @@ function pdfHTML(f: FacturaEmailPayload): string {
     <div style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;padding:40px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px">
         <div>
+          ${f.logoBase64 ? `<div style="margin-bottom:12px"><img src="${f.logoBase64}" style="max-height:80px;max-width:200px;object-fit:contain" alt="Logo empresa" /></div>` : ''}
           <h1 style="font-size:28px;font-weight:800;margin:0;color:#1a1a1a">${titulo}</h1>
           <p style="font-size:14px;color:#6b7280;margin:4px 0 0 0">Nº ${f.numero}</p>
         </div>
@@ -135,6 +162,7 @@ function pdfHTML(f: FacturaEmailPayload): string {
         </tfoot>
       </table>
       ${f.notas ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px"><p style="font-size:12px;margin:0;color:#1e40af"><strong>Notas:</strong> ${f.notas}</p></div>` : ''}
+      ${htmlFirma(f.firmaBase64)}
       <div style="margin-top:48px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:10px;color:#9ca3af;text-align:center">
         <p style="margin:0">${empresa} · ${direccion} · NIF ${nifEmpresa}</p>
         <p style="margin:4px 0 0 0">Documento generado por MantiGestor</p>

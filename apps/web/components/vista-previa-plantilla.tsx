@@ -20,6 +20,7 @@ interface VistaPreviaPlantillaProps {
   empresaNif?: string
   notas?: string | null
   descuentoPorcentaje?: number
+  logoBase64?: string
 }
 
 function formatEuro(cents: number): string {
@@ -39,6 +40,7 @@ function PlantillaPreview({ plantilla, datos }: { plantilla: PlantillaFactura; d
         <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm">
           <div className="flex justify-between items-center border-b-2 border-emerald-500 pb-3 mb-3">
             <div>
+              {datos.logoBase64 && <img src={datos.logoBase64} alt="Logo" className="h-10 w-auto mb-1 object-contain" />}
               <h3 className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{titulo}</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">Nº {datos.numero}</p>
             </div>
@@ -70,6 +72,7 @@ function PlantillaPreview({ plantilla, datos }: { plantilla: PlantillaFactura; d
     return (
       <div className="bg-white dark:bg-gray-900 p-6 rounded-lg border dark:border-gray-700">
         <div className="mb-6">
+          {datos.logoBase64 && <img src={datos.logoBase64} alt="Logo" className="h-10 w-auto mb-2 object-contain" />}
           <h3 className="text-2xl font-light tracking-widest uppercase dark:text-gray-100">{titulo}</h3>
           <div className="flex justify-between mt-1">
             <p className="text-xs text-gray-400">Nº {datos.numero}</p>
@@ -101,6 +104,7 @@ function PlantillaPreview({ plantilla, datos }: { plantilla: PlantillaFactura; d
     <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border dark:border-gray-700">
       <div className="flex justify-between items-start mb-4">
         <div>
+          {datos.logoBase64 && <img src={datos.logoBase64} alt="Logo" className="h-10 w-auto mb-1 object-contain" />}
           <h3 className="text-lg font-bold dark:text-gray-100">{titulo}</h3>
           <p className="text-xs text-gray-500">Nº {datos.numero}</p>
         </div>

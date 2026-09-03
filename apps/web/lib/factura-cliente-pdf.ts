@@ -20,6 +20,8 @@ interface FacturaPDF {
   notas?: string | null
   descuentoPorcentaje?: number
   pagosParciales?: PagoParcial[]
+  logoBase64?: string
+  firmaBase64?: string
 }
 
 function esRectificativa(tipo: string): boolean {
@@ -84,6 +86,35 @@ function htmlPagosParciales(pagos: PagoParcial[], total: number): string {
   `
 }
 
+function htmlLogo(logoBase64?: string): string {
+  if (!logoBase64) return ''
+  return `<img src="${logoBase64}" style="max-width:80px;max-height:80px;object-fit:contain" alt="Logo empresa" />`
+}
+
+function htmlFirma(firmaBase64?: string): string {
+  if (!firmaBase64) return ''
+  let imagen = ''
+  let nombre = ''
+  try {
+    const parsed = JSON.parse(firmaBase64) as { imagen?: string; nombre?: string }
+    imagen = parsed.imagen ?? ''
+    nombre = parsed.nombre ?? ''
+  } catch {
+    imagen = firmaBase64
+  }
+  if (!imagen) return ''
+  return `
+    <div style="margin-top:32px;display:flex;justify-content:flex-end">
+      <div style="text-align:center;width:240px">
+        <img src="${imagen}" style="max-height:80px;width:auto" alt="Firma digital" />
+        <div style="border-top:1px solid #374151;margin-top:4px;padding-top:4px">
+          <p style="font-size:11px;font-weight:600;color:#1a1a1a;margin:0">${nombre}</p>
+        </div>
+      </div>
+    </div>
+  `
+}
+
 function htmlClasico(f: FacturaPDF): string {
   const esGasto = f.tipo === 'gasto'
   const tituloRectificativa = obtenerTituloRectificativa(f)
@@ -97,6 +128,7 @@ function htmlClasico(f: FacturaPDF): string {
     <div style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;padding:40px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px">
         <div>
+          ${f.logoBase64 ? `<div style="margin-bottom:12px">${htmlLogo(f.logoBase64)}</div>` : ''}
           <h1 style="font-size:28px;font-weight:800;margin:0;color:#1a1a1a">${titulo}</h1>
           <p style="font-size:14px;color:#6b7280;margin:4px 0 0 0">Nº ${f.numero}</p>
         </div>
@@ -151,6 +183,7 @@ function htmlClasico(f: FacturaPDF): string {
       </table>
       ${f.pagosParciales && f.pagosParciales.length > 0 ? htmlPagosParciales(f.pagosParciales, f.total) : ''}
       ${f.notas ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px"><p style="font-size:12px;margin:0;color:#1e40af"><strong>Notas:</strong> ${f.notas}</p></div>` : ''}
+      ${htmlFirma(f.firmaBase64)}
       <div style="margin-top:48px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:10px;color:#9ca3af;text-align:center">
         <p style="margin:0">${empresa} · ${direccion} · NIF ${nifEmpresa}</p>
         <p style="margin:4px 0 0 0">Documento generado por MantiGestor</p>
@@ -173,6 +206,7 @@ function htmlModerno(f: FacturaPDF): string {
       <div style="background:white;border-radius:16px;padding:32px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:3px solid #10b981;padding-bottom:24px">
           <div>
+            ${f.logoBase64 ? `<div style="margin-bottom:8px">${htmlLogo(f.logoBase64)}</div>` : ''}
             <h1 style="font-size:24px;font-weight:800;margin:0;color:#059669">${titulo}</h1>
             <p style="font-size:13px;color:#6b7280;margin:4px 0 0 0">Nº ${f.numero}</p>
           </div>
@@ -225,6 +259,7 @@ function htmlModerno(f: FacturaPDF): string {
         </div>
         ${f.pagosParciales && f.pagosParciales.length > 0 ? htmlPagosParciales(f.pagosParciales, f.total) : ''}
         ${f.notas ? `<div style="background:#f0fdf4;border:1px solid #a7f3d0;border-radius:8px;padding:12px;margin-top:16px"><p style="font-size:11px;margin:0;color:#065f46"><strong>Notas:</strong> ${f.notas}</p></div>` : ''}
+        ${htmlFirma(f.firmaBase64)}
         <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:9px;color:#9ca3af;text-align:center">
           <p style="margin:0">${empresa} · ${direccion} · NIF ${nifEmpresa}</p>
           <p style="margin:4px 0 0 0">Generado con MantiGestor</p>
@@ -246,6 +281,7 @@ function htmlMinimalista(f: FacturaPDF): string {
   return `
     <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#000;padding:48px">
       <div style="margin-bottom:48px">
+        ${f.logoBase64 ? `<div style="margin-bottom:16px">${htmlLogo(f.logoBase64)}</div>` : ''}
         <h1 style="font-size:32px;font-weight:300;margin:0;letter-spacing:4px">${titulo}</h1>
         <div style="display:flex;justify-content:space-between;margin-top:8px">
           <p style="font-size:12px;color:#999;margin:0">Nº ${f.numero}</p>
@@ -297,6 +333,7 @@ function htmlMinimalista(f: FacturaPDF): string {
       </div>
       ${f.pagosParciales && f.pagosParciales.length > 0 ? htmlPagosParciales(f.pagosParciales, f.total) : ''}
       ${f.notas ? `<p style="font-size:11px;color:#666;margin:0 0 32px 0;border-top:1px solid #eee;padding-top:16px">${f.notas}</p>` : ''}
+      ${htmlFirma(f.firmaBase64)}
       <div style="font-size:9px;color:#ccc;text-align:center;letter-spacing:1px">
         <p style="margin:0">${empresa.toUpperCase()} · ${nifEmpresa}</p>
       </div>

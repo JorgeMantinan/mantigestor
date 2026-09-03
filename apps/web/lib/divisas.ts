@@ -87,3 +87,17 @@ export function formatoMoneda(cantidad: number, moneda: string): string {
     maximumFractionDigits: decimales,
   }).format(cantidad)
 }
+
+export function formatoMonedaUniversal(cantidad: number, moneda: string): string {
+  const monedaInfo = MOEDAS.find(m => m.code === moneda)
+  if (!monedaInfo) return `${cantidad.toFixed(2)} ${moneda}`
+  const decimales = moneda === 'JPY' ? 0 : 2
+  const formatted = new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: decimales,
+    maximumFractionDigits: decimales,
+  }).format(cantidad)
+  if (['EUR'].includes(moneda)) {
+    return `${formatted}${monedaInfo.symbol}`
+  }
+  return `${monedaInfo.symbol}${formatted}`
+}

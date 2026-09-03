@@ -38,6 +38,9 @@ const ChartInteranual = dynamic(() => import('@/components/dashboard/chart-inter
 const ChartPrediccion = dynamic(() => import('@/components/dashboard/chart-prediccion').then(m => m.ChartPrediccion), {
   loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
 })
+const ChartWaterfall = dynamic(() => import('@/components/dashboard/chart-waterfall').then(m => m.ChartWaterfall), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
 const ChartGastosCategoria = dynamic(() => import('@/components/dashboard/chart-gastos-categoria').then(m => m.ChartGastosCategoria), {
   loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
 })
@@ -68,6 +71,12 @@ const WidgetBenchmarking = dynamic(() => import('@/components/dashboard/widget-b
 const WidgetAlertasInteligentes = dynamic(() => import('@/components/dashboard/widget-alertas-inteligentes').then(m => m.WidgetAlertasInteligentes), {
   loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
 })
+const WidgetExport = dynamic(() => import('@/components/dashboard/widget-export').then(m => m.WidgetExport), {
+  loading: () => <div className="h-[160px] animate-pulse bg-muted rounded" />,
+})
+const WidgetScoreFiscal = dynamic(() => import('@/components/dashboard/widget-score-fiscal').then(m => m.WidgetScoreFiscal), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
 
 interface Factura {
   id: string
@@ -79,6 +88,7 @@ interface Factura {
   fechaVencimiento: string | null
   numero: string
   emisorReceptor: string
+  nifContraparte: string | null
   categoriaGasto: string | null
   estado: string
 }
@@ -118,6 +128,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [nombre, setNombre] = useState('')
+  const [perfilNif, setPerfilNif] = useState<string | null>(null)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(0) // 0 = todos
   const getSupabase = useCallback(() => createClient(), [])
@@ -142,7 +153,7 @@ export default function DashboardPage() {
 
         // Queries en paralelo
         const [perfilRes, facturasRes, nominasRes, propsRes] = await Promise.all([
-          supabase.from('perfiles').select('nombre').eq('id', perfilId).single(),
+          supabase.from('perfiles').select('nombre, nif').eq('id', perfilId).single(),
           supabase.from('facturas').select('*').eq('perfilId', perfilId)
             .gte('fechaEmision', `${selectedYear}-01-01`).lt('fechaEmision', `${selectedYear + 1}-01-01`)
             .order('fechaEmision', { ascending: false }),
@@ -151,6 +162,7 @@ export default function DashboardPage() {
         ])
 
         if (perfilRes.data?.nombre) setNombre(perfilRes.data.nombre)
+        if (perfilRes.data?.nif) setPerfilNif(perfilRes.data.nif)
         else if (mostrarNombre) setNombre(mostrarNombre)
 
         if (facturasRes.data) setFacturas(facturasRes.data as Factura[])
@@ -406,6 +418,7 @@ export default function DashboardPage() {
           <ChartInteranual facturas={facturasFiltradas} />
           <ChartPrediccion facturas={facturasFiltradas} />
           <ChartGastosCategoria facturas={facturasFiltradas} />
+          {isVisible('chart-waterfall') && <ChartWaterfall facturas={facturasFiltradas} />}
         </div>
       )}
 
@@ -420,6 +433,13 @@ export default function DashboardPage() {
           {isVisible('cobro') && <WidgetCobro facturas={facturasFiltradas} />}
           {isVisible('benchmarking') && <WidgetBenchmarking facturas={facturasFiltradas} />}
           {isVisible('alertas-inteligentes') && <WidgetAlertasInteligentes facturas={facturasFiltradas} />}
+          {isVisible('exportar') && <WidgetExport />}
+          {isVisible('score-fiscal') && (
+            <WidgetScoreFiscal
+              facturas={facturasFiltradas}
+              perfil={{ nif: perfilNif }}
+            />
+          )}
         </div>
       )}
 

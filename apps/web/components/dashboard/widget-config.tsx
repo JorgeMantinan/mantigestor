@@ -25,6 +25,7 @@ const WIDGETS_PREDETERMINADOS: Omit<WidgetConfig, 'visible'>[] = [
   { id: 'chart-interanual', label: 'Interanual' },
   { id: 'chart-prediccion', label: 'Predicción' },
   { id: 'chart-gastos-categoria', label: 'Gastos por categoría' },
+  { id: 'chart-waterfall', label: 'Cascada ingresos/gastos' },
   { id: 'calendario', label: 'Calendario fiscal' },
   { id: 'actividad', label: 'Actividad reciente' },
   { id: 'ultimas-facturas', label: 'Últimas facturas' },
@@ -36,6 +37,8 @@ const WIDGETS_PREDETERMINADOS: Omit<WidgetConfig, 'visible'>[] = [
   { id: 'cobro', label: 'Ratio de cobro' },
   { id: 'benchmarking', label: 'Benchmarking IA' },
   { id: 'alertas-inteligentes', label: 'Alertas inteligentes' },
+  { id: 'exportar', label: 'Exportación rápida' },
+  { id: 'score-fiscal', label: 'Score fiscal' },
 ]
 
 const STORAGE_KEY = 'dashboard-widgets'

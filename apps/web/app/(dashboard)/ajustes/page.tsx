@@ -5,7 +5,10 @@ import { useTheme } from 'next-themes'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Users } from 'lucide-react'
+import { Users, Upload, Trash2, Share2, Copy, Check, PenTool } from 'lucide-react'
+import { FirmaCanvas } from '@/components/firma-canvas'
+import { guardarFirma, eliminarFirma, obtenerFirma, type FirmaDigital } from '@/lib/firma-digital'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -57,12 +60,15 @@ export default function AjustesPage() {
             <CardTitle>Personas asociadas</CardTitle>
             <CardDescription>Gestiona las personas cuyos asuntos fiscales gestionas</CardDescription>
           </div>
-          <Link href="/ajustes/personas">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Users className="h-4 w-4" />
-              Ver personas
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <ShareDialog />
+            <Link href="/ajustes/personas">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Users className="h-4 w-4" />
+                Ver personas
+              </Button>
+            </Link>
+          </div>
         </CardHeader>
       </Card>
     </div>
@@ -79,7 +85,10 @@ function PerfilTab() {
   const [empresaNif, setEmpresaNif] = useState('')
   const [empresaDireccion, setEmpresaDireccion] = useState('')
   const [notasPie, setNotasPie] = useState<string[]>([])
+  const [logoBase64, setLogoBase64] = useState<string | null>(null)
+  const [firma, setFirma] = useState<FirmaDigital | null>(null)
   const [guardando, setGuardando] = useState(false)
+  const [guardandoFirma, setGuardandoFirma] = useState(false)
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -91,7 +100,7 @@ function PerfilTab() {
 
       const { data } = await getSupabase()
         .from('perfiles')
-        .select('nombre, nif, provincia, situacion, empresa_nombre, empresa_nif, empresa_direccion')
+        .select('nombre, nif, provincia, situacion, empresa_nombre, empresa_nif, empresa_direccion, logoBase64')
         .eq('id', user.id)
         .single()
 
@@ -103,9 +112,12 @@ function PerfilTab() {
         setEmpresaNombre(data.empresa_nombre ?? '')
         setEmpresaNif(data.empresa_nif ?? '')
         setEmpresaDireccion(data.empresa_direccion ?? '')
+        setLogoBase64(data.logoBase64 ?? null)
       }
       const notas = await obtenerNotasPieDefecto(user.id)
       setNotasPie(notas)
+      const firmaCargada = await obtenerFirma(user.id)
+      setFirma(firmaCargada)
       setCargando(false)
     }
     cargar()
@@ -118,7 +130,7 @@ function PerfilTab() {
 
     const { error } = await getSupabase()
       .from('perfiles')
-      .upsert({ id: user.id, nombre, nif, provincia, situacion, empresa_nombre: empresaNombre, empresa_nif: empresaNif, empresa_direccion: empresaDireccion })
+      .upsert({ id: user.id, nombre, nif, provincia, situacion, empresa_nombre: empresaNombre, empresa_nif: empresaNif, empresa_direccion: empresaDireccion, logoBase64 })
       .eq('id', user.id)
 
     if (error) {
@@ -129,6 +141,7 @@ function PerfilTab() {
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>Información personal</CardTitle>
@@ -196,6 +209,40 @@ function PerfilTab() {
             </div>
             <Separator />
             <div className="space-y-2">
+              <Label>Logo de empresa (para facturas)</Label>
+              <p className="text-xs text-muted-foreground">Aparecerá en el encabezado de las facturas PDF. Máximo 500KB.</p>
+              {logoBase64 ? (
+                <div className="flex items-center gap-4">
+                  <img src={logoBase64} alt="Logo de empresa" className="h-16 w-auto rounded border bg-white p-1 object-contain" />
+                  <Button variant="ghost" size="sm" className="text-destructive gap-1" onClick={() => setLogoBase64(null)}>
+                    <Trash2 className="h-4 w-4" /> Eliminar logo
+                  </Button>
+                </div>
+              ) : (
+                <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed p-4 text-sm text-muted-foreground hover:bg-muted transition-colors">
+                  <Upload className="h-4 w-4" />
+                  Seleccionar imagen...
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      if (file.size > 500 * 1024) {
+                        alert('El archivo supera los 500KB')
+                        return
+                      }
+                      const reader = new FileReader()
+                      reader.onload = () => setLogoBase64(reader.result as string)
+                      reader.readAsDataURL(file)
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+            <Separator />
+            <div className="space-y-2">
               <Label>Notas pie de factura</Label>
               <p className="text-xs text-muted-foreground">Texto que aparecerá al pie de cada factura generada. Una nota por línea.</p>
               {notasPie.length > 0 && (
@@ -252,6 +299,75 @@ function PerfilTab() {
               {guardando ? 'Guardando...' : 'Guardar cambios'}
             </Button>
           </>
+        )}
+      </CardContent>
+    </Card>
+    <FirmaSection firma={firma} onFirmaGuardada={(f) => setFirma(f)} />
+    </>
+  )
+}
+
+function FirmaSection({ firma, onFirmaGuardada }: { firma: FirmaDigital | null; onFirmaGuardada: (f: FirmaDigital | null) => void }) {
+  const [eliminando, setEliminando] = useState(false)
+
+  const handleFirmaGuardada = async (base64: string) => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const nuevaFirma: FirmaDigital = {
+      imagen: base64,
+      nombre: firma?.nombre ?? '',
+      fecha: new Date().toISOString(),
+      cargo: firma?.cargo ?? '',
+    }
+
+    await guardarFirma(user.id, nuevaFirma)
+    onFirmaGuardada(nuevaFirma)
+  }
+
+  const handleEliminar = async () => {
+    setEliminando(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await eliminarFirma(user.id)
+      }
+      onFirmaGuardada(null)
+    } finally {
+      setEliminando(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <PenTool className="h-5 w-5" />
+          Firma digital
+        </CardTitle>
+        <CardDescription>Firma que aparecerá en el pie de tus facturas PDF</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {firma ? (
+          <div className="space-y-4">
+            <div className="rounded-md border bg-white p-4">
+              <img src={firma.imagen} alt="Firma digital" className="mx-auto h-auto max-h-32 w-auto" />
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Firma de <strong>{firma.nombre}</strong> — {new Date(firma.fecha).toLocaleDateString('es-ES')}
+              </p>
+              <Button variant="ghost" size="sm" className="text-destructive gap-1" onClick={handleEliminar} disabled={eliminando}>
+                <Trash2 className="h-4 w-4" />
+                {eliminando ? 'Eliminando...' : 'Eliminar firma'}
+              </Button>
+            </div>
+            <FirmaCanvas onFirmaGuardada={handleFirmaGuardada} nombreInicial={firma.nombre} />
+          </div>
+        ) : (
+          <FirmaCanvas onFirmaGuardada={handleFirmaGuardada} />
         )}
       </CardContent>
     </Card>
@@ -437,5 +553,130 @@ function AparienciaTab() {
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+function ShareDialog() {
+  const [open, setOpen] = useState(false)
+  const [shareLink, setShareLink] = useState('')
+  const [generando, setGenerando] = useState(false)
+  const [copiado, setCopiado] = useState(false)
+  const [nombreInvitado, setNombreInvitado] = useState('')
+  const [emailInvitado, setEmailInvitado] = useState('')
+  const [error, setError] = useState('')
+
+  const generarEnlace = async () => {
+    if (!emailInvitado.trim()) {
+      setError('Introduce un email')
+      return
+    }
+    setGenerando(true)
+    setError('')
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setError('No autenticado'); setGenerando(false); return }
+
+      const token = crypto.randomUUID()
+      const link = `${window.location.origin}/register?invitado=true&email=${encodeURIComponent(emailInvitado)}&token=${token}&propietario=${user.id}`
+      setShareLink(link)
+    } catch {
+      setError('Error al generar el enlace')
+    }
+    setGenerando(false)
+  }
+
+  const copiarEnlace = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    } catch {
+      /* fallback */
+      const input = document.createElement('input')
+      input.value = shareLink
+      document.body.appendChild(input)
+      input.select()
+      document.execCommand('copy')
+      document.body.removeChild(input)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 2000)
+    }
+  }
+
+  return (
+    <>
+      <Button variant="outline" size="sm" className="gap-2" onClick={() => setOpen(true)}>
+        <Share2 className="h-4 w-4" />
+        Compartir
+      </Button>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setShareLink(''); setNombreInvitado(''); setEmailInvitado(''); setError('') } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Compartir con...</DialogTitle>
+            <DialogDescription>
+              Genera un enlace para que otra persona pueda ver tus datos (solo lectura).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {!shareLink ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="share-nombre">Nombre (opcional)</Label>
+                  <Input
+                    id="share-nombre"
+                    value={nombreInvitado}
+                    onChange={e => setNombreInvitado(e.target.value)}
+                    placeholder="María García"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="share-email">Email del destinatario *</Label>
+                  <Input
+                    id="share-email"
+                    type="email"
+                    value={emailInvitado}
+                    onChange={e => setEmailInvitado(e.target.value)}
+                    placeholder="maria@ejemplo.com"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  El destinatario recibirá un enlace de registro. Una vez registrado, podrá ver tus facturas y datos fiscales en modo solo lectura.
+                </p>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+              </>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Enlace generado. Comparte esta URL con {nombreInvitado || emailInvitado}:
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    readOnly
+                    value={shareLink}
+                    className="font-mono text-xs"
+                    onClick={e => (e.target as HTMLInputElement).select()}
+                  />
+                  <Button variant="outline" size="icon" className="shrink-0" onClick={copiarEnlace}>
+                    {copiado ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Este enlace es de un solo uso. La persona deberá registrarse o iniciar sesión para acceder.
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cerrar</Button>
+            {!shareLink && (
+              <Button onClick={generarEnlace} disabled={generando || !emailInvitado.trim()}>
+                {generando ? 'Generando...' : 'Generar enlace'}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

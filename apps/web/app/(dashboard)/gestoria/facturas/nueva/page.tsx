@@ -18,6 +18,7 @@ import { useParsearVoz } from '@/hooks/use-parsear-voz'
 import { rellenarFormularioDesdeOcr } from '@/lib/factura-utils'
 import { VoiceInput } from '@/components/facturas/voice-input'
 import { MOEDAS, obtenerTasaCambio, formatoMoneda } from '@/lib/divisas'
+import { SelectorMoneda } from '@/components/selector-moneda'
 import { obtenerNotasPieDefecto } from '@/lib/notas-pie-factura'
 import { logAccion } from '@/lib/audit-log'
 import { calcularDescuento } from '@/lib/descuento-factura'
@@ -275,16 +276,11 @@ export default function NuevaFacturaPage() {
 
             <div className="space-y-2">
               <Label htmlFor="moneda">Moneda</Label>
-              <select
+              <SelectorMoneda
                 id="moneda"
                 value={moneda}
-                onChange={(e) => void handleMonedaChange(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                {MOEDAS.map(m => (
-                  <option key={m.code} value={m.code}>{m.symbol} — {m.name} ({m.code})</option>
-                ))}
-              </select>
+                onChange={(v) => void handleMonedaChange(v)}
+              />
             </div>
 
             {moneda !== 'EUR' && (

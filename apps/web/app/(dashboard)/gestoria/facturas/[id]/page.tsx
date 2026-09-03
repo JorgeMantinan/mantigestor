@@ -22,6 +22,7 @@ import { generarFacturaClientePDF, NOMBRES_PLANTILLAS, type PlantillaFactura } f
 import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
 import { TimelineFactura } from '@/components/timeline-factura'
 import { MOEDAS, formatoMoneda, obtenerTasaCambio } from '@/lib/divisas'
+import { SelectorMoneda } from '@/components/selector-moneda'
 import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, serializarTags, obtenerNombreTag } from '@/lib/tags'
 import { calcularDescuento, formatoDescuento } from '@/lib/descuento-factura'
 import { crearRectificativa, obtenerRectificativas, calcularImporteMaximo, esNotaCredito, esNotaDebito, type RectificativaData, type TipoRectificativa } from '@/lib/rectificativa'
@@ -58,7 +59,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [tagsSeleccionados, setTagsSeleccionados] = useState<string[]>([])
   const [nuevoTagCustom, setNuevoTagCustom] = useState('')
   const [mostrarTagsDropdown, setMostrarTagsDropdown] = useState(false)
-  const [perfil, setPerfil] = useState<{ nombre: string | null; empresa_nombre: string | null; empresa_nif: string | null; empresa_direccion: string | null } | null>(null)
+  const [perfil, setPerfil] = useState<{ nombre: string | null; empresa_nombre: string | null; empresa_nif: string | null; empresa_direccion: string | null; logoBase64: string | null; firmaBase64: string | null } | null>(null)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [emailDestino, setEmailDestino] = useState('')
   const [enviandoEmail, setEnviandoEmail] = useState(false)
@@ -110,7 +111,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       }
       const { data: perfilData } = await getSupabase()
         .from('perfiles')
-        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion')
+        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion, logoBase64, firmaBase64')
         .eq('id', user.id)
         .single()
       if (perfilData) setPerfil(perfilData)
@@ -277,6 +278,8 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           empresaNif: perfil?.empresa_nif ?? undefined,
           notas: notas || null,
           descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
+          logoBase64: perfil?.logoBase64 ?? undefined,
+          firmaBase64: perfil?.firmaBase64 ?? undefined,
         },
         plantilla
       )
@@ -374,6 +377,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             empresaNif: perfil?.empresa_nif ?? undefined,
             notas: notas || null,
             descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
+            logoBase64: perfil?.logoBase64 ?? undefined,
           }} />
           <select value={plantilla} onChange={(e) => setPlantilla(e.target.value as PlantillaFactura)} className="h-8 rounded border border-input bg-background px-2 text-xs">
             {(Object.entries(NOMBRES_PLANTILLAS) as Array<[PlantillaFactura, string]>).map(([k, v]) => (
@@ -405,6 +409,8 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               notas: notas || null,
               descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
               pagosParciales: pagosParciales.length > 0 ? pagosParciales : undefined,
+              logoBase64: perfil?.logoBase64 ?? undefined,
+              firmaBase64: perfil?.firmaBase64 ?? undefined,
             }, plantilla)
           }}>
             <Download className="mr-2 h-4 w-4" />
@@ -474,11 +480,10 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               )}
               <div className="space-y-2">
                 <Label htmlFor="moneda-edit">Moneda</Label>
-                <select
+                <SelectorMoneda
                   id="moneda-edit"
                   value={monedaEdit}
-                  onChange={async (e) => {
-                    const nuevaMoneda = e.target.value
+                  onChange={async (nuevaMoneda) => {
                     setMonedaEdit(nuevaMoneda)
                     if (nuevaMoneda === 'EUR') {
                       setTipoCambioEdit(1)
@@ -489,12 +494,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                     setTipoCambioEdit(tasa)
                     setCargandoTasaEdit(false)
                   }}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  {MOEDAS.map(m => (
-                    <option key={m.code} value={m.code}>{m.symbol} — {m.name} ({m.code})</option>
-                  ))}
-                </select>
+                />
               </div>
               {monedaEdit !== 'EUR' && (
                 <div className="space-y-2">

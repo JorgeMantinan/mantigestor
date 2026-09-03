@@ -18,6 +18,8 @@ model Perfil {
   comunidadFiscal String? // 'Madrid', 'País Vasco - Bizkaia', ... (nombre normalizado de COMUNIDADES)
   perfilFiscal    String? // 'autonomo' | 'sociedad' | 'empleado' | 'alquilador'
   notasPie        String? // notas pie de factura por defecto (una por línea)
+  logoBase64      String? // logo de empresa en base64 data URL para facturas (max 500KB)
+  firmaBase64     String? // firma digital en base64 JSON: {imagen, nombre, fecha, cargo}
   empresas        String? // JSON array de empresas: [{id,nombre,nif,direccion,activa}]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

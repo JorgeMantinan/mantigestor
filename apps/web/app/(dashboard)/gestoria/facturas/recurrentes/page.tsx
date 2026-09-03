@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText, Zap, CircleDollarSign, CalendarDays, Wallet } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText, Zap, CircleDollarSign, CalendarDays, Wallet, Paperclip, Link as LinkIcon } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
 import { generarFacturaClientePDF } from '@/lib/factura-cliente-pdf'
 import { DragDropList } from '@/components/drag-drop-list'
@@ -23,14 +25,22 @@ interface TriggerConfig {
 }
 
 function parseTriggerConfig(notas: string | null): TriggerConfig {
-  if (!notas) return { triggerTipo: null, triggerValor: null }
-  try {
-    const parsed = JSON.parse(notas)
-    if (parsed.triggerTipo && ['umbral_gasto', 'fecha_especifica', 'saldo_bajo'].includes(parsed.triggerTipo)) {
-      return { triggerTipo: parsed.triggerTipo, triggerValor: parsed.triggerValor ?? null }
-    }
-  } catch { /* not JSON or invalid */ }
+  const data = parseNotasData(notas)
+  if (data.triggerTipo && ['umbral_gasto', 'fecha_especifica', 'saldo_bajo'].includes(data.triggerTipo)) {
+    return { triggerTipo: data.triggerTipo, triggerValor: data.triggerValor ?? null }
+  }
   return { triggerTipo: null, triggerValor: null }
+}
+
+function parseAttachments(notas: string | null): Attachment[] {
+  const data = parseNotasData(notas)
+  return data.attachments ?? []
+}
+
+function serializarNotasConAttachments(notas: string | null, attachments: Attachment[]): string {
+  const data = parseNotasData(notas)
+  data.attachments = attachments
+  return serializarNotasData(data)
 }
 
 interface FacturaRecurrente {
@@ -49,12 +59,37 @@ interface FacturaRecurrente {
   notas: string | null
 }
 
+interface Attachment {
+  nombre: string
+  url: string
+}
+
+interface NotasData {
+  triggerTipo?: TriggerTipo | null
+  triggerValor?: number | null
+  attachments?: Attachment[]
+}
+
+function parseNotasData(notas: string | null): NotasData {
+  if (!notas) return {}
+  try {
+    const parsed = JSON.parse(notas)
+    return parsed as NotasData
+  } catch { return {} }
+}
+
+function serializarNotasData(data: NotasData): string {
+  return JSON.stringify(data)
+}
+
 interface PerfilEmpresa {
   nombre: string | null
   empresa_nombre: string | null
   empresa_nif: string | null
   empresa_direccion: string | null
   notasPie: string | null
+  logoBase64: string | null
+  firmaBase64: string | null
 }
 
 export default function FacturasRecurrentesPage() {
@@ -81,6 +116,11 @@ export default function FacturasRecurrentesPage() {
   const [triggerTipo, setTriggerTipo] = useState<TriggerTipo | null>(null)
   const [triggerValor, setTriggerValor] = useState('')
   const [saldoBanco, setSaldoBanco] = useState('')
+  const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [editAttachments, setEditAttachments] = useState<Attachment[]>([])
+  const [editingPlantilla, setEditingPlantilla] = useState<FacturaRecurrente | null>(null)
+  const [nuevoAttachmentNombre, setNuevoAttachmentNombre] = useState('')
+  const [nuevoAttachmentUrl, setNuevoAttachmentUrl] = useState('')
 
   const ORDER_KEY = 'facturas-recurrentes-orden'
 
@@ -118,7 +158,7 @@ export default function FacturasRecurrentesPage() {
         .order('createdAt', { ascending: false }),
       getSupabase()
         .from('perfiles')
-        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion, notasPie')
+        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion, notasPie, logoBase64, firmaBase64')
         .eq('userId', user.id)
         .single(),
     ])
@@ -151,10 +191,12 @@ export default function FacturasRecurrentesPage() {
     setGuardando(true)
     setError('')
     try {
-      const triggerConfig: TriggerConfig = triggerTipo
-        ? { triggerTipo, triggerValor: parseFloat(triggerValor) || null }
-        : { triggerTipo: null, triggerValor: null }
-      const notas = JSON.stringify(triggerConfig)
+      const notasData: NotasData = {
+        triggerTipo: triggerTipo ?? null,
+        triggerValor: triggerTipo ? parseFloat(triggerValor) || null : null,
+        attachments: attachments.length > 0 ? attachments : [],
+      }
+      const notas = serializarNotasData(notasData)
 
       const res = await fetch('/api/facturas/recurrentes', {
         method: 'POST',
@@ -183,6 +225,7 @@ export default function FacturasRecurrentesPage() {
       setBaseImponible('')
       setTriggerTipo(null)
       setTriggerValor('')
+      setAttachments([])
       setMostrarForm(false)
       await fetchPlantillas()
     } catch {
@@ -267,6 +310,8 @@ export default function FacturasRecurrentesPage() {
         empresaDireccion: perfil?.empresa_direccion ?? undefined,
         empresaNif: perfil?.empresa_nif ?? undefined,
         notas: perfil?.notasPie ?? null,
+        logoBase64: perfil?.logoBase64 ?? undefined,
+        firmaBase64: perfil?.firmaBase64 ?? undefined,
       })
     } finally {
       setGenerandoPdfId(null)
@@ -594,6 +639,62 @@ export default function FacturasRecurrentesPage() {
                 </div>
               )}
             </div>
+            <div className="space-y-3 rounded-md border p-4">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
+                Documentos adjuntos (opcional)
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Añade enlaces a documentos relacionados con esta plantilla (contratos, presupuestos, etc.)
+              </p>
+              {attachments.length > 0 && (
+                <div className="space-y-1.5">
+                  {attachments.map((att, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-1.5 text-xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FileText className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
+                        <span className="font-medium truncate">{att.nombre}</span>
+                        <span className="text-muted-foreground truncate">({att.url})</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 shrink-0"
+                        onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
+                        aria-label={`Eliminar ${att.nombre}`}
+                      >
+                        <Trash2 className="h-3 w-3" aria-hidden="true" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]">
+                <Input
+                  value={nuevoAttachmentNombre}
+                  onChange={e => setNuevoAttachmentNombre(e.target.value)}
+                  placeholder="Nombre del documento"
+                />
+                <Input
+                  value={nuevoAttachmentUrl}
+                  onChange={e => setNuevoAttachmentUrl(e.target.value)}
+                  placeholder="URL del documento"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!nuevoAttachmentNombre.trim() || !nuevoAttachmentUrl.trim()}
+                  onClick={() => {
+                    setAttachments(prev => [...prev, { nombre: nuevoAttachmentNombre.trim(), url: nuevoAttachmentUrl.trim() }])
+                    setNuevoAttachmentNombre('')
+                    setNuevoAttachmentUrl('')
+                  }}
+                >
+                  <Plus className="h-3 w-3" aria-hidden="true" />
+                </Button>
+              </div>
+            </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setMostrarForm(false)}>Cancelar</Button>
@@ -673,6 +774,16 @@ export default function FacturasRecurrentesPage() {
                             Última generación: {new Date(p.ultimaGeneracion).toLocaleDateString('es-ES')}
                           </p>
                         )}
+                        {parseAttachments(p.notas).length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {parseAttachments(p.notas).map((att, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs gap-1">
+                                <Paperclip className="h-2.5 w-2.5" aria-hidden="true" />
+                                {att.nombre}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                         {p.activa && (
                           <p className="text-xs text-muted-foreground">
                             Próxima generación: {calcularProximaGeneracion(p.diaGeneracion).toLocaleDateString('es-ES')}
@@ -700,6 +811,7 @@ export default function FacturasRecurrentesPage() {
                       empresaDireccion: perfil?.empresa_direccion ?? undefined,
                       empresaNif: perfil?.empresa_nif ?? undefined,
                       notas: perfil?.notasPie ?? null,
+                      logoBase64: perfil?.logoBase64 ?? undefined,
                     }} />
 
                     <Button
@@ -744,6 +856,20 @@ export default function FacturasRecurrentesPage() {
                       </AlertDialogContent>
                     </AlertDialog>
 
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => {
+                        setEditingPlantilla(p)
+                        setEditAttachments(parseAttachments(p.notas))
+                        setNuevoAttachmentNombre('')
+                        setNuevoAttachmentUrl('')
+                      }}
+                      aria-label="Editar adjuntos"
+                    >
+                      <Paperclip className="h-3 w-3" aria-hidden="true" />
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleActiva(p.id, p.activa)} aria-label={p.activa ? 'Desactivar recurrente' : 'Activar recurrente'}>
                       {p.activa ? <Pause className="h-3 w-3" aria-hidden="true" /> : <Play className="h-3 w-3" aria-hidden="true" />}
                     </Button>
@@ -775,6 +901,95 @@ export default function FacturasRecurrentesPage() {
       <p className="text-xs text-muted-foreground text-center">
         Las facturas se generan automáticamente el día que especifiques. Recibirás un email de recordatorio.
       </p>
+
+      <Dialog open={!!editingPlantilla} onOpenChange={(open) => !open && setEditingPlantilla(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Documentos adjuntos</DialogTitle>
+            <DialogDescription>
+              Gestiona los documentos adjuntos de la plantilla &ldquo;{editingPlantilla?.emisorReceptor}&rdquo;
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {editAttachments.length > 0 ? (
+              <div className="space-y-1.5">
+                {editAttachments.map((att, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-md border px-3 py-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{att.nombre}</p>
+                        <p className="text-xs text-muted-foreground truncate">{att.url}</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 text-destructive"
+                      onClick={() => setEditAttachments(prev => prev.filter((_, j) => j !== i))}
+                      aria-label={`Eliminar ${att.nombre}`}
+                    >
+                      <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No hay documentos adjuntos
+              </p>
+            )}
+            <div className="space-y-2">
+              <Label>Añadir documento</Label>
+              <div className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]">
+                <Input
+                  value={nuevoAttachmentNombre}
+                  onChange={e => setNuevoAttachmentNombre(e.target.value)}
+                  placeholder="Nombre"
+                />
+                <Input
+                  value={nuevoAttachmentUrl}
+                  onChange={e => setNuevoAttachmentUrl(e.target.value)}
+                  placeholder="URL"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={!nuevoAttachmentNombre.trim() || !nuevoAttachmentUrl.trim()}
+                  onClick={() => {
+                    setEditAttachments(prev => [...prev, { nombre: nuevoAttachmentNombre.trim(), url: nuevoAttachmentUrl.trim() }])
+                    setNuevoAttachmentNombre('')
+                    setNuevoAttachmentUrl('')
+                  }}
+                >
+                  <Plus className="h-3 w-3" aria-hidden="true" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingPlantilla(null)}>Cancelar</Button>
+            <Button
+              onClick={async () => {
+                if (!editingPlantilla) return
+                const nuevasNotas = serializarNotasConAttachments(editingPlantilla.notas, editAttachments)
+                await fetch(`/api/facturas/recurrentes/${editingPlantilla.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ notas: nuevasNotas }),
+                })
+                setPlantillas(prev => prev.map(p =>
+                  p.id === editingPlantilla.id ? { ...p, notas: nuevasNotas } : p
+                ))
+                setEditingPlantilla(null)
+              }}
+            >
+              Guardar adjuntos
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

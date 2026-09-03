@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FileSpreadsheet, ArrowRightLeft } from 'lucide-react'
+import { SelectorMoneda } from '@/components/selector-moneda'
 
 type ConversionType = 'moneda' | 'longitud' | 'peso' | 'temperatura'
 
@@ -15,9 +16,13 @@ const MONEDAS = [
   { value: 'USD', label: 'Dólar (USD)' },
   { value: 'GBP', label: 'Libra (GBP)' },
   { value: 'CHF', label: 'Franco suizo (CHF)' },
+  { value: 'CAD', label: 'Dólar canadiense (CAD)' },
+  { value: 'AUD', label: 'Dólar australiano (AUD)' },
+  { value: 'JPY', label: 'Yen japonés (JPY)' },
   { value: 'MXN', label: 'Peso mexicano (MXN)' },
   { value: 'ARS', label: 'Peso argentino (ARS)' },
   { value: 'COP', label: 'Peso colombiano (COP)' },
+  { value: 'BRL', label: 'Real brasileño (BRL)' },
 ]
 
 const TASAS_CAMBIO_APROX: Record<string, Record<string, number>> = {
@@ -83,16 +88,17 @@ export default function ConversionesPage() {
   useEffect(() => {
     const fetchTasas = async () => {
       try {
-        const res = await fetch('https://api.frankfurter.dev/latest?from=EUR&to=USD,GBP,CHF,MXN,ARS,COP')
+        const allCodes = ['USD', 'GBP', 'CHF', 'CAD', 'AUD', 'JPY', 'MXN', 'ARS', 'COP', 'BRL']
+        const res = await fetch(`https://api.frankfurter.dev/latest?from=EUR&to=${allCodes.join(',')}`)
         if (!res.ok) throw new Error('Failed to fetch')
         const data = await res.json()
         const eurRates = data.rates as Record<string, number>
 
         const newTasas: Record<string, Record<string, number>> = { EUR: { ...eurRates } }
 
-        for (const from of ['USD', 'GBP', 'CHF', 'MXN', 'ARS', 'COP']) {
+        for (const from of allCodes) {
           newTasas[from] = {}
-          for (const to of ['EUR', 'USD', 'GBP', 'CHF', 'MXN', 'ARS', 'COP']) {
+          for (const to of ['EUR', ...allCodes]) {
             if (from === to) continue
             if (to === 'EUR') {
               newTasas[from][to] = 1 / (eurRates[from] ?? 1)
@@ -246,27 +252,41 @@ export default function ConversionesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Desde</Label>
-                <select
-                  value={from}
-                  onChange={(e) => { setFrom(e.target.value); setResultado(null) }}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                >
-                  {getFromUnits().map((u) => (
-                    <option key={u.value} value={u.value}>{u.label}</option>
-                  ))}
-                </select>
+                {tipo === 'moneda' ? (
+                  <SelectorMoneda
+                    value={from}
+                    onChange={(v) => { setFrom(v); setResultado(null) }}
+                  />
+                ) : (
+                  <select
+                    value={from}
+                    onChange={(e) => { setFrom(e.target.value); setResultado(null) }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                  >
+                    {getFromUnits().map((u) => (
+                      <option key={u.value} value={u.value}>{u.label}</option>
+                    ))}
+                  </select>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Hasta</Label>
-                <select
-                  value={to}
-                  onChange={(e) => { setTo(e.target.value); setResultado(null) }}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                >
-                  {getFromUnits().map((u) => (
-                    <option key={u.value} value={u.value}>{u.label}</option>
-                  ))}
-                </select>
+                {tipo === 'moneda' ? (
+                  <SelectorMoneda
+                    value={to}
+                    onChange={(v) => { setTo(v); setResultado(null) }}
+                  />
+                ) : (
+                  <select
+                    value={to}
+                    onChange={(e) => { setTo(e.target.value); setResultado(null) }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                  >
+                    {getFromUnits().map((u) => (
+                      <option key={u.value} value={u.value}>{u.label}</option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
           )}
