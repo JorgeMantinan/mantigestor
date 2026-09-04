@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         const emailEncoded = encodeURIComponent(email)
 
         const emailResult = await resend.emails.send({
-          from: process.env.EMAIL_FROM || 'MantiGestor <onboarding@resend.dev>',
+          from: 'MantiGestor <onboarding@resend.dev>',
           to: email,
           subject: `${user.email} te invita a MantiGestor`,
           html: `
