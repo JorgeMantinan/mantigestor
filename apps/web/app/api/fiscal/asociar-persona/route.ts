@@ -68,18 +68,20 @@ export async function POST(req: NextRequest) {
       })
 
     if (insertError) {
-      console.error('Error creating invitation:', insertError.message, insertError.code, insertError.details)
+      console.error('Error creating invitation:', JSON.stringify(insertError))
       return serverError(new Error('No se pudo crear la invitación. Ejecuta la migración SQL en Supabase.'))
     }
 
     // Enviar email de invitación
-    if (process.env.RESEND_API_KEY) {
+    if (!process.env.RESEND_API_KEY) {
+      console.log('RESEND_API_KEY not set — email skipped. Invitation ID:', invitacionId)
+    } else {
       try {
         const { Resend } = await import('resend')
         const resend = new Resend(process.env.RESEND_API_KEY)
         const emailEncoded = encodeURIComponent(email)
 
-        await resend.emails.send({
+        const emailResult = await resend.emails.send({
           from: process.env.EMAIL_FROM || 'MantiGestor <onboarding@resend.dev>',
           to: email,
           subject: `${user.email} te invita a MantiGestor`,
@@ -103,8 +105,10 @@ export async function POST(req: NextRequest) {
             </div>
           `,
         })
+
+        console.log('Invitation email sent to:', email, 'Result:', JSON.stringify(emailResult))
       } catch (emailError) {
-        console.error('Error sending invitation email:', emailError)
+        console.error('Error sending invitation email:', JSON.stringify(emailError))
       }
     }
 
