@@ -33,6 +33,9 @@ interface Propiedad {
   inquilinoNombre: string | null
   inquilinoEmail: string | null
   inquilinoTelefono: string | null
+  fechaInicioContrato: string | null
+  duracionContratoMeses: number | null
+  proximaRevision: string | null
   gastos: Gasto[]
 }
 
@@ -72,6 +75,9 @@ export default function AlquilerPage() {
       inquilinoNombre: (p.inquilinoNombre as string | null) ?? null,
       inquilinoEmail: (p.inquilinoEmail as string | null) ?? null,
       inquilinoTelefono: (p.inquilinoTelefono as string | null) ?? null,
+      fechaInicioContrato: (p.fechaInicioContrato as string | null) ?? null,
+      duracionContratoMeses: (p.duracionContratoMeses as number | null) ?? null,
+      proximaRevision: (p.proximaRevision as string | null) ?? null,
       gastos: ((p.gastos_alquiler as Record<string, unknown>[]) ?? []).map((g) => ({
         id: g.id as string,
         concepto: g.concepto as string,
@@ -145,6 +151,9 @@ export default function AlquilerPage() {
       inquilinoNombre: (form.get('inquilinoNombre') as string)?.trim() || null,
       inquilinoEmail: (form.get('inquilinoEmail') as string)?.trim() || null,
       inquilinoTelefono: (form.get('inquilinoTelefono') as string)?.trim() || null,
+      fechaInicioContrato: (form.get('fechaInicioContrato') as string) || null,
+      duracionContratoMeses: form.get('duracionContratoMeses') ? parseInt(form.get('duracionContratoMeses') as string) : null,
+      proximaRevision: (form.get('proximaRevision') as string) || null,
     }).select().single()
 
     if (!error && data) {
@@ -155,6 +164,9 @@ export default function AlquilerPage() {
         inquilinoNombre: data.inquilinoNombre,
         inquilinoEmail: data.inquilinoEmail,
         inquilinoTelefono: data.inquilinoTelefono,
+        fechaInicioContrato: data.fechaInicioContrato ?? null,
+        duracionContratoMeses: data.duracionContratoMeses ?? null,
+        proximaRevision: data.proximaRevision ?? null,
         gastos: [],
       }, ...propiedades])
       setShowForm(false)
@@ -175,6 +187,9 @@ export default function AlquilerPage() {
         inquilinoNombre: (form.get('inquilinoNombre') as string)?.trim() || null,
         inquilinoEmail: (form.get('inquilinoEmail') as string)?.trim() || null,
         inquilinoTelefono: (form.get('inquilinoTelefono') as string)?.trim() || null,
+        fechaInicioContrato: (form.get('fechaInicioContrato') as string) || null,
+        duracionContratoMeses: form.get('duracionContratoMeses') ? parseInt(form.get('duracionContratoMeses') as string) : null,
+        proximaRevision: (form.get('proximaRevision') as string) || null,
       })
       .eq('id', id)
 
@@ -186,6 +201,9 @@ export default function AlquilerPage() {
           inquilinoNombre: (form.get('inquilinoNombre') as string)?.trim() || null,
           inquilinoEmail: (form.get('inquilinoEmail') as string)?.trim() || null,
           inquilinoTelefono: (form.get('inquilinoTelefono') as string)?.trim() || null,
+          fechaInicioContrato: (form.get('fechaInicioContrato') as string) || null,
+          duracionContratoMeses: form.get('duracionContratoMeses') ? parseInt(form.get('duracionContratoMeses') as string) : null,
+          proximaRevision: (form.get('proximaRevision') as string) || null,
         } : p
       ))
       setEditingId(null)

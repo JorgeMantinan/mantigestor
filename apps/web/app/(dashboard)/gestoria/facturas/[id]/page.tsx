@@ -17,6 +17,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useParsearVoz } from '@/hooks/use-parsear-voz'
 import { VoiceInput } from '@/components/facturas/voice-input'
 import { logAccion } from '@/lib/audit-log'
+import { descargarFacturaXML } from '@/lib/factura-xml'
 import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
 import { generarFacturaClientePDF, NOMBRES_PLANTILLAS, type PlantillaFactura } from '@/lib/factura-cliente-pdf'
 import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
@@ -61,7 +62,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [tagsSeleccionados, setTagsSeleccionados] = useState<string[]>([])
   const [nuevoTagCustom, setNuevoTagCustom] = useState('')
   const [mostrarTagsDropdown, setMostrarTagsDropdown] = useState(false)
-  const [perfil, setPerfil] = useState<{ nombre: string | null; empresa_nombre: string | null; empresa_nif: string | null; empresa_direccion: string | null; logoBase64: string | null; firmaBase64: string | null; idiomaFactura: string | null } | null>(null)
+  const [perfil, setPerfil] = useState<{ nombre: string | null; email: string | null; empresa_nombre: string | null; empresa_nif: string | null; empresa_direccion: string | null; logoBase64: string | null; firmaBase64: string | null; idiomaFactura: string | null } | null>(null)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [emailDestino, setEmailDestino] = useState('')
   const [enviandoEmail, setEnviandoEmail] = useState(false)
@@ -116,7 +117,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       }
       const { data: perfilData } = await getSupabase()
         .from('perfiles')
-        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion, logoBase64, firmaBase64, idiomaFactura')
+        .select('nombre, email, empresa_nombre, empresa_nif, empresa_direccion, logoBase64, firmaBase64, idiomaFactura')
         .eq('id', user.id)
         .single()
       if (perfilData) setPerfil(perfilData)
@@ -445,6 +446,31 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           }}>
             <Download className="mr-2 h-4 w-4" />
             Descargar PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => {
+            void logAccion('crear', 'factura', factura.id, `XML descargado para factura ${factura.numero}`, { tipo: 'xml_descargado' })
+            descargarFacturaXML(
+              {
+                numero: factura.numero,
+                fechaEmision: factura.fechaEmision,
+                emisorReceptor: factura.emisorReceptor,
+                nifContraparte: factura.nifContraparte,
+                baseImponible: factura.baseImponible,
+                iva: factura.iva,
+                total: factura.total,
+                tipo: factura.tipo,
+                notas,
+              },
+              {
+                nombre: perfil?.empresa_nombre ?? perfil?.nombre ?? null,
+                nif: perfil?.empresa_nif ?? null,
+                direccion: perfil?.empresa_direccion ?? null,
+                email: perfil?.email ?? null,
+              }
+            )
+          }}>
+            <Download className="mr-2 h-4 w-4" />
+            Descargar XML
           </Button>
           <Button variant="outline" size="sm" onClick={() => setEditing(!editing)}>
             <Pencil className="mr-2 h-4 w-4" />

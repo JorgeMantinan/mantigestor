@@ -34,6 +34,9 @@ interface Propiedad {
   inquilinoNombre: string | null
   inquilinoEmail: string | null
   inquilinoTelefono: string | null
+  fechaInicioContrato: string | null
+  duracionContratoMeses: number | null
+  proximaRevision: string | null
   gastos: Gasto[]
 }
 
@@ -128,6 +131,14 @@ export const PropertyCard = memo(function PropertyCard({
           </div>
         )}
 
+        {(p.fechaInicioContrato || p.duracionContratoMeses || p.proximaRevision) && (
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground border-t pt-3">
+            {p.fechaInicioContrato && <span>Inicio contrato: {new Date(p.fechaInicioContrato).toLocaleDateString('es-ES')}</span>}
+            {p.duracionContratoMeses && <span>Duración: {p.duracionContratoMeses} meses</span>}
+            {p.proximaRevision && <span>Próxima revisión: {new Date(p.proximaRevision).toLocaleDateString('es-ES')}</span>}
+          </div>
+        )}
+
         {editingId === p.id && (
           <form onSubmit={(e) => { e.preventDefault(); onEdit(p.id, e) }} className="space-y-4 rounded-lg border p-4">
             <p className="text-sm font-medium">Editar propiedad</p>
@@ -148,6 +159,20 @@ export const PropertyCard = memo(function PropertyCard({
               <div className="space-y-2">
                 <Label htmlFor="edit-inquilinoTelefono">Teléfono</Label>
                 <Input id="edit-inquilinoTelefono" name="inquilinoTelefono" defaultValue={p.inquilinoTelefono ?? ''} />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="edit-fechaInicio">Inicio contrato</Label>
+                <Input id="edit-fechaInicio" name="fechaInicioContrato" type="date" defaultValue={p.fechaInicioContrato?.slice(0, 10) ?? ''} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-duracion">Duración (meses)</Label>
+                <Input id="edit-duracion" name="duracionContratoMeses" type="number" min="1" defaultValue={p.duracionContratoMeses ?? ''} placeholder="12" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-proximaRevision">Próxima revisión</Label>
+                <Input id="edit-proximaRevision" name="proximaRevision" type="date" defaultValue={p.proximaRevision?.slice(0, 10) ?? ''} />
               </div>
             </div>
             <div className="flex gap-2">
