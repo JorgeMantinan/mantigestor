@@ -86,6 +86,9 @@ const WidgetClientes = dynamic(() => import('@/components/dashboard/widget-clien
 const WidgetComparativaAnual = dynamic(() => import('@/components/dashboard/widget-comparativa-anual').then(m => m.WidgetComparativaAnual), {
   loading: () => <div className="h-[260px] animate-pulse bg-muted rounded" />,
 })
+const WidgetAlertasCobro = dynamic(() => import('@/components/dashboard/widget-alertas-cobro').then(m => m.WidgetAlertasCobro), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
 
 interface Factura {
   id: string
@@ -452,6 +455,7 @@ export default function DashboardPage() {
           {isVisible('forecasting') && <WidgetForecasting facturas={facturasFiltradas} />}
           {isVisible('clientes') && <WidgetClientes facturas={facturasFiltradas} />}
           {isVisible('comparativa-anual') && <WidgetComparativaAnual facturas={facturasFiltradas} />}
+          {isVisible('alertas-cobro') && <WidgetAlertasCobro facturas={facturasFiltradas} />}
         </div>
       )}
 

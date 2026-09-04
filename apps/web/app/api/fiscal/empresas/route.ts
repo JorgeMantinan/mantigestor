@@ -22,17 +22,23 @@ export async function GET(req: NextRequest) {
   try {
     const { success } = rateLimitByIp(req)
     if (!success) {
-      return NextResponse.json({ error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' }, { status: 429 })
+      return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
     }
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
     const supabase = supabaseAdmin()
-    const { data } = await supabase
+    const { data, error: queryError } = await supabase
       .from('perfiles')
-      .select('empresas')
+      .select('id, empresas')
       .eq('userId', user.id)
       .maybeSingle()
+
+    if (queryError) {
+      // Column empresas might not exist yet — return empty list
+      console.error('Error querying empresas:', queryError.message)
+      return Response.json({ empresas: [] })
+    }
 
     let empresas: unknown[] = []
     if (data?.empresas) {
@@ -53,49 +59,93 @@ export async function POST(req: NextRequest) {
   try {
     const { success } = rateLimitByIp(req)
     if (!success) {
-      return NextResponse.json({ error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' }, { status: 429 })
+      return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
     }
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
     const body: unknown = await req.json()
     const parsed = EmpresaSchema.safeParse(body)
-    if (!parsed.success) return badRequest('Datos de empresa inválidos')
+    if (!parsed.success) {
+      console.error('Zod validation error:', parsed.error.flatten())
+      return badRequest(new Error(`Datos inválidos: ${parsed.error.issues.map(i => i.message).join(', ')}`))
+    }
 
     const supabase = supabaseAdmin()
-    const { data: perfil } = await supabase
+    const { data: perfil, error: perfilError } = await supabase
       .from('perfiles')
       .select('id, empresas')
       .eq('userId', user.id)
       .maybeSingle()
 
-    if (!perfil) return badRequest('Perfil no encontrado')
+    if (perfilError) {
+      console.error('Error fetching profile:', perfilError.message)
+      return serverError(new Error('Error al buscar perfil: ' + perfilError.message))
+    }
 
-    let empresas: { id: string; nombre: string; nif: string; direccion: string; activa: boolean }[] = []
-    if (perfil.empresas) {
-      try {
-        empresas = JSON.parse(perfil.empresas)
-      } catch {
-        empresas = []
+    if (!perfil) {
+      // Try to create profile for this user
+      const { error: createError } = await supabase
+        .from('perfiles')
+        .insert({
+          id: crypto.randomUUID(),
+          userId: user.id,
+          email: user.email ?? '',
+        })
+      if (createError) {
+        console.error('Error creating profile:', createError.message)
+        return serverError(new Error('Perfil no encontrado y no se pudo crear'))
       }
+      // Re-fetch
+      const { data: newPerfil } = await supabase
+        .from('perfiles')
+        .select('id, empresas')
+        .eq('userId', user.id)
+        .maybeSingle()
+      if (!newPerfil) return serverError(new Error('Perfil no encontrado'))
+      return await crearEmpresaConPerfil(newPerfil, parsed.data, supabase)
     }
 
-    const nuevaEmpresa = {
-      id: crypto.randomUUID(),
-      ...parsed.data,
-      activa: empresas.length === 0,
-    }
-    empresas.push(nuevaEmpresa)
-
-    const { error } = await supabase
-      .from('perfiles')
-      .update({ empresas: JSON.stringify(empresas), updatedAt: new Date().toISOString() })
-      .eq('id', perfil.id)
-
-    if (error) throw new Error('No se pudo guardar la empresa')
-
-    return Response.json({ empresa: nuevaEmpresa })
+    return await crearEmpresaConPerfil(perfil, parsed.data, supabase)
   } catch (error) {
     return serverError(error)
   }
+}
+
+async function crearEmpresaConPerfil(
+  perfil: { id: string; empresas: string | null },
+  data: { nombre: string; nif: string; direccion: string },
+  supabase: ReturnType<typeof supabaseAdmin>
+) {
+  let empresas: { id: string; nombre: string; nif: string; direccion: string; activa: boolean }[] = []
+  if (perfil.empresas) {
+    try {
+      empresas = JSON.parse(perfil.empresas)
+    } catch {
+      empresas = []
+    }
+  }
+
+  const nuevaEmpresa = {
+    id: crypto.randomUUID(),
+    ...data,
+    activa: empresas.length === 0,
+  }
+  empresas.push(nuevaEmpresa)
+
+  const { error } = await supabase
+    .from('perfiles')
+    .update({ empresas: JSON.stringify(empresas), updatedAt: new Date().toISOString() })
+    .eq('id', perfil.id)
+
+  if (error) {
+    console.error('Error saving empresa:', error.message)
+    // If column empresas doesn't exist, try to add it via SQL
+    if (error.message.includes('column') && error.message.includes('empresas')) {
+      return serverError(new Error('La columna empresas no existe en la base de datos. Ejecuta la migración: ALTER TABLE perfiles ADD COLUMN empresas TEXT;'))
+    }
+    return serverError(new Error('No se pudo guardar la empresa: ' + error.message))
+  }
+
+  return Response.json({ empresa: nuevaEmpresa })
 }
