@@ -132,7 +132,14 @@ function PerfilTab() {
 
     const { error } = await getSupabase()
       .from('perfiles')
-      .upsert({ id: user.id, nombre, nif, provincia, situacion, empresa_nombre: empresaNombre, empresa_nif: empresaNif, empresa_direccion: empresaDireccion, logoBase64, idiomaFactura })
+      .upsert({
+        id: user.id,
+        nombre,
+        nif,
+        notasPie,
+        logoBase64,
+        idiomaFactura,
+      })
       .eq('id', user.id)
 
     if (error) {
