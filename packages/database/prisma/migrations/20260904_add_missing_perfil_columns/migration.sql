@@ -87,3 +87,19 @@ BEGIN
   WHERE p.id = ANY(p_ids);
 END;
 $$;
+
+-- ============================================
+-- 6. Función para obtener quién gestiona un perfil (bypasea RLS)
+-- ============================================
+CREATE OR REPLACE FUNCTION obtener_gestores_de_perfil(p_perfil_id TEXT)
+RETURNS TABLE(ownerUserId TEXT, rol TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT pa."ownerUserId", pa.rol
+  FROM perfil_asociado pa
+  WHERE pa."perfilId" = p_perfil_id;
+END;
+$$;

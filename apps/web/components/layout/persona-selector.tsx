@@ -103,9 +103,9 @@ export function PersonaSelector() {
             <DropdownMenuItem key={p.perfilId} onClick={() => setPerfilActivo(p.perfilId)}>
               <Users className="mr-2 h-4 w-4" />
               <div className="flex flex-col">
-                <span className="text-sm">{p.nombre ?? p.email}</span>
+                <span className="text-sm">{p.nombre || 'Sin nombre'}</span>
                 <span className="text-xs text-muted-foreground">
-                  {p.email} {p.tipo === 'me_gestiona' ? '(te gestiona)' : `(gestionas)`}
+                  {p.email} {p.tipo === 'me_gestiona' ? '(te gestiona)' : '(gestionas)'}
                 </span>
               </div>
               {perfilActivoId === p.perfilId && <Check className="ml-auto h-4 w-4 text-primary" />}

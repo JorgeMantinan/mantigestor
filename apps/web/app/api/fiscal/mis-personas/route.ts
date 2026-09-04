@@ -34,11 +34,9 @@ export async function GET(req: NextRequest) {
       .select('perfilId, rol')
       .eq('ownerUserId', user.id)
 
-    // Obtener personas que me gestionan a mí
+    // Obtener personas que me gestionan a mí (bypasea RLS)
     const { data: meGestionan } = await supabase
-      .from('perfil_asociado')
-      .select('ownerUserId, rol')
-      .eq('perfilId', perfilPropio.id)
+      .rpc('obtener_gestores_de_perfil', { p_perfil_id: perfilPropio.id })
 
     // Obtener datos de los perfiles asociados
     const personas = []
@@ -76,7 +74,7 @@ export async function GET(req: NextRequest) {
 
     // Añadir personas que me gestionan a mí
     if (meGestionan && meGestionan.length > 0) {
-      const gestorIds = meGestionan.map(a => a.ownerUserId)
+      const gestorIds = meGestionan.map((a: any) => a.ownerUserId)
 
       const { data: gestoresFn } = await supabase
         .rpc('obtener_perfiles_por_ids', { p_ids: gestorIds })
