@@ -143,7 +143,9 @@ function PerfilTab() {
       .eq('id', user.id)
 
     if (error) {
-      console.error('Error guardando perfil:', error)
+      console.error('Error guardando perfil:', JSON.stringify(error))
+    } else {
+      console.log('Perfil guardado correctamente para:', user.id)
     }
     await guardarNotasPieDefecto(user.id, notasPie)
     setGuardando(false)
