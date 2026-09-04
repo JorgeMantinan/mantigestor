@@ -87,6 +87,7 @@ function PerfilTab() {
   const [notasPie, setNotasPie] = useState<string[]>([])
   const [logoBase64, setLogoBase64] = useState<string | null>(null)
   const [firma, setFirma] = useState<FirmaDigital | null>(null)
+  const [idiomaFactura, setIdiomaFactura] = useState<'es' | 'en'>('es')
   const [guardando, setGuardando] = useState(false)
   const [guardandoFirma, setGuardandoFirma] = useState(false)
   const [cargando, setCargando] = useState(true)
@@ -100,7 +101,7 @@ function PerfilTab() {
 
       const { data } = await getSupabase()
         .from('perfiles')
-        .select('nombre, nif, provincia, situacion, empresa_nombre, empresa_nif, empresa_direccion, logoBase64')
+        .select('nombre, nif, provincia, situacion, empresa_nombre, empresa_nif, empresa_direccion, logoBase64, idiomaFactura')
         .eq('id', user.id)
         .single()
 
@@ -113,6 +114,7 @@ function PerfilTab() {
         setEmpresaNif(data.empresa_nif ?? '')
         setEmpresaDireccion(data.empresa_direccion ?? '')
         setLogoBase64(data.logoBase64 ?? null)
+        setIdiomaFactura((data.idiomaFactura as 'es' | 'en') ?? 'es')
       }
       const notas = await obtenerNotasPieDefecto(user.id)
       setNotasPie(notas)
@@ -130,7 +132,7 @@ function PerfilTab() {
 
     const { error } = await getSupabase()
       .from('perfiles')
-      .upsert({ id: user.id, nombre, nif, provincia, situacion, empresa_nombre: empresaNombre, empresa_nif: empresaNif, empresa_direccion: empresaDireccion, logoBase64 })
+      .upsert({ id: user.id, nombre, nif, provincia, situacion, empresa_nombre: empresaNombre, empresa_nif: empresaNif, empresa_direccion: empresaDireccion, logoBase64, idiomaFactura })
       .eq('id', user.id)
 
     if (error) {
@@ -206,6 +208,20 @@ function PerfilTab() {
                 <Label htmlFor="empresaDireccion">Dirección fiscal</Label>
                 <Input id="empresaDireccion" value={empresaDireccion} onChange={(e) => setEmpresaDireccion(e.target.value)} placeholder="Calle Ejemplo 123, 28001 Madrid" />
               </div>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <Label htmlFor="idiomaFactura">Idioma de facturas</Label>
+              <p className="text-xs text-muted-foreground">Idioma de las etiquetas y textos en los PDFs de factura generados</p>
+              <select
+                id="idiomaFactura"
+                value={idiomaFactura}
+                onChange={(e) => setIdiomaFactura(e.target.value as 'es' | 'en')}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="es">Español (ES)</option>
+                <option value="en">English (EN)</option>
+              </select>
             </div>
             <Separator />
             <div className="space-y-2">

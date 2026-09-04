@@ -18,6 +18,7 @@ interface FacturaEmailPayload {
   descuentoPorcentaje?: number
   logoBase64?: string
   firmaBase64?: string
+  idioma?: 'es' | 'en'
 }
 
 function formatEuro(cents: number): string {
@@ -175,7 +176,9 @@ export async function enviarFacturaPorEmail(
   facturaId: string,
   email: string,
   factura: FacturaEmailPayload,
-  plantilla: PlantillaFactura = 'clasico'
+  plantilla: PlantillaFactura = 'clasico',
+  asuntoCustom?: string,
+  cuerpoCustom?: string
 ): Promise<{ ok: boolean; skipped?: boolean; error?: string }> {
   const htmlBody = htmlEmailBody(factura)
 
@@ -196,6 +199,8 @@ export async function enviarFacturaPorEmail(
       pdfBase64,
       numero: factura.numero,
       empresaNombre: factura.empresaNombre || 'Mi Empresa',
+      asunto: asuntoCustom,
+      cuerpo: cuerpoCustom,
     }),
   })
 

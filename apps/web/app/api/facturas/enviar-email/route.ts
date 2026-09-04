@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { facturaId, email, htmlBody, pdfBase64, numero, empresaNombre } = await req.json()
+    const { facturaId, email, htmlBody, pdfBase64, numero, empresaNombre, asunto, cuerpo } = await req.json()
 
     if (!facturaId || !email) {
       return badRequest('Faltan campos requeridos')
@@ -40,11 +40,16 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    const subject = asunto || `Factura ${numero} de ${empresaNombre}`
+    const html = cuerpo
+      ? `<div style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;max-width:600px;margin:0 auto;padding:20px"><pre style="white-space:pre-wrap;font-family:inherit;font-size:14px;line-height:1.6">${cuerpo.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></div>`
+      : htmlBody
+
     await resend.emails.send({
       from: process.env.EMAIL_FROM || 'MantiGestor <onboarding@resend.dev>',
       to: email,
-      subject: `Factura ${numero} de ${empresaNombre}`,
-      html: htmlBody,
+      subject,
+      html,
       attachments,
     })
 

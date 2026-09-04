@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText, Zap, CircleDollarSign, CalendarDays, Wallet, Paperclip, Link as LinkIcon } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText, Zap, CircleDollarSign, CalendarDays, Wallet, Paperclip, Link as LinkIcon, CreditCard } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
 import { generarFacturaClientePDF } from '@/lib/factura-cliente-pdf'
 import { DragDropList } from '@/components/drag-drop-list'
+import { crearCheckoutRecurring } from '@/lib/stripe-auto-cobro'
+import { StripeStatus } from '@/components/stripe-status'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -90,6 +92,7 @@ interface PerfilEmpresa {
   notasPie: string | null
   logoBase64: string | null
   firmaBase64: string | null
+  idiomaFactura: string | null
 }
 
 export default function FacturasRecurrentesPage() {
@@ -101,6 +104,7 @@ export default function FacturasRecurrentesPage() {
   const [perfil, setPerfil] = useState<PerfilEmpresa | null>(null)
   const [generandoPdfId, setGenerandoPdfId] = useState<string | null>(null)
   const [creandoAhoraId, setCreandoAhoraId] = useState<string | null>(null)
+  const [cobrandoId, setCobrandoId] = useState<string | null>(null)
   const [batchProgress, setBatchProgress] = useState<{ actual: number; total: number } | null>(null)
   const [batchResult, setBatchResult] = useState<{ generadas: number; omitidas: number } | null>(null)
 
@@ -158,7 +162,7 @@ export default function FacturasRecurrentesPage() {
         .order('createdAt', { ascending: false }),
       getSupabase()
         .from('perfiles')
-        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion, notasPie, logoBase64, firmaBase64')
+        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion, notasPie, logoBase64, firmaBase64, idiomaFactura')
         .eq('userId', user.id)
         .single(),
     ])
@@ -312,6 +316,7 @@ export default function FacturasRecurrentesPage() {
         notas: perfil?.notasPie ?? null,
         logoBase64: perfil?.logoBase64 ?? undefined,
         firmaBase64: perfil?.firmaBase64 ?? undefined,
+        idioma: (perfil?.idiomaFactura as 'es' | 'en') ?? 'es',
       })
     } finally {
       setGenerandoPdfId(null)
@@ -324,6 +329,28 @@ export default function FacturasRecurrentesPage() {
       await generarFactura(plantilla)
     } finally {
       setCreandoAhoraId(null)
+    }
+  }
+
+  const cobrarConStripe = async (plantilla: FacturaRecurrente) => {
+    setCobrandoId(plantilla.id)
+    try {
+      const importeIva = Math.round(plantilla.baseImponible * (plantilla.iva / 100))
+      const total = plantilla.baseImponible + importeIva
+
+      const { data: { user } } = await getSupabase().auth.getUser()
+      if (!user?.email) return
+
+      const ahora = new Date()
+      const numeroSiguiente = `${plantilla.numero}-${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`
+      const descripcion = `Factura ${numeroSiguiente} - ${plantilla.emisorReceptor}`
+
+      const url = await crearCheckoutRecurring(plantilla.id, user.email, total / 100, descripcion)
+      if (url) {
+        window.open(url, '_blank')
+      }
+    } finally {
+      setCobrandoId(null)
     }
   }
 
@@ -476,10 +503,13 @@ export default function FacturasRecurrentesPage() {
             </p>
           </div>
         </div>
-        <Button size="sm" onClick={() => setMostrarForm(!mostrarForm)}>
-          <Plus className="mr-1 h-3 w-3" />
-          Nueva recurrente
-        </Button>
+        <div className="flex items-center gap-3">
+          <StripeStatus />
+          <Button size="sm" onClick={() => setMostrarForm(!mostrarForm)}>
+            <Plus className="mr-1 h-3 w-3" />
+            Nueva recurrente
+          </Button>
+        </div>
       </div>
 
       {!loading && plantillas.length > 0 && (
@@ -855,6 +885,22 @@ export default function FacturasRecurrentesPage() {
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      disabled={!p.activa || cobrandoId === p.id || p.tipo !== 'ingreso'}
+                      onClick={() => void cobrarConStripe(p)}
+                      title={p.tipo !== 'ingreso' ? 'Solo disponible para facturas de ingreso' : 'Cobrar con Stripe'}
+                    >
+                      {cobrandoId === p.id ? (
+                        <RefreshCw className="mr-1 h-3 w-3 animate-spin" />
+                      ) : (
+                        <CreditCard className="mr-1 h-3 w-3" />
+                      )}
+                      Cobrar con Stripe
+                    </Button>
 
                     <Button
                       variant="ghost"

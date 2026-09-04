@@ -24,6 +24,8 @@ import { TimelineFactura } from '@/components/timeline-factura'
 import { MOEDAS, formatoMoneda, obtenerTasaCambio } from '@/lib/divisas'
 import { SelectorMoneda } from '@/components/selector-moneda'
 import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, serializarTags, obtenerNombreTag } from '@/lib/tags'
+import { obtenerPlantillas, renderPlantilla, type PlantillaEmail } from '@/lib/plantillas-email'
+import { EmailPreview } from '@/components/email-preview'
 import { calcularDescuento, formatoDescuento } from '@/lib/descuento-factura'
 import { crearRectificativa, obtenerRectificativas, calcularImporteMaximo, esNotaCredito, esNotaDebito, type RectificativaData, type TipoRectificativa } from '@/lib/rectificativa'
 import { obtenerPagos, calcularSaldoPendiente, estaPagada, registrarPago, METODOS_PAGO, type PagoParcial } from '@/lib/pago-parcial'
@@ -59,11 +61,14 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [tagsSeleccionados, setTagsSeleccionados] = useState<string[]>([])
   const [nuevoTagCustom, setNuevoTagCustom] = useState('')
   const [mostrarTagsDropdown, setMostrarTagsDropdown] = useState(false)
-  const [perfil, setPerfil] = useState<{ nombre: string | null; empresa_nombre: string | null; empresa_nif: string | null; empresa_direccion: string | null; logoBase64: string | null; firmaBase64: string | null } | null>(null)
+  const [perfil, setPerfil] = useState<{ nombre: string | null; empresa_nombre: string | null; empresa_nif: string | null; empresa_direccion: string | null; logoBase64: string | null; firmaBase64: string | null; idiomaFactura: string | null } | null>(null)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [emailDestino, setEmailDestino] = useState('')
   const [enviandoEmail, setEnviandoEmail] = useState(false)
   const [plantilla, setPlantilla] = useState<PlantillaFactura>('clasico')
+  const [plantillaEmailId, setPlantillaEmailId] = useState('envio-factura')
+  const [asuntoEmail, setAsuntoEmail] = useState('')
+  const [cuerpoEmail, setCuerpoEmail] = useState('')
   const [monedaEdit, setMonedaEdit] = useState('EUR')
   const [tipoCambioEdit, setTipoCambioEdit] = useState(1)
   const [cargandoTasaEdit, setCargandoTasaEdit] = useState(false)
@@ -111,7 +116,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       }
       const { data: perfilData } = await getSupabase()
         .from('perfiles')
-        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion, logoBase64, firmaBase64')
+        .select('nombre, empresa_nombre, empresa_nif, empresa_direccion, logoBase64, firmaBase64, idiomaFactura')
         .eq('id', user.id)
         .single()
       if (perfilData) setPerfil(perfilData)
@@ -280,8 +285,11 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
           logoBase64: perfil?.logoBase64 ?? undefined,
           firmaBase64: perfil?.firmaBase64 ?? undefined,
+          idioma: (perfil?.idiomaFactura as 'es' | 'en') ?? 'es',
         },
-        plantilla
+        plantilla,
+        asuntoEmail || undefined,
+        cuerpoEmail || undefined
       )
       if (result.ok) {
         await logAccion('crear', 'factura', factura.id, `Email enviado a ${emailDestino}`, { tipo: 'email', destinatario: emailDestino })
@@ -387,6 +395,26 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           <Button variant="outline" size="sm" onClick={() => {
             const looksLikeEmail = /@.*\./.test(factura.emisorReceptor)
             setEmailDestino(looksLikeEmail ? factura.emisorReceptor : '')
+            const plantillas = obtenerPlantillas()
+            const defaultPlantilla = plantillas.find(p => p.id === 'envio-factura') ?? plantillas[0]
+            if (defaultPlantilla) {
+              const { asunto, cuerpo } = renderPlantilla(defaultPlantilla, {
+                numero: factura.numero,
+                emisorReceptor: factura.emisorReceptor,
+                nifContraparte: factura.nifContraparte,
+                fechaEmision: factura.fechaEmision,
+                baseImponible: factura.baseImponible,
+                iva: factura.iva,
+                total: factura.total,
+                tipo: factura.tipo,
+              }, {
+                nombre: perfil?.nombre ?? null,
+                empresa_nombre: perfil?.empresa_nombre ?? null,
+              })
+              setPlantillaEmailId('envio-factura')
+              setAsuntoEmail(asunto)
+              setCuerpoEmail(cuerpo)
+            }
             setEmailDialogOpen(true)
           }}>
             <Mail className="mr-2 h-4 w-4" />
@@ -411,6 +439,8 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               pagosParciales: pagosParciales.length > 0 ? pagosParciales : undefined,
               logoBase64: perfil?.logoBase64 ?? undefined,
               firmaBase64: perfil?.firmaBase64 ?? undefined,
+              qrUrl: `${window.location.origin}/factura?token=${factura.id}`,
+              idioma: (perfil?.idiomaFactura as 'es' | 'en') ?? 'es',
             }, plantilla)
           }}>
             <Download className="mr-2 h-4 w-4" />
@@ -1098,22 +1128,86 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       </Dialog>
 
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Enviar factura por email</DialogTitle>
             <DialogDescription>
               Se enviará la factura {factura.numero} como PDF adjunto a la dirección indicada.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="email-destino">Dirección de email</Label>
-            <Input
-              id="email-destino"
-              type="email"
-              placeholder="ejemplo@email.com"
-              value={emailDestino}
-              onChange={(e) => setEmailDestino(e.target.value)}
-            />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email-destino">Dirección de email</Label>
+              <Input
+                id="email-destino"
+                type="email"
+                placeholder="ejemplo@email.com"
+                value={emailDestino}
+                onChange={(e) => setEmailDestino(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email-plantilla-tipo">Plantilla de email</Label>
+              <select
+                id="email-plantilla-tipo"
+                value={plantillaEmailId}
+                onChange={(e) => {
+                  const id = e.target.value
+                  setPlantillaEmailId(id)
+                  const plantillas = obtenerPlantillas()
+                  const seleccionada = plantillas.find(p => p.id === id)
+                  if (seleccionada && factura && perfil) {
+                    const { asunto, cuerpo } = renderPlantilla(seleccionada, {
+                      numero: factura.numero,
+                      emisorReceptor: factura.emisorReceptor,
+                      nifContraparte: factura.nifContraparte,
+                      fechaEmision: factura.fechaEmision,
+                      baseImponible: factura.baseImponible,
+                      iva: factura.iva,
+                      total: factura.total,
+                      tipo: factura.tipo,
+                    }, {
+                      nombre: perfil.nombre,
+                      empresa_nombre: perfil.empresa_nombre,
+                    })
+                    setAsuntoEmail(asunto)
+                    setCuerpoEmail(cuerpo)
+                  }
+                }}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                {obtenerPlantillas().map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre}</option>
+                ))}
+              </select>
+            </div>
+            {factura && perfil && (() => {
+              const plantillas = obtenerPlantillas()
+              const plantillaActual = plantillas.find(p => p.id === plantillaEmailId) ?? plantillas[0]
+              if (!plantillaActual) return null
+              const datosFactura = {
+                numero: factura.numero,
+                emisorReceptor: factura.emisorReceptor,
+                nifContraparte: factura.nifContraparte,
+                fechaEmision: factura.fechaEmision,
+                baseImponible: factura.baseImponible,
+                iva: factura.iva,
+                total: factura.total,
+                tipo: factura.tipo,
+              }
+              const datosPerfil = { nombre: perfil.nombre, empresa_nombre: perfil.empresa_nombre }
+              const renderDefault = renderPlantilla(plantillaActual, datosFactura, datosPerfil)
+              return (
+                <EmailPreview
+                  plantilla={plantillaActual}
+                  asuntoRenderizado={asuntoEmail || renderDefault.asunto}
+                  cuerpoRenderizado={cuerpoEmail || renderDefault.cuerpo}
+                  onAsuntoChange={setAsuntoEmail}
+                  onCuerpoChange={setCuerpoEmail}
+                  editable
+                />
+              )
+            })()}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEmailDialogOpen(false)} disabled={enviandoEmail}>

@@ -21,6 +21,7 @@ model Perfil {
   logoBase64      String? // logo de empresa en base64 data URL para facturas (max 500KB)
   firmaBase64     String? // firma digital en base64 JSON: {imagen, nombre, fecha, cargo}
   empresas        String? // JSON array de empresas: [{id,nombre,nif,direccion,activa}]
+  idiomaFactura   String?  @default("es") // 'es' | 'en' — idioma de las facturas PDF
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

@@ -32,6 +32,7 @@ import {
   BookOpen,
   Repeat,
   Zap,
+  ListChecks,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -58,6 +59,7 @@ export function Sidebar() {
         { label: t('nav.renta'), href: '/gestoria/renta', icon: Landmark },
         { label: t('nav.packAnual'), href: '/gestoria/pack-anual', icon: FileText },
         { label: t('nav.reporteAnual'), href: '/gestoria/reporte-anual', icon: FileSpreadsheet },
+        { label: t('nav.informeAsesoria'), href: '/gestoria/reporte-asesoria', icon: FileSpreadsheet },
         { label: t('nav.importarExtracto'), href: '/gestoria/importar-extracto', icon: Upload },
         { label: t('nav.fiscal'), href: '/fiscal', icon: Calculator },
         { label: t('nav.alquiler'), href: '/alquiler', icon: Home },
@@ -106,6 +108,7 @@ export function Sidebar() {
         { label: t('nav.simuladorRetenciones'), href: '/herramientas/simulador-retenciones', icon: Calculator },
         { label: t('nav.googleCalendar'), href: '/herramientas/google-calendar', icon: Calendar },
         { label: t('nav.automatizaciones'), href: '/herramientas/automatizaciones', icon: Zap },
+        { label: t('nav.recordatorios'), href: '/herramientas/recordatorios', icon: ListChecks },
         { label: t('nav.notificaciones'), href: '/ajustes/notificaciones', icon: Bell },
         { label: t('nav.apiDocs'), href: '/api-docs', icon: BookOpen },
         { label: t('nav.ajustes'), href: '/ajustes', icon: Settings },

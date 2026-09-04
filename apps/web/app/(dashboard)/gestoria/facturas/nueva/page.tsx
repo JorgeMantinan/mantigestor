@@ -13,6 +13,8 @@ import { generarSiguienteNumeroFactura } from '@mantigestor/utils'
 import { FileUpload } from '@/components/upload/FileUpload'
 import Link from 'next/link'
 import type { OcrResult, ModeloSugeridoOcr } from '@/lib/ocr'
+import { validarFactura, type ResultadoValidacion } from '@/lib/validar-documento'
+import { ValidacionOcr } from '@/components/validacion-ocr'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
 import { useParsearVoz } from '@/hooks/use-parsear-voz'
 import { rellenarFormularioDesdeOcr } from '@/lib/factura-utils'
@@ -42,6 +44,7 @@ export default function NuevaFacturaPage() {
   const [notasPie, setNotasPie] = useState<string[]>([])
   const [ocrUsado, setOcrUsado] = useState(false)
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState(0)
+  const [validacionOcr, setValidacionOcr] = useState<ResultadoValidacion | null>(null)
 
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
@@ -86,6 +89,7 @@ export default function NuevaFacturaPage() {
       if (data.categoriaGasto) setCategoriaGasto(data.categoriaGasto)
       rellenarFormularioDesdeOcr(formRef, data)
       setOcrUsado(true)
+      setValidacionOcr(validarFactura(data))
     } catch {
       setError('Error al conectar con el servicio de OCR')
     }
@@ -119,6 +123,7 @@ export default function NuevaFacturaPage() {
       if (data.categoriaGasto) setCategoriaGasto(data.categoriaGasto)
       rellenarFormularioDesdeOcr(formRef, data)
       setOcrUsado(true)
+      setValidacionOcr(validarFactura(data))
     } catch {
       setError('Error al conectar con el servicio de OCR')
     }
@@ -467,6 +472,19 @@ export default function NuevaFacturaPage() {
           </div>
         </CardContent>
       </Card>
+
+      {validacionOcr && (
+        <ValidacionOcr
+          resultado={validacionOcr}
+          onCorregir={(campo, sugerencia) => {
+            const input = formRef.current?.elements.namedItem(campo) as HTMLInputElement | null
+            if (input && sugerencia) {
+              input.value = sugerencia
+              input.focus()
+            }
+          }}
+        />
+      )}
 
       {modelosSugeridos.length > 0 && (
         <Card>

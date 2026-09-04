@@ -77,6 +77,15 @@ const WidgetExport = dynamic(() => import('@/components/dashboard/widget-export'
 const WidgetScoreFiscal = dynamic(() => import('@/components/dashboard/widget-score-fiscal').then(m => m.WidgetScoreFiscal), {
   loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
 })
+const WidgetForecasting = dynamic(() => import('@/components/dashboard/widget-forecasting').then(m => m.WidgetForecasting), {
+  loading: () => <div className="h-[280px] animate-pulse bg-muted rounded" />,
+})
+const WidgetClientes = dynamic(() => import('@/components/dashboard/widget-clientes').then(m => m.WidgetClientes), {
+  loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
+const WidgetComparativaAnual = dynamic(() => import('@/components/dashboard/widget-comparativa-anual').then(m => m.WidgetComparativaAnual), {
+  loading: () => <div className="h-[260px] animate-pulse bg-muted rounded" />,
+})
 
 interface Factura {
   id: string
@@ -440,6 +449,9 @@ export default function DashboardPage() {
               perfil={{ nif: perfilNif }}
             />
           )}
+          {isVisible('forecasting') && <WidgetForecasting facturas={facturasFiltradas} />}
+          {isVisible('clientes') && <WidgetClientes facturas={facturasFiltradas} />}
+          {isVisible('comparativa-anual') && <WidgetComparativaAnual facturas={facturasFiltradas} />}
         </div>
       )}
 
