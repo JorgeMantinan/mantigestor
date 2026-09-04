@@ -108,8 +108,13 @@ export async function POST(req: NextRequest) {
           `,
         })
 
-        console.log('Invitation email sent to:', email, 'Result:', JSON.stringify(emailResult))
-        emailSent = true
+        console.log('Invitation email result:', JSON.stringify(emailResult))
+        // Resend devuelve 200 aunque haya error en el body
+        if (emailResult.error) {
+          console.error('Resend error:', JSON.stringify(emailResult.error))
+        } else {
+          emailSent = true
+        }
       } catch (emailError) {
         console.error('Error sending invitation email:', JSON.stringify(emailError))
       }
