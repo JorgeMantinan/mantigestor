@@ -30,7 +30,13 @@ const PersonaActivaContext = createContext<PersonaActivaState>({
 
 export function PersonaActivaProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
-  const [perfilActivoId, setPerfilActivoState] = useState<string | null>(null)
+  const [perfilActivoId, setPerfilActivoState] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const match = document.cookie.match(/perfilActivoId=([^;]+)/)
+      return match?.[1] ?? null
+    }
+    return null
+  })
   const [personas, setPersonas] = useState<PersonaAsociada[]>([])
   const [cargando, setCargando] = useState(true)
 
@@ -67,7 +73,14 @@ export function PersonaActivaProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   const setPerfilActivo = useCallback((perfilId: string | null) => {
+    // Guardar en cookie para que middleware lo lea
+    if (perfilId) {
+      document.cookie = `perfilActivoId=${perfilId}; path=/; max-age=31536000; SameSite=Lax`
+    } else {
+      document.cookie = 'perfilActivoId=; path=/; max-age=0'
+    }
     setPerfilActivoState(perfilId)
+    window.location.reload()
   }, [])
 
   const esPropio = perfilActivoId === null

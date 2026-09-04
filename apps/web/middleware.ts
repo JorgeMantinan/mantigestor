@@ -72,6 +72,12 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const ruta = req.nextUrl.pathname
 
+  // Pasar perfilActivoId como header para server components y API routes
+  const perfilActivoId = req.cookies.get('perfilActivoId')?.value
+  if (perfilActivoId) {
+    req.headers.set('x-perfil-activo', perfilActivoId)
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 

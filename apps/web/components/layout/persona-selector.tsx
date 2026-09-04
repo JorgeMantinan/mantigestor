@@ -100,7 +100,11 @@ export function PersonaSelector() {
           </DropdownMenuItem>
           {personas.length > 0 && <DropdownMenuSeparator />}
               {personas.map(p => (
-            <DropdownMenuItem key={p.perfilId} onClick={() => setPerfilActivo(p.perfilId)}>
+            <DropdownMenuItem
+              key={p.perfilId}
+              onClick={() => p.tipo !== 'me_gestiona' && setPerfilActivo(p.perfilId)}
+              className={p.tipo === 'me_gestiona' ? 'opacity-60 cursor-default' : 'cursor-pointer'}
+            >
               <Users className="mr-2 h-4 w-4" />
               <div className="flex flex-col">
                 <span className="text-sm">{p.nombre || 'Sin nombre'}</span>

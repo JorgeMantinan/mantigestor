@@ -89,6 +89,7 @@ function PerfilTab() {
   const [firma, setFirma] = useState<FirmaDigital | null>(null)
   const [idiomaFactura, setIdiomaFactura] = useState<'es' | 'en'>('es')
   const [guardando, setGuardando] = useState(false)
+  const [guardadoOk, setGuardadoOk] = useState(false)
   const [guardandoFirma, setGuardandoFirma] = useState(false)
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
@@ -101,18 +102,13 @@ function PerfilTab() {
 
       const { data } = await getSupabase()
         .from('perfiles')
-        .select('nombre, nif, provincia, situacion, empresa_nombre, empresa_nif, empresa_direccion, logoBase64, idiomaFactura')
-        .eq('id', user.id)
+        .select('nombre, nif, notasPie, logoBase64, idiomaFactura')
+        .eq('userId', user.id)
         .single()
 
       if (data) {
         setNombre(data.nombre ?? '')
         setNif(data.nif ?? '')
-        setProvincia(data.provincia ?? '')
-        setSituacion(data.situacion ?? '')
-        setEmpresaNombre(data.empresa_nombre ?? '')
-        setEmpresaNif(data.empresa_nif ?? '')
-        setEmpresaDireccion(data.empresa_direccion ?? '')
         setLogoBase64(data.logoBase64 ?? null)
         setIdiomaFactura((data.idiomaFactura as 'es' | 'en') ?? 'es')
       }
@@ -147,6 +143,8 @@ function PerfilTab() {
         alert('Error guardando: ' + error.message)
       } else {
         console.log('Perfil guardado correctamente para:', user.id)
+        setGuardadoOk(true)
+        setTimeout(() => setGuardadoOk(false), 3000)
       }
       await guardarNotasPieDefectoPorUserId(user.id, notasPie)
     } catch (e) {
@@ -329,6 +327,9 @@ function PerfilTab() {
             <Button onClick={guardar} disabled={guardando || cargando}>
               {guardando ? 'Guardando...' : 'Guardar cambios'}
             </Button>
+            {guardadoOk && (
+              <p className="text-sm text-green-500 mt-2">✓ Cambios guardados correctamente</p>
+            )}
           </>
         )}
       </CardContent>
