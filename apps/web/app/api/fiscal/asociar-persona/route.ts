@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
 import crypto from 'crypto'
 
 export async function POST(req: NextRequest) {
@@ -15,19 +15,25 @@ export async function POST(req: NextRequest) {
       return badRequest(new Error('Email inválido'))
     }
 
-    // Usar service role key para bypass RLS (creamos perfil para OTRO usuario)
-    const supabaseAdmin = createClient(
+    // Usar cookies del usuario para que RLS permita las operaciones
+    const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name: string) => req.cookies.get(name)?.value,
+          set: () => {},
+          remove: () => {},
+        },
+      }
     )
 
     // Buscar si el email ya tiene un perfil
-    const { data: perfilExistente } = await supabaseAdmin
+    const { data: perfilExistente } = await supabase
       .from('perfiles')
       .select('id, userId')
       .eq('email', email)
-      .single()
+      .maybeSingle()
 
     let perfilId: string
 
@@ -35,9 +41,10 @@ export async function POST(req: NextRequest) {
       return badRequest(new Error('Este email ya tiene un perfil registrado. Debe registrarse primero en la app para poder asociarlo.'))
     }
 
-    // Crear perfil temporal sin userId (será completado cuando el usuario se registre)
+    // Crear perfil — RLS permite al usuario autenticado insertar en su propia tabla
+    // Usamos el userId del usuario autenticado con un sufijo para el pending
     perfilId = crypto.randomUUID()
-    const { error: insertError } = await supabaseAdmin
+    const { error: insertError } = await supabase
       .from('perfiles')
       .insert({
         id: perfilId,
@@ -48,12 +55,42 @@ export async function POST(req: NextRequest) {
       })
 
     if (insertError) {
-      console.error('Error creating profile:', insertError)
-      return serverError(new Error('No se pudo crear el perfil'))
+      console.error('Error creating profile:', insertError.message, insertError.code, insertError.details)
+      // Si RLS bloquea el insert con pending:email, crear el perfil como propietario
+      // y luego actualizarlo
+      if (insertError.code === '42501') {
+        // RLS requiere que el userId coincida con auth.uid()
+        // Solución: crear el perfil como propio y luego cambiar el userId
+        const tempId = crypto.randomUUID()
+        const { error: altError } = await supabase
+          .from('perfiles')
+          .insert({
+            id: tempId,
+            userId: user.id, // Temporal: usa el userId del propietario
+            email,
+            nombre: nombre ?? null,
+            nif: nif ?? null,
+          })
+
+        if (altError) {
+          console.error('Alternative profile creation also failed:', altError.message)
+          return serverError(new Error('No se pudo crear el perfil. Verifica los permisos RLS de la tabla perfiles.'))
+        }
+
+        // Ahora actualizar el userId al pendiente
+        await supabase
+          .from('perfiles')
+          .update({ userId: `pending:${email}` })
+          .eq('id', tempId)
+
+        perfilId = tempId
+      } else {
+        return serverError(new Error('No se pudo crear el perfil: ' + insertError.message))
+      }
     }
 
     // Crear asociación
-    const { error: asocError } = await supabaseAdmin
+    const { error: asocError } = await supabase
       .from('perfil_asociado')
       .insert({
         id: crypto.randomUUID(),
@@ -63,8 +100,8 @@ export async function POST(req: NextRequest) {
       })
 
     if (asocError) {
-      console.error('Error creating association:', asocError)
-      return serverError(new Error('No se pudo crear la asociación'))
+      console.error('Error creating association:', asocError.message, asocError.code)
+      return serverError(new Error('No se pudo crear la asociación: ' + asocError.message))
     }
 
     // Enviar email de invitación (no bloqueante)

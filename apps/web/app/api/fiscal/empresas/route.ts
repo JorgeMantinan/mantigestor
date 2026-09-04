@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
 import { z } from 'zod'
 import { getAuthenticatedUser, unauthorized, serverError, badRequest } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
@@ -10,11 +10,17 @@ const EmpresaSchema = z.object({
   direccion: z.string().max(200).optional().default(''),
 })
 
-function supabaseAdmin() {
-  return createClient(
+function supabaseDeReq(req: NextRequest) {
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name: string) => req.cookies.get(name)?.value,
+        set: () => {},
+        remove: () => {},
+      },
+    }
   )
 }
 
@@ -27,7 +33,7 @@ export async function GET(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const supabase = supabaseAdmin()
+    const supabase = supabaseDeReq(req)
     const { data, error: queryError } = await supabase
       .from('perfiles')
       .select('id, empresas')
@@ -35,8 +41,8 @@ export async function GET(req: NextRequest) {
       .maybeSingle()
 
     if (queryError) {
-      // Column empresas might not exist yet — return empty list
       console.error('Error querying empresas:', queryError.message)
+      // Column might not exist — return empty
       return Response.json({ empresas: [] })
     }
 
@@ -71,7 +77,9 @@ export async function POST(req: NextRequest) {
       return badRequest(new Error(`Datos inválidos: ${parsed.error.issues.map(i => i.message).join(', ')}`))
     }
 
-    const supabase = supabaseAdmin()
+    const supabase = supabaseDeReq(req)
+
+    // Buscar perfil del usuario autenticado
     const { data: perfil, error: perfilError } = await supabase
       .from('perfiles')
       .select('id, empresas')
@@ -79,12 +87,12 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (perfilError) {
-      console.error('Error fetching profile:', perfilError.message)
+      console.error('Error fetching profile:', perfilError.message, perfilError.code)
       return serverError(new Error('Error al buscar perfil: ' + perfilError.message))
     }
 
     if (!perfil) {
-      // Try to create profile for this user
+      // Crear perfil para este usuario
       const { error: createError } = await supabase
         .from('perfiles')
         .insert({
@@ -93,8 +101,8 @@ export async function POST(req: NextRequest) {
           email: user.email ?? '',
         })
       if (createError) {
-        console.error('Error creating profile:', createError.message)
-        return serverError(new Error('Perfil no encontrado y no se pudo crear'))
+        console.error('Error creating profile:', createError.message, createError.code)
+        return serverError(new Error('No se pudo crear el perfil: ' + createError.message))
       }
       // Re-fetch
       const { data: newPerfil } = await supabase
@@ -102,20 +110,20 @@ export async function POST(req: NextRequest) {
         .select('id, empresas')
         .eq('userId', user.id)
         .maybeSingle()
-      if (!newPerfil) return serverError(new Error('Perfil no encontrado'))
-      return await crearEmpresaConPerfil(newPerfil, parsed.data, supabase)
+      if (!newPerfil) return serverError(new Error('Perfil no encontrado tras crear'))
+      return guardarEmpresa(newPerfil, parsed.data, supabase)
     }
 
-    return await crearEmpresaConPerfil(perfil, parsed.data, supabase)
+    return guardarEmpresa(perfil, parsed.data, supabase)
   } catch (error) {
     return serverError(error)
   }
 }
 
-async function crearEmpresaConPerfil(
+async function guardarEmpresa(
   perfil: { id: string; empresas: string | null },
   data: { nombre: string; nif: string; direccion: string },
-  supabase: ReturnType<typeof supabaseAdmin>
+  supabase: ReturnType<typeof supabaseDeReq>
 ) {
   let empresas: { id: string; nombre: string; nif: string; direccion: string; activa: boolean }[] = []
   if (perfil.empresas) {
@@ -139,12 +147,8 @@ async function crearEmpresaConPerfil(
     .eq('id', perfil.id)
 
   if (error) {
-    console.error('Error saving empresa:', error.message)
-    // If column empresas doesn't exist, try to add it via SQL
-    if (error.message.includes('column') && error.message.includes('empresas')) {
-      return serverError(new Error('La columna empresas no existe en la base de datos. Ejecuta la migración: ALTER TABLE perfiles ADD COLUMN empresas TEXT;'))
-    }
-    return serverError(new Error('No se pudo guardar la empresa: ' + error.message))
+    console.error('Error saving empresa:', error.message, error.code)
+    return serverError(new Error('No se pudo guardar: ' + error.message))
   }
 
   return Response.json({ empresa: nuevaEmpresa })
