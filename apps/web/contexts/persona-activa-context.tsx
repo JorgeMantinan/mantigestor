@@ -9,6 +9,7 @@ export interface PersonaAsociada {
   nombre: string | null
   email: string
   rol: string
+  tipo?: 'gestiono' | 'me_gestiona'
 }
 
 interface PersonaActivaState {
