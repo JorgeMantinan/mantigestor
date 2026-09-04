@@ -35,13 +35,8 @@ export async function GET(req: NextRequest) {
       .eq('ownerUserId', user.id)
 
     // Obtener personas que me gestionan a mí (bypasea RLS)
-    const { data: meGestionan, error: meGestionanError } = await supabase
+    const { data: meGestionan } = await supabase
       .rpc('obtener_gestores_de_perfil', { p_perfil_id: perfilPropio.id })
-
-    if (meGestionanError) {
-      console.error('Error fetching gestores:', JSON.stringify(meGestionanError))
-    }
-    console.log('mis-personas: perfilPropio.id=', perfilPropio.id, 'meGestionan=', JSON.stringify(meGestionan))
 
     // Obtener datos de los perfiles asociados
     const personas = []
@@ -79,13 +74,10 @@ export async function GET(req: NextRequest) {
 
     // Añadir personas que me gestionan a mí
     if (meGestionan && meGestionan.length > 0) {
-      const gestorIds = meGestionan.map((a: any) => a.ownerUserId)
+      const gestorIds = meGestionan.map((a: any) => a.owneruserid)
 
-      const { data: gestoresFn, error: gestoresFnErr } = await supabase
+      const { data: gestoresFn } = await supabase
         .rpc('obtener_perfiles_por_ids', { p_ids: gestorIds })
-
-      if (gestoresFnErr) console.error('Error gestoresFn:', JSON.stringify(gestoresFnErr))
-      console.log('gestorIds=', gestorIds, 'gestoresFn=', JSON.stringify(gestoresFn))
 
       let gestores = gestoresFn
 
