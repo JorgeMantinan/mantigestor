@@ -15,6 +15,11 @@ export async function POST(req: NextRequest) {
       return badRequest(new Error('Email inválido'))
     }
 
+    // No poder asociarse a sí mismo
+    if (email === user.email) {
+      return badRequest(new Error('No puedes asociarte a ti mismo.'))
+    }
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -27,16 +32,14 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    // Buscar perfil existente por email
+    // Verificar si ya existe una asociación activa
     const { data: perfilExistente } = await supabase
       .from('perfiles')
       .select('id')
       .eq('email', email)
       .maybeSingle()
 
-    // CASO 1: El usuario ya tiene perfil → asociar directamente
     if (perfilExistente) {
-      // Verificar que no esté ya asociado
       const { data: yaAsociado } = await supabase
         .from('perfil_asociado')
         .select('id')
@@ -47,43 +50,21 @@ export async function POST(req: NextRequest) {
       if (yaAsociado) {
         return badRequest(new Error('Esta persona ya está asociada a tu cuenta.'))
       }
-
-      // Crear asociación gestor → perfil
-      const { error: asocError } = await supabase
-        .from('perfil_asociado')
-        .insert({
-          id: crypto.randomUUID(),
-          ownerUserId: user.id,
-          perfilId: perfilExistente.id,
-          rol: 'gestor',
-        })
-
-      if (asocError) {
-        console.error('Error creating association:', JSON.stringify(asocError))
-        return serverError(new Error('No se pudo crear la asociación: ' + asocError.message))
-      }
-
-      return NextResponse.json({
-        ok: true,
-        linked: true,
-        perfilId: perfilExistente.id,
-        message: `${email} ya tiene cuenta. Asociado directamente.`,
-      })
     }
 
-    // CASO 2: No tiene perfil → crear invitación
+    // Verificar si ya hay una invitación pendiente para este email de este gestor
     const { data: invitacionExistente } = await supabase
       .from('invitaciones_pendientes')
-      .select('id')
+      .select('id, aceptada')
       .eq('email', email)
       .eq('invitadoPorUserId', user.id)
-      .eq('aceptada', false)
       .maybeSingle()
 
-    if (invitacionExistente) {
+    if (invitacionExistente && !invitacionExistente.aceptada) {
       return badRequest(new Error('Ya existe una invitación pendiente para este email. Espera a que la acepte.'))
     }
 
+    // Crear invitación (tanto para usuarios nuevos como existentes)
     const invitacionId = crypto.randomUUID()
     const now = new Date().toISOString()
     const { error: insertError } = await supabase
@@ -104,29 +85,37 @@ export async function POST(req: NextRequest) {
       return serverError(new Error('No se pudo crear la invitación.'))
     }
 
-    const invitacionLink = `https://mantigestor.vercel.app/register?invitacion=${invitacionId}&email=${encodeURIComponent(email)}`
+    // Link de confirmación (funciona para nuevos y existentes)
+    const confirmacionLink = `https://mantigestor.vercel.app/confirmar-asociacion?invitacion=${invitacionId}&email=${encodeURIComponent(email)}`
     let emailSent = false
 
     if (!process.env.RESEND_API_KEY) {
-      console.log('RESEND_API_KEY not set — email skipped. Link:', invitacionLink)
+      console.log('RESEND_API_KEY not set — email skipped. Link:', confirmacionLink)
     } else {
       try {
         const { Resend } = await import('resend')
         const resend = new Resend(process.env.RESEND_API_KEY)
 
+        const textoEmail = perfilExistente
+          ? `<p><strong>${user.email}</strong> quiere gestionar tus datos fiscales en MantiGestor.</p>
+             <p>Al aceptar, podrá ver y gestionar tus facturas, trimestres y otros documentos fiscales en tu nombre.</p>`
+          : `<p><strong>${user.email}</strong> te ha invitado a gestionar tus datos fiscales en MantiGestor.</p>
+             <p>Al aceptar, crearás tu cuenta y él/ella podrá gestionar tus asuntos fiscales en tu nombre.</p>`
+
+        const botonTexto = perfilExistente ? 'Aceptar asociación' : 'Acepto y me registro'
+
         const emailResult = await resend.emails.send({
           from: 'MantiGestor <onboarding@resend.dev>',
           to: email,
-          subject: `${user.email} te invita a MantiGestor`,
+          subject: `${user.email} quiere asociarse contigo en MantiGestor`,
           html: `
             <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px">
-              <h2 style="color:#1a1a1a;margin-bottom:8px">Invitación de MantiGestor</h2>
+              <h2 style="color:#1a1a1a;margin-bottom:8px">Solicitud de asociación en MantiGestor</h2>
               <p>Hola${nombre ? ` ${nombre}` : ''},</p>
-              <p><strong>${user.email}</strong> te ha invitado a gestionar tus datos fiscales en MantiGestor.</p>
-              <p>Al aceptar, podrá ver y gestionar tus facturas, trimestres y otros documentos fiscales en tu nombre.</p>
+              ${textoEmail}
               <div style="margin:24px 0">
-                <a href="${invitacionLink}" style="display:inline-block;background:#eab308;color:#000;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">
-                  Aceptar invitación y registrarme
+                <a href="${confirmacionLink}" style="display:inline-block;background:#eab308;color:#000;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">
+                  ${botonTexto}
                 </a>
               </div>
               <p style="color:#666;font-size:14px">
@@ -146,7 +135,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true, invitacionId, invitacionLink, emailSent })
+    return NextResponse.json({
+      ok: true,
+      invitacionId,
+      confirmacionLink,
+      emailSent,
+      mensaje: emailSent
+        ? `Invitación enviada a ${email}. Espera a que confirme.`
+        : `Invitación creada. Comparte este enlace con ${email} para que confirme.`,
+    })
   } catch (error) {
     return serverError(error)
   }

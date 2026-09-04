@@ -75,20 +75,14 @@ export function PersonasPageClient() {
         setError(data.error || 'Error al asociar')
         return
       }
-      if (data.linked) {
-        setDialogOpen(false)
-        setNuevoEmail('')
-        setNuevoNombre('')
-        setCargando(true)
-        await cargarPersonas()
-      } else if (data.emailSent) {
+      if (data.emailSent) {
         setDialogOpen(false)
         setNuevoEmail('')
         setNuevoNombre('')
         setCargando(true)
         await cargarPersonas()
       } else {
-        setInvitationLink(data.invitacionLink)
+        setInvitationLink(data.confirmacionLink || data.invitacionLink)
         setInvitationSent(true)
       }
     } catch {
