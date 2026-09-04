@@ -81,8 +81,11 @@ export async function GET(req: NextRequest) {
     if (meGestionan && meGestionan.length > 0) {
       const gestorIds = meGestionan.map((a: any) => a.ownerUserId)
 
-      const { data: gestoresFn } = await supabase
+      const { data: gestoresFn, error: gestoresFnErr } = await supabase
         .rpc('obtener_perfiles_por_ids', { p_ids: gestorIds })
+
+      if (gestoresFnErr) console.error('Error gestoresFn:', JSON.stringify(gestoresFnErr))
+      console.log('gestorIds=', gestorIds, 'gestoresFn=', JSON.stringify(gestoresFn))
 
       let gestores = gestoresFn
 
