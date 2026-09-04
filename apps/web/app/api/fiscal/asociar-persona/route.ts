@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { createServerClient } from '@supabase/ssr'
-import crypto from 'crypto'
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +14,6 @@ export async function POST(req: NextRequest) {
       return badRequest(new Error('Email inválido'))
     }
 
-    // Usar cookies del usuario para que RLS permita las operaciones
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,60 +33,68 @@ export async function POST(req: NextRequest) {
       .eq('email', email)
       .maybeSingle()
 
-    let perfilId: string
-
     if (perfilExistente) {
       return badRequest(new Error('Este email ya tiene un perfil registrado. Debe registrarse primero en la app para poder asociarlo.'))
     }
 
-    // Crear perfil — si RLS bloquea con pending:email, crear con userId del propietario
-    perfilId = crypto.randomUUID()
-    const now = new Date().toISOString()
-    const { error: insertError } = await supabase
-      .from('perfiles')
-      .insert({
-        id: perfilId,
-        userId: `pending:${email}`,
-        email,
-        nombre: nombre ?? null,
-        nif: nif ?? null,
-        createdAt: now,
-        updatedAt: now,
+    // Usar función SQL con SECURITY DEFINER para bypassear RLS
+    // Esta función debe crearse en Supabase SQL Editor (ver migration.sql)
+    const { data: perfilData, error: fnError } = await supabase
+      .rpc('crear_perfil_pendiente', {
+        p_email: email,
+        p_nombre: nombre ?? null,
+        p_nif: nif ?? null,
       })
 
-    if (insertError) {
-      console.error('Error creating profile:', insertError.message, insertError.code, insertError.details)
-      // Si RLS bloquea el insert con pending:email, crear el perfil con userId del propietario
-      if (insertError.code === '42501') {
-        const tempId = crypto.randomUUID()
-        const { error: altError } = await supabase
-          .from('perfiles')
-          .insert({
-            id: tempId,
-            userId: user.id,
-            email,
-            nombre: nombre ?? null,
-            nif: nif ?? null,
-            createdAt: now,
-            updatedAt: now,
-          })
+    if (fnError) {
+      console.error('Error calling crear_perfil_pendiente:', fnError.message, fnError.code)
 
-        if (altError) {
-          console.error('Alternative profile creation also failed:', altError.message)
-          return serverError(new Error('No se pudo crear el perfil. Verifica los permisos RLS de la tabla perfiles.'))
-        }
+      // Fallback: intentar insertar directamente (funciona si el usuario ya existe en auth)
+      const perfilId = crypto.randomUUID()
+      const now = new Date().toISOString()
+      const { error: insertError } = await supabase
+        .from('perfiles')
+        .insert({
+          id: perfilId,
+          userId: user.id, // Temporal: usa el userId del propietario
+          email,
+          nombre: nombre ?? null,
+          nif: nif ?? null,
+          createdAt: now,
+          updatedAt: now,
+        })
 
-        // Ahora actualizar el userId al pendiente
-        await supabase
-          .from('perfiles')
-          .update({ userId: `pending:${email}` })
-          .eq('id', tempId)
-
-        perfilId = tempId
-      } else {
-        return serverError(new Error('No se pudo crear el perfil: ' + insertError.message))
+      if (insertError) {
+        console.error('Fallback insert also failed:', insertError.message, insertError.code)
+        return serverError(new Error('No se pudo crear el perfil. Ejecuta la migración SQL en Supabase.'))
       }
+
+      // Actualizar al pending
+      await supabase
+        .from('perfiles')
+        .update({ userId: `pending:${email}` })
+        .eq('id', perfilId)
+
+      // Crear asociación
+      const { error: asocError } = await supabase
+        .from('perfil_asociado')
+        .insert({
+          id: crypto.randomUUID(),
+          ownerUserId: user.id,
+          perfilId,
+          rol: 'gestor',
+        })
+
+      if (asocError) {
+        console.error('Error creating association:', asocError.message)
+        return serverError(new Error('No se pudo crear la asociación'))
+      }
+
+      return NextResponse.json({ ok: true, perfilId })
     }
+
+    // La función SQL devolvió el perfilId
+    const perfilId = perfilData as string
 
     // Crear asociación
     const { error: asocError } = await supabase
@@ -110,7 +116,6 @@ export async function POST(req: NextRequest) {
       try {
         const { Resend } = await import('resend')
         const resend = new Resend(process.env.RESEND_API_KEY)
-
         const emailEncoded = encodeURIComponent(email)
 
         await resend.emails.send({
