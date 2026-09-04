@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { createClient } from '@/lib/supabase/client'
-import { NOTAS_PIE_PREDEFINIDAS, obtenerNotasPieDefecto, guardarNotasPieDefecto } from '@/lib/notas-pie-factura'
+import { NOTAS_PIE_PREDEFINIDAS, obtenerNotasPieDefecto, guardarNotasPieDefectoPorUserId } from '@/lib/notas-pie-factura'
 
 type Tab = 'perfil' | 'suscripcion' | 'apariencia'
 
@@ -133,16 +133,14 @@ function PerfilTab() {
 
       const { error } = await getSupabase()
         .from('perfiles')
-        .upsert({
-          id: user.id,
-          userId: user.id,
+        .update({
           nombre,
           nif,
           notasPie,
           logoBase64,
           idiomaFactura,
         })
-        .eq('id', user.id)
+        .eq('userId', user.id)
 
       if (error) {
         console.error('Error guardando perfil:', JSON.stringify(error))
@@ -150,7 +148,7 @@ function PerfilTab() {
       } else {
         console.log('Perfil guardado correctamente para:', user.id)
       }
-      await guardarNotasPieDefecto(user.id, notasPie)
+      await guardarNotasPieDefectoPorUserId(user.id, notasPie)
     } catch (e) {
       console.error('Error inesperado guardando:', e)
       alert('Error inesperado: ' + (e instanceof Error ? e.message : String(e)))

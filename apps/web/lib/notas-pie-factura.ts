@@ -33,3 +33,12 @@ export async function guardarNotasPieDefecto(perfilId: string, notas: string[]):
     .update({ notasPie })
     .eq('id', perfilId)
 }
+
+export async function guardarNotasPieDefectoPorUserId(userId: string, notas: string[]): Promise<void> {
+  const supabase = createClient()
+  const notasPie = notas.filter(Boolean).join('\n') || null
+  await supabase
+    .from('perfiles')
+    .update({ notasPie })
+    .eq('userId', userId)
+}
