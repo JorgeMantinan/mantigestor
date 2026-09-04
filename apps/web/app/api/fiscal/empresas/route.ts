@@ -99,6 +99,8 @@ export async function POST(req: NextRequest) {
           id: crypto.randomUUID(),
           userId: user.id,
           email: user.email ?? '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         })
       if (createError) {
         console.error('Error creating profile:', createError.message, createError.code)
