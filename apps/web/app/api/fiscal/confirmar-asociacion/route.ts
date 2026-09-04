@@ -2,6 +2,59 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import crypto from 'crypto'
 
+// GET: obtener info del invitador (sin auth requirement)
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const invitacionId = searchParams.get('invitacion')
+    const email = searchParams.get('email')
+
+    if (!invitacionId || !email) {
+      return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 })
+    }
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name: string) => req.cookies.get(name)?.value,
+          set: () => {},
+          remove: () => {},
+        },
+      }
+    )
+
+    const { data: invitacion } = await supabase
+      .from('invitaciones_pendientes')
+      .select('invitadoPorUserId, aceptada')
+      .eq('id', invitacionId)
+      .eq('email', email)
+      .maybeSingle()
+
+    if (!invitacion) {
+      return NextResponse.json({ error: 'Invitación no encontrada' }, { status: 404 })
+    }
+
+    const { data: invitadorPerfil } = await supabase
+      .from('perfiles')
+      .select('email, nombre')
+      .eq('userId', invitacion.invitadoPorUserId)
+      .maybeSingle()
+
+    return NextResponse.json({
+      ok: true,
+      invitadorEmail: invitadorPerfil?.email ?? '',
+      invitadorNombre: invitadorPerfil?.nombre ?? '',
+      aceptada: invitacion.aceptada,
+    })
+  } catch (error) {
+    console.error('Error fetching invitation info:', error)
+    return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
+  }
+}
+
+// POST: confirmar asociación (requires auth)
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -23,7 +76,6 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    // Verificar usuario autenticado
     const { data: { user } } = await (supabase.auth as any).getUser()
     if (!user) {
       return NextResponse.json({ error: 'Debes iniciar sesión para confirmar' }, { status: 401 })
@@ -33,7 +85,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Esta invitación es para ${email}, no para ${user.email}` }, { status: 403 })
     }
 
-    // Buscar la invitación
     const { data: invitacion, error: invError } = await supabase
       .from('invitaciones_pendientes')
       .select('id, invitadoPorUserId, aceptada')
@@ -49,7 +100,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Esta invitación ya fue aceptada' }, { status: 400 })
     }
 
-    // Verificar que el usuario tenga perfil
     const { data: miPerfil } = await supabase
       .from('perfiles')
       .select('id')
@@ -57,7 +107,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (!miPerfil) {
-      return NextResponse.json({ error: 'No se encontró tu perfil. Actualiza la página.' }, { status: 404 })
+      return NextResponse.json({ error: 'No se encontró tu perfil.' }, { status: 404 })
     }
 
     // Verificar que no exista ya la asociación
@@ -69,7 +119,6 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (!yaAsociado) {
-      // Usar función SQL con SECURITY DEFINER para bypassear RLS
       const { error: fnError } = await supabase.rpc('crear_asociacion_segura', {
         p_owner_user_id: invitacion.invitadoPorUserId,
         p_perfil_id: miPerfil.id,
@@ -78,7 +127,6 @@ export async function POST(req: NextRequest) {
 
       if (fnError) {
         console.error('Error creating association via RPC:', JSON.stringify(fnError))
-        // Fallback: intentar insert directo
         const { error: asocError } = await supabase
           .from('perfil_asociado')
           .insert({
@@ -90,27 +138,26 @@ export async function POST(req: NextRequest) {
 
         if (asocError) {
           console.error('Fallback insert also failed:', JSON.stringify(asocError))
-          return NextResponse.json({ error: 'Error al crear la asociación. Verifica los permisos RLS.' }, { status: 500 })
+          return NextResponse.json({ error: 'Error al crear la asociación.' }, { status: 500 })
         }
       }
     }
 
-    // Marcar invitación como aceptada
     await supabase
       .from('invitaciones_pendientes')
       .update({ aceptada: true })
       .eq('id', invitacionId)
 
-    // Obtener email del invitador
     const { data: invitadorPerfil } = await supabase
       .from('perfiles')
-      .select('email')
+      .select('email, nombre')
       .eq('userId', invitacion.invitadoPorUserId)
       .maybeSingle()
 
     return NextResponse.json({
       ok: true,
       invitadorEmail: invitadorPerfil?.email ?? '',
+      invitadorNombre: invitadorPerfil?.nombre ?? '',
     })
   } catch (error) {
     console.error('Error in confirmar-asociacion:', error)

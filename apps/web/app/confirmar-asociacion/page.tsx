@@ -37,7 +37,25 @@ function ConfirmarAsociacion() {
       return
     }
 
-    const checkAuth = async () => {
+    const fetchData = async () => {
+      // Primero obtener info del invitador (sin auth)
+      try {
+        const resInfo = await fetch(`/api/fiscal/confirmar-asociacion?invitacion=${invitacionId}&email=${encodeURIComponent(email)}`)
+        const infoData = await resInfo.json()
+
+        if (infoData.aceptada) {
+          setEstado('error')
+          setMensaje('Esta invitación ya fue aceptada anteriormente.')
+          return
+        }
+
+        if (infoData.invitadorNombre) setInvitadorNombre(infoData.invitadorNombre)
+        if (infoData.invitadorEmail) setInvitadorEmail(infoData.invitadorEmail)
+      } catch {
+        // Silencioso — mostraremos "Un gestor" si no carga
+      }
+
+      // Luego verificar auth
       const { data: { user } } = await getSupabase().auth.getUser()
 
       if (!user) {
@@ -45,37 +63,16 @@ function ConfirmarAsociacion() {
         return
       }
 
-      // Verificar que el email del usuario coincida con el de la invitación
       if (user.email !== email) {
         setEstado('error')
         setMensaje(`Esta invitación es para ${email}, pero estás logueado como ${user.email}. Cierra sesión y vuelve a abrir el enlace.`)
         return
       }
 
-      // Obtener info del invitador
-      const { data: invData } = await getSupabase()
-        .from('invitaciones_pendientes')
-        .select('invitadoPorUserId')
-        .eq('id', invitacionId)
-        .maybeSingle()
-
-      if (invData) {
-        const { data: invPerfil } = await getSupabase()
-          .from('perfiles')
-          .select('email, nombre')
-          .eq('userId', invData.invitadoPorUserId)
-          .maybeSingle()
-
-        if (invPerfil) {
-          setInvitadorEmail(invPerfil.email ?? '')
-          setInvitadorNombre(invPerfil.nombre ?? '')
-        }
-      }
-
       setEstado('confirmar')
     }
 
-    checkAuth()
+    fetchData()
   }, [invitacionId, email, getSupabase])
 
   const handleConfirmar = async () => {
@@ -95,6 +92,7 @@ function ConfirmarAsociacion() {
       }
 
       setInvitadorEmail(data.invitadorEmail || '')
+      setInvitadorNombre(data.invitadorNombre || '')
       setEstado('exito')
     } catch {
       setEstado('error')
