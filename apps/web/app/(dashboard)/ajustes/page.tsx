@@ -135,6 +135,7 @@ function PerfilTab() {
         .from('perfiles')
         .upsert({
           id: user.id,
+          userId: user.id,
           nombre,
           nif,
           notasPie,
