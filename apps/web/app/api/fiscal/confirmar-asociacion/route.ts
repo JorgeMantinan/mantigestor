@@ -69,19 +69,29 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (!yaAsociado) {
-      // Crear asociación: el propietario del invite → perfil del confirmante
-      const { error: asocError } = await supabase
-        .from('perfil_asociado')
-        .insert({
-          id: crypto.randomUUID(),
-          ownerUserId: invitacion.invitadoPorUserId,
-          perfilId: miPerfil.id,
-          rol: 'gestor',
-        })
+      // Usar función SQL con SECURITY DEFINER para bypassear RLS
+      const { error: fnError } = await supabase.rpc('crear_asociacion_segura', {
+        p_owner_user_id: invitacion.invitadoPorUserId,
+        p_perfil_id: miPerfil.id,
+        p_rol: 'gestor',
+      })
 
-      if (asocError) {
-        console.error('Error creating association:', JSON.stringify(asocError))
-        return NextResponse.json({ error: 'Error al crear la asociación' }, { status: 500 })
+      if (fnError) {
+        console.error('Error creating association via RPC:', JSON.stringify(fnError))
+        // Fallback: intentar insert directo
+        const { error: asocError } = await supabase
+          .from('perfil_asociado')
+          .insert({
+            id: crypto.randomUUID(),
+            ownerUserId: invitacion.invitadoPorUserId,
+            perfilId: miPerfil.id,
+            rol: 'gestor',
+          })
+
+        if (asocError) {
+          console.error('Fallback insert also failed:', JSON.stringify(asocError))
+          return NextResponse.json({ error: 'Error al crear la asociación. Verifica los permisos RLS.' }, { status: 500 })
+        }
       }
     }
 

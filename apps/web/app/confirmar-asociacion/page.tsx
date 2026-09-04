@@ -26,6 +26,7 @@ function ConfirmarAsociacion() {
   const [estado, setEstado] = useState<'cargando' | 'confirmar' | 'exito' | 'error' | 'no-logueado'>('cargando')
   const [mensaje, setMensaje] = useState('')
   const [invitadorEmail, setInvitadorEmail] = useState('')
+  const [invitadorNombre, setInvitadorNombre] = useState('')
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -49,6 +50,26 @@ function ConfirmarAsociacion() {
         setEstado('error')
         setMensaje(`Esta invitación es para ${email}, pero estás logueado como ${user.email}. Cierra sesión y vuelve a abrir el enlace.`)
         return
+      }
+
+      // Obtener info del invitador
+      const { data: invData } = await getSupabase()
+        .from('invitaciones_pendientes')
+        .select('invitadoPorUserId')
+        .eq('id', invitacionId)
+        .maybeSingle()
+
+      if (invData) {
+        const { data: invPerfil } = await getSupabase()
+          .from('perfiles')
+          .select('email, nombre')
+          .eq('userId', invData.invitadoPorUserId)
+          .maybeSingle()
+
+        if (invPerfil) {
+          setInvitadorEmail(invPerfil.email ?? '')
+          setInvitadorNombre(invPerfil.nombre ?? '')
+        }
       }
 
       setEstado('confirmar')
@@ -160,7 +181,10 @@ function ConfirmarAsociacion() {
         <CardHeader className="text-center">
           <CardTitle>Confirmar asociación</CardTitle>
           <CardDescription>
-            Un gestor quiere asociarse a tu cuenta para gestionar tus datos fiscales.
+            {invitadorNombre
+              ? <><strong>{invitadorNombre}</strong> ({invitadorEmail})</>
+              : <strong>{invitadorEmail || 'Un gestor'}</strong>
+            } quiere asociarse a tu cuenta para gestionar tus datos fiscales.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">

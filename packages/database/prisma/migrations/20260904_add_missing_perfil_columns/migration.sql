@@ -52,3 +52,22 @@ SELECT column_name, data_type, is_nullable
 FROM information_schema.columns
 WHERE table_name = 'perfiles'
 ORDER BY ordinal_position;
+
+-- ============================================
+-- 4. Función para crear asociación (bypasea RLS)
+-- ============================================
+CREATE OR REPLACE FUNCTION crear_asociacion_segura(
+  p_owner_user_id TEXT,
+  p_perfil_id TEXT,
+  p_rol TEXT DEFAULT 'gestor'
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  INSERT INTO perfil_asociado (id, "ownerUserId", "perfilId", rol)
+  VALUES (gen_random_uuid()::TEXT, p_owner_user_id, p_perfil_id, p_rol)
+  ON CONFLICT ("ownerUserId", "perfilId") DO NOTHING;
+END;
+$$;
