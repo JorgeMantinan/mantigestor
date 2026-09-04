@@ -111,6 +111,7 @@ export async function PUT(req: NextRequest) {
           id: perfilId,
           userId: user.id,
           email: user.email ?? '',
+          createdAt: ahora,
           updatedAt: ahora,
           ...parsed.data,
         })

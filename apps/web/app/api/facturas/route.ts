@@ -100,6 +100,7 @@ export async function POST(req: NextRequest) {
       perfilId,
       ...parsed.data,
       fechaEmision: parsed.data.fechaEmision.toISOString(),
+      createdAt: new Date().toISOString(),
     }).select().single()
 
     if (error) throw error

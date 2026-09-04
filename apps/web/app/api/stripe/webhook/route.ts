@@ -50,6 +50,7 @@ export async function POST(req: Request) {
               estado: 'active',
               currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
               currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+              createdAt: new Date().toISOString(),
             })
 
             if (insertError) {

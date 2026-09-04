@@ -31,6 +31,7 @@ export async function logAccion(
       entidadId,
       detalle: detalle ?? null,
       meta: meta ? JSON.stringify(meta) : null,
+      createdAt: new Date().toISOString(),
     })
   } catch {
     // Silently fail — audit logging should never break the UI

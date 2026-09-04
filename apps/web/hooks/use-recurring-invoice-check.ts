@@ -64,6 +64,7 @@ export function useRecurringInvoiceCheck() {
               iva: tpl.iva,
               total,
               estado: 'pendiente',
+              createdAt: new Date().toISOString(),
             })
 
             if (!error) {

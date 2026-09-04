@@ -77,6 +77,7 @@ export async function GET(req: NextRequest) {
         total,
         estado: 'pendiente',
         categoriaGasto: rec.categoriaGasto,
+        createdAt: new Date().toISOString(),
       })
 
       if (!error) generated++

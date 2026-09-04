@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
         perfilId,
         tipo: 'alumnos',
         estado: 'pendiente',
+        creadoEn: new Date().toISOString(),
       })
       .select()
       .single()

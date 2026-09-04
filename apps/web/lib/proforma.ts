@@ -79,6 +79,7 @@ export async function crearProforma(data: {
       notas: data.notasProforma ?? null,
       moneda: data.moneda ?? 'EUR',
       tipoCambio: data.tipoCambio ?? 1,
+      createdAt: new Date().toISOString(),
     })
     .select()
     .single()
@@ -140,6 +141,7 @@ export async function convertirAFactura(proformaId: string): Promise<string> {
       notas: proforma.notas,
       moneda: proforma.moneda,
       tipoCambio: proforma.tipoCambio,
+      createdAt: new Date().toISOString(),
     })
 
   if (insertError) throw insertError
@@ -182,6 +184,7 @@ export async function duplicarProforma(proformaId: string): Promise<Proforma> {
       notas: original.notas,
       moneda: original.moneda,
       tipoCambio: original.tipoCambio,
+      createdAt: new Date().toISOString(),
     })
     .select()
     .single()

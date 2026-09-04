@@ -87,6 +87,7 @@ export async function crearRectificativa(
         pdfUrl: null,
         moneda: 'EUR',
         tipoCambio: 1,
+        createdAt: new Date().toISOString(),
       })
       .select()
       .single()

@@ -99,6 +99,7 @@ export async function GET(req: NextRequest) {
           iva: tpl.iva,
           total,
           estado: 'pendiente',
+          createdAt: new Date().toISOString(),
         })
 
       if (!insertError) {

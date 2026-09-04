@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await supabase
       .from('notificaciones')
-      .insert({ id: crypto.randomUUID(), perfilId, tipo, contenido })
+      .insert({ id: crypto.randomUUID(), perfilId, tipo, contenido, creadoEn: new Date().toISOString() })
       .select()
       .single()
 

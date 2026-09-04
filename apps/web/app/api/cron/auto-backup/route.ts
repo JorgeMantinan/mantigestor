@@ -124,6 +124,7 @@ export async function GET(req: NextRequest) {
         perfilId: perfil.id,
         tipo: 'auto_backup',
         contenido,
+        creadoEn: new Date().toISOString(),
       })
 
       backedUp++
