@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { createServerClient } from '@supabase/ssr'
+import crypto from 'crypto'
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,92 +27,52 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    // Buscar si el email ya tiene un perfil
+    // Verificar que el email no esté ya registrado
     const { data: perfilExistente } = await supabase
       .from('perfiles')
-      .select('id, userId')
+      .select('id')
       .eq('email', email)
       .maybeSingle()
 
     if (perfilExistente) {
-      return badRequest(new Error('Este email ya tiene un perfil registrado. Debe registrarse primero en la app para poder asociarlo.'))
+      return badRequest(new Error('Este email ya tiene un perfil registrado. Asócialo directamente desde Ajustes → Personas.'))
     }
 
-    // Usar función SQL con SECURITY DEFINER para bypassear RLS
-    // Esta función debe crearse en Supabase SQL Editor (ver migration.sql)
-    const { data: perfilData, error: fnError } = await supabase
-      .rpc('crear_perfil_pendiente', {
-        p_email: email,
-        p_nombre: nombre ?? null,
-        p_nif: nif ?? null,
-      })
+    // Verificar que no haya ya una invitación pendiente para este email
+    const { data: invitacionExistente } = await supabase
+      .from('invitaciones_pendientes')
+      .select('id')
+      .eq('email', email)
+      .eq('invitadoPorUserId', user.id)
+      .eq('aceptada', false)
+      .maybeSingle()
 
-    if (fnError) {
-      console.error('Error calling crear_perfil_pendiente:', fnError.message, fnError.code)
-
-      // Fallback: intentar insertar directamente (funciona si el usuario ya existe en auth)
-      const perfilId = crypto.randomUUID()
-      const now = new Date().toISOString()
-      const { error: insertError } = await supabase
-        .from('perfiles')
-        .insert({
-          id: perfilId,
-          userId: user.id, // Temporal: usa el userId del propietario
-          email,
-          nombre: nombre ?? null,
-          nif: nif ?? null,
-          createdAt: now,
-          updatedAt: now,
-        })
-
-      if (insertError) {
-        console.error('Fallback insert also failed:', insertError.message, insertError.code)
-        return serverError(new Error('No se pudo crear el perfil. Ejecuta la migración SQL en Supabase.'))
-      }
-
-      // Actualizar al pending
-      await supabase
-        .from('perfiles')
-        .update({ userId: `pending:${email}` })
-        .eq('id', perfilId)
-
-      // Crear asociación
-      const { error: asocError } = await supabase
-        .from('perfil_asociado')
-        .insert({
-          id: crypto.randomUUID(),
-          ownerUserId: user.id,
-          perfilId,
-          rol: 'gestor',
-        })
-
-      if (asocError) {
-        console.error('Error creating association:', asocError.message)
-        return serverError(new Error('No se pudo crear la asociación'))
-      }
-
-      return NextResponse.json({ ok: true, perfilId })
+    if (invitacionExistente) {
+      return badRequest(new Error('Ya existe una invitación pendiente para este email. Espera a que la acepte o reenvía el email.'))
     }
 
-    // La función SQL devolvió el perfilId
-    const perfilId = perfilData as string
-
-    // Crear asociación
-    const { error: asocError } = await supabase
-      .from('perfil_asociado')
+    // Crear invitación pendiente (sin crear perfil)
+    const invitacionId = crypto.randomUUID()
+    const now = new Date().toISOString()
+    const { error: insertError } = await supabase
+      .from('invitaciones_pendientes')
       .insert({
-        id: crypto.randomUUID(),
-        ownerUserId: user.id,
-        perfilId,
-        rol: 'gestor',
+        id: invitacionId,
+        email,
+        nombre: nombre ?? null,
+        nif: nif ?? null,
+        invitadoPorUserId: user.id,
+        invitadoPorEmail: user.email ?? '',
+        aceptada: false,
+        createdAt: now,
       })
 
-    if (asocError) {
-      console.error('Error creating association:', asocError.message, asocError.code)
-      return serverError(new Error('No se pudo crear la asociación: ' + asocError.message))
+    if (insertError) {
+      console.error('Error creating invitation:', insertError.message, insertError.code, insertError.details)
+      return serverError(new Error('No se pudo crear la invitación. Ejecuta la migración SQL en Supabase.'))
     }
 
-    // Enviar email de invitación (no bloqueante)
+    // Enviar email de invitación
     if (process.env.RESEND_API_KEY) {
       try {
         const { Resend } = await import('resend')
@@ -121,18 +82,23 @@ export async function POST(req: NextRequest) {
         await resend.emails.send({
           from: process.env.EMAIL_FROM || 'MantiGestor <onboarding@resend.dev>',
           to: email,
-          subject: 'MantiGestor — Has sido añadido como gestor',
+          subject: `${user.email} te invita a MantiGestor`,
           html: `
             <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px">
               <h2 style="color:#1a1a1a;margin-bottom:8px">Invitación de MantiGestor</h2>
               <p>Hola${nombre ? ` ${nombre}` : ''},</p>
-              <p><strong>${user.email}</strong> te ha añadido como persona gestionada en su cuenta de MantiGestor.</p>
-              <p>Para aceptar la invitación y comenzar a utilizar la plataforma, completa tu registro:</p>
-              <a href="https://mantigestor.vercel.app/register?invitado=true&email=${emailEncoded}" style="display:inline-block;background:#eab308;color:#000;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:bold;margin-top:8px">
-                Aceptar invitación
-              </a>
+              <p><strong>${user.email}</strong> te ha invitado a gestionar tus datos fiscales en MantiGestor.</p>
+              <p>Al aceptar, podrá ver y gestionar tus facturas, trimestres y otros documentos fiscales en tu nombre.</p>
+              <div style="margin:24px 0">
+                <a href="https://mantigestor.vercel.app/register?invitacion=${invitacionId}&email=${emailEncoded}" style="display:inline-block;background:#eab308;color:#000;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">
+                  Aceptar invitación y registrarme
+                </a>
+              </div>
+              <p style="color:#666;font-size:14px">
+                Si no conoces a ${user.email} o no deseas ser gestionado por esta persona, puedes ignorar este email.
+              </p>
               <p style="color:#999;font-size:12px;margin-top:24px">
-                Email automático de MantiGestor. Si no esperabas esta invitación, puedes ignorar este mensaje.
+                Email automático de MantiGestor. No respondas a este mensaje.
               </p>
             </div>
           `,
@@ -142,7 +108,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true, perfilId })
+    return NextResponse.json({ ok: true, invitacionId })
   } catch (error) {
     return serverError(error)
   }

@@ -31,6 +31,7 @@ function RegisterForm() {
   const searchParams = useSearchParams()
   const invitado = searchParams.get('invitado') === 'true'
   const emailInvitado = searchParams.get('email') ?? ''
+  const invitacionId = searchParams.get('invitacion') ?? ''
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -75,36 +76,106 @@ function RegisterForm() {
     if (data.session) {
       const nuevoUserId = data.session.user.id
 
-      // Crear (o vincular) el perfil del nuevo usuario
-      const { data: perfilExistente } = await getSupabase()
-        .from('perfiles')
-        .select('id')
-        .eq('userId', `pending:${emailFinal}`)
-        .single()
+      // Buscar si hay una invitación pendiente para este email
+      let invitacionPendiente: { id: string; invitadoPorUserId: string } | null = null
 
-      if (perfilExistente) {
-        // Adoptar el perfil pendiente creado por un gestor: asignar el userId real
-        await getSupabase()
-          .from('perfiles')
-          .update({ userId: nuevoUserId, email: emailFinal, nombre: nombre || undefined })
-          .eq('id', perfilExistente.id)
+      if (invitacionId) {
+        // Buscar por ID de invitación
+        const { data: inv } = await getSupabase()
+          .from('invitaciones_pendientes')
+          .select('id, invitadoPorUserId')
+          .eq('id', invitacionId)
+          .eq('email', emailFinal)
+          .eq('aceptada', false)
+          .maybeSingle()
+        invitacionPendiente = inv
+      }
 
-        // Vincular como asociación propietario del mismo usuario
-        await getSupabase()
-          .from('perfil_asociado')
-          .upsert(
-            { id: nuevoUserId, ownerUserId: nuevoUserId, perfilId: perfilExistente.id, rol: 'propietario' },
-            { onConflict: 'ownerUserId,perfilId' }
-          )
-      } else {
-        // Perfil normal (sin invitación)
+      if (!invitacionPendiente && emailFinal) {
+        // Buscar por email
+        const { data: inv } = await getSupabase()
+          .from('invitaciones_pendientes')
+          .select('id, invitadoPorUserId')
+          .eq('email', emailFinal)
+          .eq('aceptada', false)
+          .order('createdAt', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        invitacionPendiente = inv
+      }
+
+      if (invitacionPendiente) {
+        // Crear perfil para el usuario invitado
+        const perfilId = crypto.randomUUID()
+        const now = new Date().toISOString()
         const { error: perfilError } = await getSupabase()
           .from('perfiles')
-          .upsert({ id: nuevoUserId, userId: nuevoUserId, email: emailFinal, nombre })
+          .insert({
+            id: perfilId,
+            userId: nuevoUserId,
+            email: emailFinal,
+            nombre: nombre || null,
+            createdAt: now,
+            updatedAt: now,
+          })
 
         if (perfilError) {
           console.error('Error creating perfil:', perfilError)
         }
+
+        // Crear asociación propietario → perfil
+        await getSupabase()
+          .from('perfil_asociado')
+          .insert({
+            id: crypto.randomUUID(),
+            ownerUserId: nuevoUserId,
+            perfilId,
+            rol: 'propietario',
+          })
+
+        // Crear asociación gestor → perfil (quien invitó)
+        await getSupabase()
+          .from('perfil_asociado')
+          .insert({
+            id: crypto.randomUUID(),
+            ownerUserId: invitacionPendiente.invitadoPorUserId,
+            perfilId,
+            rol: 'gestor',
+          })
+
+        // Marcar invitación como aceptada
+        await getSupabase()
+          .from('invitaciones_pendientes')
+          .update({ aceptada: true })
+          .eq('id', invitacionPendiente.id)
+      } else {
+        // Perfil normal (sin invitación)
+        const perfilId = crypto.randomUUID()
+        const now = new Date().toISOString()
+        const { error: perfilError } = await getSupabase()
+          .from('perfiles')
+          .insert({
+            id: perfilId,
+            userId: nuevoUserId,
+            email: emailFinal,
+            nombre,
+            createdAt: now,
+            updatedAt: now,
+          })
+
+        if (perfilError) {
+          console.error('Error creating perfil:', perfilError)
+        }
+
+        // Crear asociación propietario
+        await getSupabase()
+          .from('perfil_asociado')
+          .insert({
+            id: crypto.randomUUID(),
+            ownerUserId: nuevoUserId,
+            perfilId,
+            rol: 'propietario',
+          })
       }
 
       router.push('/dashboard')
