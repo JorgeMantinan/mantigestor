@@ -127,28 +127,35 @@ function PerfilTab() {
 
   const guardar = async () => {
     setGuardando(true)
-    const { data: { user } } = await getSupabase().auth.getUser()
-    if (!user) { setGuardando(false); return }
+    try {
+      const { data: { user } } = await getSupabase().auth.getUser()
+      if (!user) { setGuardando(false); return }
 
-    const { error } = await getSupabase()
-      .from('perfiles')
-      .upsert({
-        id: user.id,
-        nombre,
-        nif,
-        notasPie,
-        logoBase64,
-        idiomaFactura,
-      })
-      .eq('id', user.id)
+      const { error } = await getSupabase()
+        .from('perfiles')
+        .upsert({
+          id: user.id,
+          nombre,
+          nif,
+          notasPie,
+          logoBase64,
+          idiomaFactura,
+        })
+        .eq('id', user.id)
 
-    if (error) {
-      console.error('Error guardando perfil:', JSON.stringify(error))
-    } else {
-      console.log('Perfil guardado correctamente para:', user.id)
+      if (error) {
+        console.error('Error guardando perfil:', JSON.stringify(error))
+        alert('Error guardando: ' + error.message)
+      } else {
+        console.log('Perfil guardado correctamente para:', user.id)
+      }
+      await guardarNotasPieDefecto(user.id, notasPie)
+    } catch (e) {
+      console.error('Error inesperado guardando:', e)
+      alert('Error inesperado: ' + (e instanceof Error ? e.message : String(e)))
+    } finally {
+      setGuardando(false)
     }
-    await guardarNotasPieDefecto(user.id, notasPie)
-    setGuardando(false)
   }
 
   return (
