@@ -71,3 +71,19 @@ BEGIN
   ON CONFLICT ("ownerUserId", "perfilId") DO NOTHING;
 END;
 $$;
+
+-- ============================================
+-- 5. Función para obtener perfiles por IDs (bypasea RLS)
+-- ============================================
+CREATE OR REPLACE FUNCTION obtener_perfiles_por_ids(p_ids TEXT[])
+RETURNS TABLE(id TEXT, nombre TEXT, email TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT p.id, p.nombre, p.email
+  FROM perfiles p
+  WHERE p.id = ANY(p_ids);
+END;
+$$;

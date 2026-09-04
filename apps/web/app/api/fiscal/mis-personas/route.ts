@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 
     if (!perfilPropio) return NextResponse.json({ personas: [], perfilPropioId: null })
 
-    // Obtener asociaciones donde soy gestor
+    // Obtener asociaciones donde soy gestor/propietario
     const { data: asociaciones } = await supabase
       .from('perfil_asociado')
       .select('perfilId, rol')
@@ -38,10 +38,21 @@ export async function GET(req: NextRequest) {
     const personas = []
     if (asociaciones && asociaciones.length > 0) {
       const ids = asociaciones.map(a => a.perfilId)
-      const { data: perfiles } = await supabase
-        .from('perfiles')
-        .select('id, nombre, email')
-        .in('id', ids)
+
+      // Intentar función SQL primero (bypasea RLS)
+      const { data: perfilesFn } = await supabase
+        .rpc('obtener_perfiles_por_ids', { p_ids: ids })
+
+      let perfiles = perfilesFn
+
+      // Fallback: query directa
+      if (!perfilesFn || perfilesFn.length === 0) {
+        const { data: perfilesDirect } = await supabase
+          .from('perfiles')
+          .select('id, nombre, email')
+          .in('id', ids)
+        perfiles = perfilesDirect
+      }
 
       if (perfiles) {
         for (const p of perfiles) {
