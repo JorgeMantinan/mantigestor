@@ -35,8 +35,13 @@ export async function GET(req: NextRequest) {
       .eq('ownerUserId', user.id)
 
     // Obtener personas que me gestionan a mí (bypasea RLS)
-    const { data: meGestionan } = await supabase
+    const { data: meGestionan, error: meGestionanError } = await supabase
       .rpc('obtener_gestores_de_perfil', { p_perfil_id: perfilPropio.id })
+
+    if (meGestionanError) {
+      console.error('Error fetching gestores:', JSON.stringify(meGestionanError))
+    }
+    console.log('mis-personas: perfilPropio.id=', perfilPropio.id, 'meGestionan=', JSON.stringify(meGestionan))
 
     // Obtener datos de los perfiles asociados
     const personas = []
