@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { getAuthenticatedUser, unauthorized, serverError, badRequest } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
@@ -7,20 +7,14 @@ import { rateLimitByIp } from '@/lib/rate-limit-ip'
 const EmpresaSchema = z.object({
   nombre: z.string().min(1).max(100),
   nif: z.string().min(1).max(20),
-  direccion: z.string().max(200),
+  direccion: z.string().max(200).optional().default(''),
 })
 
-function supabaseDeReq(req: NextRequest) {
-  return createServerClient(
+function supabaseAdmin() {
+  return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => req.cookies.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
   )
 }
 
@@ -33,7 +27,7 @@ export async function GET(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const supabase = supabaseDeReq(req)
+    const supabase = supabaseAdmin()
     const { data } = await supabase
       .from('perfiles')
       .select('empresas')
@@ -68,7 +62,7 @@ export async function POST(req: NextRequest) {
     const parsed = EmpresaSchema.safeParse(body)
     if (!parsed.success) return badRequest('Datos de empresa inválidos')
 
-    const supabase = supabaseDeReq(req)
+    const supabase = supabaseAdmin()
     const { data: perfil } = await supabase
       .from('perfiles')
       .select('id, empresas')

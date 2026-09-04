@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
 
 export async function POST(req: NextRequest) {
@@ -15,20 +15,15 @@ export async function POST(req: NextRequest) {
       return badRequest(new Error('Email inválido'))
     }
 
-    const supabase = createServerClient(
+    // Usar service role key para bypass RLS (creamos perfil para OTRO usuario)
+    const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get: (name: string) => req.cookies.get(name)?.value,
-          set: () => {},
-          remove: () => {},
-        },
-      }
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
     // Buscar si el email ya tiene un perfil
-    const { data: perfilExistente } = await supabase
+    const { data: perfilExistente } = await supabaseAdmin
       .from('perfiles')
       .select('id, userId')
       .eq('email', email)
@@ -37,18 +32,16 @@ export async function POST(req: NextRequest) {
     let perfilId: string
 
     if (perfilExistente) {
-      // Crear un perfil nuevo con userId propio (email no registrado en Supabase Auth)
-      // Pero si el email ya tiene perfil, no podemos asociar — el usuario debe registrarse primero
       return badRequest(new Error('Este email ya tiene un perfil registrado. Debe registrarse primero en la app para poder asociarlo.'))
     }
 
     // Crear perfil temporal sin userId (será completado cuando el usuario se registre)
     perfilId = crypto.randomUUID()
-    const { error: insertError } = await supabase
+    const { error: insertError } = await supabaseAdmin
       .from('perfiles')
       .insert({
         id: perfilId,
-        userId: `pending:${email}`, // Temporal hasta que se registre
+        userId: `pending:${email}`,
         email,
         nombre: nombre ?? null,
         nif: nif ?? null,
@@ -60,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Crear asociación
-    const { error: asocError } = await supabase
+    const { error: asocError } = await supabaseAdmin
       .from('perfil_asociado')
       .insert({
         id: crypto.randomUUID(),
