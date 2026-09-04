@@ -105,13 +105,12 @@ function RegisterForm() {
       }
 
       if (invitacionPendiente) {
-        // Crear perfil para el usuario invitado
-        const perfilId = crypto.randomUUID()
+        // Crear perfil para el usuario invitado — id = auth user id (RLS lo requiere)
         const now = new Date().toISOString()
         const { error: perfilError } = await getSupabase()
           .from('perfiles')
           .insert({
-            id: perfilId,
+            id: nuevoUserId,
             userId: nuevoUserId,
             email: emailFinal,
             nombre: nombre || null,
@@ -129,7 +128,7 @@ function RegisterForm() {
           .insert({
             id: crypto.randomUUID(),
             ownerUserId: nuevoUserId,
-            perfilId,
+            perfilId: nuevoUserId,
             rol: 'propietario',
           })
 
@@ -139,7 +138,7 @@ function RegisterForm() {
           .insert({
             id: crypto.randomUUID(),
             ownerUserId: invitacionPendiente.invitadoPorUserId,
-            perfilId,
+            perfilId: nuevoUserId,
             rol: 'gestor',
           })
 
@@ -150,12 +149,11 @@ function RegisterForm() {
           .eq('id', invitacionPendiente.id)
       } else {
         // Perfil normal (sin invitación)
-        const perfilId = crypto.randomUUID()
         const now = new Date().toISOString()
         const { error: perfilError } = await getSupabase()
           .from('perfiles')
           .insert({
-            id: perfilId,
+            id: nuevoUserId,
             userId: nuevoUserId,
             email: emailFinal,
             nombre,
@@ -173,7 +171,7 @@ function RegisterForm() {
           .insert({
             id: crypto.randomUUID(),
             ownerUserId: nuevoUserId,
-            perfilId,
+            perfilId: nuevoUserId,
             rol: 'propietario',
           })
       }
