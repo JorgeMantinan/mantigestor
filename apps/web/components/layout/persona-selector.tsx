@@ -31,6 +31,8 @@ export function PersonaSelector() {
   const [nuevoNombre, setNuevoNombre] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
+  const [invitationLink, setInvitationLink] = useState('')
+  const [invitationSent, setInvitationSent] = useState(false)
 
   if (cargando) return null
 
@@ -50,10 +52,15 @@ export function PersonaSelector() {
         setError(data.error || 'Error al asociar')
         return
       }
-      setDialogOpen(false)
-      setNuevoEmail('')
-      setNuevoNombre('')
-      window.location.reload()
+      if (data.emailSent) {
+        setDialogOpen(false)
+        setNuevoEmail('')
+        setNuevoNombre('')
+        window.location.reload()
+      } else {
+        setInvitationLink(data.invitacionLink)
+        setInvitationSent(true)
+      }
     } catch {
       setError('Error de red')
     } finally {
@@ -110,31 +117,57 @@ export function PersonaSelector() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setInvitationLink(''); setInvitationSent(false); } }}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Asociar nueva persona</DialogTitle>
-            <DialogDescription>
-              Introduce los datos de la persona cuyos asuntos fiscales quieres gestionar.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="asoc-nombre">Nombre</Label>
-              <Input id="asoc-nombre" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder="María García" />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="asoc-email">Email *</Label>
-              <Input id="asoc-email" type="email" value={nuevoEmail} onChange={e => setNuevoEmail(e.target.value)} placeholder="maria@ejemplo.com" required />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAsociar} disabled={guardando || !nuevoEmail}>
-              {guardando ? 'Guardando...' : 'Asociar'}
-            </Button>
-          </DialogFooter>
+          {invitationSent && invitationLink ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Invitación creada</DialogTitle>
+                <DialogDescription>
+                  Comparte este enlace con la persona para que acepte la invitación.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="rounded-md border bg-muted p-3 text-sm break-all font-mono">
+                  {invitationLink}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Copia este enlace y envíalo por WhatsApp, SMS o el medio que prefieras.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button onClick={() => { navigator.clipboard.writeText(invitationLink); setDialogOpen(false); setInvitationLink(''); setInvitationSent(false); window.location.reload(); }}>
+                  Copiar y cerrar
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Asociar nueva persona</DialogTitle>
+                <DialogDescription>
+                  Introduce los datos de la persona cuyos asuntos fiscales quieres gestionar.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="asoc-nombre">Nombre</Label>
+                  <Input id="asoc-nombre" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder="María García" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="asoc-email">Email *</Label>
+                  <Input id="asoc-email" type="email" value={nuevoEmail} onChange={e => setNuevoEmail(e.target.value)} placeholder="maria@ejemplo.com" required />
+                </div>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+                <Button onClick={handleAsociar} disabled={guardando || !nuevoEmail}>
+                  {guardando ? 'Guardando...' : 'Asociar'}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>

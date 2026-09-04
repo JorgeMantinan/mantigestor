@@ -73,13 +73,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Enviar email de invitación
+    const invitacionLink = `https://mantigestor.vercel.app/register?invitacion=${invitacionId}&email=${encodeURIComponent(email)}`
+    let emailSent = false
+
     if (!process.env.RESEND_API_KEY) {
       console.log('RESEND_API_KEY not set — email skipped. Invitation ID:', invitacionId)
     } else {
       try {
         const { Resend } = await import('resend')
         const resend = new Resend(process.env.RESEND_API_KEY)
-        const emailEncoded = encodeURIComponent(email)
 
         const emailResult = await resend.emails.send({
           from: 'MantiGestor <onboarding@resend.dev>',
@@ -92,7 +94,7 @@ export async function POST(req: NextRequest) {
               <p><strong>${user.email}</strong> te ha invitado a gestionar tus datos fiscales en MantiGestor.</p>
               <p>Al aceptar, podrá ver y gestionar tus facturas, trimestres y otros documentos fiscales en tu nombre.</p>
               <div style="margin:24px 0">
-                <a href="https://mantigestor.vercel.app/register?invitacion=${invitacionId}&email=${emailEncoded}" style="display:inline-block;background:#eab308;color:#000;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">
+                <a href="${invitacionLink}" style="display:inline-block;background:#eab308;color:#000;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">
                   Aceptar invitación y registrarme
                 </a>
               </div>
@@ -107,12 +109,13 @@ export async function POST(req: NextRequest) {
         })
 
         console.log('Invitation email sent to:', email, 'Result:', JSON.stringify(emailResult))
+        emailSent = true
       } catch (emailError) {
         console.error('Error sending invitation email:', JSON.stringify(emailError))
       }
     }
 
-    return NextResponse.json({ ok: true, invitacionId })
+    return NextResponse.json({ ok: true, invitacionId, invitacionLink, emailSent })
   } catch (error) {
     return serverError(error)
   }
