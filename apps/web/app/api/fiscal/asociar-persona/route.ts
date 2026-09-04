@@ -41,9 +41,9 @@ export async function POST(req: NextRequest) {
       return badRequest(new Error('Este email ya tiene un perfil registrado. Debe registrarse primero en la app para poder asociarlo.'))
     }
 
-    // Crear perfil — RLS permite al usuario autenticado insertar en su propia tabla
-    // Usamos el userId del usuario autenticado con un sufijo para el pending
+    // Crear perfil — si RLS bloquea con pending:email, crear con userId del propietario
     perfilId = crypto.randomUUID()
+    const now = new Date().toISOString()
     const { error: insertError } = await supabase
       .from('perfiles')
       .insert({
@@ -52,24 +52,25 @@ export async function POST(req: NextRequest) {
         email,
         nombre: nombre ?? null,
         nif: nif ?? null,
+        createdAt: now,
+        updatedAt: now,
       })
 
     if (insertError) {
       console.error('Error creating profile:', insertError.message, insertError.code, insertError.details)
-      // Si RLS bloquea el insert con pending:email, crear el perfil como propietario
-      // y luego actualizarlo
+      // Si RLS bloquea el insert con pending:email, crear el perfil con userId del propietario
       if (insertError.code === '42501') {
-        // RLS requiere que el userId coincida con auth.uid()
-        // Solución: crear el perfil como propio y luego cambiar el userId
         const tempId = crypto.randomUUID()
         const { error: altError } = await supabase
           .from('perfiles')
           .insert({
             id: tempId,
-            userId: user.id, // Temporal: usa el userId del propietario
+            userId: user.id,
             email,
             nombre: nombre ?? null,
             nif: nif ?? null,
+            createdAt: now,
+            updatedAt: now,
           })
 
         if (altError) {
