@@ -52,7 +52,13 @@ export function PersonaSelector() {
         setError(data.error || 'Error al asociar')
         return
       }
-      if (data.emailSent) {
+      if (data.linked) {
+        // Asociación directa (usuario ya existía)
+        setDialogOpen(false)
+        setNuevoEmail('')
+        setNuevoNombre('')
+        window.location.reload()
+      } else if (data.emailSent) {
         setDialogOpen(false)
         setNuevoEmail('')
         setNuevoNombre('')

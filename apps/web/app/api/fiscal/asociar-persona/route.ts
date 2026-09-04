@@ -27,18 +27,51 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    // Verificar que el email no esté ya registrado
+    // Buscar perfil existente por email
     const { data: perfilExistente } = await supabase
       .from('perfiles')
       .select('id')
       .eq('email', email)
       .maybeSingle()
 
+    // CASO 1: El usuario ya tiene perfil → asociar directamente
     if (perfilExistente) {
-      return badRequest(new Error('Este email ya tiene un perfil registrado. Asócialo directamente desde Ajustes → Personas.'))
+      // Verificar que no esté ya asociado
+      const { data: yaAsociado } = await supabase
+        .from('perfil_asociado')
+        .select('id')
+        .eq('ownerUserId', user.id)
+        .eq('perfilId', perfilExistente.id)
+        .maybeSingle()
+
+      if (yaAsociado) {
+        return badRequest(new Error('Esta persona ya está asociada a tu cuenta.'))
+      }
+
+      // Crear asociación gestor → perfil
+      const { error: asocError } = await supabase
+        .from('perfil_asociado')
+        .insert({
+          id: crypto.randomUUID(),
+          ownerUserId: user.id,
+          perfilId: perfilExistente.id,
+          rol: 'gestor',
+        })
+
+      if (asocError) {
+        console.error('Error creating association:', JSON.stringify(asocError))
+        return serverError(new Error('No se pudo crear la asociación: ' + asocError.message))
+      }
+
+      return NextResponse.json({
+        ok: true,
+        linked: true,
+        perfilId: perfilExistente.id,
+        message: `${email} ya tiene cuenta. Asociado directamente.`,
+      })
     }
 
-    // Verificar que no haya ya una invitación pendiente para este email
+    // CASO 2: No tiene perfil → crear invitación
     const { data: invitacionExistente } = await supabase
       .from('invitaciones_pendientes')
       .select('id')
@@ -48,10 +81,9 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (invitacionExistente) {
-      return badRequest(new Error('Ya existe una invitación pendiente para este email. Espera a que la acepte o reenvía el email.'))
+      return badRequest(new Error('Ya existe una invitación pendiente para este email. Espera a que la acepte.'))
     }
 
-    // Crear invitación pendiente (sin crear perfil)
     const invitacionId = crypto.randomUUID()
     const now = new Date().toISOString()
     const { error: insertError } = await supabase
@@ -69,15 +101,14 @@ export async function POST(req: NextRequest) {
 
     if (insertError) {
       console.error('Error creating invitation:', JSON.stringify(insertError))
-      return serverError(new Error('No se pudo crear la invitación. Ejecuta la migración SQL en Supabase.'))
+      return serverError(new Error('No se pudo crear la invitación.'))
     }
 
-    // Enviar email de invitación
     const invitacionLink = `https://mantigestor.vercel.app/register?invitacion=${invitacionId}&email=${encodeURIComponent(email)}`
     let emailSent = false
 
     if (!process.env.RESEND_API_KEY) {
-      console.log('RESEND_API_KEY not set — email skipped. Invitation ID:', invitacionId)
+      console.log('RESEND_API_KEY not set — email skipped. Link:', invitacionLink)
     } else {
       try {
         const { Resend } = await import('resend')
@@ -101,15 +132,10 @@ export async function POST(req: NextRequest) {
               <p style="color:#666;font-size:14px">
                 Si no conoces a ${user.email} o no deseas ser gestionado por esta persona, puedes ignorar este email.
               </p>
-              <p style="color:#999;font-size:12px;margin-top:24px">
-                Email automático de MantiGestor. No respondas a este mensaje.
-              </p>
             </div>
           `,
         })
 
-        console.log('Invitation email result:', JSON.stringify(emailResult))
-        // Resend devuelve 200 aunque haya error en el body
         if (emailResult.error) {
           console.error('Resend error:', JSON.stringify(emailResult.error))
         } else {

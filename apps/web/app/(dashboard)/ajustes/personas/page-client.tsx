@@ -75,7 +75,13 @@ export function PersonasPageClient() {
         setError(data.error || 'Error al asociar')
         return
       }
-      if (data.emailSent) {
+      if (data.linked) {
+        setDialogOpen(false)
+        setNuevoEmail('')
+        setNuevoNombre('')
+        setCargando(true)
+        await cargarPersonas()
+      } else if (data.emailSent) {
         setDialogOpen(false)
         setNuevoEmail('')
         setNuevoNombre('')
