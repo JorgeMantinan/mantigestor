@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Roboto } from 'next/font/google'
 import { Providers } from '@/components/providers'
 import '@/styles/globals.css'
@@ -9,6 +9,13 @@ const roboto = Roboto({
   variable: '--font-roboto',
   display: 'swap',
 })
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#f59e0b',
+}
 
 export const metadata: Metadata = {
   title: {
@@ -27,8 +34,9 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   manifest: '/manifest.json',
-  other: {
-    'theme-color': '#f59e0b',
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/icon.svg',
   },
 }
 

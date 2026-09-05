@@ -1,9 +1,9 @@
-const CACHE_NAME = 'mantigestor-v2'
+const CACHE_NAME = 'mantigestor-v3'
 const SHELL_ASSETS = [
   '/',
   '/dashboard',
-  '/favicon.ico',
-  '/globals.css',
+  '/favicon.svg',
+  '/icon.svg',
 ]
 
 self.addEventListener('install', (event) => {
