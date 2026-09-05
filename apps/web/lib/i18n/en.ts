@@ -236,6 +236,53 @@ export const en: DeepTraducciones = {
     cerrar: 'Close',
   },
 
+  // Command palette
+  commandPalette: {
+    busquedaGlobal: 'Global search',
+    placeholder: 'Search invoices, properties, payrolls, students...',
+    buscando: 'Searching...',
+    sinResultados: 'No results for',
+    escribeMinimo: 'Type at least 2 characters to search',
+    atajoTeclado: 'Ctrl+K to open/close',
+    sinInquilino: 'No tenant',
+    alumno: 'Student',
+  },
+
+  // Property card
+  propertyCard: {
+    propiedadAlquiler: 'Rental property',
+    editarPropiedad: 'Edit property',
+    eliminarPropiedad: 'Delete property',
+    eliminarPropiedadTitle: 'Delete property?',
+    eliminarPropiedadDesc: 'This action cannot be undone. All associated expenses will also be deleted.',
+    ingresoMensual: 'Monthly income',
+    gastosTotales: 'Total expenses',
+    balanceMensual: 'Monthly balance',
+    inicioContrato: 'Contract start:',
+    duracion: 'Duration:',
+    meses: 'months',
+    proximaRevision: 'Next review:',
+    editIngreso: 'Monthly income (€)',
+    editNombreInquilino: 'Tenant name',
+    editTelefono: 'Phone',
+    editInicioContrato: 'Contract start',
+    editDuracion: 'Duration (months)',
+    editProximaRevision: 'Next review',
+    guardar: 'Save changes',
+    cancelar: 'Cancel',
+    gastos: 'Expenses',
+    anadirGasto: 'Add expense',
+    concepto: 'Concept',
+    seleccionar: 'Select...',
+    importe: 'Amount (€)',
+    descripcionOpcional: 'Description (optional)',
+    anadir: 'Add',
+    sinGastos: 'No expenses recorded',
+    eliminarGasto: 'Delete expense',
+    eliminarGastoTitle: 'Delete expense?',
+    eliminarGastoDesc: 'This action cannot be undone.',
+  },
+
   // Facturas recurrentes
   recurrentes: {
     titulo: 'Recurring invoices',

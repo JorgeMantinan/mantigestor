@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Search, Receipt, Home, Users, FileText, Calculator, ArrowRight } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface SearchResult {
   id: string
@@ -30,6 +31,7 @@ export function CommandPalette() {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const { t } = useLanguage()
 
   const search = useCallback(async (q: string) => {
     if (q.length < 2) { setResults([]); return }
@@ -48,9 +50,9 @@ export function CommandPalette() {
 
     const items: SearchResult[] = []
     for (const f of facturas.data ?? []) items.push({ id: f.id, titulo: `Factura ${f.numero}`, subtitulo: f.emisorReceptor, href: `/gestoria/facturas/${f.id}`, tipo: 'factura' })
-    for (const p of propiedades.data ?? []) items.push({ id: p.id, titulo: p.direccion, subtitulo: p.inquilinoNombre ?? 'Sin inquilino', href: '/alquiler', tipo: 'propiedad' })
+    for (const p of propiedades.data ?? []) items.push({ id: p.id, titulo: p.direccion, subtitulo: p.inquilinoNombre ?? t('commandPalette.sinInquilino'), href: '/alquiler', tipo: 'propiedad' })
     for (const n of nominas.data ?? []) items.push({ id: n.id, titulo: n.empleada, subtitulo: `${n.mes}/${n.anyo}`, href: '/nominas', tipo: 'nomina' })
-    for (const a of alumnos.data ?? []) items.push({ id: a.id, titulo: a.nombre, subtitulo: 'Alumno', href: '/alumnos', tipo: 'alumno' })
+    for (const a of alumnos.data ?? []) items.push({ id: a.id, titulo: a.nombre, subtitulo: t('commandPalette.alumno'), href: '/alumnos', tipo: 'alumno' })
 
     setResults(items)
     setSelectedIndex(0)
@@ -93,12 +95,12 @@ export function CommandPalette() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-lg p-0" aria-label="Búsqueda global">
+      <DialogContent className="sm:max-w-lg p-0" aria-label={t('commandPalette.busquedaGlobal')}>
         <div className="flex items-center border-b px-4">
           <Search className="h-4 w-4 text-muted-foreground mr-2" aria-hidden="true" />
           <Input
             ref={inputRef}
-            placeholder="Buscar facturas, propiedades, nóminas, alumnos..."
+            placeholder={t('commandPalette.placeholder')}
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -106,9 +108,9 @@ export function CommandPalette() {
           />
         </div>
         <div className="max-h-80 overflow-y-auto p-2">
-          {loading && <p className="text-sm text-muted-foreground text-center py-4">Buscando...</p>}
+          {loading && <p className="text-sm text-muted-foreground text-center py-4">{t('commandPalette.buscando')}</p>}
           {!loading && query.length >= 2 && results.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">Sin resultados para &quot;{query}&quot;</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t('commandPalette.sinResultados')} &quot;{query}&quot;</p>
           )}
           {results.map((r, i) => (
             <button
@@ -126,8 +128,8 @@ export function CommandPalette() {
           ))}
           {!loading && query.length < 2 && (
             <div className="text-center py-4 text-sm text-muted-foreground">
-              <p>Escribe al menos 2 caracteres para buscar</p>
-              <p className="text-xs mt-1">Ctrl+K para abrir/cerrar</p>
+              <p>{t('commandPalette.escribeMinimo')}</p>
+              <p className="text-xs mt-1">{t('commandPalette.atajoTeclado')}</p>
             </div>
           )}
         </div>

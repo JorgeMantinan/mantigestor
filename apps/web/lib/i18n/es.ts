@@ -234,6 +234,53 @@ export const es = {
     cerrar: 'Cerrar',
   },
 
+  // Command palette
+  commandPalette: {
+    busquedaGlobal: 'Búsqueda global',
+    placeholder: 'Buscar facturas, propiedades, nóminas, alumnos...',
+    buscando: 'Buscando...',
+    sinResultados: 'Sin resultados para',
+    escribeMinimo: 'Escribe al menos 2 caracteres para buscar',
+    atajoTeclado: 'Ctrl+K para abrir/cerrar',
+    sinInquilino: 'Sin inquilino',
+    alumno: 'Alumno',
+  },
+
+  // Property card
+  propertyCard: {
+    propiedadAlquiler: 'Propiedad en alquiler',
+    editarPropiedad: 'Editar propiedad',
+    eliminarPropiedad: 'Eliminar propiedad',
+    eliminarPropiedadTitle: '¿Eliminar propiedad?',
+    eliminarPropiedadDesc: 'Esta acción no se puede deshacer. Se eliminarán también todos sus gastos.',
+    ingresoMensual: 'Ingreso mensual',
+    gastosTotales: 'Gastos totales',
+    balanceMensual: 'Balance mensual',
+    inicioContrato: 'Inicio contrato:',
+    duracion: 'Duración:',
+    meses: 'meses',
+    proximaRevision: 'Próxima revisión:',
+    editIngreso: 'Ingreso mensual (€)',
+    editNombreInquilino: 'Nombre inquilino',
+    editTelefono: 'Teléfono',
+    editInicioContrato: 'Inicio contrato',
+    editDuracion: 'Duración (meses)',
+    editProximaRevision: 'Próxima revisión',
+    guardar: 'Guardar cambios',
+    cancelar: 'Cancelar',
+    gastos: 'Gastos',
+    anadirGasto: 'Añadir gasto',
+    concepto: 'Concepto',
+    seleccionar: 'Seleccionar...',
+    importe: 'Importe (€)',
+    descripcionOpcional: 'Descripción (opcional)',
+    anadir: 'Añadir',
+    sinGastos: 'Sin gastos registrados',
+    eliminarGasto: 'Eliminar gasto',
+    eliminarGastoTitle: '¿Eliminar gasto?',
+    eliminarGastoDesc: 'Esta acción no se puede deshacer.',
+  },
+
   // Facturas recurrentes
   recurrentes: {
     titulo: 'Facturas recurrentes',
