@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { formatoMoneda } from '@/lib/divisas'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   id: string
@@ -110,6 +111,14 @@ interface KanbanCobrosProps {
 export function KanbanCobros({ facturas, onEstadoCambiado }: KanbanCobrosProps) {
   const [dragId, setDragId] = useState<string | null>(null)
   const [overCol, setOverCol] = useState<ColumnaKanban | null>(null)
+  const { t } = useLanguage()
+
+  const titulosTraducidos: Record<ColumnaKanban, string> = {
+    pendiente: t('kanban.pendiente'),
+    en_proceso: t('kanban.enProceso'),
+    parcial: t('kanban.cobradoParcial'),
+    cobrado: t('kanban.cobrado'),
+  }
 
   const agrupadas = useMemo(() => {
     const mapa: Record<ColumnaKanban, Factura[]> = {
@@ -194,7 +203,7 @@ export function KanbanCobros({ facturas, onEstadoCambiado }: KanbanCobrosProps) 
           onDrop={e => handleDrop(e, col.id)}
         >
           <div className={`flex items-center justify-between px-3 py-2 rounded-t-lg ${col.bgHeader} text-white`}>
-            <span className="text-sm font-medium">{col.titulo}</span>
+            <span className="text-sm font-medium">{titulosTraducidos[col.id]}</span>
             <Badge variant="secondary" className="text-xs bg-white/20 text-white border-0">
               {agrupadas[col.id].length}
             </Badge>
@@ -203,7 +212,7 @@ export function KanbanCobros({ facturas, onEstadoCambiado }: KanbanCobrosProps) 
           <div className="flex-1 p-2 space-y-2 min-h-[200px] max-h-[500px] overflow-y-auto">
             {agrupadas[col.id].length === 0 ? (
               <div className="text-center text-xs text-muted-foreground py-8">
-                Sin facturas
+                {t('kanban.sinFacturas')}
               </div>
             ) : (
               agrupadas[col.id].map(f => {

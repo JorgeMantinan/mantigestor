@@ -12,6 +12,7 @@ import {
   Trash2,
   Layers,
 } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface TimelineFacturaProps {
   facturaId: string
@@ -167,6 +168,18 @@ function DetalleCambios({ antes, despues }: { antes: Record<string, unknown> | n
 export function TimelineFactura({ facturaId }: TimelineFacturaProps) {
   const [eventos, setEventos] = useState<EventoTimeline[]>([])
   const [cargando, setCargando] = useState(true)
+  const { t } = useLanguage()
+
+  const etiquetasTraducidas: Record<TipoEvento, string> = {
+    creada: t('timeline.creada'),
+    editada: t('timeline.editada'),
+    estado_cambiado: t('timeline.estadoCambiado'),
+    ocr: t('timeline.ocr'),
+    email: t('timeline.emailEnviado'),
+    pdf_descargada: t('timeline.pdfDescargado'),
+    conciliada: t('timeline.conciliada'),
+    eliminada: t('timeline.eliminada'),
+  }
 
   useEffect(() => {
     const cargar = async () => {
@@ -179,14 +192,21 @@ export function TimelineFactura({ facturaId }: TimelineFacturaProps) {
 
   const agrupados = useMemo(() => agruparPorFecha(eventos), [eventos])
 
-  if (cargando) return <p className="text-xs text-muted-foreground">Cargando historial...</p>
-  if (eventos.length === 0) return <p className="text-xs text-muted-foreground">Sin eventos registrados</p>
+  const gruposTraducidos: Record<string, string> = {
+    'Hoy': t('timeline.hoy'),
+    'Ayer': t('timeline.ayer'),
+    'Esta semana': t('timeline.estaSemana'),
+    'Anteriores': t('timeline.anteriores'),
+  }
+
+  if (cargando) return <p className="text-xs text-muted-foreground">{t('timeline.cargando')}</p>
+  if (eventos.length === 0) return <p className="text-xs text-muted-foreground">{t('timeline.sinEventos')}</p>
 
   return (
     <div className="space-y-4">
       {Array.from(agrupados.entries()).map(([grupo, eventosGrupo]) => (
         <div key={grupo}>
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">{grupo}</p>
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">{gruposTraducidos[grupo] ?? grupo}</p>
           <div className="relative ml-3 border-l-2 border-muted pl-6 space-y-3">
             {eventosGrupo.map((evento) => (
               <div key={evento.id} className="relative">
@@ -196,7 +216,7 @@ export function TimelineFactura({ facturaId }: TimelineFacturaProps) {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-medium ${ICON_COLORS[evento.tipo]}`}>
-                      {ETIQUETAS[evento.tipo]}
+                      {etiquetasTraducidas[evento.tipo]}
                     </span>
                     {evento.tipo === 'estado_cambiado' && evento.antes && evento.despues && (
                       <span className="text-xs text-muted-foreground">

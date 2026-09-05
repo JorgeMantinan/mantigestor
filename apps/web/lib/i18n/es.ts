@@ -281,6 +281,36 @@ export const es = {
     eliminarGastoDesc: 'Esta acción no se puede deshacer.',
   },
 
+  // Kanban
+  kanban: {
+    pendiente: 'Pendiente',
+    enProceso: 'En proceso',
+    cobradoParcial: 'Cobrado parcialmente',
+    cobrado: 'Cobrado',
+    sinFacturas: 'Sin facturas',
+    total: 'Total',
+  },
+
+  // Timeline
+  timeline: {
+    creada: 'Creada',
+    editada: 'Editada',
+    estadoCambiado: 'Estado cambiado',
+    ocr: 'OCR',
+    emailEnviado: 'Email enviado',
+    pdfDescargado: 'PDF descargado',
+    conciliada: 'Conciliada',
+    eliminada: 'Eliminada',
+    hoy: 'Hoy',
+    ayer: 'Ayer',
+    estaSemana: 'Esta semana',
+    anteriores: 'Anteriores',
+    cargando: 'Cargando historial...',
+    sinEventos: 'Sin eventos registrados',
+    eliminado: '(eliminado)',
+    nuevo: '(nuevo)',
+  },
+
   // Facturas recurrentes
   recurrentes: {
     titulo: 'Facturas recurrentes',

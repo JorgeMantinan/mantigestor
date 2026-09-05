@@ -283,6 +283,36 @@ export const en: DeepTraducciones = {
     eliminarGastoDesc: 'This action cannot be undone.',
   },
 
+  // Kanban
+  kanban: {
+    pendiente: 'Pending',
+    enProceso: 'In progress',
+    cobradoParcial: 'Partially collected',
+    cobrado: 'Collected',
+    sinFacturas: 'No invoices',
+    total: 'Total',
+  },
+
+  // Timeline
+  timeline: {
+    creada: 'Created',
+    editada: 'Edited',
+    estadoCambiado: 'Status changed',
+    ocr: 'OCR',
+    emailEnviado: 'Email sent',
+    pdfDescargado: 'PDF downloaded',
+    conciliada: 'Reconciled',
+    eliminada: 'Deleted',
+    hoy: 'Today',
+    ayer: 'Yesterday',
+    estaSemana: 'This week',
+    anteriores: 'Earlier',
+    cargando: 'Loading history...',
+    sinEventos: 'No events recorded',
+    eliminado: '(deleted)',
+    nuevo: '(new)',
+  },
+
   // Facturas recurrentes
   recurrentes: {
     titulo: 'Recurring invoices',
