@@ -281,12 +281,12 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="icon" className="h-8 w-8"
-            onClick={() => setSelectedYear(y => y - 1)} aria-label="Año anterior">
+            onClick={() => setSelectedYear(y => y - 1)} aria-label={t('dashboard.anoAnterior')}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm font-medium min-w-[4rem] text-center">{selectedYear}</span>
           <Button variant="outline" size="icon" className="h-8 w-8"
-            onClick={() => setSelectedYear(y => y + 1)} aria-label="Año siguiente"
+            onClick={() => setSelectedYear(y => y + 1)} aria-label={t('dashboard.anoSiguiente')}
             disabled={selectedYear >= new Date().getFullYear()}>
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -294,9 +294,9 @@ export default function DashboardPage() {
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
             className="h-8 rounded border border-input bg-background px-2 text-xs"
-            aria-label="Filtrar por mes"
+            aria-label={t('dashboard.filtrarMes')}
           >
-            <option value={0}>Todos los meses</option>
+            <option value={0}>{t('dashboard.todosLosMeses')}</option>
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i + 1} value={i + 1}>
                 {new Date(2024, i).toLocaleDateString('es-ES', { month: 'long' })}
@@ -317,7 +317,7 @@ export default function DashboardPage() {
           </Link>
           <Link href="/gestoria/facturas">
             <Button variant="outline" size="sm">
-              <FileText className="mr-1.5 h-4 w-4" /> Facturas <Kbd className="ml-2">/</Kbd>
+              <FileText className="mr-1.5 h-4 w-4" /> {t('facturas.titulo')} <Kbd className="ml-2">/</Kbd>
             </Button>
           </Link>
         </div>
@@ -349,7 +349,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{formatMoney(totalGastos + totalNominasJefe)}</div>
             <p className="text-xs text-muted-foreground">
-              {gastos.length} facturas{nominasJefe.length > 0 ? ` + ${nominasJefe.length} nóminas` : ''}
+              {gastos.length} {t('dashboard.masFacturas')}{nominasJefe.length > 0 ? ` + ${nominasJefe.length} ${t('nominas.titulo').toLowerCase()}` : ''}
             </p>
           </CardContent>
         </Card>
@@ -362,7 +362,7 @@ export default function DashboardPage() {
             <div className={`text-2xl font-bold ${ivaNeto >= 0 ? 'text-red-600' : 'text-green-600'}`}>
               {formatMoney(Math.abs(ivaNeto))}
             </div>
-            <p className="text-xs text-muted-foreground">{ivaNeto >= 0 ? 'A ingresar (303)' : 'A compensar'}</p>
+            <p className="text-xs text-muted-foreground">{ivaNeto >= 0 ? t('dashboard.aIngresar') : t('dashboard.aCompensar')}</p>
           </CardContent>
         </Card>
         <Card>
@@ -374,7 +374,7 @@ export default function DashboardPage() {
             <div className={`text-2xl font-bold ${beneficio >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatMoney(beneficio)}
             </div>
-            <p className="text-xs text-muted-foreground">Ingresos − gastos − nóminas</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.ingresosGastosNominas')}</p>
           </CardContent>
         </Card>
         <Card>
@@ -384,7 +384,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-500">{pendientes.length}</div>
-            <p className="text-xs text-muted-foreground">{formatMoney(totalPendientes)} por cobrar/pagar</p>
+            <p className="text-xs text-muted-foreground">{formatMoney(totalPendientes)} {t('dashboard.porCobrarPagar')}</p>
           </CardContent>
         </Card>
         <Card>
@@ -473,20 +473,20 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">{t('dashboard.ultimasFacturas')}</CardTitle>
               <Link href="/gestoria/facturas">
-                <Button variant="ghost" size="sm">Ver todas <ArrowRight className="ml-1 h-3 w-3" /></Button>
+                <Button variant="ghost" size="sm">{t('dashboard.verTodas')} <ArrowRight className="ml-1 h-3 w-3" /></Button>
               </Link>
             </div>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">Cargando...</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t('dashboard.cargando')}</p>
             ) : facturas.length === 0 ? (
               <div className="text-center py-6">
                 <Receipt className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="mt-2 text-sm text-muted-foreground">Aún no has añadido ninguna factura.</p>
+                <p className="mt-2 text-sm text-muted-foreground">{t('dashboard.sinFacturas')}</p>
                 <Link href="/gestoria/facturas/nueva">
                   <Button variant="outline" size="sm" className="mt-3">
-                    <Plus className="mr-1 h-3 w-3" /> Añadir primera factura
+                    <Plus className="mr-1 h-3 w-3" /> {t('dashboard.anadirPrimeraFactura')}
                   </Button>
                 </Link>
               </div>
@@ -531,34 +531,34 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle className="text-lg">Nóminas</CardTitle>
+                  <CardTitle className="text-lg">{t('dashboard.nominas')}</CardTitle>
                 </div>
                 <Link href="/nominas">
-                  <Button variant="ghost" size="sm">Ver <ArrowRight className="ml-1 h-3 w-3" /></Button>
+                  <Button variant="ghost" size="sm">{t('dashboard.ver')} <ArrowRight className="ml-1 h-3 w-3" /></Button>
                 </Link>
               </div>
             </CardHeader>
             <CardContent>
               {nominas.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  Añade nóminas para gestionar retenciones IRPF.
+                  {t('dashboard.anadirNominas')}
                 </p>
               ) : (
                 <div className="space-y-2">
                   {nominasJefe.length > 0 && (
                     <div className="flex items-center justify-between rounded-lg border p-3">
-                      <span className="text-sm text-muted-foreground">Gasto deducible</span>
+                      <span className="text-sm text-muted-foreground">{t('dashboard.gastoDeducible')}</span>
                       <span className="text-sm font-medium text-red-600">{formatMoney(totalNominasJefe)}</span>
                     </div>
                   )}
                   {nominasEmp.length > 0 && (
                     <div className="flex items-center justify-between rounded-lg border p-3">
-                      <span className="text-sm text-muted-foreground">IRPF retenido</span>
+                      <span className="text-sm text-muted-foreground">{t('dashboard.irpfRetenido')}</span>
                       <span className="text-sm font-medium text-green-600">{formatMoney(totalRetencionesEmp)}</span>
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground pt-1">
-                    {nominas.length} nóminas en {ahora.getFullYear()}
+                    {nominas.length} {t('dashboard.nominasEnAno')} {ahora.getFullYear()}
                   </p>
                 </div>
               )}
@@ -571,30 +571,30 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Home className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle className="text-lg">Alquileres</CardTitle>
+                  <CardTitle className="text-lg">{t('dashboard.alquileres')}</CardTitle>
                 </div>
                 <Link href="/alquiler">
-                  <Button variant="ghost" size="sm">Ver <ArrowRight className="ml-1 h-3 w-3" /></Button>
+                  <Button variant="ghost" size="sm">{t('dashboard.ver')} <ArrowRight className="ml-1 h-3 w-3" /></Button>
                 </Link>
               </div>
             </CardHeader>
             <CardContent>
               {propiedades.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  Registra propiedades en alquiler.
+                  {t('dashboard.registraPropiedades')}
                 </p>
               ) : (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between rounded-lg border p-3">
-                    <span className="text-sm text-muted-foreground">Ingresos</span>
+                    <span className="text-sm text-muted-foreground">{t('dashboard.ingresos')}</span>
                     <span className="text-sm font-medium text-green-600">{formatMoney(totalIngresosAlquiler)}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg border p-3">
-                    <span className="text-sm text-muted-foreground">Gastos</span>
+                    <span className="text-sm text-muted-foreground">{t('dashboard.gastos')}</span>
                     <span className="text-sm font-medium text-red-600">{formatMoney(totalGastosAlquiler)}</span>
                   </div>
                   <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
-                    <span className="text-sm font-medium">Balance</span>
+                    <span className="text-sm font-medium">{t('dashboard.balance')}</span>
                     <span className={`text-sm font-bold ${balanceAlquiler >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatMoney(balanceAlquiler)}
                     </span>
@@ -612,10 +612,10 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-lg">Próximos vencimientos fiscales</CardTitle>
+              <CardTitle className="text-lg">{t('dashboard.proximosVencimientos')}</CardTitle>
             </div>
             <Link href="/fiscal">
-              <Button variant="ghost" size="sm">Calendario <ArrowRight className="ml-1 h-3 w-3" /></Button>
+              <Button variant="ghost" size="sm">{t('dashboard.calendario')} <ArrowRight className="ml-1 h-3 w-3" /></Button>
             </Link>
           </div>
         </CardHeader>
@@ -630,6 +630,7 @@ export default function DashboardPage() {
 }
 
 function CalendarioFiscalDashboard() {
+  const { t } = useLanguage()
   const calendario = getCalendarioFiscal(new Date().getFullYear())
   const plazosRaw = calendario.map(f => ({
     modeloNumero: f.modelo,
@@ -641,7 +642,7 @@ function CalendarioFiscalDashboard() {
   if (plazos.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-4">
-        No hay vencimientos próximos en los próximos 45 días.
+        {t('dashboard.sinVencimientos')}
       </p>
     )
   }
@@ -652,7 +653,7 @@ function CalendarioFiscalDashboard() {
         <li key={p.id} className="flex items-center justify-between rounded-lg border p-3">
           <div>
             <p className="text-sm font-medium">
-              Modelo {p.modeloNumero?.replace(/^MOD/, '') ?? '—'} · {p.periodo}
+              {t('dashboard.modelo')} {p.modeloNumero?.replace(/^MOD/, '') ?? '—'} · {p.periodo}
             </p>
             <p className="text-xs text-muted-foreground">
               {p.fechaLimiteReferencia.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
@@ -667,7 +668,7 @@ function CalendarioFiscalDashboard() {
                   : 'bg-muted text-muted-foreground'
             }`}
           >
-            {p.diasRestantes} días
+            {p.diasRestantes} {t('dashboard.diasRestantes')}
           </span>
         </li>
       ))}
