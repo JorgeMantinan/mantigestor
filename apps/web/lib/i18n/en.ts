@@ -177,6 +177,7 @@ export const en: DeepTraducciones = {
   // Facturas
   facturas: {
     titulo: 'Invoices',
+    subtitulo: 'Manage your issued and received invoices',
     nuevaFactura: 'New invoice',
     editarFactura: 'Edit invoice',
     factura: 'Invoice',
@@ -220,6 +221,19 @@ export const en: DeepTraducciones = {
     busquedaPorFecha: 'Date range search',
     desde: 'From',
     hasta: 'To',
+    recurrentes: 'Recurring',
+    buscarPlaceholder: 'Search by counterparty, invoice #...',
+    buscarLabel: 'Search invoices',
+    limpiarFiltros: 'Clear filters',
+    cargandoFacturas: 'Loading invoices...',
+    crearFactura: 'Create invoice',
+    resultadoBusqueda: 'results',
+    facturasEncontradas: 'invoices',
+    facturasSeleccionadas: 'Selected invoices',
+    politicasAlertas: 'alerts',
+    duplicados: 'Possible duplicates detected',
+    politicas: 'Expense policies',
+    cerrar: 'Close',
   },
 
   // Facturas recurrentes

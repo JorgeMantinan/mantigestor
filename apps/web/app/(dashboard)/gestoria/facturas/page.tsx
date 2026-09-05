@@ -21,6 +21,7 @@ import { logAccion } from '@/lib/audit-log'
 import { detectarDuplicados, verificarPoliticaGasto } from '@mantigestor/utils'
 import { MOEDAS, formatoMoneda } from '@/lib/divisas'
 import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, obtenerNombreTag } from '@/lib/tags'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   id: string
@@ -58,6 +59,7 @@ export default function FacturasPage() {
   const [filtroTag, setFiltroTag] = useState<string[]>([])
   const [mostrarFiltroTag, setMostrarFiltroTag] = useState(false)
   const filtroTagRef = useRef<HTMLDivElement>(null)
+  const { t } = useLanguage()
   const searchRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -302,18 +304,18 @@ export default function FacturasPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-bold tracking-tight">Facturas</h1>
-          <p className="text-muted-foreground">Gestiona tus facturas emitidas y recibidas</p>
+          <h1 className="text-3xl font-heading font-bold tracking-tight">{t('facturas.titulo')}</h1>
+          <p className="text-muted-foreground">{t('facturas.subtitulo')}</p>
         </div>
         <div className="flex gap-2">
           <Link href="/gestoria/facturas/recurrentes">
             <Button variant="outline" size="sm">
-              <Repeat className="mr-1 h-3 w-3" /> Recurrentes
+              <Repeat className="mr-1 h-3 w-3" /> {t('facturas.recurrentes')}
             </Button>
           </Link>
           <BotonPDF elementId="tabla-facturas" filename={`facturas-${new Date().toISOString().slice(0, 10)}`} />
           <Link href="/gestoria/facturas/nueva">
-            <Button><Plus className="mr-2 h-4 w-4" /> Nueva factura</Button>
+            <Button><Plus className="mr-2 h-4 w-4" /> {t('facturas.nuevaFactura')}</Button>
           </Link>
         </div>
       </div>
@@ -324,11 +326,11 @@ export default function FacturasPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
             ref={searchRef}
-            placeholder="Buscar por contraparte, nº factura..."
+            placeholder={t('facturas.buscarPlaceholder')}
             value={busqueda}
             onChange={e => { setBusqueda(e.target.value); setPage(0) }}
             className="pl-9"
-            aria-label="Buscar facturas"
+            aria-label={t('facturas.buscarLabel')}
             data-search-input
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -346,7 +348,7 @@ export default function FacturasPage() {
           {(['todas', 'ingreso', 'gasto'] as const).map(f => (
             <Button key={f} variant={filtro === f ? 'secondary' : 'outline'} size="sm"
               onClick={() => { setFiltro(f); setPage(0) }}>
-              {f === 'todas' ? 'Todas' : f === 'ingreso' ? 'Ingresos' : 'Gastos'}
+              {f === 'todas' ? t('facturas.todas') : f === 'ingreso' ? t('facturas.ingresos') : t('facturas.gastos')}
             </Button>
           ))}
         </div>
@@ -390,7 +392,7 @@ export default function FacturasPage() {
               {filtroTag.length > 0 && (
                 <div className="mt-2 border-t pt-2">
                   <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => { setFiltroTag([]); setPage(0) }}>
-                    Limpiar filtros
+                    {t('facturas.limpiarFiltros')}
                   </Button>
                 </div>
               )}
@@ -400,11 +402,11 @@ export default function FacturasPage() {
         <div className="flex-1" />
         <Button variant="outline" size="sm" disabled={visibles.length === 0}
           onClick={() => exportarExcelConResumenFacturas(visibles, `facturas-${new Date().toISOString().slice(0, 10)}`)}>
-          <Download className="mr-1 h-4 w-4" /> Exportar Excel
+          <Download className="mr-1 h-4 w-4" /> {t('facturas.exportarExcel')}
         </Button>
         <Button variant="outline" size="sm" disabled={visibles.length === 0}
           onClick={() => void exportarTodoZIP({ facturas: visibles as unknown as Record<string, unknown>[], documentos: [], nominas: [], perfil: null, propiedadesAlquiler: [], auditLog: [], notificaciones: [] })}>
-          <Download className="mr-1 h-4 w-4" /> Exportar ZIP
+          <Download className="mr-1 h-4 w-4" /> {t('facturas.exportarZip')}
         </Button>
         <Button variant="outline" size="sm" disabled={visibles.length === 0}
           onClick={async () => {
@@ -427,7 +429,7 @@ export default function FacturasPage() {
               totalBase, totalIva, total,
             })
           }}>
-          <FileText className="mr-1 h-4 w-4" /> Informe PDF
+          <FileText className="mr-1 h-4 w-4" /> {t('facturas.informePdf')}
         </Button>
       </div>
 
@@ -435,7 +437,7 @@ export default function FacturasPage() {
         <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm dark:border-orange-800 dark:bg-orange-950">
           <div className="flex items-center gap-2 font-medium text-orange-800 dark:text-orange-200">
             <AlertCircle className="h-4 w-4" />
-            Posibles duplicados detectados ({duplicados.length})
+            {t('facturas.duplicados')} ({duplicados.length})
           </div>
           <ul className="mt-1 space-y-1 text-orange-700 dark:text-orange-300">
             {duplicados.slice(0, 3).map((d, i) => (
@@ -454,7 +456,7 @@ export default function FacturasPage() {
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm dark:border-blue-800 dark:bg-blue-950">
           <div className="flex items-center gap-2 font-medium text-blue-800 dark:text-blue-200">
             <AlertCircle className="h-4 w-4" />
-            Políticas de gasto ({politicas.length} alertas)
+            {t('facturas.politicas')} ({politicas.length} {t('facturas.politicasAlertas')})
           </div>
           <ul className="mt-1 space-y-1 text-blue-700 dark:text-blue-300">
             {politicas.map((p, i) => (
@@ -467,20 +469,20 @@ export default function FacturasPage() {
       )}
 
       {loading ? (
-        <Card><CardContent className="py-8 text-center text-muted-foreground">Cargando facturas...</CardContent></Card>
+        <Card><CardContent className="py-8 text-center text-muted-foreground">{t('facturas.cargandoFacturas')}</CardContent></Card>
       ) : visibles.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <Receipt className="h-12 w-12 text-muted-foreground" />
             <div className="text-center">
-              <p className="font-medium">No hay {busqueda ? 'resultados' : filtro !== 'todas' ? `facturas de tipo "${filtro}"` : 'facturas'}</p>
+              <p className="font-medium">{busqueda ? t('facturas.resultadoBusqueda') : t('facturas.sinFacturas')}</p>
               <p className="text-sm text-muted-foreground">
-                {busqueda ? 'Prueba con otra búsqueda' : 'Crea tu primera factura para empezar'}
+                {busqueda ? t('facturas.resultadoBusqueda') : t('facturas.primeraFactura')}
               </p>
             </div>
             {!busqueda && (
               <Link href="/gestoria/facturas/nueva">
-                <Button><Plus className="mr-2 h-4 w-4" /> Crear factura</Button>
+                <Button><Plus className="mr-2 h-4 w-4" /> {t('facturas.crearFactura')}</Button>
               </Link>
             )}
           </CardContent>

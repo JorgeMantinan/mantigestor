@@ -175,6 +175,7 @@ export const es = {
   // Facturas
   facturas: {
     titulo: 'Facturas',
+    subtitulo: 'Gestiona tus facturas emitidas y recibidas',
     nuevaFactura: 'Nueva factura',
     editarFactura: 'Editar factura',
     factura: 'Factura',
@@ -197,7 +198,7 @@ export const es = {
     ingresos: 'Ingresos',
     gastos: 'Gastos',
     todos: 'Todos',
-   SeleccionarTodas: 'Seleccionar todas',
+    SeleccionarTodas: 'Seleccionar todas',
     seleccionadas: 'seleccionada(s)',
     exportarExcel: 'Exportar Excel',
     exportarPdf: 'Exportar PDF',
@@ -218,6 +219,19 @@ export const es = {
     busquedaPorFecha: 'Búsqueda por fecha',
     desde: 'Desde',
     hasta: 'Hasta',
+    recurrentes: 'Recurrentes',
+    buscarPlaceholder: 'Buscar por contraparte, nº factura...',
+    buscarLabel: 'Buscar facturas',
+    limpiarFiltros: 'Limpiar filtros',
+    cargandoFacturas: 'Cargando facturas...',
+    crearFactura: 'Crear factura',
+    resultadoBusqueda: 'resultados',
+    facturasEncontradas: 'facturas',
+    facturasSeleccionadas: 'Facturas seleccionadas',
+    politicasAlertas: 'alertas',
+    duplicados: 'Posibles duplicados detectados',
+    politicas: 'Políticas de gasto',
+    cerrar: 'Cerrar',
   },
 
   // Facturas recurrentes
