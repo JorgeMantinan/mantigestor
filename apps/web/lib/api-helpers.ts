@@ -17,6 +17,20 @@ export async function getAuthenticatedUser(req: NextRequest) {
   return user
 }
 
+export async function getSupabaseServer(req: NextRequest) {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name: string) => req.cookies.get(name)?.value,
+        set: () => {},
+        remove: () => {},
+      },
+    }
+  )
+}
+
 export function unauthorized() {
   return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 }

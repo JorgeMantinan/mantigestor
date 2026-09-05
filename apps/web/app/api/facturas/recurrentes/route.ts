@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
+import { getAuthenticatedUser, getSupabaseServer, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
 export async function GET(req: NextRequest) {
@@ -7,7 +7,8 @@ export async function GET(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { data, error } = await (await import('@/lib/supabase/client')).createClient()
+    const supabase = await getSupabaseServer(req)
+    const { data, error } = await supabase
       .from('facturas_recurrentes')
       .select('*')
       .eq('perfilId', user.id)
@@ -54,7 +55,8 @@ export async function POST(req: NextRequest) {
     }
 
     const id = crypto.randomUUID()
-    const { data, error } = await (await import('@/lib/supabase/client')).createClient()
+    const supabase = await getSupabaseServer(req)
+    const { data, error } = await supabase
       .from('facturas_recurrentes')
       .insert({
         id,

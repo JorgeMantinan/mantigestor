@@ -94,7 +94,7 @@ export function useRecurringInvoiceCheck() {
           const { data: perfil } = await supabase
             .from('perfiles')
             .select('email, nombre')
-            .eq('id', user.id)
+            .eq('userId', user.id)
             .single()
 
           if (perfil?.email) {

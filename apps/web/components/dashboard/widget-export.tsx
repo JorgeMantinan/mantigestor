@@ -21,7 +21,7 @@ export function WidgetExport() {
       supabase.from('facturas').select('*').eq('perfilId', user.id).order('fechaEmision', { ascending: false }),
       supabase.from('documentos').select('*').eq('perfilId', user.id),
       supabase.from('nominas').select('*').eq('perfilId', user.id),
-      supabase.from('perfiles').select('*').eq('id', user.id).single(),
+      supabase.from('perfiles').select('*').eq('userId', user.id).single(),
       supabase.from('propiedades_alquiler').select('*').eq('perfilId', user.id),
       supabase.from('audit_log').select('*').eq('perfilId', user.id).order('creadoEn', { ascending: false }).limit(500),
       supabase.from('notificaciones').select('*').eq('perfilId', user.id).order('creadoEn', { ascending: false }).limit(200),

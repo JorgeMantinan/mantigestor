@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getAuthenticatedUser, unauthorized, serverError } from '@/lib/api-helpers'
-import { createClient } from '@/lib/supabase/client'
+import { getAuthenticatedUser, getSupabaseServer, unauthorized, serverError } from '@/lib/api-helpers'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -14,7 +13,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.diaEmail !== undefined) updates.diaEmail = body.diaEmail
     if (body.notas !== undefined) updates.notas = body.notas
 
-    const { error } = await createClient()
+    const supabase = await getSupabaseServer(req)
+    const { error } = await supabase
       .from('facturas_recurrentes')
       .update(updates)
       .eq('id', params.id)
@@ -32,7 +32,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { error } = await createClient()
+    const supabase = await getSupabaseServer(req)
+    const { error } = await supabase
       .from('facturas_recurrentes')
       .delete()
       .eq('id', params.id)

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/client'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
  * Cron job: /api/cron/facturas-recurrentes
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   const mesActual = hoy.getMonth() + 1
   const anyoActual = hoy.getFullYear()
 
-  const supabase = createClient()
+  const supabase = createAdminClient()
 
   // Buscar todas las plantillas activas cuyo día coincide con hoy
   const { data: plantillas, error: fetchError } = await supabase

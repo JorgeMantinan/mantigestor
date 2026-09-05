@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/client'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getCalendarioFiscal } from '@mantigestor/utils'
 
 /**
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = createClient()
+  const supabase = createAdminClient()
 
   const hoy = new Date()
   const year = hoy.getFullYear()

@@ -118,7 +118,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       const { data: perfilData } = await getSupabase()
         .from('perfiles')
         .select('nombre, email, empresa_nombre, empresa_nif, empresa_direccion, logoBase64, firmaBase64, idiomaFactura')
-        .eq('id', user.id)
+        .eq('userId', user.id)
         .single()
       if (perfilData) setPerfil(perfilData)
       setLoading(false)

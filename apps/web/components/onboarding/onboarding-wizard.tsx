@@ -35,9 +35,8 @@ export function OnboardingWizard({ abierto, onCompletado }: OnboardingWizardProp
 
       await supabase.from('perfiles').upsert({
         id: user.id,
-        empresa_nombre: empresaNombre || null,
-        empresa_nif: empresaNif || null,
-        empresa_direccion: empresaDireccion || null,
+        userId: user.id,
+        email: user.email ?? '',
       })
     } catch {
       // Silenciar error — los datos se pueden completar después
