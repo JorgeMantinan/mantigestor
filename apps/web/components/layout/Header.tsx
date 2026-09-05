@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown'
+import { useLanguage } from '@/contexts/language-context'
 import { HeaderAlertasIVA } from '@/components/header-alertas-iva'
 import { PersonaSelector } from './persona-selector'
 import { EmpresaSelector } from './empresa-selector'
@@ -22,6 +23,7 @@ import Link from 'next/link'
 
 export function Header() {
   const { user } = useAuth()
+  const { t } = useLanguage()
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -60,31 +62,31 @@ export function Header() {
               <DropdownMenuItem asChild>
                 <Link href="/ajustes">
                   <User className="mr-2 h-4 w-4" />
-                  Mi perfil
+                  {t('header.miPerfil')}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/precios">
                   <CreditCard className="mr-2 h-4 w-4" />
-                  Plan y facturación
+                  {t('header.planFacturacion')}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/ajustes">
                   <Settings className="mr-2 h-4 w-4" />
-                  Ajustes
+                  {t('header.ajustes')}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Cerrar sesión
+                {t('header.cerrarSesion')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
           <Button asChild>
-            <Link href="/login">Iniciar sesión</Link>
+            <Link href="/login">{t('header.iniciarSesion')}</Link>
           </Button>
         )}
       </div>
