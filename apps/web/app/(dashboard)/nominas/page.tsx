@@ -15,6 +15,7 @@ import { Download } from 'lucide-react'
 import { descargarCsv } from '@/lib/descargar-csv'
 import { descargarExcel } from '@/lib/descargar-excel'
 import { generarNominaPDF } from '@/lib/nomina-pdf'
+import { useLanguage } from '@/contexts/language-context'
 
 type OrdenCampo = 'empleada' | 'mes' | 'salarioBruto' | 'neto'
 type OrdenDireccion = 'asc' | 'desc'
@@ -51,6 +52,7 @@ export default function NominasPage() {
   const [ordenDir, setOrdenDir] = useState<OrdenDireccion>('asc')
   const searchRef = useRef<HTMLInputElement>(null)
   const getSupabase = useCallback(() => createClient(), [])
+  const { t } = useLanguage()
 
   useKeyboardShortcuts({
     onSearch: () => searchRef.current?.focus(),
@@ -119,7 +121,7 @@ export default function NominasPage() {
         rol,
         pdfUrl: pdfUrl || null,
       }, ...prev].sort((a, b) => b.mes - a.mes))
-      toast.success('Nómina guardada correctamente')
+      toast.success(t('nominas.nominaGuardada'))
     }
 
     setShowForm(false)
@@ -131,7 +133,7 @@ export default function NominasPage() {
     const supabase = getSupabase()
     await supabase.from('nominas').delete().eq('id', id)
     setNominas(prev => prev.filter(n => n.id !== id))
-    toast.success('Nómina eliminada')
+    toast.success(t('nominas.nominaEliminada'))
   }
 
   const toggleSort = (campo: OrdenCampo) => {
@@ -187,9 +189,9 @@ export default function NominasPage() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-heading font-bold tracking-tight">Nóminas</h1>
+            <h1 className="text-3xl font-heading font-bold tracking-tight">{t('nominas.titulo')}</h1>
             <p className="text-muted-foreground">
-              Gestión de nóminas — empleadas del hogar y retenciones IRPF
+              {t('nominas.subtitulo')}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -202,7 +204,7 @@ export default function NominasPage() {
                 className="gap-1 text-xs"
               >
                 <Briefcase className="h-3 w-3" aria-hidden="true" />
-                Soy el jefe
+                {t('nominas.soyJefe')}
               </Button>
               <Button
                 type="button"
@@ -212,12 +214,12 @@ export default function NominasPage() {
                 className="gap-1 text-xs"
               >
                 <User className="h-3 w-3" aria-hidden="true" />
-                Soy la empleada
+                {t('nominas.soyEmpleada')}
               </Button>
             </div>
             <Button onClick={() => setShowForm(true)}>
               <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-              Nueva nómina
+              {t('nominas.nuevaNomina')}
             </Button>
           </div>
         </div>
@@ -242,7 +244,7 @@ export default function NominasPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <Input
               ref={searchRef}
-              placeholder="Buscar por empleada..."
+              placeholder={t('nominas.buscarPlaceholder')}
               value={busqueda}
               onChange={e => { setBusqueda(e.target.value); setPage(0) }}
               className="pl-9"
@@ -256,7 +258,7 @@ export default function NominasPage() {
             {(['todas', 'jefe', 'empleado'] as const).map(f => (
               <Button key={f} variant={filtroRol === f ? 'secondary' : 'outline'} size="sm"
                 onClick={() => { setFiltroRol(f); setPage(0) }}>
-                {f === 'todas' ? 'Todas' : f === 'jefe' ? 'Jefe' : 'Empleada'}
+                {f === 'todas' ? t('nominas.todas') : f === 'jefe' ? t('nominas.jefe') : t('nominas.empleada')}
               </Button>
             ))}
           </div>
@@ -272,7 +274,7 @@ export default function NominasPage() {
               ])
               descargarExcel(headers, rows, `nominas-${new Date().toISOString().slice(0, 10)}.xlsx`, 'Nóminas')
             }}>
-            <Download className="mr-1 h-4 w-4" /> Exportar Excel
+            <Download className="mr-1 h-4 w-4" /> {t('nominas.exportarExcel')}
           </Button>
           <Button variant="outline" size="sm" onClick={async () => {
             const { generarPDFDeHTML } = await import('@/lib/pdf')
@@ -318,7 +320,7 @@ export default function NominasPage() {
               </div>`
             await generarPDFDeHTML(html, `nominas-${anyoFiltro}`, { orientacion: 'landscape' })
           }}>
-            <Download className="mr-1 h-4 w-4" /> Informe PDF
+            <Download className="mr-1 h-4 w-4" /> {t('nominas.informePDF')}
           </Button>
         </div>
 
@@ -341,22 +343,22 @@ export default function NominasPage() {
               <>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Gasto deducible (jefe)</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('nominas.gastoDeducible')}</CardTitle>
                     <Briefcase className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-red-600">{formatMoney(totalBrutoJefe)}</div>
-                    <p className="text-xs text-muted-foreground">{jefe.length} nóminas · {formatMoney(totalIrpfJefe)} IRPF retenido</p>
+                    <p className="text-xs text-muted-foreground">{jefe.length} {t('nominas.todas').toLowerCase()} · {formatMoney(totalIrpfJefe)} {t('dashboard.irpfRetenido')}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Neto pagado (jefe)</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('nominas.totalNeto')}</CardTitle>
                     <TrendingDown className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{formatMoney(totalNetoJefe)}</div>
-                    <p className="text-xs text-muted-foreground">Salario neto + SS + IRPF</p>
+                    <p className="text-xs text-muted-foreground">{t('nominas.salarioNeto')}</p>
                   </CardContent>
                 </Card>
               </>
@@ -365,22 +367,22 @@ export default function NominasPage() {
               <>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Bruto recibido (empleado)</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('nominas.brutoRecibido')}</CardTitle>
                     <User className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-green-600">{formatMoney(totalBrutoEmp)}</div>
-                    <p className="text-xs text-muted-foreground">{empleado.length} nóminas</p>
+                    <p className="text-xs text-muted-foreground">{empleado.length} {t('nominas.todas').toLowerCase()}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">IRPF retenido (empleado)</CardTitle>
+                    <CardTitle className="text-sm font-medium">{t('nominas.irpfRetenido')}</CardTitle>
                     <TrendingUp className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-green-600">{formatMoney(totalIrpfEmp)}</div>
-                    <p className="text-xs text-muted-foreground">Se descuenta de tu declaración anual</p>
+                    <p className="text-xs text-muted-foreground">{t('nominas.descuentoDeclaracion')}</p>
                   </CardContent>
                 </Card>
               </>
@@ -393,10 +395,9 @@ export default function NominasPage() {
             <CardContent className="flex flex-col items-center gap-4 py-12">
               <Users className="h-12 w-12 text-muted-foreground" />
               <div className="text-center">
-                <p className="font-medium">No hay nóminas en {anyoFiltro}</p>
+                <p className="font-medium">{t('nominas.sinNominas')} {anyoFiltro}</p>
                 <p className="text-sm text-muted-foreground">
-                  Añade nóminas para empleadas del hogar. Si eres el jefe, el gasto es deducible.
-                  Si eres la empleada, las retenciones reducen tu IRPF anual.
+                  {t('dashboard.anadirNominas')}
                 </p>
               </div>
             </CardContent>
