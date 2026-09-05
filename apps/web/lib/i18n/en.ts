@@ -313,6 +313,53 @@ export const en: DeepTraducciones = {
     nuevo: '(new)',
   },
 
+  // Help dialog
+  helpDialog: {
+    atajosTeclado: 'Keyboard shortcuts',
+    referenciaRapida: 'Quick reference of available shortcuts in MantiGestor',
+    busquedaGlobal: 'Global search',
+    buscarPaginaActual: 'Search on current page',
+    crearNuevo: 'Create new record',
+    cerrarCancelar: 'Close panel / cancel',
+    mostrarAyuda: 'Show this help',
+    irFacturas: 'Go to Invoices',
+    irDashboard: 'Go to Dashboard',
+    irAlquiler: 'Go to Rental',
+    irNominas: 'Go to Payrolls',
+    exportarExcel: 'Export Excel',
+    exportarPdf: 'Export PDF',
+    buscarFacturas: 'Search invoices',
+    filtrarEstado: 'Filter by status (pending/paid/overdue)',
+    filtrarTipo: 'Filter by type (income/expense)',
+    enlaces: 'Links',
+    documentacion: 'Documentation',
+    soporte: 'Support',
+  },
+
+  // Persona selector
+  personaSelector: {
+    miPerfil: 'My profile',
+    otraPersona: 'Another person',
+    gestor: 'Manager',
+    perfilActivo: 'Active profile',
+    tuCuentaPersonal: 'Your personal account',
+    sinNombre: 'No name',
+    teGestiona: '(manages you)',
+    gestionas: '(you manage)',
+    asociarPersona: 'Link person...',
+    invitacionCreada: 'Invitation created',
+    comparteEnlace: 'Share this link with the person so they can accept the invitation.',
+    copiaEnlace: 'Copy this link and send it via WhatsApp, SMS or your preferred method.',
+    copiarCerrar: 'Copy and close',
+    asociarNueva: 'Link new person',
+    introduceDatos: 'Enter the details of the person whose tax affairs you want to manage.',
+    nombre: 'Name',
+    email: 'Email *',
+    cancelar: 'Cancel',
+    guardando: 'Saving...',
+    asociar: 'Link',
+  },
+
   // Facturas recurrentes
   recurrentes: {
     titulo: 'Recurring invoices',
@@ -879,6 +926,10 @@ export const en: DeepTraducciones = {
     guardar: 'Saving...',
     siguiente: 'Next',
     empezar: 'Get started',
+    completarPerfil: 'Complete your tax profile',
+    anadirFactura: 'Add your first invoice',
+    explorarCalculadoras: 'Explore tax calculators',
+    completar: 'Complete',
   },
 
   // Dashboard widgets

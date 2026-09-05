@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, Circle, Plus, Calculator, FileText, Receipt } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Paso {
   completado: boolean
@@ -19,22 +20,23 @@ interface Props {
 }
 
 export function OnboardingChecklist({ tienePerfil, tieneFacturas, tieneCalculadoras }: Props) {
+  const { t } = useLanguage()
   const pasos: Paso[] = [
     {
       completado: tienePerfil,
-      label: 'Completar tu perfil fiscal',
+      label: t('onboarding.completarPerfil'),
       href: '/ajustes',
       icon: <Receipt className="h-4 w-4" />,
     },
     {
       completado: tieneFacturas,
-      label: 'Añadir tu primera factura',
+      label: t('onboarding.anadirFactura'),
       href: '/gestoria/facturas/nueva',
       icon: <FileText className="h-4 w-4" />,
     },
     {
       completado: tieneCalculadoras,
-      label: 'Explorar calculadoras fiscales',
+      label: t('onboarding.explorarCalculadoras'),
       href: '/fiscal',
       icon: <Calculator className="h-4 w-4" />,
     },
@@ -48,7 +50,7 @@ export function OnboardingChecklist({ tienePerfil, tieneFacturas, tieneCalculado
     <Card className="border-primary/30 bg-primary/5">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Primeros pasos</CardTitle>
+          <CardTitle className="text-lg">{t('onboarding.primerosPasos')}</CardTitle>
           <span className="text-xs text-muted-foreground">{completados}/{pasos.length}</span>
         </div>
         <div className="h-1.5 w-full rounded-full bg-muted">
@@ -77,7 +79,7 @@ export function OnboardingChecklist({ tienePerfil, tieneFacturas, tieneCalculado
                     {paso.label}
                   </div>
                   <Button variant="ghost" size="sm" className="h-7 text-xs">
-                    <Plus className="mr-1 h-3 w-3" /> Completar
+                    <Plus className="mr-1 h-3 w-3" /> {t('onboarding.completar')}
                   </Button>
                 </Link>
               )}

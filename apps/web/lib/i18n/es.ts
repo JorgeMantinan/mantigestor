@@ -311,6 +311,53 @@ export const es = {
     nuevo: '(nuevo)',
   },
 
+  // Help dialog
+  helpDialog: {
+    atajosTeclado: 'Atajos de teclado',
+    referenciaRapida: 'Referencia rápida de atajos disponibles en MantiGestor',
+    busquedaGlobal: 'Búsqueda global',
+    buscarPaginaActual: 'Buscar en la página actual',
+    crearNuevo: 'Crear nuevo registro',
+    cerrarCancelar: 'Cerrar panel / cancelar',
+    mostrarAyuda: 'Mostrar esta ayuda',
+    irFacturas: 'Ir a Facturas',
+    irDashboard: 'Ir a Dashboard',
+    irAlquiler: 'Ir a Alquiler',
+    irNominas: 'Ir a Nóminas',
+    exportarExcel: 'Exportar Excel',
+    exportarPdf: 'Exportar PDF',
+    buscarFacturas: 'Buscar en facturas',
+    filtrarEstado: 'Filtrar por estado (pendiente/pagada/vencida)',
+    filtrarTipo: 'Filtrar por tipo (ingreso/gasto)',
+    enlaces: 'Enlaces',
+    documentacion: 'Documentación',
+    soporte: 'Soporte',
+  },
+
+  // Persona selector
+  personaSelector: {
+    miPerfil: 'Mi perfil',
+    otraPersona: 'Otra persona',
+    gestor: 'Gestor',
+    perfilActivo: 'Perfil activo',
+    tuCuentaPersonal: 'Tu cuenta personal',
+    sinNombre: 'Sin nombre',
+    teGestiona: '(te gestiona)',
+    gestionas: '(gestionas)',
+    asociarPersona: 'Asociar persona...',
+    invitacionCreada: 'Invitación creada',
+    comparteEnlace: 'Comparte este enlace con la persona para que acepte la invitación.',
+    copiaEnlace: 'Copia este enlace y envíalo por WhatsApp, SMS o el medio que prefieras.',
+    copiarCerrar: 'Copiar y cerrar',
+    asociarNueva: 'Asociar nueva persona',
+    introduceDatos: 'Introduce los datos de la persona cuyos asuntos fiscales quieres gestionar.',
+    nombre: 'Nombre',
+    email: 'Email *',
+    cancelar: 'Cancelar',
+    guardando: 'Guardando...',
+    asociar: 'Asociar',
+  },
+
   // Facturas recurrentes
   recurrentes: {
     titulo: 'Facturas recurrentes',
@@ -870,6 +917,10 @@ export const es = {
     guardar: 'Guardando...',
     siguiente: 'Siguiente',
     empezar: 'Empezar',
+    completarPerfil: 'Completar tu perfil fiscal',
+    anadirFactura: 'Añadir tu primera factura',
+    explorarCalculadoras: 'Explorar calculadoras fiscales',
+    completar: 'Completar',
   },
 
   // Dashboard widgets

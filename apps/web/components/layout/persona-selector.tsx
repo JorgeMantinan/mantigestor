@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useLanguage } from '@/contexts/language-context'
 
 export function PersonaSelector() {
   const { perfilActivoId, personas, cargando, setPerfilActivo, esPropio } = usePersonaActiva()
@@ -33,6 +34,7 @@ export function PersonaSelector() {
   const [error, setError] = useState('')
   const [invitationLink, setInvitationLink] = useState('')
   const [invitationSent, setInvitationSent] = useState(false)
+  const { t } = useLanguage()
 
   if (cargando) return null
 
@@ -84,17 +86,17 @@ export function PersonaSelector() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="gap-2 text-xs">
             <Users className="h-3.5 w-3.5" />
-            {esPropio ? 'Mi perfil' : (personaActiva?.nombre ?? personaActiva?.email ?? 'Otra persona')}
-            {!esPropio && <Badge variant="secondary" className="ml-1 text-[10px] px-1">Gestor</Badge>}
+            {esPropio ? t('personaSelector.miPerfil') : (personaActiva?.nombre ?? personaActiva?.email ?? t('personaSelector.otraPersona'))}
+            {!esPropio && <Badge variant="secondary" className="ml-1 text-[10px] px-1">{t('personaSelector.gestor')}</Badge>}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">
-          <DropdownMenuLabel>Perfil activo</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('personaSelector.perfilActivo')}</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => setPerfilActivo(null)}>
             <User className="mr-2 h-4 w-4" />
             <div className="flex flex-col">
-              <span className="text-sm">Mi perfil</span>
-              <span className="text-xs text-muted-foreground">Tu cuenta personal</span>
+              <span className="text-sm">{t('personaSelector.miPerfil')}</span>
+              <span className="text-xs text-muted-foreground">{t('personaSelector.tuCuentaPersonal')}</span>
             </div>
             {esPropio && <Check className="ml-auto h-4 w-4 text-primary" />}
           </DropdownMenuItem>
@@ -107,9 +109,9 @@ export function PersonaSelector() {
             >
               <Users className="mr-2 h-4 w-4" />
               <div className="flex flex-col">
-                <span className="text-sm">{p.nombre || 'Sin nombre'}</span>
+                <span className="text-sm">{p.nombre || t('personaSelector.sinNombre')}</span>
                 <span className="text-xs text-muted-foreground">
-                  {p.email} {p.tipo === 'me_gestiona' ? '(te gestiona)' : '(gestionas)'}
+                  {p.email} {p.tipo === 'me_gestiona' ? t('personaSelector.teGestiona') : t('personaSelector.gestionas')}
                 </span>
               </div>
               {perfilActivoId === p.perfilId && <Check className="ml-auto h-4 w-4 text-primary" />}
@@ -118,7 +120,7 @@ export function PersonaSelector() {
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setDialogOpen(true)}>
             <Users className="mr-2 h-4 w-4" />
-            Asociar persona...
+            {t('personaSelector.asociarPersona')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -128,9 +130,9 @@ export function PersonaSelector() {
           {invitationSent && invitationLink ? (
             <>
               <DialogHeader>
-                <DialogTitle>Invitación creada</DialogTitle>
+                <DialogTitle>{t('personaSelector.invitacionCreada')}</DialogTitle>
                 <DialogDescription>
-                  Comparte este enlace con la persona para que acepte la invitación.
+                  {t('personaSelector.comparteEnlace')}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -138,38 +140,38 @@ export function PersonaSelector() {
                   {invitationLink}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Copia este enlace y envíalo por WhatsApp, SMS o el medio que prefieras.
+                  {t('personaSelector.copiaEnlace')}
                 </p>
               </div>
               <DialogFooter>
                 <Button onClick={() => { navigator.clipboard.writeText(invitationLink); setDialogOpen(false); setInvitationLink(''); setInvitationSent(false); window.location.reload(); }}>
-                  Copiar y cerrar
+                  {t('personaSelector.copiarCerrar')}
                 </Button>
               </DialogFooter>
             </>
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>Asociar nueva persona</DialogTitle>
+                <DialogTitle>{t('personaSelector.asociarNueva')}</DialogTitle>
                 <DialogDescription>
-                  Introduce los datos de la persona cuyos asuntos fiscales quieres gestionar.
+                  {t('personaSelector.introduceDatos')}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="asoc-nombre">Nombre</Label>
+                  <Label htmlFor="asoc-nombre">{t('personaSelector.nombre')}</Label>
                   <Input id="asoc-nombre" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} placeholder="María García" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="asoc-email">Email *</Label>
+                  <Label htmlFor="asoc-email">{t('personaSelector.email')}</Label>
                   <Input id="asoc-email" type="email" value={nuevoEmail} onChange={e => setNuevoEmail(e.target.value)} placeholder="maria@ejemplo.com" required />
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>{t('personaSelector.cancelar')}</Button>
                 <Button onClick={handleAsociar} disabled={guardando || !nuevoEmail}>
-                  {guardando ? 'Guardando...' : 'Asociar'}
+                  {guardando ? t('personaSelector.guardando') : t('personaSelector.asociar')}
                 </Button>
               </DialogFooter>
             </>
