@@ -79,11 +79,6 @@ function PerfilTab() {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [nif, setNif] = useState('')
-  const [provincia, setProvincia] = useState('')
-  const [situacion, setSituacion] = useState('')
-  const [empresaNombre, setEmpresaNombre] = useState('')
-  const [empresaNif, setEmpresaNif] = useState('')
-  const [empresaDireccion, setEmpresaDireccion] = useState('')
   const [notasPie, setNotasPie] = useState<string[]>([])
   const [logoBase64, setLogoBase64] = useState<string | null>(null)
   const [firma, setFirma] = useState<FirmaDigital | null>(null)
@@ -181,45 +176,6 @@ function PerfilTab() {
               <div className="space-y-2">
                 <Label htmlFor="nif">NIF / CIF</Label>
                 <Input id="nif" value={nif} onChange={(e) => setNif(e.target.value)} placeholder="12345678Z" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="provincia">Provincia fiscal</Label>
-                <Input id="provincia" value={provincia} onChange={(e) => setProvincia(e.target.value)} placeholder="Madrid" />
-              </div>
-            </div>
-            <Separator />
-            <div className="space-y-2">
-              <Label htmlFor="situacion">Situación laboral</Label>
-              <select
-                id="situacion"
-                value={situacion}
-                onChange={(e) => setSituacion(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value="">Selecciona...</option>
-                <option value="autonomo_puro">Autónomo (solo)</option>
-                <option value="autonomo_con_nomina">Autónomo con nómina</option>
-                <option value="asalariado">Asalariado</option>
-                <option value="pensionista">Pensionista</option>
-                <option value="desempleado">Desempleado</option>
-              </select>
-            </div>
-            <Separator />
-            <div>
-              <h3 className="text-sm font-medium mb-3">Datos de empresa (para facturas)</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="empresaNombre">Nombre de empresa</Label>
-                  <Input id="empresaNombre" value={empresaNombre} onChange={(e) => setEmpresaNombre(e.target.value)} placeholder="Mi Empresa S.L." />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="empresaNif">NIF de empresa</Label>
-                  <Input id="empresaNif" value={empresaNif} onChange={(e) => setEmpresaNif(e.target.value)} placeholder="B00000000" />
-                </div>
-              </div>
-              <div className="mt-4 space-y-2">
-                <Label htmlFor="empresaDireccion">Dirección fiscal</Label>
-                <Input id="empresaDireccion" value={empresaDireccion} onChange={(e) => setEmpresaDireccion(e.target.value)} placeholder="Calle Ejemplo 123, 28001 Madrid" />
               </div>
             </div>
             <Separator />
