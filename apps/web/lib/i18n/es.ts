@@ -923,6 +923,38 @@ export const es = {
     completar: 'Completar',
   },
 
+  // Nomina form
+  nominaForm: {
+    nuevaNomina: 'Nueva nómina',
+    descripcionJefe: 'Como empleador: el gasto es deducible en tu Modelo 130',
+    descripcionEmpleada: 'Como empleada: las retenciones IRPF se descuentan de tu declaración anual',
+    nombreEmpleada: 'Nombre de la empleada',
+    placeholderNombre: 'Nombre completo',
+    mes: 'Mes',
+    anyo: 'Año',
+    salarioBruto: 'Salario bruto mensual (€)',
+    retencionIrpf: 'Retención IRPF (%)',
+    segSocial: 'Seg. Social empleado (€)',
+    hijos: 'Hijos',
+    discapacidad: 'Discapacidad (%)',
+    pagasExtra: 'Pagas extra',
+    sinPagasExtra: 'Sin pagas extra',
+    pagaExtra1: '1 paga extra',
+    pagaExtra2: '2 pagas extra',
+    calcularAuto: 'Calcular IRPF y SS automáticamente',
+    recalcular: 'Recalcular',
+    vistaPrevial: 'Vista previa del cálculo:',
+    irpf: 'IRPF:',
+    segSocialLabel: 'Seg. Social:',
+    netoMensual: 'Neto mensual:',
+    pagaExtraLabel: 'Paga extra:',
+    bruto: 'bruto',
+    subirPdf: 'Subir nómina PDF',
+    guardando: 'Guardando...',
+    guardarNomina: 'Guardar nómina',
+    cancelar: 'Cancelar',
+  },
+
   // Dashboard widgets
   dashboardWidgets: {
     resumenMensual: 'Resumen mensual',

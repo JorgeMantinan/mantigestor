@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FileUpload } from '@/components/upload/FileUpload'
 import { calcularNomina } from '@mantigestor/utils'
+import { useLanguage } from '@/contexts/language-context'
 
 const MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -26,6 +27,7 @@ interface Props {
 export function NominaForm({ rolDefecto, anyoFiltro, userId, guardando, onSubmit, onCancel, onUploadComplete }: Props) {
   const [calcularAuto, setCalcularAuto] = useState(false)
   const [preview, setPreview] = useState<ReturnType<typeof calcularNomina> | null>(null)
+  const { t } = useLanguage()
 
   const calcularPreview = () => {
     const form = document.getElementById('nomina-form') as HTMLFormElement
@@ -48,11 +50,11 @@ export function NominaForm({ rolDefecto, anyoFiltro, userId, guardando, onSubmit
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Nueva nómina</CardTitle>
+        <CardTitle>{t('nominaForm.nuevaNomina')}</CardTitle>
         <CardDescription>
           {rolDefecto === 'jefe'
-            ? 'Como empleador: el gasto es deducible en tu Modelo 130'
-            : 'Como empleada: las retenciones IRPF se descuentan de tu declaración anual'}
+            ? t('nominaForm.descripcionJefe')
+            : t('nominaForm.descripcionEmpleada')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -60,11 +62,11 @@ export function NominaForm({ rolDefecto, anyoFiltro, userId, guardando, onSubmit
           <input type="hidden" name="rol" value={rolDefecto} />
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="empleada">Nombre de la empleada</Label>
-              <Input id="empleada" name="empleada" required placeholder="Nombre completo" />
+              <Label htmlFor="empleada">{t('nominaForm.nombreEmpleada')}</Label>
+              <Input id="empleada" name="empleada" required placeholder={t('nominaForm.placeholderNombre')} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="mes">Mes</Label>
+              <Label htmlFor="mes">{t('nominaForm.mes')}</Label>
               <select
                 id="mes"
                 name="mes"
@@ -78,43 +80,43 @@ export function NominaForm({ rolDefecto, anyoFiltro, userId, guardando, onSubmit
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="anyoForm">Año</Label>
+              <Label htmlFor="anyoForm">{t('nominaForm.anyo')}</Label>
               <Input id="anyoForm" name="anyo" type="number" min="2020" max="2030" defaultValue={anyoFiltro} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="salarioBruto">Salario bruto mensual (€)</Label>
+              <Label htmlFor="salarioBruto">{t('nominaForm.salarioBruto')}</Label>
               <Input id="salarioBruto" name="salarioBruto" type="number" step="0.01" required placeholder="1200.00" onChange={() => calcularAuto && calcularPreview()} />
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="irpf">Retención IRPF (%)</Label>
+              <Label htmlFor="irpf">{t('nominaForm.retencionIrpf')}</Label>
               <Input id="irpf" name="irpf" type="number" step="0.1" required placeholder="2" defaultValue={preview?.tipoIRPF.toFixed(1) ?? ''} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="seguridadSocial">Seg. Social empleado (€)</Label>
+              <Label htmlFor="seguridadSocial">{t('nominaForm.segSocial')}</Label>
               <Input id="seguridadSocial" name="seguridadSocial" type="number" step="0.01" required placeholder="50.00" defaultValue={preview?.seguridadSocial.toFixed(2) ?? ''} />
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="hijos">Hijos</Label>
+              <Label htmlFor="hijos">{t('nominaForm.hijos')}</Label>
               <Input id="hijos" name="hijos" type="number" min="0" max="20" defaultValue="0" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="discapacidad">Discapacidad (%)</Label>
+              <Label htmlFor="discapacidad">{t('nominaForm.discapacidad')}</Label>
               <Input id="discapacidad" name="discapacidad" type="number" min="0" max="100" defaultValue="0" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pagaExtra">Pagas extra</Label>
+              <Label htmlFor="pagaExtra">{t('nominaForm.pagasExtra')}</Label>
               <select
                 id="pagaExtra"
                 name="pagasExtra"
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
-                <option value="0">Sin pagas extra</option>
-                <option value="1">1 paga extra</option>
-                <option value="2">2 pagas extra</option>
+                <option value="0">{t('nominaForm.sinPagasExtra')}</option>
+                <option value="1">{t('nominaForm.pagaExtra1')}</option>
+                <option value="2">{t('nominaForm.pagaExtra2')}</option>
               </select>
             </div>
           </div>
@@ -130,28 +132,28 @@ export function NominaForm({ rolDefecto, anyoFiltro, userId, guardando, onSubmit
               }}
               className="h-4 w-4 rounded border-gray-300"
             />
-            <Label htmlFor="calcularAuto" className="text-sm">Calcular IRPF y SS automáticamente</Label>
+            <Label htmlFor="calcularAuto" className="text-sm">{t('nominaForm.calcularAuto')}</Label>
             {calcularAuto && (
               <Button type="button" variant="outline" size="sm" onClick={calcularPreview}>
-                Recalcular
+                {t('nominaForm.recalcular')}
               </Button>
             )}
           </div>
 
           {preview && (
             <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
-              <p className="text-sm font-medium">Vista previa del cálculo:</p>
+              <p className="text-sm font-medium">{t('nominaForm.vistaPrevial')}</p>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <span className="text-muted-foreground">IRPF:</span>
+                <span className="text-muted-foreground">{t('nominaForm.irpf')}</span>
                 <span>{preview.tipoIRPF}% ({preview.retencionIRPF.toFixed(2)} €/mes)</span>
-                <span className="text-muted-foreground">Seg. Social:</span>
+                <span className="text-muted-foreground">{t('nominaForm.segSocialLabel')}</span>
                 <span>{preview.seguridadSocial.toFixed(2)} €/mes</span>
-                <span className="text-muted-foreground">Neto mensual:</span>
+                <span className="text-muted-foreground">{t('nominaForm.netoMensual')}</span>
                 <span className="font-medium">{preview.salarioNetoMensual.toFixed(2)} €</span>
                 {preview.pagaExtraBruto > 0 && (
                   <>
-                    <span className="text-muted-foreground">Paga extra:</span>
-                    <span>{preview.pagaExtraBruto.toFixed(2)} € bruto</span>
+                    <span className="text-muted-foreground">{t('nominaForm.pagaExtraLabel')}</span>
+                    <span>{preview.pagaExtraBruto.toFixed(2)} € {t('nominaForm.bruto')}</span>
                   </>
                 )}
               </div>
@@ -163,15 +165,15 @@ export function NominaForm({ rolDefecto, anyoFiltro, userId, guardando, onSubmit
             path={userId ?? ''}
             tipo="nomina"
             accept=".pdf"
-            buttonText="Subir nómina PDF"
+            buttonText={t('nominaForm.subirPdf')}
             onUploadComplete={onUploadComplete}
           />
           <div className="flex gap-4 pt-2">
             <Button type="submit" className="flex-1" disabled={guardando}>
-              {guardando ? 'Guardando...' : 'Guardar nómina'}
+              {guardando ? t('nominaForm.guardando') : t('nominaForm.guardarNomina')}
             </Button>
             <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
-              Cancelar
+              {t('nominaForm.cancelar')}
             </Button>
           </div>
         </form>

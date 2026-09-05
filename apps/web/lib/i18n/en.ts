@@ -932,6 +932,38 @@ export const en: DeepTraducciones = {
     completar: 'Complete',
   },
 
+  // Nomina form
+  nominaForm: {
+    nuevaNomina: 'New payroll',
+    descripcionJefe: 'As employer: the expense is deductible in your Model 130',
+    descripcionEmpleada: 'As employee: IRPF withholdings are deducted from your annual tax return',
+    nombreEmpleada: 'Employee name',
+    placeholderNombre: 'Full name',
+    mes: 'Month',
+    anyo: 'Year',
+    salarioBruto: 'Gross monthly salary (€)',
+    retencionIrpf: 'IRPF withholding (%)',
+    segSocial: 'Employee social security (€)',
+    hijos: 'Children',
+    discapacidad: 'Disability (%)',
+    pagasExtra: 'Extra pays',
+    sinPagasExtra: 'No extra pays',
+    pagaExtra1: '1 extra pay',
+    pagaExtra2: '2 extra pays',
+    calcularAuto: 'Calculate IRPF and SS automatically',
+    recalcular: 'Recalculate',
+    vistaPrevial: 'Calculation preview:',
+    irpf: 'IRPF:',
+    segSocialLabel: 'Social security:',
+    netoMensual: 'Net monthly:',
+    pagaExtraLabel: 'Extra pay:',
+    bruto: 'gross',
+    subirPdf: 'Upload payroll PDF',
+    guardando: 'Saving...',
+    guardarNomina: 'Save payroll',
+    cancelar: 'Cancel',
+  },
+
   // Dashboard widgets
   dashboardWidgets: {
     resumenMensual: 'Monthly summary',
