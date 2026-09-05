@@ -14,6 +14,7 @@ import { PropertyCard } from '@/components/alquiler/property-card'
 import { descargarCsv } from '@/lib/descargar-csv'
 import { descargarExcel } from '@/lib/descargar-excel'
 import { logAccion } from '@/lib/audit-log'
+import { useLanguage } from '@/contexts/language-context'
 
 type OrdenCampo = 'direccion' | 'ingresos' | 'gastos' | 'balance'
 type OrdenDir = 'asc' | 'desc'
@@ -51,6 +52,7 @@ export default function AlquilerPage() {
   const [ordenDir, setOrdenDir] = useState<OrdenDir>('asc')
   const searchRef = useRef<HTMLInputElement>(null)
   const getSupabase = useCallback(() => createClient(), [])
+  const { t } = useLanguage()
 
   useKeyboardShortcuts({
     onSearch: () => searchRef.current?.focus(),
@@ -170,7 +172,7 @@ export default function AlquilerPage() {
         gastos: [],
       }, ...propiedades])
       setShowForm(false)
-      toast.success('Propiedad añadida')
+      toast.success(t('alquiler.propiedadAnyadida'))
     }
     setGuardando(false)
   }
@@ -207,7 +209,7 @@ export default function AlquilerPage() {
         } : p
       ))
       setEditingId(null)
-      toast.success('Propiedad actualizada')
+      toast.success(t('alquiler.propiedadActualizada'))
     }
     setGuardando(false)
   }
@@ -217,7 +219,7 @@ export default function AlquilerPage() {
     await getSupabase().from('propiedades_alquiler').delete().eq('id', id)
     await logAccion('eliminar', 'propiedad', id, `Propiedad ${prop?.direccion ?? ''} eliminada`)
     setPropiedades(propiedades.filter((p) => p.id !== id))
-    toast.success('Propiedad eliminada')
+    toast.success(t('alquiler.propiedadEliminada'))
   }
 
   const handleAddGasto = async (propiedadId: string, e: React.FormEvent<HTMLFormElement>) => {
@@ -247,7 +249,7 @@ export default function AlquilerPage() {
         } : p
       ))
       setGastoPropiedadId(null)
-      toast.success('Gasto añadido')
+      toast.success(t('alquiler.gastoAnyadido'))
     }
     setGuardando(false)
   }
@@ -257,7 +259,7 @@ export default function AlquilerPage() {
     setPropiedades(propiedades.map((p) =>
       p.id === propiedadId ? { ...p, gastos: p.gastos.filter((g) => g.id !== gastoId) } : p
     ))
-    toast.success('Gasto eliminado')
+    toast.success(t('alquiler.gastoEliminado'))
   }
 
   if (cargando) {
@@ -308,8 +310,8 @@ export default function AlquilerPage() {
       <Toaster position="top-right" richColors />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-bold tracking-tight">Alquiler</h1>
-          <p className="text-muted-foreground">Gestión de propiedades en alquiler</p>
+          <h1 className="text-3xl font-heading font-bold tracking-tight">{t('alquiler.titulo')}</h1>
+          <p className="text-muted-foreground">{t('alquiler.subtitulo')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled={visibles.length === 0}
@@ -323,11 +325,11 @@ export default function AlquilerPage() {
               ])
               descargarExcel(headers, rows, `propiedades-alquiler-${new Date().toISOString().slice(0, 10)}.xlsx`, 'Propiedades')
             }}>
-            <Download className="mr-1 h-4 w-4" /> Exportar Excel
+            <Download className="mr-1 h-4 w-4" /> {t('alquiler.exportarExcel')}
           </Button>
           <Button onClick={() => setShowForm(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Añadir propiedad
+            {t('alquiler.anyadirPropiedad')}
           </Button>
         </div>
       </div>
@@ -336,7 +338,7 @@ export default function AlquilerPage() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
         <Input
           ref={searchRef}
-          placeholder="Buscar por dirección o inquilino..."
+          placeholder={t('alquiler.buscarPlaceholder')}
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="pl-9"
@@ -347,36 +349,36 @@ export default function AlquilerPage() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Nueva propiedad</CardTitle>
-            <CardDescription>Datos del inmueble y del inquilino</CardDescription>
+            <CardTitle>{t('alquiler.nuevaPropiedad')}</CardTitle>
+            <CardDescription>{t('alquiler.datosInmueble')}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAdd} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="direccion">Dirección *</Label>
+                <Label htmlFor="direccion">{t('alquiler.direccion')}</Label>
                 <Input id="direccion" name="direccion" required placeholder="Calle Mayor 1, Madrid" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="ingresos">Ingreso mensual (€)</Label>
+                <Label htmlFor="ingresos">{t('alquiler.ingresoMensual')}</Label>
                 <Input id="ingresos" name="ingresos" type="number" step="0.01" min="0" placeholder="800" />
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="inquilinoNombre">Nombre del inquilino (opcional)</Label>
+                  <Label htmlFor="inquilinoNombre">{t('alquiler.nombreInquilino')}</Label>
                   <Input id="inquilinoNombre" name="inquilinoNombre" placeholder="María García" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="inquilinoEmail">Email (opcional)</Label>
+                  <Label htmlFor="inquilinoEmail">{t('alquiler.emailOpcional')}</Label>
                   <Input id="inquilinoEmail" name="inquilinoEmail" type="email" placeholder="maria@email.com" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="inquilinoTelefono">Teléfono (opcional)</Label>
+                  <Label htmlFor="inquilinoTelefono">{t('alquiler.telefonoOpcional')}</Label>
                   <Input id="inquilinoTelefono" name="inquilinoTelefono" type="tel" placeholder="612 345 678" />
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button type="submit" disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar'}</Button>
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancelar</Button>
+                <Button type="submit" disabled={guardando}>{guardando ? t('alquiler.guardando') : t('alquiler.guardar')}</Button>
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>{t('alquiler.cancelar')}</Button>
               </div>
             </form>
           </CardContent>
@@ -388,9 +390,9 @@ export default function AlquilerPage() {
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <Home className="h-12 w-12 text-muted-foreground" />
             <div className="text-center">
-              <p className="font-medium">No hay propiedades</p>
+              <p className="font-medium">{t('alquiler.sinPropiedades')}</p>
               <p className="text-sm text-muted-foreground">
-                Añade tus propiedades en alquiler para controlar ingresos y gastos
+                {t('alquiler.anyadirPropiedades')}
               </p>
             </div>
           </CardContent>
@@ -402,9 +404,9 @@ export default function AlquilerPage() {
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <Search className="h-12 w-12 text-muted-foreground" />
             <div className="text-center">
-              <p className="font-medium">Sin resultados</p>
+              <p className="font-medium">{t('alquiler.sinResultados')}</p>
               <p className="text-sm text-muted-foreground">
-                No se encontraron propiedades que coincidan con &quot;{busqueda}&quot;
+                {t('alquiler.noEncontradas')} &quot;{busqueda}&quot;
               </p>
             </div>
           </CardContent>
