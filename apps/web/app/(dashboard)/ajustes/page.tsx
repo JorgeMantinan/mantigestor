@@ -15,23 +15,25 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { createClient } from '@/lib/supabase/client'
 import { NOTAS_PIE_PREDEFINIDAS, obtenerNotasPieDefecto, guardarNotasPieDefectoPorUserId } from '@/lib/notas-pie-factura'
+import { useLanguage } from '@/contexts/language-context'
 
 type Tab = 'perfil' | 'suscripcion' | 'apariencia'
 
 export default function AjustesPage() {
   const [tab, setTab] = useState<Tab>('perfil')
+  const { t } = useLanguage()
 
   const tabs: { value: Tab; label: string }[] = [
-    { value: 'perfil', label: 'Perfil' },
-    { value: 'suscripcion', label: 'Suscripción' },
-    { value: 'apariencia', label: 'Apariencia' },
+    { value: 'perfil', label: t('ajustes.perfil') },
+    { value: 'suscripcion', label: t('ajustes.suscripcion') },
+    { value: 'apariencia', label: t('ajustes.apariencia') },
   ]
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div>
-        <h1 className="text-3xl font-heading font-bold tracking-tight">Ajustes</h1>
-        <p className="text-muted-foreground">Gestiona tu cuenta y preferencias</p>
+        <h1 className="text-3xl font-heading font-bold tracking-tight">{t('ajustes.titulo')}</h1>
+        <p className="text-muted-foreground">{t('ajustes.subtitulo')}</p>
       </div>
 
       <div className="flex gap-1 rounded-lg border p-1">
@@ -57,15 +59,15 @@ export default function AjustesPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <div>
-            <CardTitle>Personas asociadas</CardTitle>
-            <CardDescription>Gestiona las personas cuyos asuntos fiscales gestionas</CardDescription>
+            <CardTitle>{t('ajustes.personasAsociadas')}</CardTitle>
+            <CardDescription>{t('ajustes.subtituloPersonas')}</CardDescription>
           </div>
           <div className="flex gap-2">
             <ShareDialog />
             <Link href="/ajustes/personas">
               <Button variant="outline" size="sm" className="gap-2">
                 <Users className="h-4 w-4" />
-                Ver personas
+                {t('ajustes.verPersonas')}
               </Button>
             </Link>
           </div>
@@ -88,6 +90,7 @@ function PerfilTab() {
   const [guardandoFirma, setGuardandoFirma] = useState(false)
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
+  const { t } = useLanguage()
 
   useEffect(() => {
     const cargar = async () => {
@@ -154,18 +157,18 @@ function PerfilTab() {
     <>
     <Card>
       <CardHeader>
-        <CardTitle>Información personal</CardTitle>
-        <CardDescription>Actualiza tus datos fiscales y de contacto</CardDescription>
+        <CardTitle>{t('ajustes.informacionPersonal')}</CardTitle>
+        <CardDescription>{t('ajustes.actualizaDatos')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {cargando ? (
-          <p className="text-sm text-muted-foreground">Cargando perfil...</p>
+          <p className="text-sm text-muted-foreground">{t('ajustes.cargandoPerfil')}</p>
         ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="nombre">Nombre completo</Label>
-                <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Tu nombre" />
+                <Label htmlFor="nombre">{t('ajustes.nombreCompleto')}</Label>
+                <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder={t('ajustes.placeholderNombre')} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -174,14 +177,14 @@ function PerfilTab() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="nif">NIF / CIF</Label>
+                <Label htmlFor="nif">{t('ajustes.nifCif')}</Label>
                 <Input id="nif" value={nif} onChange={(e) => setNif(e.target.value)} placeholder="12345678Z" />
               </div>
             </div>
             <Separator />
             <div className="space-y-2">
-              <Label htmlFor="idiomaFactura">Idioma de facturas</Label>
-              <p className="text-xs text-muted-foreground">Idioma de las etiquetas y textos en los PDFs de factura generados</p>
+              <Label htmlFor="idiomaFactura">{t('ajustes.idiomaFacturas')}</Label>
+              <p className="text-xs text-muted-foreground">{t('ajustes.descripcionIdioma')}</p>
               <select
                 id="idiomaFactura"
                 value={idiomaFactura}
@@ -194,19 +197,19 @@ function PerfilTab() {
             </div>
             <Separator />
             <div className="space-y-2">
-              <Label>Logo de empresa (para facturas)</Label>
-              <p className="text-xs text-muted-foreground">Aparecerá en el encabezado de las facturas PDF. Máximo 500KB.</p>
+              <Label>{t('ajustes.logoEmpresa')}</Label>
+              <p className="text-xs text-muted-foreground">{t('ajustes.descripcionLogo')}</p>
               {logoBase64 ? (
                 <div className="flex items-center gap-4">
                   <img src={logoBase64} alt="Logo de empresa" className="h-16 w-auto rounded border bg-white p-1 object-contain" />
                   <Button variant="ghost" size="sm" className="text-destructive gap-1" onClick={() => setLogoBase64(null)}>
-                    <Trash2 className="h-4 w-4" /> Eliminar logo
+                    <Trash2 className="h-4 w-4" /> {t('ajustes.eliminarLogo')}
                   </Button>
                 </div>
               ) : (
                 <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed p-4 text-sm text-muted-foreground hover:bg-muted transition-colors">
                   <Upload className="h-4 w-4" />
-                  Seleccionar imagen...
+                  {t('ajustes.seleccionarImagen')}
                   <input
                     type="file"
                     accept="image/*"
@@ -215,7 +218,7 @@ function PerfilTab() {
                       const file = e.target.files?.[0]
                       if (!file) return
                       if (file.size > 500 * 1024) {
-                        alert('El archivo supera los 500KB')
+                        alert(t('ajustes.archivoGrande'))
                         return
                       }
                       const reader = new FileReader()
@@ -228,8 +231,8 @@ function PerfilTab() {
             </div>
             <Separator />
             <div className="space-y-2">
-              <Label>Notas pie de factura</Label>
-              <p className="text-xs text-muted-foreground">Texto que aparecerá al pie de cada factura generada. Una nota por línea.</p>
+              <Label>{t('ajustes.notasPie')}</Label>
+              <p className="text-xs text-muted-foreground">{t('ajustes.descripcionNotas')}</p>
               {notasPie.length > 0 && (
                 <div className="space-y-1">
                   {notasPie.map((nota, i) => (
@@ -241,7 +244,7 @@ function PerfilTab() {
                           updated[i] = e.target.value
                           setNotasPie(updated)
                         }}
-                        placeholder="Nota pie de factura..."
+                        placeholder={t('ajustes.placeholderNota')}
                       />
                       <Button
                         variant="ghost"
@@ -261,7 +264,7 @@ function PerfilTab() {
                   size="sm"
                   onClick={() => setNotasPie([...notasPie, ''])}
                 >
-                  Añadir nota
+                  {t('ajustes.anyadirNota')}
                 </Button>
                 {notasPie.length === 0 && (
                   <div className="flex flex-wrap gap-1">
@@ -281,10 +284,10 @@ function PerfilTab() {
               </div>
             </div>
             <Button onClick={guardar} disabled={guardando || cargando}>
-              {guardando ? 'Guardando...' : 'Guardar cambios'}
+              {guardando ? t('ajustes.guardando') + '...' : t('ajustes.guardarCambios')}
             </Button>
             {guardadoOk && (
-              <p className="text-sm text-green-500 mt-2">✓ Cambios guardados correctamente</p>
+              <p className="text-sm text-green-500 mt-2">✓ {t('ajustes.cambiosGuardados')}</p>
             )}
           </>
         )}
@@ -297,6 +300,7 @@ function PerfilTab() {
 
 function FirmaSection({ firma, onFirmaGuardada }: { firma: FirmaDigital | null; onFirmaGuardada: (f: FirmaDigital | null) => void }) {
   const [eliminando, setEliminando] = useState(false)
+  const { t } = useLanguage()
 
   const handleFirmaGuardada = async (base64: string) => {
     const supabase = createClient()
@@ -333,9 +337,9 @@ function FirmaSection({ firma, onFirmaGuardada }: { firma: FirmaDigital | null; 
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <PenTool className="h-5 w-5" />
-          Firma digital
+          {t('ajustes.firmaDigital')}
         </CardTitle>
-        <CardDescription>Firma que aparecerá en el pie de tus facturas PDF</CardDescription>
+        <CardDescription>{t('ajustes.descripcionFirma')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {firma ? (
@@ -349,7 +353,7 @@ function FirmaSection({ firma, onFirmaGuardada }: { firma: FirmaDigital | null; 
               </p>
               <Button variant="ghost" size="sm" className="text-destructive gap-1" onClick={handleEliminar} disabled={eliminando}>
                 <Trash2 className="h-4 w-4" />
-                {eliminando ? 'Eliminando...' : 'Eliminar firma'}
+                {eliminando ? t('ajustes.eliminando') + '...' : t('ajustes.eliminarFirma')}
               </Button>
             </div>
             <FirmaCanvas onFirmaGuardada={handleFirmaGuardada} nombreInicial={firma.nombre} />
@@ -371,6 +375,7 @@ function SuscripcionTab() {
     currentPeriodEnd: string
   } | null>(null)
   const [subLoading, setSubLoading] = useState(true)
+  const { t } = useLanguage()
 
   const cargarSuscripcion = useCallback(async () => {
     const supabase = createClient()
@@ -441,22 +446,22 @@ function SuscripcionTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Suscripción</CardTitle>
-        <CardDescription>Gestiona tu plan y método de pago</CardDescription>
+        <CardTitle>{t('ajustes.suscripcion')}</CardTitle>
+        <CardDescription>{t('ajustes.gestionarSuscripcion')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="rounded-lg border bg-muted/50 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Plan actual</p>
+              <p className="font-medium">{t('ajustes.planActual')}</p>
               <p className="text-sm text-muted-foreground">
                 {subLoading
-                  ? 'Cargando...'
+                  ? t('dashboard.cargando')
                   : isPro && isActive
-                    ? 'Plan PRO activo'
+                    ? t('ajustes.planPRO')
                     : isPro && !isActive
-                      ? 'Tu suscripción ha caducado'
-                      : 'Plan BASIC gratuito'}
+                      ? t('ajustes.suscripcionCaducada')
+                      : t('ajustes.planBASIC')}
               </p>
             </div>
             <div className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
@@ -466,11 +471,11 @@ function SuscripcionTab() {
         </div>
         <div className="space-y-2">
           <Button variant="link" size="sm" onClick={sincronizar} disabled={subLoading}>
-            {subLoading ? 'Sincronizando...' : 'Sincronizar suscripción'}
+            {subLoading ? t('ajustes.sincronizando') : t('ajustes.sincronizar')}
           </Button>
         </div>
         <div className="space-y-2">
-          <Label>Método de pago</Label>
+          <Label>{t('ajustes.metodoPago')}</Label>
           <div className="flex gap-4">
             {isPro && isActive ? (
               <Button
@@ -479,7 +484,7 @@ function SuscripcionTab() {
                 onClick={handlePortal}
                 disabled={loading === 'portal'}
               >
-                {loading === 'portal' ? 'Cargando...' : stripeOk ? 'Gestionar suscripción' : 'Próximamente'}
+                {loading === 'portal' ? t('dashboard.cargando') : stripeOk ? t('ajustes.gestionarSuscripcion') : t('ajustes.proximamente')}
               </Button>
             ) : (
               <Button
@@ -488,7 +493,7 @@ function SuscripcionTab() {
                 onClick={handleCheckout}
                 disabled={loading === 'checkout'}
               >
-                {loading === 'checkout' ? 'Redirigiendo...' : stripeOk ? 'Stripe' : 'Próximamente'}
+                {loading === 'checkout' ? 'Redirigiendo...' : stripeOk ? 'Stripe' : t('ajustes.proximamente')}
               </Button>
             )}
             <Button variant="outline" className="flex-1" disabled>
@@ -497,10 +502,10 @@ function SuscripcionTab() {
           </div>
           <p className="text-xs text-muted-foreground">
             {!stripeOk
-              ? 'Los pagos online estarán disponibles pronto.'
+              ? t('ajustes.pagosOnline')
               : isPro && isActive
-                ? 'Gestiona tu suscripción y método de pago desde el portal de Stripe'
-                : 'Al contratar disfrutarás de 30 días de prueba gratuita del plan PRO'}
+                ? t('ajustes.portalStripe')
+                : t('ajustes.contratarBeneficios')}
           </p>
         </div>
       </CardContent>
@@ -510,22 +515,23 @@ function SuscripcionTab() {
 
 function AparienciaTab() {
   const { theme, setTheme } = useTheme()
+  const { t } = useLanguage()
 
   const themes: { value: string; label: string }[] = [
-    { value: 'light', label: 'Claro' },
-    { value: 'dark', label: 'Oscuro' },
-    { value: 'system', label: 'Sistema' },
+    { value: 'light', label: t('ajustes.claro') },
+    { value: 'dark', label: t('ajustes.oscuro') },
+    { value: 'system', label: t('ajustes.sistema') },
   ]
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Apariencia</CardTitle>
-        <CardDescription>Personaliza cómo ves MantiGestor</CardDescription>
+        <CardTitle>{t('ajustes.apariencia')}</CardTitle>
+        <CardDescription>{t('ajustes.personalizaVista')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label>Tema</Label>
+          <Label>{t('ajustes.tema')}</Label>
           <div className="flex gap-4">
             {themes.map((t) => (
               <Button
@@ -552,10 +558,11 @@ function ShareDialog() {
   const [nombreInvitado, setNombreInvitado] = useState('')
   const [emailInvitado, setEmailInvitado] = useState('')
   const [error, setError] = useState('')
+  const { t } = useLanguage()
 
-  const generarEnlace = async () => {
+  const handleGenerarEnlace = async () => {
     if (!emailInvitado.trim()) {
-      setError('Introduce un email')
+      setError(t('ajustes.emailPlaceholder'))
       return
     }
     setGenerando(true)
@@ -563,13 +570,13 @@ function ShareDialog() {
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setError('No autenticado'); setGenerando(false); return }
+      if (!user) { setError(t('ajustes.noAutenticado')); setGenerando(false); return }
 
       const token = crypto.randomUUID()
       const link = `${window.location.origin}/register?invitado=true&email=${encodeURIComponent(emailInvitado)}&token=${token}&propietario=${user.id}`
       setShareLink(link)
     } catch {
-      setError('Error al generar el enlace')
+      setError(t('ajustes.errorEnlace'))
     }
     setGenerando(false)
   }
@@ -596,21 +603,21 @@ function ShareDialog() {
     <>
       <Button variant="outline" size="sm" className="gap-2" onClick={() => setOpen(true)}>
         <Share2 className="h-4 w-4" />
-        Compartir
+        {t('ajustes.compartir')}
       </Button>
       <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setShareLink(''); setNombreInvitado(''); setEmailInvitado(''); setError('') } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Compartir con...</DialogTitle>
+            <DialogTitle>{t('ajustes.compartirCon')}</DialogTitle>
             <DialogDescription>
-              Genera un enlace para que otra persona pueda ver tus datos (solo lectura).
+              {t('ajustes.descripcionCompartir')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {!shareLink ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="share-nombre">Nombre (opcional)</Label>
+                  <Label htmlFor="share-nombre">{t('ajustes.nombreOpcional')}</Label>
                   <Input
                     id="share-nombre"
                     value={nombreInvitado}
@@ -619,7 +626,7 @@ function ShareDialog() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="share-email">Email del destinatario *</Label>
+                  <Label htmlFor="share-email">{t('ajustes.emailDestinatario')}</Label>
                   <Input
                     id="share-email"
                     type="email"
@@ -629,14 +636,14 @@ function ShareDialog() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  El destinatario recibirá un enlace de registro. Una vez registrado, podrá ver tus facturas y datos fiscales en modo solo lectura.
+                  {t('ajustes.descripcionDestinatario')}
                 </p>
                 {error && <p className="text-sm text-destructive">{error}</p>}
               </>
             ) : (
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Enlace generado. Comparte esta URL con {nombreInvitado || emailInvitado}:
+                  {t('ajustes.enlaceGenerado')} {nombreInvitado || emailInvitado}:
                 </p>
                 <div className="flex items-center gap-2">
                   <Input
@@ -650,16 +657,16 @@ function ShareDialog() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Este enlace es de un solo uso. La persona deberá registrarse o iniciar sesión para acceder.
+                  {t('ajustes.enlaceUnUso')}
                 </p>
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cerrar</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{t('header.cerrar')}</Button>
             {!shareLink && (
-              <Button onClick={generarEnlace} disabled={generando || !emailInvitado.trim()}>
-                {generando ? 'Generando...' : 'Generar enlace'}
+              <Button onClick={handleGenerarEnlace} disabled={generando || !emailInvitado.trim()}>
+                {generando ? t('ajustes.generando') : t('ajustes.generarEnlace')}
               </Button>
             )}
           </DialogFooter>
