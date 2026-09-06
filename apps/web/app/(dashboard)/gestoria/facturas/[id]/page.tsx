@@ -28,6 +28,7 @@ import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, serializarTags, obtene
 import { obtenerPlantillas, renderPlantilla, type PlantillaEmail } from '@/lib/plantillas-email'
 import { EmailPreview } from '@/components/email-preview'
 import { calcularDescuento, formatoDescuento } from '@/lib/descuento-factura'
+import { useLanguage } from '@/contexts/language-context'
 import { crearRectificativa, obtenerRectificativas, calcularImporteMaximo, esNotaCredito, esNotaDebito, type RectificativaData, type TipoRectificativa } from '@/lib/rectificativa'
 import { obtenerPagos, calcularSaldoPendiente, estaPagada, registrarPago, METODOS_PAGO, type PagoParcial } from '@/lib/pago-parcial'
 
@@ -53,6 +54,7 @@ interface Factura {
 
 export default function FacturaDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [factura, setFactura] = useState<Factura | null>(null)
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -246,7 +248,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           motivo: motivoRectificativa,
           baseRectificativa,
         })
-        toast.success(`Nota de ${tipoRectificativa === 'credito' ? 'crédito' : 'débito'} creada`)
+        toast.success(tipoRectificativa === 'credito' ? t('facturaDetalle.notaCreditCreada') : t('facturaDetalle.notaDebitoCreada'))
         setRectificativaDialogOpen(false)
         setMotivoRectificativa('')
         setBaseRectificativa(0)
@@ -255,10 +257,10 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           setRectificativas(prev => [result.data!, ...prev])
         }
       } else {
-        toast.error(result.error || 'Error al crear la rectificativa')
+        toast.error(result.error || t('facturaDetalle.errorCrearRectificativa'))
       }
     } catch {
-      toast.error('Error al crear la rectificativa')
+      toast.error(t('facturaDetalle.errorCrearRectificativa'))
     }
     setGuardandoRectificativa(false)
   }
@@ -294,13 +296,13 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       )
       if (result.ok) {
         await logAccion('crear', 'factura', factura.id, `Email enviado a ${emailDestino}`, { tipo: 'email', destinatario: emailDestino })
-        toast.success(result.skipped ? 'Email no enviado (sin API key configurada)' : `Email enviado a ${emailDestino}`)
+        toast.success(result.skipped ? t('facturaDetalle.emailNoEnviado') : `${t('facturaDetalle.emailEnviado')} ${emailDestino}`)
         setEmailDialogOpen(false)
       } else {
-        toast.error(result.error || 'Error al enviar el email')
+        toast.error(result.error || t('facturaDetalle.errorEnviarEmail'))
       }
     } catch {
-      toast.error('Error al enviar el email')
+      toast.error(t('facturaDetalle.errorEnviarEmail'))
     }
     setEnviandoEmail(false)
   }
@@ -333,10 +335,10 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         setPagoImporte(0)
         setPagoNotas('')
       } else {
-        toast.error('Error al registrar el pago')
+        toast.error(t('facturaDetalle.errorRegistrarPago'))
       }
     } catch {
-      toast.error('Error al registrar el pago')
+      toast.error(t('facturaDetalle.errorRegistrarPago'))
     }
     setGuardandoPago(false)
   }
@@ -349,7 +351,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const formatMoney = (cents: number) =>
     formatoMoneda(cents / 100, factura?.moneda ?? 'EUR')
 
-  if (loading) return <div className="text-center text-muted-foreground py-12">Cargando...</div>
+  if (loading) return <div className="text-center text-muted-foreground py-12">{t('facturaDetalle.cargando')}</div>
   if (!factura) return <div className="text-center text-muted-foreground py-12">Factura no encontrada</div>
 
   return (
@@ -357,16 +359,16 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/gestoria/facturas">
-            <Button variant="ghost" size="icon" aria-label="Volver a facturas">
+            <Button variant="ghost" size="icon" aria-label={t('facturaDetalle.volverFacturas')}>
               <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             </Button>
           </Link>
           <div>
             <h1 className="text-2xl font-heading font-bold tracking-tight">
-              Factura {factura.numero}
+              {t('facturaDetalle.factura')} {factura.numero}
             </h1>
             <p className="text-sm text-muted-foreground">
-              {factura.tipo === 'ingreso' ? 'Emitida' : 'Recibida'} —{' '}
+              {factura.tipo === 'ingreso' ? t('facturaDetalle.emitida') : t('facturaDetalle.recibida')} —{' '}
               {new Date(factura.fechaEmision).toLocaleDateString('es-ES')}
             </p>
           </div>
@@ -419,7 +421,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             setEmailDialogOpen(true)
           }}>
             <Mail className="mr-2 h-4 w-4" />
-            Enviar por email
+            {t('facturaDetalle.enviarPorEmail')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => {
             void logAccion('crear', 'factura', factura.id, `PDF descargado para factura ${factura.numero}`, { tipo: 'pdf_descargada' })
@@ -445,7 +447,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             }, plantilla)
           }}>
             <Download className="mr-2 h-4 w-4" />
-            Descargar PDF
+            {t('facturaDetalle.descargarPdf')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => {
             void logAccion('crear', 'factura', factura.id, `XML descargado para factura ${factura.numero}`, { tipo: 'xml_descargado' })
@@ -470,27 +472,27 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             )
           }}>
             <Download className="mr-2 h-4 w-4" />
-            Descargar XML
+            {t('facturaDetalle.descargarXml')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => setEditing(!editing)}>
             <Pencil className="mr-2 h-4 w-4" />
-            Editar
+            {t('facturaDetalle.editar')}
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm">
                 <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar
+                {t('facturaDetalle.eliminar')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>¿Eliminar esta factura definitivamente?</AlertDialogTitle>
-                <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                <AlertDialogTitle>{t('facturaDetalle.eliminarTitle')}</AlertDialogTitle>
+                <AlertDialogDescription>{t('facturaDetalle.eliminarDesc')}</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => void handleDelete()}>Eliminar</AlertDialogAction>
+                <AlertDialogCancel>{t('facturaDetalle.cancelar')}</AlertDialogCancel>
+                <AlertDialogAction onClick={() => void handleDelete()}>{t('facturaDetalle.eliminar')}</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -500,10 +502,10 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       <Card>
         <CardHeader>
           <CardTitle>
-            {editing ? 'Editar factura' : 'Detalle de la factura'}
+            {editing ? t('facturaDetalle.editarFactura') : t('facturaDetalle.detalleFactura')}
           </CardTitle>
           <CardDescription>
-            {editing ? 'Modifica los campos necesarios' : 'Información completa de la factura'}
+            {editing ? t('facturaDetalle.modificaCampos') : t('facturaDetalle.infoCompleta')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -511,31 +513,31 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             <form ref={formRef} onSubmit={handleSave} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="tipo">Tipo</Label>
+                  <Label htmlFor="tipo">{t('facturaDetalle.tipo')}</Label>
                   <select
                     id="tipo"
                     name="tipo"
                     defaultValue={factura.tipo}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
-                    <option value="ingreso">Ingreso (emitida)</option>
-                    <option value="gasto">Gasto (recibida)</option>
+                    <option value="ingreso">{t('facturaDetalle.tipoIngreso')}</option>
+                    <option value="gasto">{t('facturaDetalle.tipoGasto')}</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="numero">Nº factura</Label>
+                  <Label htmlFor="numero">{t('facturaDetalle.numeroFactura')}</Label>
                   <Input id="numero" name="numero" defaultValue={factura.numero} required />
                 </div>
               </div>
               {factura.tipo === 'gasto' && (
                 <div className="space-y-2">
-                  <Label>Categoría del gasto</Label>
+                  <Label>{t('facturaDetalle.categoriaGasto')}</Label>
                   <input type="hidden" name="categoriaGasto" value={categoriaGasto ?? ''} />
                   <CategoriaGastoPicker value={categoriaGasto} onChange={setCategoriaGasto} />
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="moneda-edit">Moneda</Label>
+                <Label htmlFor="moneda-edit">{t('facturaDetalle.moneda')}</Label>
                 <SelectorMoneda
                   id="moneda-edit"
                   value={monedaEdit}
@@ -554,7 +556,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               </div>
               {monedaEdit !== 'EUR' && (
                 <div className="space-y-2">
-                  <Label htmlFor="tipoCambio-edit">Tipo de cambio ({monedaEdit} → EUR)</Label>
+                  <Label htmlFor="tipoCambio-edit">{t('facturaDetalle.tipoCambio')} ({monedaEdit} → EUR)</Label>
                   <Input
                     id="tipoCambio-edit"
                     type="number"
@@ -563,36 +565,36 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                     onChange={(e) => setTipoCambioEdit(parseFloat(e.target.value) || 1)}
                     disabled={cargandoTasaEdit}
                   />
-                  {cargandoTasaEdit && <p className="text-xs text-muted-foreground">Obteniendo tipo de cambio...</p>}
+                  {cargandoTasaEdit && <p className="text-xs text-muted-foreground">{t('facturaDetalle.cargandoTasa')}</p>}
                 </div>
               )}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="emisorReceptor">Contraparte</Label>
+                  <Label htmlFor="emisorReceptor">{t('facturaDetalle.contraparte')}</Label>
                   <Input id="emisorReceptor" name="emisorReceptor" defaultValue={factura.emisorReceptor} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="nifContraparte">NIF/CIF</Label>
+                  <Label htmlFor="nifContraparte">{t('facturaDetalle.nifCif')}</Label>
                   <Input id="nifContraparte" name="nifContraparte" defaultValue={factura.nifContraparte ?? ''} />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="fechaEmision">Fecha emisión</Label>
+                  <Label htmlFor="fechaEmision">{t('facturaDetalle.fechaEmision')}</Label>
                   <Input id="fechaEmision" name="fechaEmision" type="date" defaultValue={factura.fechaEmision?.split('T')[0]} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="fechaVencimiento">Fecha vencimiento</Label>
+                  <Label htmlFor="fechaVencimiento">{t('facturaDetalle.fechaVencimiento')}</Label>
                   <Input id="fechaVencimiento" name="fechaVencimiento" type="date" defaultValue={factura.fechaVencimiento?.split('T')[0] ?? ''} />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label htmlFor="baseImponible">Base imponible ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
+                  <Label htmlFor="baseImponible">{t('facturaDetalle.baseImponible')} ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
                   <Input id="baseImponible" name="baseImponible" type="number" step="0.01" defaultValue={(factura.baseImponible / 100).toFixed(2)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="iva">IVA (%)</Label>
+                  <Label htmlFor="iva">{t('facturaDetalle.ivaPorcentaje')}</Label>
                   <select
                     id="iva"
                     name="iva"
@@ -605,13 +607,13 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="total">Total ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
+                  <Label htmlFor="total">{t('facturaDetalle.total')} ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
                   <Input id="total" disabled value={(factura.total / 100).toFixed(2)} />
                 </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="descuentoPorcentaje">Descuento (%)</Label>
+                  <Label htmlFor="descuentoPorcentaje">{t('facturaDetalle.descuentoPorcentaje')}</Label>
                   <Input
                     id="descuentoPorcentaje"
                     name="descuentoPorcentaje"
@@ -625,7 +627,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                 </div>
                 {descuentoPorcentajeEdit > 0 && (
                   <div className="space-y-2">
-                    <Label>Importe descuento ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
+                    <Label>{t('facturaDetalle.importeDescuento')} ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
                     <Input
                       disabled
                       value={`-${formatoMoneda(calcularDescuento(factura.baseImponible, descuentoPorcentajeEdit) / 100, monedaEdit)}`}
@@ -634,18 +636,18 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="notas">Notas internas</Label>
+                <Label htmlFor="notas">{t('facturaDetalle.notasInternas')}</Label>
                 <textarea
                   id="notas"
                   value={notas}
                   onChange={(e) => setNotas(e.target.value)}
-                  placeholder="Notas sobre esta factura..."
+                  placeholder={t('facturaDetalle.placeholderNotas')}
                   rows={3}
                   className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Etiquetas</Label>
+                <Label>{t('facturaDetalle.etiquetas')}</Label>
                 <div className="relative" ref={tagsDropdownRef}>
                   <button
                     type="button"
@@ -653,7 +655,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
                     <span className={tagsSeleccionados.length === 0 ? 'text-muted-foreground' : ''}>
-                      {tagsSeleccionados.length === 0 ? 'Seleccionar etiquetas...' : `${tagsSeleccionados.length} etiqueta${tagsSeleccionados.length !== 1 ? 's' : ''}`}
+                      {tagsSeleccionados.length === 0 ? t('facturaDetalle.seleccionarEtiquetas') : `${tagsSeleccionados.length} ${t('facturaDetalle.etiquetasCount')}`}
                     </span>
                     <svg className="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                   </button>
@@ -683,7 +685,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                         <div className="flex gap-2">
                           <input
                             type="text"
-                            placeholder="Etiqueta personalizada..."
+                            placeholder={t('facturaDetalle.etiquetaPersonalizada')}
                             value={nuevoTagCustom}
                             onChange={(e) => setNuevoTagCustom(e.target.value)}
                             onKeyDown={(e) => {
@@ -710,7 +712,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                               }
                             }}
                           >
-                            Añadir
+                            {t('facturaDetalle.annadir')}
                           </Button>
                         </div>
                       </div>
@@ -741,10 +743,10 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               </div>
               <div className="flex gap-4 pt-4">
                 <Button variant="outline" type="button" onClick={() => setEditing(false)} className="flex-1">
-                  Cancelar
+                  {t('facturaDetalle.cancelar')}
                 </Button>
                 <Button type="submit" disabled={saving} className="flex-1">
-                  {saving ? 'Guardando...' : 'Guardar cambios'}
+                  {saving ? t('facturaDetalle.guardando') : t('facturaDetalle.guardarCambios')}
                 </Button>
               </div>
 
@@ -762,49 +764,49 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           ) : (
             <dl className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <dt className="text-muted-foreground">Nº factura</dt>
+                <dt className="text-muted-foreground">{t('facturaDetalle.numeroFactura')}</dt>
                 <dd className="font-medium">{factura.numero}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Tipo</dt>
-                <dd className="font-medium capitalize">{factura.tipo === 'ingreso' ? 'Emitida' : 'Recibida'}</dd>
+                <dt className="text-muted-foreground">{t('facturaDetalle.tipo')}</dt>
+                <dd className="font-medium capitalize">{factura.tipo === 'ingreso' ? t('facturaDetalle.emitida') : t('facturaDetalle.recibida')}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Contraparte</dt>
+                <dt className="text-muted-foreground">{t('facturaDetalle.contraparte')}</dt>
                 <dd className="font-medium">{factura.emisorReceptor}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">NIF/CIF</dt>
+                <dt className="text-muted-foreground">{t('facturaDetalle.nifCif')}</dt>
                 <dd className="font-medium">{factura.nifContraparte ?? '—'}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Fecha emisión</dt>
+                <dt className="text-muted-foreground">{t('facturaDetalle.fechaEmision')}</dt>
                 <dd className="font-medium">{new Date(factura.fechaEmision).toLocaleDateString('es-ES')}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Fecha vencimiento</dt>
+                <dt className="text-muted-foreground">{t('facturaDetalle.fechaVencimiento')}</dt>
                 <dd className="font-medium">{factura.fechaVencimiento ? new Date(factura.fechaVencimiento).toLocaleDateString('es-ES') : '—'}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Base imponible</dt>
+                <dt className="text-muted-foreground">{t('facturaDetalle.baseImponible')}</dt>
                 <dd className="font-medium">{formatMoney(factura.baseImponible)}</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">IVA</dt>
+                <dt className="text-muted-foreground">{t('facturaDetalle.ivaPorcentaje')}</dt>
                 <dd className="font-medium">{factura.iva}%</dd>
               </div>
               {(factura.descuentoPorcentaje ?? 0) > 0 && (
                 <div>
-                  <dt className="text-muted-foreground">Descuento</dt>
+                  <dt className="text-muted-foreground">{t('facturaDetalle.descuentoPorcentaje')}</dt>
                   <dd className="font-medium text-green-600">{formatoDescuento(factura.descuentoPorcentaje!)}</dd>
                 </div>
               )}
               <div className="col-span-2 border-t pt-2">
-                <dt className="text-muted-foreground">Total</dt>
+                <dt className="text-muted-foreground">{t('facturaDetalle.total')}</dt>
                 <dd className="text-xl font-bold">{formatMoney(factura.total)}</dd>
               </div>
               <div className="col-span-2">
-                <dt className="text-muted-foreground">Estado</dt>
+                <dt className="text-muted-foreground">{t('facturaDetalle.estadoLabel')}</dt>
                 <dd className="flex items-center gap-2">
                   <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
                     factura.estado === 'pagada'
@@ -831,7 +833,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                         }
                       }}
                     >
-                      Marcar como pagada
+                      {t('facturaDetalle.marcarPagada')}
                     </Button>
                   )}
                 </dd>
@@ -840,7 +842,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                 <div className="col-span-2">
                   <div className="rounded-md border p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium">Pagos parciales</h4>
+                      <h4 className="text-sm font-medium">{t('facturaDetalle.pagosParciales')}</h4>
                       <Button
                         variant="outline"
                         size="sm"
@@ -851,13 +853,13 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                         }}
                       >
                         <FilePlus className="mr-1 h-3 w-3" aria-hidden="true" />
-                        Registrar pago
+                        {t('facturaDetalle.registrarPago')}
                       </Button>
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Pagado: {formatMoney(pagosParciales.reduce((s, p) => s + p.importe, 0))}</span>
-                        <span className="text-muted-foreground">Pendiente: {formatMoney(calcularSaldoPendiente(factura.total, factura.pagosParciales ?? null))}</span>
+                        <span className="text-muted-foreground">{t('facturaDetalle.pagado')}: {formatMoney(pagosParciales.reduce((s, p) => s + p.importe, 0))}</span>
+                        <span className="text-muted-foreground">{t('facturaDetalle.pendientePago')}: {formatMoney(calcularSaldoPendiente(factura.total, factura.pagosParciales ?? null))}</span>
                       </div>
                       <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
                         <div
@@ -895,29 +897,29 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                     }}
                   >
                     <FileMinus className="mr-2 h-4 w-4" aria-hidden="true" />
-                    Crear rectificativa
+                    {t('facturaDetalle.crearRectificativa')}
                   </Button>
                 </div>
               )}
               {(factura.moneda && factura.moneda !== 'EUR') && (
                 <>
                   <div>
-                    <dt className="text-muted-foreground">Moneda</dt>
+                    <dt className="text-muted-foreground">{t('facturaDetalle.monedaLabel')}</dt>
                     <dd className="font-medium">{MOEDAS.find(m => m.code === factura.moneda)?.name} ({factura.moneda})</dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">Tipo de cambio</dt>
+                    <dt className="text-muted-foreground">{t('facturaDetalle.tipoCambioLabel')}</dt>
                     <dd className="font-medium">1 {factura.moneda} = {factura.tipoCambio?.toFixed(4)} EUR</dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">Total en EUR</dt>
+                    <dt className="text-muted-foreground">{t('facturaDetalle.totalEurLabel')}</dt>
                     <dd className="font-medium">{formatoMoneda((factura.total / 100) * (factura.tipoCambio ?? 1), 'EUR')}</dd>
                   </div>
                 </>
               )}
               {parsearTags(factura.tags).length > 0 && (
                 <div className="col-span-2">
-                  <dt className="text-muted-foreground">Etiquetas</dt>
+                  <dt className="text-muted-foreground">{t('facturaDetalle.etiquetas')}</dt>
                   <dd className="flex flex-wrap gap-1 mt-1">
                     {parsearTags(factura.tags).map(tagId => (
                       <span
@@ -939,7 +941,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       {/* Historial de cambios */}
       <Card>
         <CardContent className="pt-6">
-          <h3 className="text-sm font-medium mb-4">Historial de cambios</h3>
+          <h3 className="text-sm font-medium mb-4">{t('facturaDetalle.historialCambios')}</h3>
           <TimelineFactura facturaId={factura.id} />
         </CardContent>
       </Card>
@@ -948,9 +950,9 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       {(rectificativas.length > 0 || cargandoRectificativas) && (
         <Card>
           <CardContent className="pt-6">
-            <h3 className="text-sm font-medium mb-4">Rectificativas vinculadas</h3>
+            <h3 className="text-sm font-medium mb-4">{t('facturaDetalle.rectificativasVinculadas')}</h3>
             {cargandoRectificativas ? (
-              <p className="text-xs text-muted-foreground">Cargando...</p>
+              <p className="text-xs text-muted-foreground">{t('facturaDetalle.cargando')}</p>
             ) : (
               <div className="space-y-2">
                 {rectificativas.map(r => (
@@ -964,14 +966,14 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                       <div>
                         <p className="text-sm font-medium">{r.numero}</p>
                         <p className="text-xs text-muted-foreground">
-                          {esNotaCredito(r.tags) ? 'Nota de crédito' : 'Nota de débito'} —{' '}
+                          {esNotaCredito(r.tags) ? t('facturaDetalle.notaCredito') : t('facturaDetalle.notaDebito')} —{' '}
                           {formatMoney(r.total)} —{' '}
                           {new Date(r.fechaEmision).toLocaleDateString('es-ES')}
                         </p>
                       </div>
                     </div>
                     <Link href={`/gestoria/facturas/${r.id}`}>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Ver rectificativa ${r.numero}`}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`${t('facturaDetalle.verRectificativa')} ${r.numero}`}>
                         <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </Link>
@@ -987,14 +989,14 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       <Dialog open={rectificativaDialogOpen} onOpenChange={setRectificativaDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Crear rectificativa</DialogTitle>
+            <DialogTitle>{t('facturaDetalle.crearRectificativaTitle')}</DialogTitle>
             <DialogDescription>
-              Crear nota de {tipoRectificativa === 'credito' ? 'crédito' : 'débito'} para la factura {factura?.numero}
+              {t('facturaDetalle.crearNota')} {tipoRectificativa === 'credito' ? t('facturaDetalle.notaCredito').toLowerCase() : t('facturaDetalle.notaDebito').toLowerCase()} {t('facturaDetalle.paraFactura')} {factura?.numero}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Tipo de rectificativa</Label>
+              <Label>{t('facturaDetalle.tipoRectificativa')}</Label>
               <div className="flex gap-2">
                 <Button
                   variant={tipoRectificativa === 'credito' ? 'secondary' : 'outline'}
@@ -1003,7 +1005,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   className="flex-1"
                 >
                   <FileMinus className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Nota de crédito
+                  {t('facturaDetalle.notaCredito')}
                 </Button>
                 <Button
                   variant={tipoRectificativa === 'debito' ? 'secondary' : 'outline'}
@@ -1012,29 +1014,29 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                   className="flex-1"
                 >
                   <FilePlus className="mr-2 h-4 w-4" aria-hidden="true" />
-                  Nota de débito
+                  {t('facturaDetalle.notaDebito')}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
                 {tipoRectificativa === 'credito'
-                  ? 'Reduce el importe a cobrar/pagar (devoluciones, descuentos, errores a favor del cliente).'
-                  : 'Incrementa el importe a cobrar/pagar (errores en contra del cliente, olvidos de factura).'}
+                  ? t('facturaDetalle.reduceImporte')
+                  : t('facturaDetalle.incrementaImporte')}
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="motivo-rectificativa">Motivo</Label>
+              <Label htmlFor="motivo-rectificativa">{t('facturaDetalle.motivo')}</Label>
               <textarea
                 id="motivo-rectificativa"
                 value={motivoRectificativa}
                 onChange={(e) => setMotivoRectificativa(e.target.value)}
-                placeholder="Describe el motivo de la rectificación..."
+                placeholder={t('facturaDetalle.placeholderMotivo')}
                 rows={3}
                 className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="base-rectificativa">
-                Base imponible rectificada ({MOEDAS.find(m => m.code === (factura?.moneda || 'EUR'))?.symbol ?? '€'})
+                {t('facturaDetalle.baseRectificada')} ({MOEDAS.find(m => m.code === (factura?.moneda || 'EUR'))?.symbol ?? '€'})
               </Label>
               <input
                 id="base-rectificativa"
@@ -1053,7 +1055,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="iva-rectificativa">IVA (%)</Label>
+                <Label htmlFor="iva-rectificativa">{t('facturaDetalle.ivaPorcentaje')}</Label>
               <select
                 id="iva-rectificativa"
                 value={ivaRectificativa}
@@ -1082,13 +1084,13 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRectificativaDialogOpen(false)} disabled={guardandoRectificativa}>
-              Cancelar
+              {t('facturaDetalle.cancelar')}
             </Button>
             <Button
               onClick={() => void handleCrearRectificativa()}
               disabled={!motivoRectificativa.trim() || baseRectificativa <= 0 || guardandoRectificativa}
             >
-              {guardandoRectificativa ? 'Creando...' : `Crear nota de ${tipoRectificativa === 'credito' ? 'crédito' : 'débito'}`}
+              {guardandoRectificativa ? t('facturaDetalle.creando') : `${t('facturaDetalle.crearNota')} ${tipoRectificativa === 'credito' ? t('facturaDetalle.notaCredito').toLowerCase() : t('facturaDetalle.notaDebito').toLowerCase()}`}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1098,14 +1100,14 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       <Dialog open={pagoDialogOpen} onOpenChange={setPagoDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Registrar pago parcial</DialogTitle>
+            <DialogTitle>{t('facturaDetalle.registrarPagoTitle')}</DialogTitle>
             <DialogDescription>
-              Registrar un pago para la factura {factura?.numero}. Saldo pendiente: {formatMoney(calcularSaldoPendiente(factura?.total ?? 0, factura?.pagosParciales ?? null))}
+              {t('facturaDetalle.registrarPagoDesc')} {factura?.numero}. {t('facturaDetalle.saldoPendiente')}: {formatMoney(calcularSaldoPendiente(factura?.total ?? 0, factura?.pagosParciales ?? null))}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="pago-importe">Importe</Label>
+              <Label htmlFor="pago-importe">{t('facturaDetalle.importeLabel')}</Label>
               <Input
                 id="pago-importe"
                 type="number"
@@ -1117,7 +1119,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pago-metodo">Método de pago</Label>
+              <Label htmlFor="pago-metodo">{t('facturaDetalle.metodoPago')}</Label>
               <select
                 id="pago-metodo"
                 value={pagoMetodo}
@@ -1130,24 +1132,24 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pago-notas">Notas</Label>
+              <Label htmlFor="pago-notas">{t('facturaDetalle.notasLabel')}</Label>
               <Input
                 id="pago-notas"
                 value={pagoNotas}
                 onChange={(e) => setPagoNotas(e.target.value)}
-                placeholder="Referencia, concepto..."
+                placeholder={t('facturaDetalle.placeholderNotasPago')}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPagoDialogOpen(false)} disabled={guardandoPago}>
-              Cancelar
+              {t('facturaDetalle.cancelar')}
             </Button>
             <Button
               onClick={() => void handleRegistrarPago()}
               disabled={pagoImporte <= 0 || guardandoPago}
             >
-              {guardandoPago ? 'Guardando...' : 'Registrar pago'}
+              {guardandoPago ? t('facturaDetalle.guardando') : t('facturaDetalle.registrarPago')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1156,14 +1158,14 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Enviar factura por email</DialogTitle>
+            <DialogTitle>{t('facturaDetalle.enviarEmailTitle')}</DialogTitle>
             <DialogDescription>
-              Se enviará la factura {factura.numero} como PDF adjunto a la dirección indicada.
+              {t('facturaDetalle.enviarEmailDesc')} {factura.numero} {t('facturaDetalle.comoPdf')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email-destino">Dirección de email</Label>
+              <Label htmlFor="email-destino">{t('facturaDetalle.direccionEmail')}</Label>
               <Input
                 id="email-destino"
                 type="email"
@@ -1173,7 +1175,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email-plantilla-tipo">Plantilla de email</Label>
+              <Label htmlFor="email-plantilla-tipo">{t('facturaDetalle.plantillaEmail')}</Label>
               <select
                 id="email-plantilla-tipo"
                 value={plantillaEmailId}
@@ -1237,10 +1239,10 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEmailDialogOpen(false)} disabled={enviandoEmail}>
-              Cancelar
+              {t('facturaDetalle.cancelar')}
             </Button>
             <Button onClick={() => void handleEnviarEmail()} disabled={!emailDestino || enviandoEmail}>
-              {enviandoEmail ? 'Enviando...' : 'Enviar email'}
+              {enviandoEmail ? t('facturaDetalle.enviando') : t('facturaDetalle.enviarEmail')}
             </Button>
           </DialogFooter>
         </DialogContent>
