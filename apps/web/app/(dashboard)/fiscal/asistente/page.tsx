@@ -11,6 +11,7 @@ import { asistenteFiscal, agruparModelosPorCategoria, modelosObligatorios, type 
 import { Calculator, FileText, Users, Globe, Coins, Building2 } from 'lucide-react'
 import Link from 'next/link'
 import { SELECT_CLS } from '@/lib/ui-constants'
+import { useLanguage } from '@/contexts/language-context'
 
 const iconos: Record<string, React.ReactNode> = {
   iva: <Calculator className="h-4 w-4" />,
@@ -37,6 +38,7 @@ const coloresPrioridad: Record<string, string> = {
 }
 
 export default function AsistenteFiscalPage() {
+  const { t } = useLanguage()
   const [situacion, setSituacion] = useState<SituacionFiscal>({
     actividad: 'autonomo',
     tieneEmpleados: false,
@@ -66,9 +68,9 @@ export default function AsistenteFiscalPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Asistente Fiscal</h1>
+          <h1 className="text-2xl font-bold">{t('asistenteFiscal.titulo')}</h1>
           <p className="text-muted-foreground">
-            Selecciona tu situación y descubre qué modelos debes presentar
+            {t('asistenteFiscal.subtitulo')}
           </p>
         </div>
       </div>
@@ -77,40 +79,40 @@ export default function AsistenteFiscalPage() {
         <div className="lg:col-span-1 space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Tu situación fiscal</CardTitle>
+              <CardTitle className="text-sm">{t('asistenteFiscal.tuSituacion')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Tipo de actividad</Label>
+                <Label>{t('asistenteFiscal.tipoActividad')}</Label>
                 <select
                   value={situacion.actividad}
                   onChange={(e) => setSituacion(prev => ({ ...prev, actividad: e.target.value as SituacionFiscal['actividad'] }))}
                   className={SELECT_CLS}
                 >
-                  <option value="autonomo">Autónomo</option>
-                  <option value="sociedad">Sociedad (SL / SA)</option>
-                  <option value="asalariado">Asalariado</option>
-                  <option value="pensionista">Pensionista</option>
-                  <option value="alquilador">Alquilador de inmuebles</option>
-                  <option value="inversor">Inversor</option>
+                  <option value="autonomo">{t('asistenteFiscal.autonomo')}</option>
+                  <option value="sociedad">{t('asistenteFiscal.sociedad')}</option>
+                  <option value="asalariado">{t('asistenteFiscal.asalariado')}</option>
+                  <option value="pensionista">{t('asistenteFiscal.pensionista')}</option>
+                  <option value="alquilador">{t('asistenteFiscal.alquilador')}</option>
+                  <option value="inversor">{t('asistenteFiscal.inversor')}</option>
                 </select>
               </div>
 
               <div className="space-y-3">
-                <Label>Situaciones especiales</Label>
+                <Label>{t('asistenteFiscal.situacionesEspeciales')}</Label>
                 {([
-                  ['tieneEmpleados', 'Tengo empleados'],
-                  ['retencionesProfesionales', 'Pago a profesionales (retención)'],
-                  ['arrendamientoInmuebles', 'Arriendo inmuebles urbanos'],
-                  ['criptomonedas', 'Tengo criptomonedas'],
-                  ['bienesExtranjero', 'Bienes en el extranjero'],
-                  ['paraisosFiscales', 'Opero con paraísos fiscales'],
-                  ['transparenciaFiscal', 'Entidad transparente'],
-                  ['donaciones', 'Hago donaciones deducibles'],
-                  ['inversionesExtranjeras', 'Inversiones en el extranjero'],
-                  ['noResidente', 'Soy no residente'],
-                  ['rentasExentas', 'Tengo rentas exentas'],
-                  ['plusvalias', 'He vendido inmuebles / plusvalías'],
+                  ['tieneEmpleados', t('asistenteFiscal.tieneEmpleados')],
+                  ['retencionesProfesionales', t('asistenteFiscal.retencionesProfesionales')],
+                  ['arrendamientoInmuebles', t('asistenteFiscal.arrendamientoInmuebles')],
+                  ['criptomonedas', t('asistenteFiscal.criptomonedas')],
+                  ['bienesExtranjero', t('asistenteFiscal.bienesExtranjero')],
+                  ['paraisosFiscales', t('asistenteFiscal.paraisosFiscales')],
+                  ['transparenciaFiscal', t('asistenteFiscal.transparenciaFiscal')],
+                  ['donaciones', t('asistenteFiscal.donaciones')],
+                  ['inversionesExtranjeras', t('asistenteFiscal.inversionesExtranjeras')],
+                  ['noResidente', t('asistenteFiscal.noResidente')],
+                  ['rentasExentas', t('asistenteFiscal.rentasExentas')],
+                  ['plusvalias', t('asistenteFiscal.plusvalias')],
                 ] as Array<[keyof SituacionFiscal, string]>).map(([campo, label]) => (
                   <label key={campo} className="flex items-center gap-2 text-sm cursor-pointer">
                     <Checkbox
@@ -123,7 +125,7 @@ export default function AsistenteFiscalPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Comunidad autónoma</Label>
+                <Label>{t('asistenteFiscal.comunidadAutonoma')}</Label>
                 <select
                   value={situacion.comunidadAutonoma}
                   onChange={(e) => setSituacion(prev => ({ ...prev, comunidadAutonoma: e.target.value }))}
@@ -148,13 +150,13 @@ export default function AsistenteFiscalPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-sm">
-                    Modelos a presentar ({modelos.length})
+                    {t('asistenteFiscal.modelosPresentar')} ({modelos.length})
                   </CardTitle>
                   <CardDescription>
-                    {obligatorios.length} obligatorios · {modelos.length - obligatorios.length} opcionales/recomendados
+                    {obligatorios.length} {t('asistenteFiscal.obligatorios')} · {modelos.length - obligatorios.length} {t('asistenteFiscal.opcionales')}
                   </CardDescription>
                 </div>
-                <BotonPDF elementId="pdf-asistente-fiscal" filename="asistente-fiscal" label="Exportar PDF" />
+                <BotonPDF elementId="pdf-asistente-fiscal" filename="asistente-fiscal" label={t('asistenteFiscal.exportarPdf')} />
               </div>
             </CardHeader>
             <CardContent id="pdf-asistente-fiscal">
@@ -185,6 +187,7 @@ export default function AsistenteFiscalPage() {
 }
 
 function ModeloCard({ modelo }: { modelo: ModeloFiscal }) {
+  const { t } = useLanguage()
   return (
     <div className="flex items-center justify-between rounded-lg border p-3 text-sm hover:bg-muted/50 transition-colors">
       <div className="flex items-center gap-3">
@@ -195,7 +198,7 @@ function ModeloCard({ modelo }: { modelo: ModeloFiscal }) {
               {modelo.prioridad}
             </Badge>
             {modelo.obligatorio && (
-              <Badge variant="outline" className="text-xs">Obligatorio</Badge>
+              <Badge variant="outline" className="text-xs">{t('asistenteFiscal.obligatorio')}</Badge>
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">{modelo.nombre}</p>

@@ -65,12 +65,14 @@ import { CalculadoraModelo715 } from './calculadoras/calculadora-715'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { GUIAS_PERFIL } from '@/lib/fiscal/guias-perfil'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useLanguage } from '@/contexts/language-context'
 import { leerCache, guardarCache } from '@/lib/fiscal/cache'
 import { leerPerfil, guardarPerfilBd, type PerfilFiscal } from '@/lib/fiscal/perfil'
 import { fetchDatosReales, type DatosReales } from '@/lib/fiscal/datos-reales'
 import { SECCIONES_CALCULADORAS, SECCIONES_MODELOS, SECCIONES_UTILIDADES, COMUNIDADES, PERFILES, ETIQUETA_PERFIL, type SeccionKey } from '@/lib/fiscal/constantes'
 
 function PaginaFiscalInner() {
+  const { t } = useLanguage()
   const [seccion, setSeccion] = useState<SeccionKey>('irpf')
   const [comunidad, setComunidad] = useState('Madrid (Comunidad de)')
   const [taxYear, setTaxYear] = useState(2025)
@@ -173,7 +175,7 @@ function PaginaFiscalInner() {
         const msg =
           typeof json === 'object' && json !== null && 'error' in json
             ? String((json as Record<string, unknown>).error)
-            : 'Error al cargar los datos fiscales'
+            : t('fiscalPage.errorCarga')
         throw new Error(msg)
       }
       const payload = json as { data: DatosFiscales; avisos?: string[] }
@@ -181,11 +183,11 @@ function PaginaFiscalInner() {
       setAvisos(payload.avisos ?? [])
       guardarCache(comunidadSel, anhoSel, payload.data, payload.avisos ?? [])
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error inesperado al cargar los datos fiscales')
+      setError(e instanceof Error ? e.message : t('fiscalPage.errorInesperado'))
     } finally {
       setCargando(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (!sincronizado) return
@@ -230,23 +232,23 @@ function PaginaFiscalInner() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Calculadora fiscal</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('fiscalPage.titulo')}</h1>
           <p className="text-sm text-muted-foreground">
-            IRPF, IVA, RETA, Sociedades y Patrimonio sobre el dataset oficial importado.
+            {t('fiscalPage.subtitulo')}
           </p>
         </div>
         {perfil && !mostrarWizard && (
           <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={() => setMostrarWizard(true)}>
             <UserRound className="h-4 w-4" aria-hidden="true" />
-            Perfil: {ETIQUETA_PERFIL[perfil]}
+            {t('fiscalPage.perfilLabel')} {ETIQUETA_PERFIL[perfil]}
           </Button>
         )}
       </header>
 
       {mostrarWizard && (
-        <div role="dialog" aria-label="Elige tu perfil fiscal" className="rounded-lg border bg-card p-4 space-y-3">
-          <p className="font-medium">¿Cuál es tu situación fiscal?</p>
-          <p className="text-sm text-muted-foreground">Te llevamos a la calculadora que más te interesa. Puedes cambiarlo cuando quieras.</p>
+        <div role="dialog" aria-label={t('fiscalPage.eligePerfil')} className="rounded-lg border bg-card p-4 space-y-3">
+          <p className="font-medium">{t('fiscalPage.eligePerfil')}</p>
+          <p className="text-sm text-muted-foreground">{t('fiscalPage.perfilDesc')}</p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {PERFILES.map(p => (
               <Button
@@ -264,7 +266,7 @@ function PaginaFiscalInner() {
 
       <div className="flex flex-wrap gap-3 print:hidden">
         <div className="max-w-xs flex-1 space-y-2">
-          <Label htmlFor="comunidad-fiscal">Comunidad autónoma</Label>
+          <Label htmlFor="comunidad-fiscal">{t('fiscalPage.comunidadAutonoma')}</Label>
           <select
             id="comunidad-fiscal"
             value={comunidad}
@@ -280,7 +282,7 @@ function PaginaFiscalInner() {
           </select>
         </div>
         <div className="w-32 space-y-2">
-          <Label htmlFor="ejercicio-fiscal">Ejercicio</Label>
+          <Label htmlFor="ejercicio-fiscal">{t('fiscalPage.ejercicio')}</Label>
           <select
             id="ejercicio-fiscal"
             value={taxYear}
@@ -294,8 +296,8 @@ function PaginaFiscalInner() {
         </div>
       </div>
 
-      <nav aria-label="Secciones fiscales" className="print:hidden space-y-2">
-        <CollapsibleSection titulo="Calculadoras" defaultAbierto>
+      <nav aria-label={t('fiscalPage.seccionesFiscales')} className="print:hidden space-y-2">
+        <CollapsibleSection titulo={t('fiscalPage.calculadoras')} defaultAbierto>
           <div className="flex flex-wrap gap-2">
             {SECCIONES_CALCULADORAS.map(s => (
               <Button key={s.key} type="button" size="sm" variant={s.key === seccion ? 'secondary' : 'outline'} onClick={() => setSeccion(s.key)}>
@@ -304,7 +306,7 @@ function PaginaFiscalInner() {
             ))}
           </div>
         </CollapsibleSection>
-        <CollapsibleSection titulo="Modelos AEAT" defaultAbierto>
+        <CollapsibleSection titulo={t('fiscalPage.modelosAeat')} defaultAbierto>
           <div className="flex flex-wrap gap-2">
             {SECCIONES_MODELOS.map(s => (
               <Button key={s.key} type="button" size="sm" variant={s.key === seccion ? 'secondary' : 'outline'} onClick={() => setSeccion(s.key)}>
@@ -313,7 +315,7 @@ function PaginaFiscalInner() {
             ))}
           </div>
         </CollapsibleSection>
-        <CollapsibleSection titulo="Utilidades">
+        <CollapsibleSection titulo={t('fiscalPage.utilidades')}>
           <div className="flex flex-wrap gap-2">
             {SECCIONES_UTILIDADES.map(s => (
               <Button key={s.key} type="button" size="sm" variant={s.key === seccion ? 'secondary' : 'outline'} onClick={() => setSeccion(s.key)}>
@@ -336,13 +338,13 @@ function PaginaFiscalInner() {
           <span>{error}</span>
           <Button type="button" size="sm" variant="outline" onClick={() => void cargarDatos(comunidad, taxYear, true)}>
             <RefreshCw className="mr-1 h-4 w-4" aria-hidden="true" />
-            Reintentar
+            {t('fiscalPage.reintentar')}
           </Button>
         </div>
       )}
 
       {cargando && !datos ? (
-        <p className="text-sm text-muted-foreground">Cargando datos fiscales...</p>
+        <p className="text-sm text-muted-foreground">{t('fiscalPage.cargandoDatosFiscales')}</p>
       ) : datos ? (
         <>
           {seccion === 'irpf' && (
@@ -356,11 +358,11 @@ function PaginaFiscalInner() {
                   disabled={cargandoReales}
                 >
                   <Database className="mr-1 h-3 w-3" aria-hidden="true" />
-                  {cargandoReales ? 'Cargando...' : datosReales ? 'Recargar datos reales' : 'Cargar datos reales'}
+                  {cargandoReales ? t('fiscalPage.cargando') : datosReales ? t('fiscalPage.recargarDatosReales') : t('fiscalPage.cargarDatosReales')}
                 </Button>
                 {datosReales && (
                   <p className="text-xs text-muted-foreground">
-                    Auto-rellenado desde facturas, nóminas y alquileres del año {taxYear}
+                    {t('fiscalPage.autoRellenado')} {taxYear}
                   </p>
                 )}
               </div>
@@ -434,19 +436,19 @@ function PaginaFiscalInner() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <h3 className="font-semibold mb-2">Obligaciones fiscales</h3>
+                    <h3 className="font-semibold mb-2">{t('fiscalPage.obligacionesFiscales')}</h3>
                     <ul className="list-disc pl-5 space-y-1 text-sm">
                       {guia.obligaciones.map((o, i) => <li key={i}>{o}</li>)}
                     </ul>
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Consejos</h3>
+                    <h3 className="font-semibold mb-2">{t('fiscalPage.consejos')}</h3>
                     <ul className="list-disc pl-5 space-y-1 text-sm">
                       {guia.consejos.map((c, i) => <li key={i}>{c}</li>)}
                     </ul>
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Modelos relevantes</h3>
+                    <h3 className="font-semibold mb-2">{t('fiscalPage.modelosRelevantes')}</h3>
                     <div className="flex flex-wrap gap-2">
                       {guia.modelosRelevantes.map((m, i) => (
                         <span key={i} className="inline-flex items-center rounded-md border bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">{m}</span>
@@ -463,9 +465,9 @@ function PaginaFiscalInner() {
           {seccion === 'packTrimestre' && <PanelPackTrimestre taxYear={taxYear} />}
           {seccion === 'presupuestoAnual' && <PanelPresupuestoAnual taxYear={taxYear} />}
           <p className="print:hidden text-xs text-muted-foreground">
-            Ejercicio {datos.taxYear} · datos en caché de la sesión durante 24 h ·{' '}
+            {t('fiscalPage.ejerce')} {datos.taxYear} · datos en caché de la sesión durante 24 h ·{' '}
             <button type="button" className="underline hover:no-underline" onClick={() => void cargarDatos(comunidad, taxYear, true)}>
-              actualizar ahora
+              {t('fiscalPage.actualizarAhora')}
             </button>
           </p>
         </>
@@ -475,8 +477,9 @@ function PaginaFiscalInner() {
 }
 
 export default function PaginaFiscal() {
+  const { t } = useLanguage()
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Cargando área fiscal…</div>}>
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">{t('fiscalPage.cargandoAreaFiscal')}</div>}>
       <PaginaFiscalInner />
     </Suspense>
   )
