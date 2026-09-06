@@ -16,6 +16,7 @@ import { generarFacturaClientePDF } from '@/lib/factura-cliente-pdf'
 import { DragDropList } from '@/components/drag-drop-list'
 import { crearCheckoutRecurring } from '@/lib/stripe-auto-cobro'
 import { StripeStatus } from '@/components/stripe-status'
+import { useLanguage } from '@/contexts/language-context'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -96,6 +97,7 @@ interface PerfilEmpresa {
 }
 
 export default function FacturasRecurrentesPage() {
+  const { t } = useLanguage()
   const [plantillas, setPlantillas] = useState<FacturaRecurrente[]>([])
   const [loading, setLoading] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -185,11 +187,11 @@ export default function FacturasRecurrentesPage() {
 
   const crearPlantilla = async () => {
     if (!numero || !emisorReceptor || !baseImponible) {
-      setError('Rellena todos los campos obligatorios')
+      setError(t('facturaRecurrente.errorRellenarCampos'))
       return
     }
     if (triggerTipo && !triggerValor) {
-      setError('Introduce un valor para el umbral del trigger')
+      setError(t('facturaRecurrente.errorTriggerValor'))
       return
     }
     setGuardando(true)
@@ -219,7 +221,7 @@ export default function FacturasRecurrentesPage() {
       })
       if (!res.ok) {
         const err = await res.json()
-        setError(err.error || 'Error al crear')
+        setError(err.error || t('facturaRecurrente.errorCrear'))
         setGuardando(false)
         return
       }
@@ -233,7 +235,7 @@ export default function FacturasRecurrentesPage() {
       setMostrarForm(false)
       await fetchPlantillas()
     } catch {
-      setError('Error al conectar con el servidor')
+      setError(t('facturaRecurrente.errorServidor'))
     }
     setGuardando(false)
   }
@@ -485,7 +487,7 @@ export default function FacturasRecurrentesPage() {
   const formatMoney = (cents: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
-  const nombreMes = (dia: number) => `Día ${dia} de cada mes`
+  const nombreMes = (dia: number) => t('facturaRecurrente.diaDeCadaMes').replace('{dia}', String(dia))
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -497,9 +499,9 @@ export default function FacturasRecurrentesPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-heading font-bold tracking-tight">Facturas recurrentes</h1>
+            <h1 className="text-2xl font-heading font-bold tracking-tight">{t('facturaRecurrente.titulo')}</h1>
             <p className="text-sm text-muted-foreground">
-              Plantillas que se generan automáticamente cada mes
+              {t('facturaRecurrente.subtitulo')}
             </p>
           </div>
         </div>
@@ -507,7 +509,7 @@ export default function FacturasRecurrentesPage() {
           <StripeStatus />
           <Button size="sm" onClick={() => setMostrarForm(!mostrarForm)}>
             <Plus className="mr-1 h-3 w-3" />
-            Nueva recurrente
+            {t('facturaRecurrente.nuevaRecurrente')}
           </Button>
         </div>
       </div>
@@ -526,15 +528,15 @@ export default function FacturasRecurrentesPage() {
               <Zap className="mr-1 h-3 w-3" />
             )}
             {batchProgress
-              ? `Generando ${batchProgress.actual}/${batchProgress.total}...`
-              : 'Generar todas las pendientes del mes'}
+              ? t('facturaRecurrente.generando').replace('{actual}', String(batchProgress.actual)).replace('{total}', String(batchProgress.total))
+              : t('facturaRecurrente.generarTodasPendientes')}
           </Button>
           {batchResult && (
             <span className="text-sm text-muted-foreground">
-              {batchResult.generadas > 0 && `${batchResult.generadas} generada${batchResult.generadas !== 1 ? 's' : ''}`}
+              {batchResult.generadas > 0 && `${batchResult.generadas} ${t('facturaRecurrente.generadas')}`}
               {batchResult.generadas > 0 && batchResult.omitidas > 0 && ', '}
-              {batchResult.omitidas > 0 && `${batchResult.omitidas} omitida${batchResult.omitidas !== 1 ? 's' : ''}`}
-              {batchResult.generadas === 0 && batchResult.omitidas === 0 && 'No hay pendientes este mes'}
+              {batchResult.omitidas > 0 && `${batchResult.omitidas} ${t('facturaRecurrente.omitidas')}`}
+              {batchResult.generadas === 0 && batchResult.omitidas === 0 && t('facturaRecurrente.noHayPendientes')}
             </span>
           )}
         </div>
@@ -543,51 +545,51 @@ export default function FacturasRecurrentesPage() {
       {mostrarForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Nueva factura recurrente</CardTitle>
+            <CardTitle>{t('facturaRecurrente.nuevaFacturaRecurrente')}</CardTitle>
             <CardDescription>
-              Se generará automáticamente el día que elijas de cada mes
+              {t('facturaRecurrente.descripcionForm')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Tipo</Label>
+                <Label>{t('facturaRecurrente.tipo')}</Label>
                 <select value={tipo} onChange={e => setTipo(e.target.value)}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                  <option value="ingreso">Ingreso (emitida)</option>
-                  <option value="gasto">Gasto (recibida)</option>
+                  <option value="ingreso">{t('facturaRecurrente.tipoIngreso')}</option>
+                  <option value="gasto">{t('facturaRecurrente.tipoGasto')}</option>
                 </select>
               </div>
               <div className="space-y-2">
-                <Label>Nº factura (prefijo)</Label>
+                <Label>{t('facturaRecurrente.numeroFacturaPrefijo')}</Label>
                 <Input value={numero} onChange={e => setNumero(e.target.value)} placeholder="F-2024-" />
-                <p className="text-xs text-muted-foreground">Se añade automáticamente YYYY-MM</p>
+                <p className="text-xs text-muted-foreground">{t('facturaRecurrente.anadirAutomaticamente')}</p>
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Nombre / proveedor</Label>
+                <Label>{t('facturaRecurrente.nombreProveedor')}</Label>
                 <Input value={emisorReceptor} onChange={e => setEmisorReceptor(e.target.value)} placeholder="Empresa XYZ" />
               </div>
               <div className="space-y-2">
-                <Label>NIF/CIF</Label>
+                <Label>{t('facturaRecurrente.nifCif')}</Label>
                 <Input value={nifContraparte} onChange={e => setNifContraparte(e.target.value)} placeholder="B12345678" />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label>Base imponible (€)</Label>
+                <Label>{t('facturaRecurrente.baseImponible')}</Label>
                 <Input type="number" step="0.01" value={baseImponible} onChange={e => setBaseImponible(e.target.value)} placeholder="100.00" />
               </div>
               <div className="space-y-2">
-                <Label>IVA (%)</Label>
+                <Label>{t('facturaRecurrente.ivaPorcentaje')}</Label>
                 <select value={iva} onChange={e => setIva(e.target.value)}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   {TIPOS_IVA.map(t => <option key={t} value={t}>{t}%</option>)}
                 </select>
               </div>
               <div className="space-y-2">
-                <Label>Día del mes</Label>
+                <Label>{t('facturaRecurrente.diaDelMes')}</Label>
                 <select value={diaGeneracion} onChange={e => setDiaGeneracion(e.target.value)}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
@@ -598,28 +600,28 @@ export default function FacturasRecurrentesPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Día de aviso por email</Label>
+                <Label>{t('facturaRecurrente.diaAvisoEmail')}</Label>
                 <select value={diaEmail} onChange={e => setDiaEmail(e.target.value)}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                  <option value="">Sin aviso</option>
+                  <option value="">{t('facturaRecurrente.sinAviso')}</option>
                   {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
                     <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
-                <p className="text-xs text-muted-foreground">Email automático con recordatorio de facturas pendientes</p>
+                <p className="text-xs text-muted-foreground">{t('facturaRecurrente.emailAutomatico')}</p>
               </div>
             </div>
             <div className="space-y-3 rounded-md border p-4">
-              <Label className="text-sm font-medium">Trigger de generación</Label>
+              <Label className="text-sm font-medium">{t('facturaRecurrente.triggerGeneracion')}</Label>
               <p className="text-xs text-muted-foreground">
-                Elige cuándo se genera esta factura. Por defecto se genera en el día del mes seleccionado.
+                {t('facturaRecurrente.triggerDescripcion')}
               </p>
               <div className="space-y-2">
                 {([
-                  { value: null, label: 'Por día del mes (por defecto)', icon: CalendarDays, desc: `Se genera el día ${diaGeneracion} de cada mes` },
-                  { value: 'umbral_gasto' as TriggerTipo, label: 'Cuando los gastos superan umbral', icon: CircleDollarSign, desc: 'Genera cuando el total de gastos del mes supera un importe' },
-                  { value: 'fecha_especifica' as TriggerTipo, label: 'En fecha específica del mes', icon: CalendarDays, desc: `Se genera el día ${diaGeneracion} de cada mes (igual que por defecto)` },
-                  { value: 'saldo_bajo' as TriggerTipo, label: 'Cuando el saldo baja del umbral', icon: Wallet, desc: 'Genera cuando el saldo del banco baja de un importe' },
+                  { value: null, label: t('facturaRecurrente.triggerPorDia'), icon: CalendarDays, desc: t('facturaRecurrente.triggerDescDia').replace('{dia}', String(diaGeneracion)) },
+                  { value: 'umbral_gasto' as TriggerTipo, label: t('facturaRecurrente.triggerUmbralGasto'), icon: CircleDollarSign, desc: t('facturaRecurrente.triggerDescUmbral') },
+                  { value: 'fecha_especifica' as TriggerTipo, label: t('facturaRecurrente.triggerFechaEspecifica'), icon: CalendarDays, desc: t('facturaRecurrente.triggerDescDia').replace('{dia}', String(diaGeneracion)) },
+                  { value: 'saldo_bajo' as TriggerTipo, label: t('facturaRecurrente.triggerSaldoBajo'), icon: Wallet, desc: t('facturaRecurrente.triggerDescSaldo') },
                 ] as const).map(opt => (
                   <label key={opt.value ?? 'none'} className={`flex items-start gap-3 rounded-md border p-3 cursor-pointer transition-colors ${triggerTipo === opt.value ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'}`}>
                     <input
@@ -642,7 +644,7 @@ export default function FacturasRecurrentesPage() {
               {triggerTipo && (
                 <div className="grid gap-4 sm:grid-cols-2 pt-2">
                   <div className="space-y-2">
-                    <Label>{triggerTipo === 'fecha_especifica' ? 'Día del mes' : 'Umbral (€)'}</Label>
+                    <Label>{triggerTipo === 'fecha_especifica' ? t('facturaRecurrente.diaDelMes') : t('facturaRecurrente.umbralEuros')}</Label>
                     {triggerTipo === 'fecha_especifica' ? (
                       <select value={triggerValor || diaGeneracion} onChange={e => setTriggerValor(e.target.value)}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
@@ -654,16 +656,16 @@ export default function FacturasRecurrentesPage() {
                       <Input type="number" step="0.01" value={triggerValor} onChange={e => setTriggerValor(e.target.value)} placeholder={triggerTipo === 'umbral_gasto' ? '500.00' : '1000.00'} />
                     )}
                     <p className="text-xs text-muted-foreground">
-                      {triggerTipo === 'umbral_gasto' && 'Se genera la factura cuando los gastos del mes superen este importe'}
-                      {triggerTipo === 'fecha_especifica' && 'Se genera en el día seleccionado de cada mes'}
-                      {triggerTipo === 'saldo_bajo' && 'Se genera cuando el saldo del banco baje de este importe'}
+                      {triggerTipo === 'umbral_gasto' && t('facturaRecurrente.fechaGeneracion')}
+                      {triggerTipo === 'fecha_especifica' && t('facturaRecurrente.fechaEspecificaDesc')}
+                      {triggerTipo === 'saldo_bajo' && t('facturaRecurrente.saldoBajoDesc')}
                     </p>
                   </div>
                   {triggerTipo === 'saldo_bajo' && (
                     <div className="space-y-2">
-                      <Label>Saldo actual del banco (€) <span className="text-muted-foreground text-xs">(manual)</span></Label>
+                      <Label>{t('facturaRecurrente.saldoActualBanco')} <span className="text-muted-foreground text-xs">{t('facturaRecurrente.manual')}</span></Label>
                       <Input type="number" step="0.01" value={saldoBanco} onChange={e => setSaldoBanco(e.target.value)} placeholder="0.00" />
-                      <p className="text-xs text-muted-foreground">Introduce tu saldo actual para referencia</p>
+                      <p className="text-xs text-muted-foreground">{t('facturaRecurrente.introduceSaldo')}</p>
                     </div>
                   )}
                 </div>
@@ -672,10 +674,10 @@ export default function FacturasRecurrentesPage() {
             <div className="space-y-3 rounded-md border p-4">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
-                Documentos adjuntos (opcional)
+                {t('facturaRecurrente.documentosAdjuntos')}
               </Label>
               <p className="text-xs text-muted-foreground">
-                Añade enlaces a documentos relacionados con esta plantilla (contratos, presupuestos, etc.)
+                {t('facturaRecurrente.documentosAdjuntosDesc')}
               </p>
               {attachments.length > 0 && (
                 <div className="space-y-1.5">
@@ -703,12 +705,12 @@ export default function FacturasRecurrentesPage() {
                 <Input
                   value={nuevoAttachmentNombre}
                   onChange={e => setNuevoAttachmentNombre(e.target.value)}
-                  placeholder="Nombre del documento"
+                  placeholder={t('facturaRecurrente.nombreDocumento')}
                 />
                 <Input
                   value={nuevoAttachmentUrl}
                   onChange={e => setNuevoAttachmentUrl(e.target.value)}
-                  placeholder="URL del documento"
+                  placeholder={t('facturaRecurrente.urlDocumento')}
                 />
                 <Button
                   type="button"
@@ -727,9 +729,9 @@ export default function FacturasRecurrentesPage() {
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setMostrarForm(false)}>Cancelar</Button>
+              <Button variant="outline" onClick={() => setMostrarForm(false)}>{t('facturaRecurrente.cancelar')}</Button>
               <Button onClick={() => void crearPlantilla()} disabled={guardando}>
-                {guardando ? 'Guardando...' : 'Crear plantilla'}
+                {guardando ? t('facturaRecurrente.guardando') : t('facturaRecurrente.crearPlantilla')}
               </Button>
             </div>
           </CardContent>
@@ -740,15 +742,15 @@ export default function FacturasRecurrentesPage() {
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <RefreshCw className="mx-auto mb-2 h-4 w-4 animate-spin" />
-            Cargando plantillas...
+            {t('facturaRecurrente.cargandoPlantillas')}
           </CardContent>
         </Card>
       ) : plantillas.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="font-medium">No hay facturas recurrentes</p>
+            <p className="font-medium">{t('facturaRecurrente.noHayRecurrentes')}</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Crea una plantilla para que se generen facturas automáticamente cada mes
+              {t('facturaRecurrente.creaPlantilla')}
             </p>
           </CardContent>
         </Card>
@@ -783,25 +785,25 @@ export default function FacturasRecurrentesPage() {
                           {(() => {
                             const { triggerTipo, triggerValor } = parseTriggerConfig(p.notas)
                             if (triggerTipo === 'umbral_gasto' && triggerValor != null) {
-                              return <span className="inline-flex items-center gap-1 text-amber-600"><CircleDollarSign className="h-3 w-3" /> Gasto &gt; {formatMoney(triggerValor * 100)}</span>
+                              return <span className="inline-flex items-center gap-1 text-amber-600"><CircleDollarSign className="h-3 w-3" /> {t('facturaRecurrente.gasto')} &gt; {formatMoney(triggerValor * 100)}</span>
                             }
                             if (triggerTipo === 'saldo_bajo' && triggerValor != null) {
-                              return <span className="inline-flex items-center gap-1 text-orange-600"><Wallet className="h-3 w-3" /> Saldo &lt; {formatMoney(triggerValor * 100)}</span>
+                              return <span className="inline-flex items-center gap-1 text-orange-600"><Wallet className="h-3 w-3" /> {t('facturaRecurrente.saldo')} &lt; {formatMoney(triggerValor * 100)}</span>
                             }
                             return <span>{nombreMes(p.diaGeneracion)}</span>
                           })()}
                           {p.diaEmail && (
                             <>
                               <span>·</span>
-                              <span className="text-blue-600">Email día {p.diaEmail}</span>
+                              <span className="text-blue-600">{t('facturaRecurrente.emailDia').replace('{dia}', String(p.diaEmail))}</span>
                             </>
                           )}
                           <span>·</span>
-                          <span className="capitalize">{p.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}</span>
+                          <span className="capitalize">{p.tipo === 'ingreso' ? t('facturaRecurrente.ingreso') : t('facturaRecurrente.gasto')}</span>
                         </div>
                         {p.ultimaGeneracion && (
                           <p className="text-xs text-muted-foreground">
-                            Última generación: {new Date(p.ultimaGeneracion).toLocaleDateString('es-ES')}
+                            {t('facturaRecurrente.ultimaGeneracion')}: {new Date(p.ultimaGeneracion).toLocaleDateString('es-ES')}
                           </p>
                         )}
                         {parseAttachments(p.notas).length > 0 && (
@@ -816,7 +818,7 @@ export default function FacturasRecurrentesPage() {
                         )}
                         {p.activa && (
                           <p className="text-xs text-muted-foreground">
-                            Próxima generación: {calcularProximaGeneracion(p.diaGeneracion).toLocaleDateString('es-ES')}
+                            {t('facturaRecurrente.proximaGeneracion')}: {calcularProximaGeneracion(p.diaGeneracion).toLocaleDateString('es-ES')}
                           </p>
                         )}
                       </div>
@@ -856,7 +858,7 @@ export default function FacturasRecurrentesPage() {
                       ) : (
                         <Download className="mr-1 h-3 w-3" />
                       )}
-                      Descargar PDF
+                      {t('facturaRecurrente.descargarPdf')}
                     </Button>
 
                     <AlertDialog>
@@ -867,20 +869,20 @@ export default function FacturasRecurrentesPage() {
                           ) : (
                             <FileText className="mr-1 h-3 w-3" />
                           )}
-                          Generar ahora
+                          {t('facturaRecurrente.generarAhora')}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Generar factura ahora</AlertDialogTitle>
+                          <AlertDialogTitle>{t('facturaRecurrente.generarFacturaAhora')}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Se creará la factura <strong>{numeroSiguiente}</strong> con fecha de hoy ({ahora.toLocaleDateString('es-ES')}) por importe de <strong>{formatMoney(total)}</strong> (IVA {p.iva}% incluido).
+                            {t('facturaRecurrente.generarFacturaAhoraDesc').replace('{numero}', numeroSiguiente).replace('{fecha}', ahora.toLocaleDateString('es-ES')).replace('{total}', formatMoney(total)).replace('{iva}', String(p.iva))}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogCancel>{t('facturaRecurrente.cancelar')}</AlertDialogCancel>
                           <AlertDialogAction onClick={() => void generarFacturaAhora(p)}>
-                            Confirmar generación
+                            {t('facturaRecurrente.confirmarGeneracion')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -892,14 +894,14 @@ export default function FacturasRecurrentesPage() {
                       className="h-7 text-xs"
                       disabled={!p.activa || cobrandoId === p.id || p.tipo !== 'ingreso'}
                       onClick={() => void cobrarConStripe(p)}
-                      title={p.tipo !== 'ingreso' ? 'Solo disponible para facturas de ingreso' : 'Cobrar con Stripe'}
+                      title={p.tipo !== 'ingreso' ? t('facturaRecurrente.soloIngreso') : t('facturaRecurrente.cobrarConStripe')}
                     >
                       {cobrandoId === p.id ? (
                         <RefreshCw className="mr-1 h-3 w-3 animate-spin" />
                       ) : (
                         <CreditCard className="mr-1 h-3 w-3" />
                       )}
-                      Cobrar con Stripe
+                      {t('facturaRecurrente.cobrarConStripe')}
                     </Button>
 
                     <Button
@@ -912,27 +914,27 @@ export default function FacturasRecurrentesPage() {
                         setNuevoAttachmentNombre('')
                         setNuevoAttachmentUrl('')
                       }}
-                      aria-label="Editar adjuntos"
+                      aria-label={t('facturaRecurrente.editarAdjuntos')}
                     >
                       <Paperclip className="h-3 w-3" aria-hidden="true" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleActiva(p.id, p.activa)} aria-label={p.activa ? 'Desactivar recurrente' : 'Activar recurrente'}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleActiva(p.id, p.activa)} aria-label={p.activa ? t('facturaRecurrente.desactivarRecurrente') : t('facturaRecurrente.activarRecurrente')}>
                       {p.activa ? <Pause className="h-3 w-3" aria-hidden="true" /> : <Play className="h-3 w-3" aria-hidden="true" />}
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label="Eliminar recurrente">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label={t('facturaRecurrente.eliminarRecurrente')}>
                           <Trash2 className="h-3 w-3" aria-hidden="true" />
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar esta plantilla recurrente?</AlertDialogTitle>
-                          <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                          <AlertDialogTitle>{t('facturaRecurrente.eliminarPlantillaTitle')}</AlertDialogTitle>
+                          <AlertDialogDescription>{t('facturaRecurrente.eliminarPlantillaDesc')}</AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => void eliminar(p.id)}>Eliminar</AlertDialogAction>
+                          <AlertDialogCancel>{t('facturaRecurrente.cancelar')}</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => void eliminar(p.id)}>{t('facturaRecurrente.eliminar')}</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
@@ -945,15 +947,15 @@ export default function FacturasRecurrentesPage() {
       )}
 
       <p className="text-xs text-muted-foreground text-center">
-        Las facturas se generan automáticamente el día que especifiques. Recibirás un email de recordatorio.
+        {t('facturaRecurrente.facturasGeneranAuto')}
       </p>
 
       <Dialog open={!!editingPlantilla} onOpenChange={(open) => !open && setEditingPlantilla(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Documentos adjuntos</DialogTitle>
+            <DialogTitle>{t('facturaRecurrente.documentosAdjuntosTitle')}</DialogTitle>
             <DialogDescription>
-              Gestiona los documentos adjuntos de la plantilla &ldquo;{editingPlantilla?.emisorReceptor}&rdquo;
+              {t('facturaRecurrente.documentosAdjuntosGestionar').replace('{nombre}', editingPlantilla?.emisorReceptor ?? '')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -982,21 +984,21 @@ export default function FacturasRecurrentesPage() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No hay documentos adjuntos
+                {t('facturaRecurrente.noHayAdjuntos')}
               </p>
             )}
             <div className="space-y-2">
-              <Label>Añadir documento</Label>
+              <Label>{t('facturaRecurrente.anadirDocumento')}</Label>
               <div className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]">
                 <Input
                   value={nuevoAttachmentNombre}
                   onChange={e => setNuevoAttachmentNombre(e.target.value)}
-                  placeholder="Nombre"
+                  placeholder={t('facturaRecurrente.nombre')}
                 />
                 <Input
                   value={nuevoAttachmentUrl}
                   onChange={e => setNuevoAttachmentUrl(e.target.value)}
-                  placeholder="URL"
+                  placeholder={t('facturaRecurrente.url')}
                 />
                 <Button
                   type="button"
@@ -1015,7 +1017,7 @@ export default function FacturasRecurrentesPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingPlantilla(null)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setEditingPlantilla(null)}>{t('facturaRecurrente.cancelar')}</Button>
             <Button
               onClick={async () => {
                 if (!editingPlantilla) return
@@ -1031,7 +1033,7 @@ export default function FacturasRecurrentesPage() {
                 setEditingPlantilla(null)
               }}
             >
-              Guardar adjuntos
+              {t('facturaRecurrente.guardarAdjuntos')}
             </Button>
           </DialogFooter>
         </DialogContent>

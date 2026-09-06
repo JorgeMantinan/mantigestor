@@ -24,6 +24,7 @@ import {
 import { logAccion } from '@/lib/audit-log'
 import { generarPDFDeHTML } from '@/lib/pdf'
 import { BotonPDF } from '@/components/boton-pdf'
+import { useLanguage } from '@/contexts/language-context'
 
 type OrdenCampo = 'fechaEmision' | 'emisorReceptor' | 'total' | 'numero'
 type OrdenDireccion = 'asc' | 'desc'
@@ -34,6 +35,7 @@ function formatMoney(cents: number): string {
 }
 
 export default function ProformasPage() {
+  const { t } = useLanguage()
   const [proformas, setProformas] = useState<Proforma[]>([])
   const [loading, setLoading] = useState(true)
   const [filtroEstado, setFiltroEstado] = useState<'todos' | ProformaEstado>('todos')
@@ -54,7 +56,7 @@ export default function ProformasPage() {
       const data = await listarProformas(user.id)
       setProformas(data)
     } catch {
-      toast.error('Error al cargar proformas')
+      toast.error(t('facturaProforma.errorCargar'))
     }
     setLoading(false)
   }, [getSupabase])
@@ -66,9 +68,9 @@ export default function ProformasPage() {
       await eliminarProforma(id)
       await logAccion('eliminar', 'factura', id, 'Proforma eliminada')
       setProformas(prev => prev.filter(p => p.id !== id))
-      toast.success('Proforma eliminada')
+      toast.success(t('facturaProforma.eliminada'))
     } catch {
-      toast.error('Error al eliminar proforma')
+      toast.error(t('facturaProforma.errorEliminar'))
     }
   }
 
@@ -77,9 +79,9 @@ export default function ProformasPage() {
       await actualizarEstadoProforma(id, nuevoEstado)
       await logAccion('cambio_estado', 'factura', id, `Proforma → ${nuevoEstado}`)
       setProformas(prev => prev.map(p => p.id === id ? { ...p, estado: nuevoEstado } : p))
-      toast.success(`Proforma marcada como ${nuevoEstado}`)
+      toast.success(t('facturaProforma.proformaMarcada').replace('{estado}', nuevoEstado))
     } catch {
-      toast.error('Error al cambiar estado')
+      toast.error(t('facturaProforma.errorEstado'))
     }
   }
 
@@ -88,15 +90,15 @@ export default function ProformasPage() {
       const nuevaFacturaId = await convertirAFactura(id)
       await logAccion('cambio_estado', 'factura', id, 'Proforma convertida a factura')
       setProformas(prev => prev.map(p => p.id === id ? { ...p, estado: 'aceptada' as const } : p))
-      toast.success('Proforma convertida a factura', {
-        description: `Nueva factura creada`,
+      toast.success(t('facturaProforma.proformaConvertida'), {
+        description: t('facturaProforma.nuevaFacturaCreada'),
         action: {
-          label: 'Ver factura',
+          label: t('facturaProforma.verFactura'),
           onClick: () => router.push(`/gestoria/facturas/${nuevaFacturaId}`),
         },
       })
     } catch {
-      toast.error('Error al convertir proforma')
+      toast.error(t('facturaProforma.errorConvertir'))
     }
   }
 
@@ -105,9 +107,9 @@ export default function ProformasPage() {
       const duplicada = await duplicarProforma(id)
       await logAccion('crear', 'factura', duplicada.id, 'Proforma duplicada')
       setProformas(prev => [duplicada, ...prev])
-      toast.success('Proforma duplicada')
+      toast.success(t('facturaProforma.proformaDuplicada'))
     } catch {
-      toast.error('Error al duplicar proforma')
+      toast.error(t('facturaProforma.errorDuplicar'))
     }
   }
 
@@ -215,13 +217,13 @@ export default function ProformasPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-bold tracking-tight">Proformas</h1>
-          <p className="text-muted-foreground">Gestiona tus proformas y presupuestos</p>
+          <h1 className="text-3xl font-heading font-bold tracking-tight">{t('facturaProforma.titulo')}</h1>
+          <p className="text-muted-foreground">{t('facturaProforma.subtitulo')}</p>
         </div>
         <div className="flex gap-2">
           <BotonPDF elementId="tabla-proformas" filename={`proformas-${new Date().toISOString().slice(0, 10)}`} />
           <Link href="/gestoria/facturas/nueva">
-            <Button><Plus className="mr-2 h-4 w-4" /> Nueva proforma</Button>
+            <Button><Plus className="mr-2 h-4 w-4" /> {t('facturaProforma.nuevaProforma')}</Button>
           </Link>
         </div>
       </div>
@@ -231,33 +233,33 @@ export default function ProformasPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
             ref={searchRef}
-            placeholder="Buscar por contraparte, nº proforma..."
+            placeholder={t('facturaProforma.buscarPlaceholder')}
             value={busqueda}
             onChange={e => { setBusqueda(e.target.value); setPage(0) }}
             className="pl-9"
-            aria-label="Buscar proformas"
+            aria-label={t('facturaProforma.buscarProformas')}
           />
         </div>
         <div className="flex gap-2">
           {(['todos', ...ESTADOS_PROFORMA] as const).map(e => (
             <Button key={e} variant={filtroEstado === e ? 'secondary' : 'outline'} size="sm"
               onClick={() => { setFiltroEstado(e); setPage(0) }}>
-              {e === 'todos' ? 'Todos' : e.charAt(0).toUpperCase() + e.slice(1)}
+              {e === 'todos' ? t('facturaProforma.todos') : e.charAt(0).toUpperCase() + e.slice(1)}
             </Button>
           ))}
         </div>
       </div>
 
       {loading ? (
-        <Card><CardContent className="py-8 text-center text-muted-foreground">Cargando proformas...</CardContent></Card>
+        <Card><CardContent className="py-8 text-center text-muted-foreground">{t('facturaProforma.cargando')}</CardContent></Card>
       ) : visibles.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <FileText className="h-12 w-12 text-muted-foreground" />
             <div className="text-center">
-              <p className="font-medium">No hay {busqueda ? 'resultados' : 'proformas'}</p>
+              <p className="font-medium">{busqueda ? t('facturaProforma.noHayResultados') : t('facturaProforma.noHayProformas')}</p>
               <p className="text-sm text-muted-foreground">
-                {busqueda ? 'Prueba con otra búsqueda' : 'Crea tu primera proforma para empezar'}
+                {busqueda ? t('facturaProforma.pruebaBusqueda') : t('facturaProforma.creaPrimera')}
               </p>
             </div>
           </CardContent>
@@ -265,7 +267,7 @@ export default function ProformasPage() {
       ) : (
         <>
           <p className="text-xs text-muted-foreground">
-            {visibles.length} proforma{visibles.length !== 1 ? 's' : ''}
+            {visibles.length} {visibles.length !== 1 ? t('facturaProforma.proformas') : t('facturaProforma.proforma')}
           </p>
 
           <div id="tabla-proformas" className="rounded-lg border">
@@ -274,19 +276,19 @@ export default function ProformasPage() {
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="px-4 py-3 text-left font-medium cursor-pointer select-none" onClick={() => toggleSort('numero')}>
-                      Nº <SortIcon campo="numero" />
+                      {t('facturaProforma.numero')} <SortIcon campo="numero" />
                     </th>
                     <th className="px-4 py-3 text-left font-medium cursor-pointer select-none" onClick={() => toggleSort('emisorReceptor')}>
-                      Contraparte <SortIcon campo="emisorReceptor" />
+                      {t('facturaProforma.contraparte')} <SortIcon campo="emisorReceptor" />
                     </th>
                     <th className="px-4 py-3 text-left font-medium cursor-pointer select-none" onClick={() => toggleSort('fechaEmision')}>
-                      Fecha <SortIcon campo="fechaEmision" />
+                      {t('facturaProforma.fecha')} <SortIcon campo="fechaEmision" />
                     </th>
-                    <th className="px-4 py-3 text-left font-medium">Validez</th>
+                    <th className="px-4 py-3 text-left font-medium">{t('facturaProforma.validez')}</th>
                     <th className="px-4 py-3 text-right font-medium cursor-pointer select-none" onClick={() => toggleSort('total')}>
-                      Total <SortIcon campo="total" />
+                      {t('facturaProforma.total')} <SortIcon campo="total" />
                     </th>
-                    <th className="px-4 py-3 text-center font-medium">Estado</th>
+                    <th className="px-4 py-3 text-center font-medium">{t('facturaProforma.estado')}</th>
                     <th className="px-4 py-3 text-right font-medium"></th>
                   </tr>
                 </thead>
@@ -310,45 +312,45 @@ export default function ProformasPage() {
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end gap-1">
                           {p.estado === 'borrador' && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8" title="Enviar"
+                            <Button variant="ghost" size="icon" className="h-8 w-8" title={t('facturaProforma.enviar')}
                               onClick={() => void handleCambiarEstado(p.id, 'enviada')}>
                               <Send className="h-4 w-4" aria-hidden="true" />
                             </Button>
                           )}
                           {p.estado === 'enviada' && (
                             <>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600" title="Aceptar"
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600" title={t('facturaProforma.aceptar')}
                                 onClick={() => void handleConvertir(p.id)}>
                                 <CheckCircle className="h-4 w-4" aria-hidden="true" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title="Rechazar"
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" title={t('facturaProforma.rechazar')}
                                 onClick={() => void handleCambiarEstado(p.id, 'rechazada')}>
                                 <XCircle className="h-4 w-4" aria-hidden="true" />
                               </Button>
                             </>
                           )}
-                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Duplicar"
+                            <Button variant="ghost" size="icon" className="h-8 w-8" title={t('facturaProforma.duplicar')}
                             onClick={() => void handleDuplicar(p.id)}>
                             <Copy className="h-4 w-4" aria-hidden="true" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" title="Exportar PDF"
+                            <Button variant="ghost" size="icon" className="h-8 w-8" title={t('facturaProforma.exportarPdf')}
                             onClick={() => void exportarPDF(p)}>
                             <FileText className="h-4 w-4" aria-hidden="true" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label="Eliminar proforma">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label={t('facturaProforma.eliminarProforma')}>
                                 <Trash2 className="h-4 w-4" aria-hidden="true" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>¿Eliminar esta proforma?</AlertDialogTitle>
-                                <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                <AlertDialogTitle>{t('facturaProforma.eliminarTitle')}</AlertDialogTitle>
+                                <AlertDialogDescription>{t('facturaProforma.eliminarDesc')}</AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => void handleEliminar(p.id)}>Eliminar</AlertDialogAction>
+                                <AlertDialogCancel>{t('facturaProforma.cancelar')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => void handleEliminar(p.id)}>{t('facturaProforma.eliminar')}</AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
@@ -364,14 +366,14 @@ export default function ProformasPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
-                Página {page + 1} de {totalPages}
+                {t('facturaProforma.pagina')} {page + 1} {t('facturaProforma.de')} {totalPages}
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
-                  <ChevronLeft className="h-4 w-4" /> Anterior
+                  <ChevronLeft className="h-4 w-4" /> {t('facturaProforma.anterior')}
                 </Button>
                 <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
-                  Siguiente <ChevronRight className="h-4 w-4" />
+                  {t('facturaProforma.siguiente')} <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
