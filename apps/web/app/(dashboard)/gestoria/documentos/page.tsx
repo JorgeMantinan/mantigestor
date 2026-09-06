@@ -11,6 +11,7 @@ import { FileText, Trash2, ExternalLink, ScanSearch, X } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { OcrBatchResults, type ResultadoOcrLote } from '@/components/ocr-batch-results'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Documento {
   id: string
@@ -49,6 +50,7 @@ function esImagen(nombre: string): boolean {
 }
 
 export default function DocumentosPage() {
+  const { t } = useLanguage()
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [cargando, setCargando] = useState(true)
   const [filtroTipo, setFiltroTipo] = useState<string>('todos')
@@ -58,6 +60,11 @@ export default function DocumentosPage() {
   const [resultadosLote, setResultadosLote] = useState<ResultadoOcrLote[] | null>(null)
   const [dialogAbierto, setDialogAbierto] = useState(false)
   const getSupabase = useCallback(() => createClient(), [])
+
+  const tipoLabel = useCallback((tipo: string) => {
+    const key = `documentosTipo.${tipo}` as 'documentosTipo.factura'
+    return t(key) || tipo
+  }, [t])
 
   useEffect(() => {
     const cargar = async () => {
@@ -80,7 +87,7 @@ export default function DocumentosPage() {
     await getSupabase().from('documentos').delete().eq('id', doc.id)
     setDocumentos(prev => prev.filter(d => d.id !== doc.id))
     setSeleccionados(prev => { const s = new Set(prev); s.delete(doc.id); return s })
-    toast.success('Documento eliminado')
+    toast.success(t('documentos.documentoEliminado'))
   }
 
   const toggleSeleccion = (id: string) => {
@@ -120,7 +127,7 @@ export default function DocumentosPage() {
 
       if (!res.ok) {
         const err = await res.json()
-        toast.error(err.error ?? 'Error al procesar lote')
+        toast.error(err.error ?? t('documentos.errorProcesarLote'))
         setDialogAbierto(false)
         return
       }
@@ -131,9 +138,9 @@ export default function DocumentosPage() {
 
       const exitosos = data.resultados.filter((r: ResultadoOcrLote) => r.resultado).length
       const errores = data.resultados.filter((r: ResultadoOcrLote) => r.error).length
-      toast.success(`OCR completado: ${exitosos} exitosos, ${errores} errores`)
+      toast.success(`${t('documentos.ocrCompletado')}: ${exitosos} ${t('documentos.exitosos')}, ${errores} ${t('documentos.errores')}`)
     } catch {
-      toast.error('Error de conexión')
+      toast.error(t('documentos.errorConexion'))
       setDialogAbierto(false)
     } finally {
       setProcesandoLote(false)
@@ -147,8 +154,8 @@ export default function DocumentosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Documentos</h1>
-        <p className="text-muted-foreground">Galería de recibos, facturas y documentos subidos</p>
+        <h1 className="text-2xl font-bold">{t('documentos.titulo')}</h1>
+        <p className="text-muted-foreground">{t('documentosPage.galeriaRecibos')}</p>
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
@@ -157,7 +164,7 @@ export default function DocumentosPage() {
           size="sm"
           onClick={() => setFiltroTipo('todos')}
         >
-          Todos ({documentos.length})
+          {t('documentos.todos')} ({documentos.length})
         </Button>
         {tipos.map(t => (
           <Button
@@ -166,7 +173,7 @@ export default function DocumentosPage() {
             size="sm"
             onClick={() => setFiltroTipo(t)}
           >
-            {TIPO_LABELS[t] ?? t} ({documentos.filter(d => d.tipo === t).length})
+            {tipoLabel(t)} ({documentos.filter(d => d.tipo === t).length})
           </Button>
         ))}
       </div>
@@ -178,7 +185,7 @@ export default function DocumentosPage() {
             onCheckedChange={toggleSeleccionTodos}
           />
           <span className="text-sm text-muted-foreground">
-            {seleccionados.size > 0 ? `${seleccionados.size} seleccionados` : 'Seleccionar todos'}
+            {seleccionados.size > 0 ? `${seleccionados.size} ${t('documentos.seleccionados')}` : t('documentos.seleccionarTodos')}
           </span>
           {haySeleccion && (
             <Button
@@ -187,19 +194,19 @@ export default function DocumentosPage() {
               disabled={procesandoLote}
             >
               <ScanSearch className="h-4 w-4 mr-1" />
-              {procesandoLote ? 'Procesando...' : `OCR en lote (${seleccionados.size})`}
+              {procesandoLote ? t('documentos.procesando') : `${t('documentos.ocrLote')} (${seleccionados.size})`}
             </Button>
           )}
         </div>
       )}
 
       {cargando ? (
-        <p className="text-sm text-muted-foreground">Cargando documentos...</p>
+        <p className="text-sm text-muted-foreground">{t('documentos.cargandoDocumentos')}</p>
       ) : filtrados.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>No hay documentos{filtroTipo !== 'todos' ? ` de tipo "${TIPO_LABELS[filtroTipo]}"` : ''}</p>
+            <p>{t('documentos.sinDocumentos')}{filtroTipo !== 'todos' ? ` ${t('documentosPage.sinDocumentosTipo')} "${tipoLabel(filtroTipo)}"` : ''}</p>
           </CardContent>
         </Card>
       ) : (
@@ -225,7 +232,7 @@ export default function DocumentosPage() {
                     <p className="text-sm font-medium truncate">{doc.nombre}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge className={`text-xs ${TIPO_COLORS[doc.tipo] ?? ''}`}>
-                        {TIPO_LABELS[doc.tipo] ?? doc.tipo}
+                        {tipoLabel(doc.tipo)}
                       </Badge>
                       {doc.tamanoBytes && (
                         <span className="text-xs text-muted-foreground">{formatTamano(doc.tamanoBytes)}</span>
@@ -255,11 +262,11 @@ export default function DocumentosPage() {
       <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>OCR en lote</DialogTitle>
+            <DialogTitle>{t('documentos.dialogOcrLote')}</DialogTitle>
             <DialogDescription>
               {progresoLote
-                ? `Procesando archivo ${progresoLote.actual} de ${progresoLote.total}...`
-                : 'Resultados del procesamiento'
+                ? `${t('documentos.procesandoArchivo')} ${progresoLote.actual} ${t('documentosPage.de')} ${progresoLote.total}...`
+                : t('documentos.resultadosProcesamiento')
               }
             </DialogDescription>
           </DialogHeader>

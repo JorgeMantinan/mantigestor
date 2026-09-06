@@ -9,6 +9,7 @@ import { descargarCsv } from '@/lib/descargar-csv'
 import { exportarTodoZIP, type ExportData } from '@/lib/exportar-zip'
 import { Download, FileText, Receipt, Building2, Loader2, Shield, Bell, Archive } from 'lucide-react'
 import { toast } from 'sonner'
+import { useLanguage } from '@/contexts/language-context'
 
 interface TableCounts {
   facturas: number
@@ -38,6 +39,7 @@ const TABLES: TableConfig[] = [
 ]
 
 export default function BackupPage() {
+  const { t } = useLanguage()
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
   const [counts, setCounts] = useState<TableCounts>({
@@ -62,15 +64,15 @@ export default function BackupPage() {
 
       const perfilId = perfil?.id ?? user.id
 
-      const queries = TABLES.map(async t => {
+      const queries = TABLES.map(async tabla => {
         let query = getSupabase()
-          .from(t.tabla)
+          .from(tabla.tabla)
           .select('id', { count: 'exact', head: true })
           .eq('perfilId', perfilId)
-        if (fechaDesde) query = query.gte(t.key === 'auditLog' || t.key === 'notificaciones' ? 'creadoEn' : 'createdAt', fechaDesde)
-        if (fechaHasta) query = query.lte(t.key === 'auditLog' || t.key === 'notificaciones' ? 'creadoEn' : 'createdAt', fechaHasta + 'T23:59:59')
+        if (fechaDesde) query = query.gte(tabla.key === 'auditLog' || tabla.key === 'notificaciones' ? 'creadoEn' : 'createdAt', fechaDesde)
+        if (fechaHasta) query = query.lte(tabla.key === 'auditLog' || tabla.key === 'notificaciones' ? 'creadoEn' : 'createdAt', fechaHasta + 'T23:59:59')
         const { count } = await query
-        return { key: t.key, count: count ?? 0 }
+        return { key: tabla.key, count: count ?? 0 }
       })
 
       const results = await Promise.all(queries)
@@ -84,14 +86,14 @@ export default function BackupPage() {
       }
       setCounts(newCounts)
     } catch {
-      toast.error('Error al cargar los datos')
+      toast.error(t('backup.errorCargarDatos'))
     }
     setCargando(false)
-  }, [getSupabase, fechaDesde, fechaHasta])
+  }, [getSupabase, fechaDesde, fechaHasta, t])
 
   useEffect(() => { cargarConteos() }, [cargarConteos])
 
-  const fetchTabla = async (t: TableConfig): Promise<Record<string, unknown>[]> => {
+  const fetchTabla = async (tabla: TableConfig): Promise<Record<string, unknown>[]> => {
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) return []
     const { data: perfil } = await getSupabase()
@@ -100,28 +102,28 @@ export default function BackupPage() {
       .eq('userId', user.id)
       .maybeSingle()
     const perfilId = perfil?.id ?? user.id
-    const dateField = t.key === 'auditLog' || t.key === 'notificaciones' ? 'creadoEn' : 'createdAt'
-    let query = getSupabase().from(t.tabla).select('*').eq('perfilId', perfilId)
+    const dateField = tabla.key === 'auditLog' || tabla.key === 'notificaciones' ? 'creadoEn' : 'createdAt'
+    let query = getSupabase().from(tabla.tabla).select('*').eq('perfilId', perfilId)
     if (fechaDesde) query = query.gte(dateField, fechaDesde)
     if (fechaHasta) query = query.lte(dateField, fechaHasta + 'T23:59:59')
     const { data } = await query
     return (data ?? []) as Record<string, unknown>[]
   }
 
-  const exportarCSV = async (t: TableConfig) => {
-    setExportando(t.key)
+  const exportarCSV = async (tabla: TableConfig) => {
+    setExportando(tabla.key)
     try {
-      const data = await fetchTabla(t)
+      const data = await fetchTabla(tabla)
       if (data.length === 0) {
-        toast.warning(`No hay datos en ${t.nombre}`)
+        toast.warning(`No hay datos en ${tabla.nombre}`)
         setExportando(null)
         return
       }
-      const filas = [t.campos, ...data.map(row => t.campos.map(c => String(row[c] ?? '')))]
-      descargarCsv(filas, `${t.nombre}-${new Date().toISOString().slice(0, 10)}.csv`)
-      toast.success(`${t.nombre} exportado (${data.length} registros)`)
+      const filas = [tabla.campos, ...data.map(row => tabla.campos.map(c => String(row[c] ?? '')))]
+      descargarCsv(filas, `${tabla.nombre}-${new Date().toISOString().slice(0, 10)}.csv`)
+      toast.success(`${tabla.nombre} exportado (${data.length} registros)`)
     } catch {
-      toast.error(`Error al exportar ${t.nombre}`)
+      toast.error(`Error al exportar ${tabla.nombre}`)
     }
     setExportando(null)
   }
@@ -130,7 +132,7 @@ export default function BackupPage() {
     setExportando('todo')
     try {
       const { data: { user } } = await getSupabase().auth.getUser()
-      if (!user) { toast.error('No autenticado'); setExportando(null); return }
+      if (!user) { toast.error(t('backup.noAutenticado')); setExportando(null); return }
 
       const { data: perfil } = await getSupabase()
         .from('perfiles')
@@ -144,9 +146,9 @@ export default function BackupPage() {
         perfil: (perfil as Record<string, unknown>) ?? null,
       }
 
-      const queries = TABLES.map(async t => {
-        const data = await fetchTabla(t)
-        return { key: t.key, data }
+      const queries = TABLES.map(async tabla => {
+        const data = await fetchTabla(tabla)
+        return { key: tabla.key, data }
       })
 
       const results = await Promise.all(queries)
@@ -155,9 +157,9 @@ export default function BackupPage() {
       }
 
       await exportarTodoZIP(allData)
-      toast.success('Backup completo exportado como ZIP')
+      toast.success(t('backup.backupCompleto'))
     } catch {
-      toast.error('Error al exportar backup')
+      toast.error(t('backup.errorExportarBackup'))
     }
     setExportando(null)
   }
@@ -169,19 +171,19 @@ export default function BackupPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Backup de datos</h1>
-        <p className="text-muted-foreground">Exporta todos tus datos como CSV o ZIP</p>
+        <h1 className="text-2xl font-bold">{t('backup.titulo')}</h1>
+        <p className="text-muted-foreground">{t('backup.subtitulo')}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Filtro por rango de fechas</CardTitle>
-          <CardDescription>Deja vacío para exportar todos los datos</CardDescription>
+          <CardTitle className="text-sm">{t('backup.filtroFechas')}</CardTitle>
+          <CardDescription>{t('backup.descripcionFiltro')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Desde</span>
+              <span className="text-sm text-muted-foreground">{t('backup.desde')}</span>
               <Input
                 type="date"
                 value={fechaDesde}
@@ -190,7 +192,7 @@ export default function BackupPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Hasta</span>
+              <span className="text-sm text-muted-foreground">{t('backup.hasta')}</span>
               <Input
                 type="date"
                 value={fechaHasta}
@@ -200,7 +202,7 @@ export default function BackupPage() {
             </div>
             {(fechaDesde || fechaHasta) && (
               <Button variant="ghost" size="sm" onClick={() => { setFechaDesde(''); setFechaHasta('') }}>
-                Limpiar
+                {t('backup.limpiar')}
               </Button>
             )}
           </div>
@@ -209,25 +211,25 @@ export default function BackupPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Resumen</CardTitle>
+          <CardTitle className="text-sm">{t('backup.resumen')}</CardTitle>
           <CardDescription>
-            {cargando ? 'Cargando...' : `${totalRegistros} registros en ${TABLES.length} tablas${counts.perfil ? ' + perfil' : ''}`}
+            {cargando ? t('backup.cargando') : `${totalRegistros} ${t('backup.registrosEnTablas')} ${TABLES.length} ${t('backup.tablas')}${counts.perfil ? ` ${t('backup.masPerfil')}` : ''}`}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {cargando ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              Cargando conteos...
+              {t('backup.cargandoConteos')}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              {TABLES.map(t => (
-                <div key={t.key} className="flex items-center gap-2 rounded-lg border p-3">
-                  <span className="text-muted-foreground">{t.icon}</span>
+              {TABLES.map(tabla => (
+                <div key={tabla.key} className="flex items-center gap-2 rounded-lg border p-3">
+                  <span className="text-muted-foreground">{tabla.icon}</span>
                   <div>
-                    <p className="text-sm font-medium">{t.nombre}</p>
-                    <p className="text-xs text-muted-foreground">{counts[t.key]} registros</p>
+                    <p className="text-sm font-medium">{tabla.nombre}</p>
+                    <p className="text-xs text-muted-foreground">{counts[tabla.key]} {t('backup.registros')}</p>
                   </div>
                 </div>
               ))}
@@ -240,9 +242,9 @@ export default function BackupPage() {
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
             <Archive className="h-4 w-4" aria-hidden="true" />
-            Exportar todo el sistema
+            {t('backup.exportarTodoSistema')}
           </CardTitle>
-          <CardDescription>Descarga un ZIP con todas las tablas, tu perfil y un resumen HTML</CardDescription>
+          <CardDescription>{t('backup.descripcionZip')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button onClick={() => void exportarTodo()} disabled={exportando === 'todo' || totalRegistros === 0}>
@@ -251,33 +253,33 @@ export default function BackupPage() {
             ) : (
               <Download className="mr-2 h-4 w-4" aria-hidden="true" />
             )}
-            {exportando === 'todo' ? 'Exportando...' : 'Exportar todo el sistema (ZIP)'}
+            {exportando === 'todo' ? t('backup.exportando') : t('backup.exportarTodoSistemaZip')}
           </Button>
         </CardContent>
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {TABLES.map(t => (
-          <Card key={t.key}>
+        {TABLES.map(tabla => (
+          <Card key={tabla.key}>
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
-                {t.icon}
-                {t.nombre}
+                {tabla.icon}
+                {tabla.nombre}
               </CardTitle>
-              <CardDescription>{counts[t.key]} registros</CardDescription>
+              <CardDescription>{counts[tabla.key]} {t('backup.registros')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Button
                 variant="outline"
-                onClick={() => void exportarCSV(t)}
-                disabled={exportando === t.key || counts[t.key] === 0}
+                onClick={() => void exportarCSV(tabla)}
+                disabled={exportando === tabla.key || counts[tabla.key] === 0}
               >
-                {exportando === t.key ? (
+                {exportando === tabla.key ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
                   <Download className="mr-2 h-4 w-4" aria-hidden="true" />
                 )}
-                {exportando === t.key ? 'Exportando...' : 'Exportar CSV'}
+                {exportando === tabla.key ? t('backup.exportando') : t('backup.exportarCsv')}
               </Button>
             </CardContent>
           </Card>

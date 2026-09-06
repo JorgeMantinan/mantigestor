@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Upload, FileText, TrendingUp, TrendingDown, AlertCircle, CheckCircle } from 'lucide-react'
 import type { FormatoExtracto } from '@mantigestor/utils'
+import { useLanguage } from '@/contexts/language-context'
 
 const FORMATOS: { value: FormatoExtracto; label: string; banco: string }[] = [
   { value: 'csv_santander', label: 'CSV Santander', banco: 'Santander' },
@@ -33,6 +34,7 @@ interface ResultadoImportacion {
 }
 
 export function ImportarExtractoPageClient() {
+  const { t } = useLanguage()
   const [formato, setFormato] = useState<FormatoExtracto>('generico')
   const [csvContent, setCsvContent] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
@@ -73,13 +75,13 @@ export function ImportarExtractoPageClient() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error ?? 'Error al importar')
+        setError(data.error ?? t('importarExtracto.errorImportar'))
         return
       }
 
       setResultado(data)
     } catch {
-      setError('Error de conexión')
+      setError(t('importarExtracto.errorConexion'))
     } finally {
       setLoading(false)
     }
@@ -103,9 +105,9 @@ export function ImportarExtractoPageClient() {
           <Upload className="h-7 w-7 text-primary" aria-hidden="true" />
         </div>
         <div>
-          <h1 className="text-3xl font-heading font-bold tracking-tight">Importar extracto</h1>
+          <h1 className="text-3xl font-heading font-bold tracking-tight">{t('importarExtracto.titulo')}</h1>
           <p className="text-muted-foreground">
-            Clasifica automáticamente ingresos y gastos desde tu banco
+            {t('importarExtracto.subtitulo')}
           </p>
         </div>
       </div>
@@ -114,12 +116,12 @@ export function ImportarExtractoPageClient() {
         {/* Formulario de subida */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Subir extracto</CardTitle>
-            <CardDescription>Selecciona el formato de tu banco y sube el CSV</CardDescription>
+            <CardTitle className="text-lg">{t('importarExtracto.subirExtracto')}</CardTitle>
+            <CardDescription>{t('importarExtracto.descripcionFormato')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Formato del banco</label>
+              <label className="text-sm font-medium">{t('importarExtracto.formatoBanco')}</label>
               <select
                 value={formato}
                 onChange={(e) => setFormato(e.target.value as FormatoExtracto)}
@@ -132,7 +134,7 @@ export function ImportarExtractoPageClient() {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Archivo CSV</label>
+              <label className="text-sm font-medium">{t('importarExtracto.archivoCsv')}</label>
               <input
                 ref={inputRef}
                 type="file"
@@ -154,11 +156,11 @@ export function ImportarExtractoPageClient() {
                 disabled={!csvContent || loading}
                 className="flex-1"
               >
-                {loading ? 'Importando...' : 'Importar'}
+                {loading ? t('importarExtracto.importando') : t('importarExtracto.importar')}
               </Button>
               {csvContent && (
                 <Button variant="outline" onClick={handleReset}>
-                  Limpiar
+                  {t('importarExtracto.limpiar')}
                 </Button>
               )}
             </div>
@@ -175,17 +177,17 @@ export function ImportarExtractoPageClient() {
         {/* Resultados */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Resultado</CardTitle>
+            <CardTitle className="text-lg">{t('importarExtracto.resultado')}</CardTitle>
             <CardDescription>
               {resultado
-                ? `${resultado.total} movimientos clasificados`
-                : 'Sube un CSV para ver los resultados'}
+                ? `${resultado.total} ${t('importarExtracto.movimientosClasificados')}`
+                : t('importarExtracto.subeCsv')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {!resultado ? (
               <p className="text-sm text-muted-foreground">
-                Esperando archivo...
+                {t('importarExtracto.esperandoArchivo')}
               </p>
             ) : (
               <div className="space-y-4">
@@ -193,15 +195,15 @@ export function ImportarExtractoPageClient() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="rounded-lg border p-3 text-center">
                     <p className="text-2xl font-bold">{resultado.total}</p>
-                    <p className="text-xs text-muted-foreground">Movimientos</p>
+                    <p className="text-xs text-muted-foreground">{t('importarExtracto.movimientos')}</p>
                   </div>
                   <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-center dark:border-green-800 dark:bg-green-950">
                     <p className="text-2xl font-bold text-green-700 dark:text-green-300">{resultado.ingresos}</p>
-                    <p className="text-xs text-green-600 dark:text-green-400">Ingresos</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">{t('importarExtracto.ingresos')}</p>
                   </div>
                   <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-center dark:border-red-800 dark:bg-red-950">
                     <p className="text-2xl font-bold text-red-700 dark:text-red-300">{resultado.gastos}</p>
-                    <p className="text-xs text-red-600 dark:text-red-400">Gastos</p>
+                    <p className="text-xs text-red-600 dark:text-red-400">{t('importarExtracto.gastos')}</p>
                   </div>
                 </div>
 
