@@ -964,6 +964,29 @@ export const en: DeepTraducciones = {
     cancelar: 'Cancel',
   },
 
+  // Nomina table
+  nominaTable: {
+    nominaS: 'payroll(s)',
+    buscando: 'Searching',
+    rol: 'Role',
+    empleada: 'Employee',
+    mes: 'Month',
+    irpf: 'IRPF',
+    segSocial: 'S.Social',
+    bruto: 'Gross',
+    neto: 'Net',
+    jefe: 'Boss',
+    empleado: 'Employee',
+    borrar: 'Delete',
+    eliminarNominaTitle: 'Delete payroll?',
+    eliminarNominaDesc: 'This action cannot be undone. The payroll for',
+    permanentemente: 'will be permanently deleted.',
+    cancelar: 'Cancel',
+    eliminar: 'Delete',
+    pagina: 'Page',
+    de: 'of',
+  },
+
   // Dashboard widgets
   dashboardWidgets: {
     resumenMensual: 'Monthly summary',

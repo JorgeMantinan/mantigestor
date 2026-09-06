@@ -4,6 +4,7 @@ import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { ChevronLeft, ChevronRight, Briefcase, User, ArrowUpDown, ArrowUp, ArrowDown, Download } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 const MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -44,6 +45,7 @@ interface Props {
 }
 
 export const NominaTable = memo(function NominaTable({ paginadas, visibles, page, totalPages, ordenCampo, ordenDir, busqueda, toggleSort, setPage, onDelete, onDownloadPdf }: Props) {
+  const { t } = useLanguage()
   const SortIcon = ({ campo }: { campo: OrdenCampo }) => {
     if (ordenCampo !== campo) return <ArrowUpDown className="ml-1 h-3 w-3 opacity-40" />
     return ordenDir === 'asc'
@@ -54,8 +56,8 @@ export const NominaTable = memo(function NominaTable({ paginadas, visibles, page
   return (
     <>
       <p className="text-xs text-muted-foreground">
-        {visibles.length} nómina{visibles.length !== 1 ? 's' : ''}
-        {busqueda && ` · Buscando "${busqueda}"`}
+        {visibles.length} {t('nominaTable.nominaS')}
+        {busqueda && ` · ${t('nominaTable.buscando')} "${busqueda}"`}
       </p>
 
       <div className="rounded-lg border">
@@ -63,20 +65,20 @@ export const NominaTable = memo(function NominaTable({ paginadas, visibles, page
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left font-medium">Rol</th>
+                <th className="px-4 py-3 text-left font-medium">{t('nominaTable.rol')}</th>
                 <th className="px-4 py-3 text-left font-medium cursor-pointer select-none" onClick={() => toggleSort('empleada')}>
-                  Empleada <SortIcon campo="empleada" />
+                  {t('nominaTable.empleada')} <SortIcon campo="empleada" />
                 </th>
                 <th className="px-4 py-3 text-left font-medium cursor-pointer select-none" onClick={() => toggleSort('mes')}>
-                  Mes <SortIcon campo="mes" />
+                  {t('nominaTable.mes')} <SortIcon campo="mes" />
                 </th>
-                <th className="px-4 py-3 text-right font-medium">IRPF</th>
-                <th className="px-4 py-3 text-right font-medium">S.Social</th>
+                <th className="px-4 py-3 text-right font-medium">{t('nominaTable.irpf')}</th>
+                <th className="px-4 py-3 text-right font-medium">{t('nominaTable.segSocial')}</th>
                 <th className="px-4 py-3 text-right font-medium cursor-pointer select-none" onClick={() => toggleSort('salarioBruto')}>
-                  Bruto <SortIcon campo="salarioBruto" />
+                  {t('nominaTable.bruto')} <SortIcon campo="salarioBruto" />
                 </th>
                 <th className="px-4 py-3 text-right font-medium cursor-pointer select-none" onClick={() => toggleSort('neto')}>
-                  Neto <SortIcon campo="neto" />
+                  {t('nominaTable.neto')} <SortIcon campo="neto" />
                 </th>
                 <th className="px-4 py-3 text-right font-medium" />
               </tr>
@@ -87,11 +89,11 @@ export const NominaTable = memo(function NominaTable({ paginadas, visibles, page
                   <td className="px-4 py-3">
                     {n.rol === 'jefe' ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-700">
-                        <Briefcase className="h-3 w-3" aria-hidden="true" /> Jefe
+                        <Briefcase className="h-3 w-3" aria-hidden="true" /> {t('nominaTable.jefe')}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-700">
-                        <User className="h-3 w-3" aria-hidden="true" /> Empleada
+                        <User className="h-3 w-3" aria-hidden="true" /> {t('nominaTable.empleado')}
                       </span>
                     )}
                   </td>
@@ -120,20 +122,20 @@ export const NominaTable = memo(function NominaTable({ paginadas, visibles, page
                           size="sm"
                           className="h-7 text-xs text-destructive hover:text-destructive"
                         >
-                          Borrar
+                          {t('nominaTable.borrar')}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar nómina?</AlertDialogTitle>
+                          <AlertDialogTitle>{t('nominaTable.eliminarNominaTitle')}</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Se eliminará la nómina de {n.empleada} permanentemente.
+                            {t('nominaTable.eliminarNominaDesc')} {n.empleada} {t('nominaTable.permanentemente')}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogCancel>{t('nominaTable.cancelar')}</AlertDialogCancel>
                           <AlertDialogAction onClick={() => void onDelete(n.id)}>
-                            Eliminar
+                            {t('nominaTable.eliminar')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -159,7 +161,7 @@ export const NominaTable = memo(function NominaTable({ paginadas, visibles, page
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm text-muted-foreground">
-            Página {page + 1} de {totalPages}
+            {t('nominaTable.pagina')} {page + 1} {t('nominaTable.de')} {totalPages}
           </span>
           <Button
             type="button"

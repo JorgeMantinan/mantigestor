@@ -955,6 +955,29 @@ export const es = {
     cancelar: 'Cancelar',
   },
 
+  // Nomina table
+  nominaTable: {
+    nominaS: 'nómina(s)',
+    buscando: 'Buscando',
+    rol: 'Rol',
+    empleada: 'Empleada',
+    mes: 'Mes',
+    irpf: 'IRPF',
+    segSocial: 'S.Social',
+    bruto: 'Bruto',
+    neto: 'Neto',
+    jefe: 'Jefe',
+    empleado: 'Empleada',
+    borrar: 'Borrar',
+    eliminarNominaTitle: '¿Eliminar nómina?',
+    eliminarNominaDesc: 'Esta acción no se puede deshacer. Se eliminará la nómina de',
+    permanentemente: 'permanentemente.',
+    cancelar: 'Cancelar',
+    eliminar: 'Eliminar',
+    pagina: 'Página',
+    de: 'de',
+  },
+
   // Dashboard widgets
   dashboardWidgets: {
     resumenMensual: 'Resumen mensual',
