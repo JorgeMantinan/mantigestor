@@ -535,6 +535,7 @@ export const es = {
   // Alumnos
   alumnos: {
     titulo: 'Alumnos',
+    subtitulo: 'Documentos y materiales para tus estudiantes',
     nuevoAlumno: 'Nuevo alumno',
     nombre: 'Nombre',
     apellidos: 'Apellidos',
@@ -546,6 +547,12 @@ export const es = {
     examen: 'Examen',
     tipo: 'Tipo',
     resultado: 'Resultado',
+    cargando: 'Cargando documentos...',
+    sinDocumentos: 'No hay documentos',
+    sinDocumentosDesc: 'Sube apuntes o materiales para generar resúmenes y exámenes con IA',
+    eliminarDocumento: 'Eliminar documento',
+    eliminarDocumentoTitle: '¿Eliminar este documento?',
+    eliminarDocumentoDesc: 'Esta acción no se puede deshacer.',
   },
 
   // Documentos
@@ -1650,6 +1657,23 @@ export const es = {
     retencionesNominasCsv: 'Retenciones nóminas',
     resultadoFinal: 'Resultado final',
     aIngresarCsv: 'A ingresar',
+  },
+  // Exámenes
+  examenes: {
+    titulo: 'Exámenes',
+    subtitulo: 'Exámenes generados por IA desde tus documentos',
+    generarExamen: 'Generar examen',
+    generando: 'Generando...',
+    generandoConIa: 'Generando examen con IA...',
+    volverDocumentos: 'Volver a documentos',
+    cargando: 'Cargando...',
+    sinExamenes: 'No hay exámenes',
+    sinExamenesDesc: 'Sube documentos en la sección de alumnos y pulsa "Generar examen" para crear uno con IA',
+    examenAlumnos: 'Examen de alumnos',
+    creado: 'Creado',
+    completado: 'Completado',
+    correcta: 'Correcta',
+    errorGenerar: 'Error al generar el examen',
   },
 } as const
 

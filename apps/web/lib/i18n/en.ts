@@ -537,6 +537,7 @@ export const en: DeepTraducciones = {
   // Alumnos
   alumnos: {
     titulo: 'Students',
+    subtitulo: 'Documents and materials for your students',
     nuevoAlumno: 'New student',
     nombre: 'First name',
     apellidos: 'Last name',
@@ -548,6 +549,12 @@ export const en: DeepTraducciones = {
     examen: 'Exam',
     tipo: 'Type',
     resultado: 'Result',
+    cargando: 'Loading documents...',
+    sinDocumentos: 'No documents',
+    sinDocumentosDesc: 'Upload notes or materials to generate summaries and exams with AI',
+    eliminarDocumento: 'Delete document',
+    eliminarDocumentoTitle: 'Delete this document?',
+    eliminarDocumentoDesc: 'This action cannot be undone.',
   },
 
   // Documentos
@@ -1651,5 +1658,22 @@ export const en: DeepTraducciones = {
     retencionesNominasCsv: 'Payroll withholdings',
     resultadoFinal: 'Final result',
     aIngresarCsv: 'To pay',
+  },
+  // Exams
+  examenes: {
+    titulo: 'Exams',
+    subtitulo: 'AI-generated exams from your documents',
+    generarExamen: 'Generate exam',
+    generando: 'Generating...',
+    generandoConIa: 'Generating exam with AI...',
+    volverDocumentos: 'Back to documents',
+    cargando: 'Loading...',
+    sinExamenes: 'No exams',
+    sinExamenesDesc: 'Upload documents in the students section and press "Generate exam" to create one with AI',
+    examenAlumnos: 'Student exam',
+    creado: 'Created',
+    completado: 'Completed',
+    correcta: 'Correct',
+    errorGenerar: 'Error generating exam',
   },
 } as const

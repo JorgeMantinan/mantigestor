@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { GraduationCap, Brain, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { toast, Toaster } from 'sonner'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Examen {
   id: string
@@ -30,6 +31,7 @@ interface ExamenData {
 }
 
 export default function ExamenesPage() {
+  const { t } = useLanguage()
   const [examenes, setExamenes] = useState<Examen[]>([])
   const [loading, setLoading] = useState(true)
   const [generando, setGenerando] = useState(false)
@@ -56,10 +58,10 @@ export default function ExamenesPage() {
     try {
       const res = await fetch('/api/examenes', { method: 'POST' })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Error al generar')
+      if (!res.ok) throw new Error(data.error ?? t('examenes.errorGenerar'))
       setExamenes((prev) => [data as Examen, ...prev])
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al generar el examen')
+      toast.error(err instanceof Error ? err.message : t('examenes.errorGenerar'))
     } finally {
       setGenerando(false)
     }
@@ -86,41 +88,41 @@ export default function ExamenesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-bold tracking-tight">Exámenes</h1>
-          <p className="text-muted-foreground">Exámenes generados por IA desde tus documentos</p>
+          <h1 className="text-3xl font-heading font-bold tracking-tight">{t('examenes.titulo')}</h1>
+          <p className="text-muted-foreground">{t('examenes.subtitulo')}</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={generar} disabled={generando}>
             {generando ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generando...
+                {t('examenes.generando')}
               </>
             ) : (
               <>
                 <Brain className="mr-2 h-4 w-4" />
-                Generar examen
+                {t('examenes.generarExamen')}
               </>
             )}
           </Button>
           <Link href="/alumnos">
-            <Button variant="outline">Volver a documentos</Button>
+            <Button variant="outline">{t('examenes.volverDocumentos')}</Button>
           </Link>
         </div>
       </div>
 
       {loading ? (
         <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">Cargando...</CardContent>
+          <CardContent className="py-8 text-center text-muted-foreground">{t('examenes.cargando')}</CardContent>
         </Card>
       ) : examenes.length === 0 && !generando ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <Brain className="h-12 w-12 text-muted-foreground" />
             <div className="text-center">
-              <p className="font-medium">No hay exámenes</p>
+              <p className="font-medium">{t('examenes.sinExamenes')}</p>
               <p className="text-sm text-muted-foreground">
-                Sube documentos en la sección de alumnos y pulsa &quot;Generar examen&quot; para crear uno con IA
+                {t('examenes.sinExamenesDesc')}
               </p>
             </div>
           </CardContent>
@@ -131,7 +133,7 @@ export default function ExamenesPage() {
             <Card>
               <CardContent className="flex items-center justify-center gap-3 py-6">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <span className="text-sm text-muted-foreground">Generando examen con IA...</span>
+                <span className="text-sm text-muted-foreground">{t('examenes.generandoConIa')}</span>
               </CardContent>
             </Card>
           )}
@@ -147,7 +149,7 @@ export default function ExamenesPage() {
                     <div className="flex items-center gap-2">
                       <GraduationCap className="h-5 w-5 text-primary" />
                       <CardTitle className="text-base capitalize">
-                        {examenData?.titulo ?? (ex.tipo === 'alumnos' ? 'Examen de alumnos' : ex.tipo)}
+                        {examenData?.titulo ?? (ex.tipo === 'alumnos' ? t('examenes.examenAlumnos') : ex.tipo)}
                       </CardTitle>
                     </div>
                     <div className="flex items-center gap-2">
@@ -160,8 +162,8 @@ export default function ExamenesPage() {
                     </div>
                   </div>
                   <CardDescription>
-                    Creado {new Date(ex.creadoEn).toLocaleDateString('es-ES')}
-                    {ex.completadoEn && ` — Completado ${new Date(ex.completadoEn).toLocaleDateString('es-ES')}`}
+                    {t('examenes.creado')} {new Date(ex.creadoEn).toLocaleDateString('es-ES')}
+                    {ex.completadoEn && ` — ${t('examenes.completado')} ${new Date(ex.completadoEn).toLocaleDateString('es-ES')}`}
                   </CardDescription>
                 </CardHeader>
                 {expandido === ex.id && examenData && (
@@ -186,7 +188,7 @@ export default function ExamenesPage() {
                               </span>
                               {texto}
                               {letra === p.correcta && (
-                                <span className="ml-auto text-xs text-green-600">Correcta</span>
+                                <span className="ml-auto text-xs text-green-600">{t('examenes.correcta')}</span>
                               )}
                             </label>
                           ))}

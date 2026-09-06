@@ -11,6 +11,7 @@ import { FileUpload } from '@/components/upload/FileUpload'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { logAccion } from '@/lib/audit-log'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Documento {
   id: string
@@ -21,6 +22,7 @@ interface Documento {
 }
 
 export default function AlumnosPage() {
+  const { t } = useLanguage()
   const [documentos, setDocumentos] = useState<Documento[]>([])
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
@@ -62,8 +64,8 @@ export default function AlumnosPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-bold tracking-tight">Alumnos</h1>
-          <p className="text-muted-foreground">Documentos y materiales para tus estudiantes</p>
+          <h1 className="text-3xl font-heading font-bold tracking-tight">{t('alumnos.titulo')}</h1>
+          <p className="text-muted-foreground">{t('alumnos.subtitulo')}</p>
         </div>
         <div className="flex gap-2">
           {userId && (
@@ -72,14 +74,14 @@ export default function AlumnosPage() {
               path={userId}
               tipo="alumno"
               accept=".pdf,.doc,.docx,.txt,.md"
-              buttonText="Subir documento"
+              buttonText={t('alumnos.subirDocumento')}
               onUploadComplete={() => fetchDocumentos()}
             />
           )}
           <Link href="/alumnos/examenes">
             <Button variant="secondary">
               <GraduationCap className="mr-2 h-4 w-4" />
-              Exámenes
+              {t('alumnos.examenes')}
             </Button>
           </Link>
         </div>
@@ -88,7 +90,7 @@ export default function AlumnosPage() {
       {loading ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            Cargando documentos...
+            {t('alumnos.cargando')}
           </CardContent>
         </Card>
       ) : documentos.length === 0 ? (
@@ -96,9 +98,9 @@ export default function AlumnosPage() {
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <FileText className="h-12 w-12 text-muted-foreground" />
             <div className="text-center">
-              <p className="font-medium">No hay documentos</p>
+              <p className="font-medium">{t('alumnos.sinDocumentos')}</p>
               <p className="text-sm text-muted-foreground">
-                Sube apuntes o materiales para generar resúmenes y exámenes con IA
+                {t('alumnos.sinDocumentosDesc')}
               </p>
             </div>
           </CardContent>
@@ -116,19 +118,19 @@ export default function AlumnosPage() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label="Eliminar documento"
+                        aria-label={t('alumnos.eliminarDocumento')}
                       >
                         <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>¿Eliminar este documento?</AlertDialogTitle>
-                        <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                        <AlertDialogTitle>{t('alumnos.eliminarDocumentoTitle')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('alumnos.eliminarDocumentoDesc')}</AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => void eliminar(doc.id)}>Eliminar</AlertDialogAction>
+                        <AlertDialogCancel>{t('common.cancelar')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => void eliminar(doc.id)}>{t('common.eliminar')}</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
