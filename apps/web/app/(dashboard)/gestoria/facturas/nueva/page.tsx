@@ -24,11 +24,13 @@ import { SelectorMoneda } from '@/components/selector-moneda'
 import { obtenerNotasPieDefecto } from '@/lib/notas-pie-factura'
 import { logAccion } from '@/lib/audit-log'
 import { calcularDescuento } from '@/lib/descuento-factura'
+import { useLanguage } from '@/contexts/language-context'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
 export default function NuevaFacturaPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
@@ -81,7 +83,7 @@ export default function NuevaFacturaPage() {
       })
       if (!res.ok) {
         const err = await res.json()
-        setError(err.error || 'Error al escanear la factura')
+        setError(err.error || t('facturaNueva.errorOcrServicio'))
         return
       }
       const data: OcrResult = await res.json()
@@ -91,7 +93,7 @@ export default function NuevaFacturaPage() {
       setOcrUsado(true)
       setValidacionOcr(validarFactura(data))
     } catch {
-      setError('Error al conectar con el servicio de OCR')
+      setError(t('facturaNueva.errorOcrServicio'))
     }
     setEscanendo(false)
   }
@@ -115,7 +117,7 @@ export default function NuevaFacturaPage() {
       })
       if (!res.ok) {
         const err = await res.json()
-        setError(err.error || 'Error al escanear la imagen')
+        setError(err.error || t('facturaNueva.errorOcrImagen'))
         return
       }
       const data: OcrResult = await res.json()
@@ -125,7 +127,7 @@ export default function NuevaFacturaPage() {
       setOcrUsado(true)
       setValidacionOcr(validarFactura(data))
     } catch {
-      setError('Error al conectar con el servicio de OCR')
+      setError(t('facturaNueva.errorOcrServicio'))
     }
     setEscaneandoImagen(false)
     event.target.value = ''
@@ -160,25 +162,25 @@ export default function NuevaFacturaPage() {
     const iva = parseInt(form.get('iva') as string, 10)
 
     if (!numero) {
-      setError('El número de factura es obligatorio')
+      setError(t('facturaNueva.errorNumeroObligatorio'))
       setLoading(false)
       return
     }
 
     if (!emisorReceptor) {
-      setError('El nombre del cliente o proveedor es obligatorio')
+      setError(t('facturaNueva.errorNombreObligatorio'))
       setLoading(false)
       return
     }
 
     if (isNaN(baseImponible) || baseImponible <= 0) {
-      setError('La base imponible debe ser un importe positivo')
+      setError(t('facturaNueva.errorBaseInvalida'))
       setLoading(false)
       return
     }
 
     if (![0, 4, 10, 21].includes(iva)) {
-      setError('El IVA debe ser 0, 4, 10 o 21')
+      setError(t('facturaNueva.errorIvaInvalido'))
       setLoading(false)
       return
     }
@@ -189,7 +191,7 @@ export default function NuevaFacturaPage() {
 
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) {
-      setError('No has iniciado sesión')
+      setError(t('facturaNueva.errorSesion'))
       setLoading(false)
       return
     }
@@ -234,26 +236,26 @@ export default function NuevaFacturaPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/gestoria/facturas">
-          <Button variant="ghost" size="icon" aria-label="Volver a facturas">
+          <Button variant="ghost" size="icon" aria-label={t('facturaNueva.volverFacturas')}>
             <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
         </Link>
         <div>
-          <h1 className="text-3xl font-heading font-bold tracking-tight">Nueva factura</h1>
-          <p className="text-muted-foreground">Introduce los datos de la factura</p>
+          <h1 className="text-3xl font-heading font-bold tracking-tight">{t('facturaNueva.titulo')}</h1>
+          <p className="text-muted-foreground">{t('facturaNueva.subtitulo')}</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Datos de la factura</CardTitle>
-          <CardDescription>Rellena todos los campos obligatorios</CardDescription>
+          <CardTitle>{t('facturaNueva.datosFactura')}</CardTitle>
+          <CardDescription>{t('facturaNueva.camposObligatorios')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="tipo">Tipo</Label>
+                <Label htmlFor="tipo">{t('facturaNueva.tipo')}</Label>
                 <select
                   id="tipo"
                   name="tipo"
@@ -262,25 +264,25 @@ export default function NuevaFacturaPage() {
                   onChange={e => { setTipoSeleccionado(e.target.value); if (e.target.value !== 'gasto') setCategoriaGasto(null) }}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  <option value="ingreso">Ingreso (emitida)</option>
-                  <option value="gasto">Gasto (recibida)</option>
+                  <option value="ingreso">{t('facturaNueva.tipoIngreso')}</option>
+                  <option value="gasto">{t('facturaNueva.tipoGasto')}</option>
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="numero">Nº factura</Label>
+                <Label htmlFor="numero">{t('facturaNueva.numeroFactura')}</Label>
                 <Input id="numero" name="numero" required placeholder="F-2024-001" />
               </div>
             </div>
 
             {tipoSeleccionado === 'gasto' && (
               <div className="space-y-2">
-                <Label>Categoría del gasto</Label>
+                <Label>{t('facturaNueva.categoriaGasto')}</Label>
                 <CategoriaGastoPicker value={categoriaGasto} onChange={setCategoriaGasto} />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="moneda">Moneda</Label>
+                <Label htmlFor="moneda">{t('facturaNueva.moneda')}</Label>
               <SelectorMoneda
                 id="moneda"
                 value={moneda}
@@ -291,7 +293,7 @@ export default function NuevaFacturaPage() {
             {moneda !== 'EUR' && (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="tipoCambio">Tipo de cambio ({moneda} → EUR)</Label>
+                  <Label htmlFor="tipoCambio">{t('facturaNueva.tipoCambio')} ({moneda} → EUR)</Label>
                   <Input
                     id="tipoCambio"
                     type="number"
@@ -300,10 +302,10 @@ export default function NuevaFacturaPage() {
                     onChange={(e) => setTipoCambio(parseFloat(e.target.value) || 1)}
                     disabled={cargandoTasa}
                   />
-                  {cargandoTasa && <p className="text-xs text-muted-foreground">Obteniendo tipo de cambio...</p>}
+                  {cargandoTasa && <p className="text-xs text-muted-foreground">{t('facturaNueva.cargandoTasa')}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label>Total en EUR</Label>
+                  <Label>{t('facturaNueva.totalEur')}</Label>
                   <Input
                     disabled
                     value={(() => {
@@ -321,33 +323,33 @@ export default function NuevaFacturaPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="emisorReceptor">Nombre/cliente o proveedor</Label>
-                <Input id="emisorReceptor" name="emisorReceptor" required placeholder="Nombre" />
+                <Label htmlFor="emisorReceptor">{t('facturaNueva.nombreCliente')}</Label>
+                <Input id="emisorReceptor" name="emisorReceptor" required placeholder={t('facturaNueva.placeholderNombre')} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="nifContraparte">NIF/CIF</Label>
+                <Label htmlFor="nifContraparte">{t('facturaNueva.nifCif')}</Label>
                 <Input id="nifContraparte" name="nifContraparte" placeholder="12345678Z" />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="fechaEmision">Fecha de emisión</Label>
+                <Label htmlFor="fechaEmision">{t('facturaNueva.fechaEmision')}</Label>
                 <Input id="fechaEmision" name="fechaEmision" type="date" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="fechaVencimiento">Fecha de vencimiento</Label>
+                <Label htmlFor="fechaVencimiento">{t('facturaNueva.fechaVencimiento')}</Label>
                 <Input id="fechaVencimiento" name="fechaVencimiento" type="date" />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="baseImponible">Base imponible ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
+                <Label htmlFor="baseImponible">{t('facturaNueva.baseImponible')} ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
                 <Input id="baseImponible" name="baseImponible" type="number" step="0.01" required placeholder="100.00" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="iva">IVA (%)</Label>
+                <Label htmlFor="iva">{t('facturaNueva.ivaPorcentaje')}</Label>
                 <select
                   id="iva"
                   name="iva"
@@ -362,14 +364,14 @@ export default function NuevaFacturaPage() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="importeTotal">Total ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
-                <Input id="importeTotal" disabled placeholder="Se calcula automáticamente" />
+                <Label htmlFor="importeTotal">{t('facturaNueva.total')} ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
+                <Input id="importeTotal" disabled placeholder={t('facturaNueva.seCalculaAuto')} />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="descuentoPorcentaje">Descuento (%)</Label>
+                <Label htmlFor="descuentoPorcentaje">{t('facturaNueva.descuentoPorcentaje')}</Label>
                 <Input
                   id="descuentoPorcentaje"
                   name="descuentoPorcentaje"
@@ -384,7 +386,7 @@ export default function NuevaFacturaPage() {
               </div>
               {descuentoPorcentaje > 0 && (
                 <div className="space-y-2">
-                  <Label>Importe descuento ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
+                  <Label>{t('facturaNueva.importeDescuento')} ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
                   <Input
                     disabled
                     value={(() => {
@@ -405,11 +407,11 @@ export default function NuevaFacturaPage() {
             <div className="flex gap-4 pt-4">
               <Link href="/gestoria/facturas" className="flex-1">
                 <Button variant="outline" type="button" className="w-full">
-                  Cancelar
+                  {t('facturaNueva.cancelar')}
                 </Button>
               </Link>
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? 'Guardando...' : 'Crear factura'}
+                {loading ? t('facturaNueva.guardando') : t('facturaNueva.crearFactura')}
               </Button>
             </div>
           </form>
@@ -418,9 +420,9 @@ export default function NuevaFacturaPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Entrada por voz</CardTitle>
+          <CardTitle>{t('facturaNueva.entradaVoz')}</CardTitle>
           <CardDescription>
-            Describe la factura con el microfono y auto-rellena los campos
+            {t('facturaNueva.entradaVozDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -434,8 +436,8 @@ export default function NuevaFacturaPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Documento adjunto</CardTitle>
-          <CardDescription>Sube el PDF de la factura (opcional)</CardDescription>
+          <CardTitle>{t('facturaNueva.documentoAdjunto')}</CardTitle>
+          <CardDescription>{t('facturaNueva.documentoAdjuntoDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <FileUpload
@@ -443,7 +445,7 @@ export default function NuevaFacturaPage() {
             path={userId ?? ''}
             tipo="factura"
             accept=".pdf"
-            buttonText="Subir factura PDF"
+            buttonText={t('facturaNueva.subirFacturaPdf')}
             onUploadComplete={(url) => setPdfUrl(url)}
           />
           {pdfUrl && (
@@ -454,7 +456,7 @@ export default function NuevaFacturaPage() {
               disabled={escanendo}
             >
               <ScanLine className="mr-2 h-4 w-4" />
-              {escanendo ? 'Escaneando...' : 'Escanear factura con IA'}
+              {escanendo ? t('facturaNueva.escaneando') : t('facturaNueva.escanearIa')}
             </Button>
           )}
           <div className="relative">
@@ -467,7 +469,7 @@ export default function NuevaFacturaPage() {
             />
             <Button variant="outline" className="w-full" disabled={escaneandoImagen}>
               <Camera className="mr-2 h-4 w-4" />
-              {escaneandoImagen ? 'Escaneando...' : 'Escanear foto o ticket'}
+              {escaneandoImagen ? t('facturaNueva.escaneando') : t('facturaNueva.escanearFoto')}
             </Button>
           </div>
         </CardContent>
@@ -491,9 +493,9 @@ export default function NuevaFacturaPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lightbulb className="h-4 w-4 text-yellow-500" aria-hidden="true" />
-              Modelos fiscales afectados
+              {t('facturaNueva.modelosAfectados')}
             </CardTitle>
-            <CardDescription>Esta factura afecta a los siguientes modelos de la AEAT</CardDescription>
+            <CardDescription>{t('facturaNueva.modelosAfectadosDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
@@ -510,7 +512,7 @@ export default function NuevaFacturaPage() {
                   </div>
                   <Link href={`/fiscal?seccion=modelo${m.modelo}`}>
                     <Button variant="ghost" size="sm" className="shrink-0">
-                      Abrir
+                      {t('facturaNueva.abrir')}
                     </Button>
                   </Link>
                 </li>
