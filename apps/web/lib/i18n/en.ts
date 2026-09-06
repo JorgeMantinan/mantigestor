@@ -1209,15 +1209,20 @@ export const en: DeepTraducciones = {
   // AI Assistant
   ai: {
     titulo: 'AI Assistant',
-    subtitulo: 'Ask about taxes, invoices, procedures...',
+    subtitulo: 'Ask about taxes, invoices, procedures or how to use MantiGestor',
     asistenteConIA: 'AI Assistant',
     placeholder: 'Type your question...',
     pensando: 'Thinking...',
     errorConexion: 'Error connecting to AI',
-    errorProcesando: 'Sorry, there was an error processing your request.',
+    errorProcesando: 'Sorry, there was an error processing your request. Please try again.',
     iniciSesion: 'Log in to use the assistant',
     quePuedoAyudar: 'How can I help you?',
     preguntaTemaFiscal: 'Ask about any tax or management topic',
+    enviarMensaje: 'Send message',
+    sugerencia1: 'How do I calculate VAT on an invoice?',
+    sugerencia2: 'When is Form 303 due?',
+    sugerencia3: 'What expenses can I deduct as self-employed?',
+    sugerencia4: 'How does the students module work?',
   },
 
   // Recurring invoice

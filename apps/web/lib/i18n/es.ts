@@ -1208,15 +1208,20 @@ export const es = {
   // Asistente IA
   ai: {
     titulo: 'Asistente IA',
-    subtitulo: 'Pregunta sobre fiscalidad, facturas, tramites...',
+    subtitulo: 'Pregunta sobre fiscalidad, facturas, trámites o cómo usar MantiGestor',
     asistenteConIA: 'Asistente con IA',
     placeholder: 'Escribe tu pregunta...',
     pensando: 'Pensando...',
     errorConexion: 'Error al conectar con la IA',
-    errorProcesando: 'Lo siento, hubo un error al procesar tu consulta.',
-    iniciSesion: 'Inicia sesion para usar el asistente',
-    quePuedoAyudar: 'En que puedo ayudarte?',
-    preguntaTemaFiscal: 'Pregunta sobre cualquier tema fiscal o de gestion',
+    errorProcesando: 'Lo siento, hubo un error al procesar tu consulta. Por favor, inténtalo de nuevo.',
+    iniciSesion: 'Inicia sesión para usar el asistente',
+    quePuedoAyudar: '¿En qué puedo ayudarte?',
+    preguntaTemaFiscal: 'Pregunta sobre cualquier tema fiscal o de gestión',
+    enviarMensaje: 'Enviar mensaje',
+    sugerencia1: '¿Cómo calculo el IVA de una factura?',
+    sugerencia2: '¿Cuándo se presenta el Modelo 303?',
+    sugerencia3: '¿Qué gastos puedo deducir como autónomo?',
+    sugerencia4: '¿Cómo funciona el módulo de alumnos?',
   },
 
   // Factura recurrente

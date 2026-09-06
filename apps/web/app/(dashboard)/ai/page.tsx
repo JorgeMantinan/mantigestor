@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/contexts/language-context'
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -13,20 +14,21 @@ interface Mensaje {
   content: string
 }
 
-const SUGERENCIAS = [
-  '¿Cómo calculo el IVA de una factura?',
-  '¿Cuándo se presenta el Modelo 303?',
-  '¿Qué gastos puedo deducir como autónomo?',
-  '¿Cómo funciona el módulo de alumnos?',
-]
-
 export default function AiPage() {
+  const { t } = useLanguage()
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [auth, setAuth] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const getSupabase = useCallback(() => createClient(), [])
+
+  const sugerencias = [
+    t('ai.sugerencia1'),
+    t('ai.sugerencia2'),
+    t('ai.sugerencia3'),
+    t('ai.sugerencia4'),
+  ]
 
   useEffect(() => {
     getSupabase().auth.getUser().then(({ data: { user } }) => setAuth(!!user))
@@ -53,7 +55,7 @@ export default function AiPage() {
         }),
       })
 
-      if (!res.ok) throw new Error('Error al conectar con la IA')
+      if (!res.ok) throw new Error(t('ai.errorConexion'))
 
       const { respuesta } = await res.json()
       setMensajes((prev) => [...prev, { role: 'assistant', content: respuesta }])
@@ -62,7 +64,7 @@ export default function AiPage() {
         ...prev,
         {
           role: 'assistant',
-          content: 'Lo siento, hubo un error al procesar tu consulta. Por favor, inténtalo de nuevo.',
+          content: t('ai.errorProcesando'),
         },
       ])
     }
@@ -72,9 +74,9 @@ export default function AiPage() {
   return (
     <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-4xl flex-col space-y-4">
       <div>
-        <h1 className="text-3xl font-heading font-bold tracking-tight">Asistente IA</h1>
+        <h1 className="text-3xl font-heading font-bold tracking-tight">{t('ai.titulo')}</h1>
         <p className="text-muted-foreground">
-          Pregunta sobre fiscalidad, facturas, trámites o cómo usar MantiGestor
+          {t('ai.subtitulo')}
         </p>
       </div>
 
@@ -83,7 +85,7 @@ export default function AiPage() {
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
             <CardTitle className="text-base">MantiBot</CardTitle>
-            <CardDescription>— Asistente con IA</CardDescription>
+            <CardDescription>— {t('ai.asistenteConIA')}</CardDescription>
           </div>
         </CardHeader>
         <CardContent className="flex flex-1 flex-col overflow-hidden p-0">
@@ -92,13 +94,13 @@ export default function AiPage() {
               <div className="flex h-full flex-col items-center justify-center gap-6 text-center">
                 <Sparkles className="h-12 w-12 text-primary" />
                 <div>
-                  <p className="text-lg font-medium">¿En qué puedo ayudarte?</p>
+                  <p className="text-lg font-medium">{t('ai.quePuedoAyudar')}</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Pregunta sobre cualquier tema fiscal o de gestión
+                    {t('ai.preguntaTemaFiscal')}
                   </p>
                 </div>
                 <div className="flex flex-wrap justify-center gap-2">
-                  {SUGERENCIAS.map((s) => (
+                  {sugerencias.map((s) => (
                     <Button
                       key={s}
                       variant="outline"
@@ -127,7 +129,7 @@ export default function AiPage() {
             {loading && (
               <div className="flex justify-start">
                 <div className="rounded-lg bg-muted px-4 py-2 text-sm text-muted-foreground">
-                  <span className="animate-pulse">Pensando...</span>
+                  <span className="animate-pulse">{t('ai.pensando')}</span>
                 </div>
               </div>
             )}
@@ -137,20 +139,20 @@ export default function AiPage() {
           <div className="border-t p-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Escribe tu pregunta..."
+                placeholder={t('ai.placeholder')}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 disabled={loading || !auth}
               />
-              <Button onClick={handleSend} disabled={loading || !input.trim() || !auth} aria-label="Enviar mensaje">
+              <Button onClick={handleSend} disabled={loading || !input.trim() || !auth} aria-label={t('ai.enviarMensaje')}>
                 <Send className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
             {!auth && (
               <p className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
                 <AlertCircle className="h-3 w-3" />
-                Inicia sesión para usar el asistente
+                {t('ai.iniciSesion')}
               </p>
             )}
           </div>
