@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, CheckCircle, Lightbulb, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   fechaEmision: string
@@ -30,6 +31,8 @@ const ICONOS: Record<string, React.ReactNode> = {
 }
 
 export function WidgetAlertasIVA({ facturas }: { facturas: Factura[] }) {
+  const { t } = useLanguage()
+
   const alertaMasUrgente = useMemo(() => {
     const ahora = new Date()
     const mesActual = ahora.getMonth()
@@ -53,8 +56,8 @@ export function WidgetAlertasIVA({ facturas }: { facturas: Factura[] }) {
     if (diasRestantes <= 15 && diasRestantes > 0) {
       alertas.push({
         tipo: 'plazo',
-        titulo: `Quedan ${diasRestantes} días para presentar el 303`,
-        descripcion: `El plazo vence el ${finTrimestre.toLocaleDateString('es-ES')}.`,
+        titulo: t('widgetAlertasIva.diasPresentar303').replace('{dias}', String(diasRestantes)),
+        descripcion: t('widgetAlertasIva.plazoVence').replace('{fecha}', finTrimestre.toLocaleDateString('es-ES')),
         prioridad: 'alta',
       })
     }
@@ -63,8 +66,8 @@ export function WidgetAlertasIVA({ facturas }: { facturas: Factura[] }) {
       const aFavor = ivaSoportado - ivaRepercutido
       alertas.push({
         tipo: 'optimizacion',
-        titulo: `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(aFavor / 100)} a tu favor`,
-        descripcion: 'IVA soportado supera al repercutido.',
+        titulo: t('widgetAlertasIva.aTuFavor').replace('{importe}', new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(aFavor / 100)),
+        descripcion: t('widgetAlertasIva.ivaSoportadoSupera'),
         prioridad: 'media',
       })
     }
@@ -73,8 +76,8 @@ export function WidgetAlertasIVA({ facturas }: { facturas: Factura[] }) {
     if (gastosSinDeducir.length > 0) {
       alertas.push({
         tipo: 'recordatorio',
-        titulo: `${gastosSinDeducir.length} gastos sin IVA deducible`,
-        descripcion: 'Verifica si son correctos.',
+        titulo: t('widgetAlertasIva.gastosSinIva').replace('{count}', String(gastosSinDeducir.length)),
+        descripcion: t('widgetAlertasIva.verificarSiCorrectos'),
         prioridad: 'baja',
       })
     }
@@ -83,8 +86,8 @@ export function WidgetAlertasIVA({ facturas }: { facturas: Factura[] }) {
     if (pendientes.length > 3) {
       alertas.push({
         tipo: 'recordatorio',
-        titulo: `${pendientes.length} facturas de gasto pendientes`,
-        descripcion: 'Pagar antes de fin de trimestre permite deducir IVA.',
+        titulo: t('widgetAlertasIva.facturasGastoPendientes').replace('{count}', String(pendientes.length)),
+        descripcion: t('widgetAlertasIva.pagarAntesFinTrimestre'),
         prioridad: 'media',
       })
     }
@@ -98,8 +101,11 @@ export function WidgetAlertasIVA({ facturas }: { facturas: Factura[] }) {
         const total = gastosPendientes.reduce((s, f) => s + Math.round(f.baseImponible * (f.iva / 100)), 0)
         alertas.push({
           tipo: 'deduccion',
-          titulo: 'Deducción IVA anticipada',
-          descripcion: `Paga ${gastosPendientes.length} facturas antes del ${finTrimestre.toLocaleDateString('es-ES')} para deducir ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(total / 100)}.`,
+          titulo: t('widgetAlertasIva.deduccionIvaAnticipada'),
+          descripcion: t('widgetAlertasIva.pagaFacturasAntes')
+            .replace('{count}', String(gastosPendientes.length))
+            .replace('{fecha}', finTrimestre.toLocaleDateString('es-ES'))
+            .replace('{importe}', new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(total / 100)),
           prioridad: 'alta',
         })
       }
@@ -109,7 +115,7 @@ export function WidgetAlertasIVA({ facturas }: { facturas: Factura[] }) {
       const prio: Record<string, number> = { alta: 0, media: 1, baja: 2 }
       return (prio[a.prioridad] ?? 2) - (prio[b.prioridad] ?? 2)
     })[0] ?? null
-  }, [facturas])
+  }, [facturas, t])
 
   if (!alertaMasUrgente) return null
 
@@ -123,7 +129,7 @@ export function WidgetAlertasIVA({ facturas }: { facturas: Factura[] }) {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Lightbulb className="h-4 w-4 text-yellow-500" /> Alertas IVA
+          <Lightbulb className="h-4 w-4 text-yellow-500" /> {t('widgetAlertasIva.alertasIva')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -136,7 +142,7 @@ export function WidgetAlertasIVA({ facturas }: { facturas: Factura[] }) {
         </div>
         <Link href="/fiscal?seccion=alertas-iva" className="block mt-3">
           <Button variant="ghost" size="sm" className="w-full text-xs">
-            Ver todas las alertas <ArrowRight className="ml-1 h-3 w-3" />
+            {t('widgetAlertasIva.verTodasAlertas')} <ArrowRight className="ml-1 h-3 w-3" aria-hidden="true" />
           </Button>
         </Link>
       </CardContent>

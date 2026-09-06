@@ -1515,4 +1515,46 @@ export const en: DeepTraducciones = {
     obligatorio: 'Mandatory',
     exportarPdf: 'Export PDF',
   },
+
+  // Widget Activity
+  widgetActivity: {
+    actividadReciente: 'Recent activity',
+    recargarActividad: 'Refresh activity',
+    verTodo: 'View all',
+    cargando: 'Loading...',
+    sinActividad: 'No activity recorded',
+    ahora: 'now',
+    haceMin: '{min}m ago',
+    haceHoras: '{hours}h ago',
+    haceDias: '{days}d ago',
+    creo: 'created',
+    edito: 'edited',
+    elimino: 'deleted',
+    cambioEstado: 'changed status of',
+  },
+
+  // Widget Export
+  widgetExport: {
+    exportacionRapida: 'Quick export',
+    exportando: 'Exporting...',
+    exportarFacturasCsv: 'Export invoices CSV',
+    exportarFacturasExcel: 'Export invoices Excel',
+    exportarTodoZip: 'Export everything ZIP',
+  },
+
+  // Widget Alertas IVA
+  widgetAlertasIva: {
+    alertasIva: 'VAT alerts',
+    verTodasAlertas: 'View all alerts',
+    diasPresentar303: '{dias} days left to file model 303',
+    plazoVence: 'The deadline is on {fecha}.',
+    aTuFavor: '{importe} in your favor',
+    ivaSoportadoSupera: 'Input VAT exceeds output VAT.',
+    gastosSinIva: '{count} expenses without deductible VAT',
+    verificarSiCorrectos: 'Verify if they are correct.',
+    facturasGastoPendientes: '{count} pending expense invoices',
+    pagarAntesFinTrimestre: 'Paying before end of quarter allows VAT deduction.',
+    deduccionIvaAnticipada: 'Early VAT deduction',
+    pagaFacturasAntes: 'Pay {count} invoices before {fecha} to deduct {importe}.',
+  },
 } as const

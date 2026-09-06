@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Download, FileSpreadsheet, FileText, Archive } from 'lucide-react'
 import { exportarTodoZIP, type ExportData } from '@/lib/exportar-zip'
+import { useLanguage } from '@/contexts/language-context'
 
 export function WidgetExport() {
+  const { t } = useLanguage()
   const [exportando, setExportando] = useState<'csv' | 'excel' | 'zip' | null>(null)
 
   const getSupabase = useCallback(() => createClient(), [])
@@ -93,7 +95,7 @@ export function WidgetExport() {
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Download className="h-4 w-4" aria-hidden="true" />
-          Exportación rápida
+          {t('widgetExport.exportacionRapida')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -106,7 +108,7 @@ export function WidgetExport() {
             onClick={descargarCsv}
           >
             <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-            {exportando === 'csv' ? 'Exportando...' : 'Exportar facturas CSV'}
+            {exportando === 'csv' ? t('widgetExport.exportando') : t('widgetExport.exportarFacturasCsv')}
           </Button>
           <Button
             variant="outline"
@@ -116,7 +118,7 @@ export function WidgetExport() {
             onClick={descargarExcel}
           >
             <FileSpreadsheet className="h-3.5 w-3.5" aria-hidden="true" />
-            {exportando === 'excel' ? 'Exportando...' : 'Exportar facturas Excel'}
+            {exportando === 'excel' ? t('widgetExport.exportando') : t('widgetExport.exportarFacturasExcel')}
           </Button>
           <Button
             variant="outline"
@@ -126,7 +128,7 @@ export function WidgetExport() {
             onClick={descargarZip}
           >
             <Archive className="h-3.5 w-3.5" aria-hidden="true" />
-            {exportando === 'zip' ? 'Exportando...' : 'Exportar todo ZIP'}
+            {exportando === 'zip' ? t('widgetExport.exportando') : t('widgetExport.exportarTodoZip')}
           </Button>
         </div>
       </CardContent>

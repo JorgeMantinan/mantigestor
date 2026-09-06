@@ -1514,6 +1514,48 @@ export const es = {
     obligatorio: 'Obligatorio',
     exportarPdf: 'Exportar PDF',
   },
+
+  // Widget Activity
+  widgetActivity: {
+    actividadReciente: 'Actividad reciente',
+    recargarActividad: 'Recargar actividad',
+    verTodo: 'Ver todo',
+    cargando: 'Cargando...',
+    sinActividad: 'Sin actividad registrada',
+    ahora: 'ahora',
+    haceMin: 'hace {min}m',
+    haceHoras: 'hace {hours}h',
+    haceDias: 'hace {days}d',
+    creo: 'creó',
+    edito: 'editó',
+    elimino: 'eliminó',
+    cambioEstado: 'cambió estado de',
+  },
+
+  // Widget Export
+  widgetExport: {
+    exportacionRapida: 'Exportación rápida',
+    exportando: 'Exportando...',
+    exportarFacturasCsv: 'Exportar facturas CSV',
+    exportarFacturasExcel: 'Exportar facturas Excel',
+    exportarTodoZip: 'Exportar todo ZIP',
+  },
+
+  // Widget Alertas IVA
+  widgetAlertasIva: {
+    alertasIva: 'Alertas IVA',
+    verTodasAlertas: 'Ver todas las alertas',
+    diasPresentar303: 'Quedan {dias} días para presentar el 303',
+    plazoVence: 'El plazo vence el {fecha}.',
+    aTuFavor: '{importe} a tu favor',
+    ivaSoportadoSupera: 'IVA soportado supera al repercutido.',
+    gastosSinIva: '{count} gastos sin IVA deducible',
+    verificarSiCorrectos: 'Verifica si son correctos.',
+    facturasGastoPendientes: '{count} facturas de gasto pendientes',
+    pagarAntesFinTrimestre: 'Pagar antes de fin de trimestre permite deducir IVA.',
+    deduccionIvaAnticipada: 'Deducción IVA anticipada',
+    pagaFacturasAntes: 'Paga {count} facturas antes del {fecha} para deducir {importe}.',
+  },
 } as const
 
 export type Traducciones = typeof es
