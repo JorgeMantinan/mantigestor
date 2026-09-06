@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FileSpreadsheet, ArrowRightLeft } from 'lucide-react'
 import { SelectorMoneda } from '@/components/selector-moneda'
+import { useLanguage } from '@/contexts/language-context'
 
 type ConversionType = 'moneda' | 'longitud' | 'peso' | 'temperatura'
 
@@ -24,6 +25,20 @@ const MONEDAS = [
   { value: 'COP', label: 'Peso colombiano (COP)' },
   { value: 'BRL', label: 'Real brasileño (BRL)' },
 ]
+
+const MONEDA_LABELS: Record<string, string> = {
+  EUR: 'conversiones.monedaEur',
+  USD: 'conversiones.monedaUsd',
+  GBP: 'conversiones.monedaGbp',
+  CHF: 'conversiones.monedaChf',
+  CAD: 'conversiones.monedaCad',
+  AUD: 'conversiones.monedaAud',
+  JPY: 'conversiones.monedaJpy',
+  MXN: 'conversiones.monedaMxn',
+  ARS: 'conversiones.monedaArs',
+  COP: 'conversiones.monedaCop',
+  BRL: 'conversiones.monedaBrl',
+}
 
 const TASAS_CAMBIO_APROX: Record<string, Record<string, number>> = {
   EUR: { USD: 1.08, GBP: 0.85, CHF: 0.96, MXN: 19.5, ARS: 950, COP: 4200 },
@@ -46,6 +61,17 @@ const UNIDADES_LONGITUD = [
   { value: 'mi', label: 'Milla (mi)' },
 ]
 
+const LONGITUD_LABELS: Record<string, string> = {
+  mm: 'conversiones.longitudMm',
+  cm: 'conversiones.longitudCm',
+  m: 'conversiones.longitudM',
+  km: 'conversiones.longitudKm',
+  in: 'conversiones.longitudIn',
+  ft: 'conversiones.longitudFt',
+  yd: 'conversiones.longitudYd',
+  mi: 'conversiones.longitudMi',
+}
+
 const LONGITUD_A_METROS: Record<string, number> = {
   mm: 0.001,
   cm: 0.01,
@@ -66,6 +92,15 @@ const UNIDADES_PESO = [
   { value: 'lb', label: 'Libra (lb)' },
 ]
 
+const PESO_LABELS: Record<string, string> = {
+  mg: 'conversiones.pesoMg',
+  g: 'conversiones.pesoG',
+  kg: 'conversiones.pesoKg',
+  t: 'conversiones.pesoT',
+  oz: 'conversiones.pesoOz',
+  lb: 'conversiones.pesoLb',
+}
+
 const PESO_A_KILOGRAMOS: Record<string, number> = {
   mg: 0.000001,
   g: 0.001,
@@ -76,6 +111,7 @@ const PESO_A_KILOGRAMOS: Record<string, number> = {
 }
 
 export default function ConversionesPage() {
+  const { t } = useLanguage()
   const [tipo, setTipo] = useState<ConversionType>('moneda')
   const [cantidad, setCantidad] = useState('1')
   const [from, setFrom] = useState('EUR')
@@ -118,10 +154,10 @@ export default function ConversionesPage() {
   }, [])
 
   const tabs: { value: ConversionType; label: string }[] = [
-    { value: 'moneda', label: 'Moneda' },
-    { value: 'longitud', label: 'Longitud' },
-    { value: 'peso', label: 'Peso' },
-    { value: 'temperatura', label: 'Temperatura' },
+    { value: 'moneda', label: t('conversiones.tabMoneda') },
+    { value: 'longitud', label: t('conversiones.tabLongitud') },
+    { value: 'peso', label: t('conversiones.tabPeso') },
+    { value: 'temperatura', label: t('conversiones.tabTemperatura') },
   ]
 
   const getFromUnits = () => {
@@ -180,37 +216,37 @@ export default function ConversionesPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-heading font-bold tracking-tight">Conversiones</h1>
-        <p className="text-muted-foreground">Conversor de moneda, longitud, peso y temperatura</p>
+        <h1 className="text-3xl font-heading font-bold tracking-tight">{t('conversiones.titulo')}</h1>
+        <p className="text-muted-foreground">{t('conversiones.subtitulo')}</p>
       </div>
 
       <div className="flex gap-1 rounded-lg border p-1">
-        {tabs.map((t) => (
+        {tabs.map((tab) => (
           <button
-            key={t.value}
-            onClick={() => { setTipo(t.value); setResultado(null) }}
+            key={tab.value}
+            onClick={() => { setTipo(tab.value); setResultado(null) }}
             className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-              tipo === t.value
+              tipo === tab.value
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:bg-muted'
             }`}
           >
-            {t.label}
+            {tab.label}
           </button>
         ))}
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Conversor de {tipo === 'moneda' ? 'moneda' : tipo === 'longitud' ? 'longitud' : tipo === 'peso' ? 'peso' : 'temperatura'}</CardTitle>
+          <CardTitle>{t('conversiones.tituloConversor').replace('{tipo}', tipo === 'moneda' ? t('conversiones.tabMoneda').toLowerCase() : tipo === 'longitud' ? t('conversiones.tabLongitud').toLowerCase() : tipo === 'peso' ? t('conversiones.tabPeso').toLowerCase() : t('conversiones.tabTemperatura').toLowerCase())}</CardTitle>
           <CardDescription>
-            {tipo === 'moneda' && (cargandoTasas ? 'Actualizando tasas...' : 'Tasas de cambio en tiempo real (Frankfurter API)')}
-            {tipo === 'temperatura' && 'Celsius, Fahrenheit y Kelvin'}
+            {tipo === 'moneda' && (cargandoTasas ? t('conversiones.cargandoTasas') : t('conversiones.tasasEnTiempoReal'))}
+            {tipo === 'temperatura' && t('conversiones.celsiusFahrenheitKelvin')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="cantidad">Cantidad</Label>
+            <Label htmlFor="cantidad">{t('conversiones.cantidad')}</Label>
             <Input
               id="cantidad"
               type="number"
@@ -224,7 +260,7 @@ export default function ConversionesPage() {
           {tipo === 'temperatura' ? (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Desde</Label>
+                <Label>{t('conversiones.desde')}</Label>
                 <select
                   value={from}
                   onChange={(e) => setFrom(e.target.value)}
@@ -236,7 +272,7 @@ export default function ConversionesPage() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label>Hasta</Label>
+                <Label>{t('conversiones.hasta')}</Label>
                 <select
                   value={to}
                   onChange={(e) => setTo(e.target.value)}
@@ -251,7 +287,7 @@ export default function ConversionesPage() {
           ) : (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Desde</Label>
+                <Label>{t('conversiones.desde')}</Label>
                 {tipo === 'moneda' ? (
                   <SelectorMoneda
                     value={from}
@@ -264,13 +300,13 @@ export default function ConversionesPage() {
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
                   >
                     {getFromUnits().map((u) => (
-                      <option key={u.value} value={u.value}>{u.label}</option>
+                      <option key={u.value} value={u.value}>{tipo === 'longitud' ? t(LONGITUD_LABELS[u.value] ?? '') : tipo === 'peso' ? t(PESO_LABELS[u.value] ?? '') : u.label}</option>
                     ))}
                   </select>
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Hasta</Label>
+                <Label>{t('conversiones.hasta')}</Label>
                 {tipo === 'moneda' ? (
                   <SelectorMoneda
                     value={to}
@@ -283,7 +319,7 @@ export default function ConversionesPage() {
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
                   >
                     {getFromUnits().map((u) => (
-                      <option key={u.value} value={u.value}>{u.label}</option>
+                      <option key={u.value} value={u.value}>{tipo === 'longitud' ? t(LONGITUD_LABELS[u.value] ?? '') : tipo === 'peso' ? t(PESO_LABELS[u.value] ?? '') : u.label}</option>
                     ))}
                   </select>
                 )}
@@ -293,18 +329,18 @@ export default function ConversionesPage() {
 
           <Button onClick={convert} className="w-full" disabled={convirtiendo}>
             <ArrowRightLeft className="mr-2 h-4 w-4" />
-            {convirtiendo ? 'Convirtiendo...' : 'Convertir'}
+            {convirtiendo ? t('conversiones.convirtiendo') : t('conversiones.convertir')}
           </Button>
 
           {resultado !== null && (
             <div className="rounded-lg border bg-muted/50 p-6 text-center">
-              <p className="text-sm text-muted-foreground">Resultado</p>
+              <p className="text-sm text-muted-foreground">{t('conversiones.resultado')}</p>
               <p className="text-3xl font-bold">
-                {parseFloat(cantidad) > 0 ? `${cantidad} ${from} = ${resultado} ${to}` : 'Introduce una cantidad'}
+                {parseFloat(cantidad) > 0 ? `${cantidad} ${from} = ${resultado} ${to}` : t('conversiones.introduceCantidad')}
               </p>
               {tipo === 'moneda' && (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Tasas de cambio aproximadas. Consulta tu banco para valores exactos.
+                  {t('conversiones.tasasAproximadas')}
                 </p>
               )}
             </div>
