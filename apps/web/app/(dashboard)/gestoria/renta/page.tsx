@@ -8,8 +8,10 @@ import { Landmark, Download, ExternalLink } from 'lucide-react'
 import { calcularModelo130 } from '@mantigestor/utils'
 import type { Factura as FacturaType } from '@mantigestor/types'
 import { descargarCsv } from '@/lib/descargar-csv'
+import { useLanguage } from '@/contexts/language-context'
 
 export default function RentaPage() {
+  const { t } = useLanguage()
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [loading, setLoading] = useState(false)
   const [resultado, setResultado] = useState<ReturnType<typeof calcularModelo130> | null>(null)
@@ -80,9 +82,9 @@ export default function RentaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-heading font-bold tracking-tight">Declaración de la Renta</h1>
+        <h1 className="text-3xl font-heading font-bold tracking-tight">{t('renta.titulo')}</h1>
         <p className="text-muted-foreground">
-          Resumen anual del IRPF (Modelo 100) — incluye facturas, retenciones de nómina y gastos de alquiler
+          {t('renta.subtitulo')}
         </p>
       </div>
 
@@ -98,7 +100,7 @@ export default function RentaPage() {
           </Button>
         ))}
         <Button size="sm" onClick={calcular} disabled={loading} className="ml-auto">
-          {loading ? 'Calculando...' : 'Calcular'}
+          {loading ? t('renta.calculando') : t('renta.calcular')}
         </Button>
       </div>
 
@@ -107,7 +109,7 @@ export default function RentaPage() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Ingresos</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('renta.ingresos')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-green-600">{formatMoney(resultado.ingresosAcumuladosAño)}</p>
@@ -115,7 +117,7 @@ export default function RentaPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Gastos deducibles</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('renta.gastosDeducibles')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-red-600">{formatMoney(resultado.gastosDeduciblesAcumulados)}</p>
@@ -123,7 +125,7 @@ export default function RentaPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Rendimiento neto</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('renta.rendimientoNeto')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold">{formatMoney(resultado.rendimientoNeto)}</p>
@@ -133,41 +135,41 @@ export default function RentaPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Resultado IRPF — {selectedYear}</CardTitle>
+              <CardTitle>{t('renta.resultadoIrpf').replace('{year}', String(selectedYear))}</CardTitle>
               <CardDescription>
-                Cálculo orientativo basado en tus facturas registradas
+                {t('renta.calculoOrientativo')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between border-b pb-4">
                 <div>
-                  <p className="font-medium">Cuota íntegra</p>
-                  <p className="text-sm text-muted-foreground">{resultado.porcentajeRetencion}% sobre rendimiento neto</p>
+                  <p className="font-medium">{t('renta.cuotaIntegra')}</p>
+                  <p className="text-sm text-muted-foreground">{t('renta.porcentajeSobreRendimiento').replace('{porcentaje}', String(resultado.porcentajeRetencion))}</p>
                 </div>
                 <span className="text-2xl font-bold">{formatMoney(resultado.cuotaIntegra)}</span>
               </div>
               <div className="flex items-center justify-between border-b pb-4">
                 <div>
-                  <p className="font-medium">Retenciones de nómina</p>
-                  <p className="text-sm text-muted-foreground">IRPF retenido por pagadores</p>
+                  <p className="font-medium">{t('renta.retencionesNomina')}</p>
+                  <p className="text-sm text-muted-foreground">{t('renta.irpfRetenidoPorPagadores')}</p>
                 </div>
                 <span className="text-2xl font-bold text-green-600">{formatMoney(resultado.retencionesNomina)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">Resultado a ingresar</p>
-                  <p className="text-sm text-muted-foreground">Declaración de la Renta anual</p>
+                  <p className="font-medium">{t('renta.resultadoAIngresar')}</p>
+                  <p className="text-sm text-muted-foreground">{t('renta.declaracionRentaAnual')}</p>
                 </div>
                 <span className={`text-2xl font-bold ${resultado.aIngresar > 0 ? 'text-red-600' : 'text-green-600'}`}>
                   {resultado.aIngresar > 0 ? formatMoney(resultado.aIngresar) : '0 €'}
                   <span className="text-sm font-normal text-muted-foreground ml-1">
-                    {resultado.aIngresar > 0 ? 'a pagar' : 'sin importe'}
+                    {resultado.aIngresar > 0 ? t('renta.aPagar') : t('renta.sinImporte')}
                   </span>
                 </span>
               </div>
               {resultado.sinActividad && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  No se ha registrado actividad suficiente para el período seleccionado.
+                  {t('renta.sinActividad')}
                 </p>
               )}
               <div className="pt-4 flex gap-2">
@@ -175,20 +177,20 @@ export default function RentaPage() {
                   onClick={() => {
                     if (!resultado) return
                     const filas: string[][] = [
-                      ['Concepto', 'Importe (€)'],
-                      ['Ingresos acumulados', (resultado.ingresosAcumuladosAño / 100).toFixed(2)],
-                      ['Gastos deducibles', (resultado.gastosDeduciblesAcumulados / 100).toFixed(2)],
-                      ['Rendimiento neto', (resultado.rendimientoNeto / 100).toFixed(2)],
-                      ['Cuota integra (20%)', (resultado.cuotaIntegra / 100).toFixed(2)],
-                      ['Pagos anteriores', (resultado.pagosAnterioresAño / 100).toFixed(2)],
-                      ['Retenciones nóminas', (resultado.retencionesNomina / 100).toFixed(2)],
-                      ['Resultado final', (resultado.resultadoFinal / 100).toFixed(2)],
-                      ['A ingresar', (resultado.aIngresar / 100).toFixed(2)]
+                      [t('renta.concepto'), t('renta.importeEur')],
+                      [t('renta.ingresosAcumulados'), (resultado.ingresosAcumuladosAño / 100).toFixed(2)],
+                      [t('renta.gastosDeduciblesCsv'), (resultado.gastosDeduciblesAcumulados / 100).toFixed(2)],
+                      [t('renta.rendimientoNetoCsv'), (resultado.rendimientoNeto / 100).toFixed(2)],
+                      [t('renta.cuotaIntegraCsv'), (resultado.cuotaIntegra / 100).toFixed(2)],
+                      [t('renta.pagosAnteriores'), (resultado.pagosAnterioresAño / 100).toFixed(2)],
+                      [t('renta.retencionesNominasCsv'), (resultado.retencionesNomina / 100).toFixed(2)],
+                      [t('renta.resultadoFinal'), (resultado.resultadoFinal / 100).toFixed(2)],
+                      [t('renta.aIngresarCsv'), (resultado.aIngresar / 100).toFixed(2)]
                     ]
                     descargarCsv(filas, `renta-modelo130-${selectedYear}.csv`)
                   }}>
                   <Download className="mr-2 h-4 w-4" />
-                  Exportar resumen
+                  {t('renta.exportarResumen')}
                 </Button>
                 <Button variant="outline" className="flex-1" asChild>
                   <a
@@ -197,7 +199,7 @@ export default function RentaPage() {
                     rel="noopener noreferrer"
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    Agencia Tributaria
+                    {t('renta.agenciaTributaria')}
                   </a>
                 </Button>
               </div>
@@ -211,9 +213,9 @@ export default function RentaPage() {
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <Landmark className="h-12 w-12 text-muted-foreground" />
             <div className="text-center">
-              <p className="font-medium">Selecciona un año fiscal</p>
+              <p className="font-medium">{t('renta.seleccionaAnoFiscal')}</p>
               <p className="text-sm text-muted-foreground">
-                Elige el año y haz clic en &quot;Calcular&quot; para ver una estimación de tu IRPF anual
+                {t('renta.eligeAnoYCalcular')}
               </p>
             </div>
           </CardContent>
