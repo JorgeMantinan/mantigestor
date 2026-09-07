@@ -33,10 +33,32 @@ model Perfil {
   preferenciasNotificaciones PreferenciaNotificacion[]
   propiedadesAlquiler        PropiedadAlquiler[]
   nominas                    Nomina[]
+  facturasRecurrentes        FacturaRecurrente[]
   auditLogs                  AuditLog[]
   pushSubscriptions          PushSubscription[]
 
   @@map("perfiles")
+}
+
+model FacturaRecurrente {
+  id               String    @id @default(cuid())
+  perfilId         String
+  perfil           Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  tipo             String
+  numero           String
+  emisorReceptor   String
+  nifContraparte   String?
+  baseImponible    Int // en céntimos
+  iva              Int // 0, 4, 10 o 21
+  diaGeneracion    Int // día del mes (1-28)
+  diaEmail         Int? // día del mes para enviar email recordatorio
+  activa           Boolean   @default(true)
+  ultimaGeneracion DateTime?
+  notas            String?
+  createdAt        DateTime  @default(now())
+
+  @@index([perfilId])
+  @@map("facturas_recurrentes")
 }
 
 model PerfilAsociado {
@@ -52,29 +74,30 @@ model PerfilAsociado {
 }
 
 model Factura {
-  id               String    @id @default(cuid())
-  perfilId         String
-  perfil           Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  numero           String
-  tipo             String // 'ingreso' | 'gasto' | 'proforma'
-  emisorReceptor   String
-  nifContraparte   String?
-  fechaEmision     DateTime
-  fechaVencimiento DateTime?
-  baseImponible    Int // en céntimos
-  iva              Int // 0, 4, 10 o 21
-  total            Int // en céntimos
-  estado           String    @default("pendiente") // facturas: pendiente|pagada|vencida; proformas: borrador|enviada|aceptada|rechazada
+  id                  String    @id @default(cuid())
+  perfilId            String
+  perfil              Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  numero              String
+  tipo                String // 'ingreso' | 'gasto' | 'proforma'
+  emisorReceptor      String
+  nifContraparte      String?
+  fechaEmision        DateTime
+  fechaVencimiento    DateTime?
+  baseImponible       Int // en céntimos
+  iva                 Int // 0, 4, 10 o 21
+  total               Int // en céntimos
+  estado              String    @default("pendiente") // facturas: pendiente|pagada|vencida; proformas: borrador|enviada|aceptada|rechazada
   // proformaEstado String?  // campo dedicado si se separa proformas de facturas en el futuro
-  categoriaGasto   String? // etiqueta: suministros, alquiler, nomina, seguridad, marketing, otros
-  notas            String? // notas internas sobre la factura
-  tags             String? // etiquetas separadas por coma: marketing,software,custom
-  pdfUrl           String?
-  tokenCliente     String? // token compartido para portal de cliente (mismo token = mismo cliente)
-  moneda           String    @default("EUR") // código ISO 4217: EUR, USD, GBP, etc.
-  tipoCambio       Float     @default(1.0) // tasa de cambio vs EUR (1.0 si es EUR)
-  pagosParciales   String? // JSON array de pagos parciales [{id, fecha, importe, metodo, notas}]
-  createdAt        DateTime  @default(now())
+  descuentoPorcentaje Float     @default(0)
+  categoriaGasto      String? // etiqueta: suministros, alquiler, nomina, seguridad, marketing, otros
+  notas               String? // notas internas sobre la factura
+  tags                String? // etiquetas separadas por coma: marketing,software,custom
+  pdfUrl              String?
+  tokenCliente        String? // token compartido para portal de cliente (mismo token = mismo cliente)
+  moneda              String    @default("EUR") // código ISO 4217: EUR, USD, GBP, etc.
+  tipoCambio          Float     @default(1.0) // tasa de cambio vs EUR (1.0 si es EUR)
+  pagosParciales      String? // JSON array de pagos parciales [{id, fecha, importe, metodo, notas}]
+  createdAt           DateTime  @default(now())
 
   @@index([perfilId, tipo])
   @@index([perfilId, fechaEmision])
@@ -83,17 +106,19 @@ model Factura {
 }
 
 model Nomina {
-  id           String   @id @default(cuid())
-  perfilId     String
-  perfil       Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  empleada     String
-  mes          Int
-  anyo         Int
-  salarioBruto Int // en céntimos
-  irpf         Float // porcentaje (ej: 15.0)
-  neto         Int // en céntimos
-  rol          String // 'jefe' | 'empleado'
-  createdAt    DateTime @default(now())
+  id              String   @id @default(cuid())
+  perfilId        String
+  perfil          Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  empleada        String
+  mes             Int
+  anyo            Int
+  salarioBruto    Int // en céntimos
+  irpf            Float // porcentaje (ej: 15.0)
+  seguridadSocial Int      @default(0)
+  neto            Int // en céntimos
+  rol             String // 'jefe' | 'empleado'
+  pdfUrl          String?
+  createdAt       DateTime @default(now())
 
   @@index([perfilId, anyo])
   @@map("nominas")
@@ -172,16 +197,19 @@ model PreferenciaNotificacion {
 }
 
 model PropiedadAlquiler {
-  id                String   @id @default(cuid())
-  perfilId          String
-  perfil            Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  direccion         String
-  ingresos          Int      @default(0)
-  inquilinoNombre   String?
-  inquilinoEmail    String?
-  inquilinoTelefono String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                    String    @id @default(cuid())
+  perfilId              String
+  perfil                Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  direccion             String
+  ingresos              Int       @default(0)
+  inquilinoNombre       String?
+  inquilinoEmail        String?
+  inquilinoTelefono     String?
+  fechaInicioContrato   DateTime?
+  duracionContratoMeses Int?
+  proximaRevision       DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   gastos GastoAlquiler[]
 

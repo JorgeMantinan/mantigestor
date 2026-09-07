@@ -196,11 +196,18 @@ export default function NuevaFacturaPage() {
       return
     }
 
+    const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
+    if (!perfil) {
+      setError(t('facturaNueva.errorSesion'))
+      setLoading(false)
+      return
+    }
+
     const nuevaFacturaId = crypto.randomUUID()
 
     const { error: insertError } = await getSupabase().from('facturas').insert({
       id: nuevaFacturaId,
-      perfilId: user.id,
+      perfilId: perfil.id,
       numero: form.get('numero') as string,
       tipo: form.get('tipo') as string,
       emisorReceptor: form.get('emisorReceptor') as string,

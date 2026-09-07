@@ -145,9 +145,12 @@ export default function AlquilerPage() {
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) { setGuardando(false); return }
 
+    const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
+    if (!perfil) { setGuardando(false); return }
+
     const { data, error } = await getSupabase().from('propiedades_alquiler').insert({
       id: crypto.randomUUID(),
-      perfilId: user.id,
+      perfilId: perfil.id,
       direccion: (form.get('direccion') as string)?.trim(),
       ingresos: Math.round(parseFloat(form.get('ingresos') as string || '0') * 100),
       inquilinoNombre: (form.get('inquilinoNombre') as string)?.trim() || null,

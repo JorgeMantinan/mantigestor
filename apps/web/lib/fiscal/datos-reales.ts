@@ -68,17 +68,26 @@ export async function fetchDatosReales(taxYear: number): Promise<DatosReales> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return {}
 
+  const { data: perfil } = await supabase
+    .from('perfiles')
+    .select('id')
+    .eq('userId', user.id)
+    .single()
+  if (!perfil) return {}
+
+  const perfilId = perfil.id
+
   const desde = `${taxYear}-01-01`
   const hasta = `${taxYear + 1}-01-01`
 
   const [facturasRes, nominasEmpRes, nominasJefeRes, propiedadesRes] = await Promise.all([
-    supabase.from('facturas').select('*').eq('perfilId', user.id)
+    supabase.from('facturas').select('*').eq('perfilId', perfilId)
       .gte('fechaEmision', desde).lt('fechaEmision', hasta),
     supabase.from('nominas').select('salarioBruto, irpf, neto')
-      .eq('perfilId', user.id).eq('rol', 'empleado').eq('anyo', taxYear),
+      .eq('perfilId', perfilId).eq('rol', 'empleado').eq('anyo', taxYear),
     supabase.from('nominas').select('salarioBruto')
-      .eq('perfilId', user.id).eq('rol', 'jefe').eq('anyo', taxYear),
-    supabase.from('propiedades_alquiler').select('id').eq('perfilId', user.id),
+      .eq('perfilId', perfilId).eq('rol', 'jefe').eq('anyo', taxYear),
+    supabase.from('propiedades_alquiler').select('id').eq('perfilId', perfilId),
   ])
 
   let gastosAlquiler = 0

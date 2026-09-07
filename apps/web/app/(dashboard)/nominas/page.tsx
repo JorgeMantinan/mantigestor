@@ -67,10 +67,13 @@ export default function NominasPage() {
       if (!user) return
       setUserId(user.id)
 
+      const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
+      if (!perfil) return
+
       const { data } = await supabase
         .from('nominas')
         .select('*')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfil.id)
         .eq('anyo', anyoFiltro)
         .order('mes', { ascending: false })
 
@@ -87,6 +90,9 @@ export default function NominasPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setGuardando(false); return }
 
+    const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
+    if (!perfil) { setGuardando(false); return }
+
     const salarioBruto = parseFloat(form.get('salarioBruto') as string) * 100
     const irpf = parseFloat(form.get('irpf') as string)
     const seguridadSocial = parseFloat(form.get('seguridadSocial') as string) * 100
@@ -96,7 +102,7 @@ export default function NominasPage() {
 
     const { error } = await supabase.from('nominas').insert({
       id: crypto.randomUUID(),
-      perfilId: user.id,
+      perfilId: perfil.id,
       empleada: form.get('empleada') as string,
       mes: parseInt(form.get('mes') as string, 10),
       anyo: parseInt(form.get('anyo') as string, 10),

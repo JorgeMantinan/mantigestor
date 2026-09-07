@@ -86,6 +86,9 @@ export function ImportarFacturasCSV({ onImportadas }: { onImportadas: () => void
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { toast.error(t('importarFacturasCsv.noAutenticado')); setImportando(false); return }
 
+      const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
+      if (!perfil) { toast.error(t('importarFacturasCsv.noAutenticado')); setImportando(false); return }
+
       let exitosas = 0
       let fallidas = 0
       const errores: string[] = []
@@ -98,7 +101,7 @@ export function ImportarFacturasCSV({ onImportadas }: { onImportadas: () => void
 
         const { error } = await supabase.from('facturas').insert({
           id: crypto.randomUUID(),
-          perfilId: user.id,
+          perfilId: perfil.id,
           numero: `IMP-${Date.now()}-${exitosas}`,
           tipo: f.tipo === 'ingreso' ? 'ingreso' : 'gasto',
           emisorReceptor: f.emisorReceptor,
