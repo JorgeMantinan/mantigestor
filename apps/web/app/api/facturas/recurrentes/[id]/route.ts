@@ -1,9 +1,18 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, getSupabaseServer, unauthorized, serverError } from '@/lib/api-helpers'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const { success } = rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },
+        { status: 429 }
+      )
+    }
+
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
@@ -32,6 +41,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const { success } = rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },
+        { status: 429 }
+      )
+    }
+
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 

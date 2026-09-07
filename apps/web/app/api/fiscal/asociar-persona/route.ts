@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { createServerClient } from '@supabase/ssr'
+import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import crypto from 'crypto'
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
 
 export async function POST(req: NextRequest) {
   try {
+    const { success } = rateLimitByIp(req, { maxRequests: 5, windowMs: 60 * 1000 })
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },
+        { status: 429 }
+      )
+    }
+
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
@@ -97,9 +110,9 @@ export async function POST(req: NextRequest) {
         const resend = new Resend(process.env.RESEND_API_KEY)
 
         const textoEmail = perfilExistente
-          ? `<p><strong>${user.email}</strong> quiere gestionar tus datos fiscales en MantiGestor.</p>
+          ? `<p><strong>${escapeHtml(user.email ?? '')}</strong> quiere gestionar tus datos fiscales en MantiGestor.</p>
              <p>Al aceptar, podrá ver y gestionar tus facturas, trimestres y otros documentos fiscales en tu nombre.</p>`
-          : `<p><strong>${user.email}</strong> te ha invitado a gestionar tus datos fiscales en MantiGestor.</p>
+          : `<p><strong>${escapeHtml(user.email ?? '')}</strong> te ha invitado a gestionar tus datos fiscales en MantiGestor.</p>
              <p>Al aceptar, crearás tu cuenta y él/ella podrá gestionar tus asuntos fiscales en tu nombre.</p>`
 
         const botonTexto = perfilExistente ? 'Aceptar asociación' : 'Acepto y me registro'
@@ -107,11 +120,11 @@ export async function POST(req: NextRequest) {
         const emailResult = await resend.emails.send({
           from: 'MantiGestor <onboarding@resend.dev>',
           to: email,
-          subject: `${user.email} quiere asociarse contigo en MantiGestor`,
+          subject: `${escapeHtml(user.email ?? '')} quiere asociarse contigo en MantiGestor`,
           html: `
             <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px">
               <h2 style="color:#1a1a1a;margin-bottom:8px">Solicitud de asociación en MantiGestor</h2>
-              <p>Hola${nombre ? ` ${nombre}` : ''},</p>
+              <p>Hola${nombre ? ` ${escapeHtml(nombre)}` : ''},</p>
               ${textoEmail}
               <div style="margin:24px 0">
                 <a href="${confirmacionLink}" style="display:inline-block;background:#eab308;color:#000;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">
@@ -119,7 +132,7 @@ export async function POST(req: NextRequest) {
                 </a>
               </div>
               <p style="color:#666;font-size:14px">
-                Si no conoces a ${user.email} o no deseas ser gestionado por esta persona, puedes ignorar este email.
+                Si no conoces a ${escapeHtml(user.email ?? '')} o no deseas ser gestionado por esta persona, puedes ignorar este email.
               </p>
             </div>
           `,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import crypto from 'crypto'
 
 // GET: obtener info del invitador (sin auth requirement)
@@ -57,6 +58,14 @@ export async function GET(req: NextRequest) {
 // POST: confirmar asociación (requires auth)
 export async function POST(req: NextRequest) {
   try {
+    const { success } = rateLimitByIp(req, { maxRequests: 5, windowMs: 60 * 1000 })
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },
+        { status: 429 }
+      )
+    }
+
     const body = await req.json()
     const { invitacionId, email } = body as { invitacionId?: string; email?: string }
 

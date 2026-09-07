@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
+import { getAuthenticatedUser, getSupabaseServer, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,10 +16,23 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
+    const { perfilId } = await resolvePerfilActivo(req)
+
     const { facturaId, email, htmlBody, pdfBase64, numero, empresaNombre, asunto, cuerpo } = await req.json()
 
     if (!facturaId || !email) {
       return badRequest('Faltan campos requeridos')
+    }
+
+    const supabase = await getSupabaseServer(req)
+    const { data: factura } = await supabase
+      .from('facturas')
+      .select('id, perfilId')
+      .eq('id', facturaId)
+      .single()
+
+    if (!factura || factura.perfilId !== perfilId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     if (!email.includes('@') || !email.includes('.')) {

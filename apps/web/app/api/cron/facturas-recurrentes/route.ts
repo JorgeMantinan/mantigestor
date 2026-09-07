@@ -148,7 +148,7 @@ async function enviarEmailRecordatorio(
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   const nombreMes = new Date(anyo, mes - 1).toLocaleDateString('es-ES', { month: 'long' })
-  const lista = contrapartes.map(c => `• ${c}`).join('\br')
+  const lista = contrapartes.map(c => `• ${c}`).join('\n')
 
   await resend.emails.send({
     from: process.env.EMAIL_FROM || 'MantiGestor <noreply@mantigestor.vercel.app>',

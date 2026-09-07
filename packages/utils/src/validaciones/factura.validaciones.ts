@@ -13,6 +13,7 @@ export const FacturaSchema = z.object({
     .date()
     .max(new Date(), 'La fecha no puede ser futura')
     .min(new Date('2000-01-01'), 'Fecha demasiado antigua'),
+  fechaVencimiento: z.string().optional().nullable(),
   baseImponible: z
     .number()
     .int('El importe debe ser un número entero en céntimos')
@@ -26,6 +27,13 @@ export const FacturaSchema = z.object({
   ], { errorMap: () => ({ message: 'IVA debe ser 0, 4, 10 o 21' }) }),
   total: z.number().int(),
   estado: z.enum(['pendiente', 'pagada', 'vencida', 'cancelada']).default('pendiente'),
+  categoriaGasto: z.string().optional().nullable(),
+  notas: z.string().optional().nullable(),
+  tags: z.string().optional().nullable(),
+  pdfUrl: z.string().optional().nullable(),
+  moneda: z.string().optional(),
+  tipoCambio: z.number().optional(),
+  pagosParciales: z.string().optional().nullable(),
 })
 
 export type FacturaInput = z.infer<typeof FacturaSchema>
