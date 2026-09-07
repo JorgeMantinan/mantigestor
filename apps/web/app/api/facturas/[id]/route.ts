@@ -143,17 +143,12 @@ export async function DELETE(
       }
     )
 
-    const { data: existente, error: findError } = await supabase
-      .from('facturas')
-      .select('id')
+    const { data: eliminada, error } = await supabase.from('facturas').delete()
       .eq('id', params.id)
       .eq('perfilId', perfilId)
-      .single()
-
-    if (findError || !existente) return notFound('Factura no encontrada')
-
-    const { error } = await supabase.from('facturas').delete().eq('id', params.id)
+      .select('id')
     if (error) throw error
+    if (!eliminada || eliminada.length === 0) return notFound('Factura no encontrada')
 
     return Response.json({ data: null })
   } catch (error) {

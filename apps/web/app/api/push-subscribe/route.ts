@@ -37,11 +37,12 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    // Eliminar suscripción existente con el mismo endpoint
+    // Eliminar suscripción existente con el mismo endpoint (solo las del propio usuario)
     await supabase
       .from('push_subscriptions')
       .delete()
       .eq('endpoint', subscription.endpoint)
+      .eq('userId', user.id)
 
     const { error } = await supabase
       .from('push_subscriptions')

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
 /**
  * GET /api/factura-publica?token=xxx
@@ -11,6 +12,11 @@ import { createAdminClient } from '@/lib/supabase/admin'
  */
 
 export async function GET(req: NextRequest) {
+  const { success } = rateLimitByIp(req)
+  if (!success) {
+    return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
+  }
+
   const token = req.nextUrl.searchParams.get('token')
   if (!token) {
     return NextResponse.json({ error: 'Token requerido' }, { status: 400 })
@@ -18,12 +24,10 @@ export async function GET(req: NextRequest) {
 
   const supabase = createAdminClient()
 
-  // Look up the factura by a shared_token field
-  // For now, we use the factura ID as a simple token
   const { data: factura, error } = await supabase
     .from('facturas')
     .select('id, numero, tipo, emisorReceptor, nifContraparte, fechaEmision, baseImponible, iva, total, estado, notas')
-    .eq('id', token)
+    .eq('tokenCliente', token)
     .single()
 
   if (error || !factura) {

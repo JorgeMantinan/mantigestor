@@ -30,13 +30,20 @@ export function useRecurringInvoiceCheck() {
       const anyoActual = hoy.getFullYear()
       const hoyStr = hoy.toISOString().slice(0, 10)
 
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      if (!perfil) return
+
       // ── 1. GENERAR FACTURAS (diaGeneracion = hoy) ──
       const ultimaGen = localStorage.getItem(STORAGE_KEY_GEN)
       if (ultimaGen !== hoyStr) {
         const { data: plantillas } = await supabase
           .from('facturas_recurrentes')
           .select('*')
-          .eq('perfilId', user.id)
+          .eq('perfilId', perfil.id)
           .eq('activa', true)
           .eq('diaGeneracion', diaActual)
 
@@ -85,7 +92,7 @@ export function useRecurringInvoiceCheck() {
         const { data: paraEmail } = await supabase
           .from('facturas_recurrentes')
           .select('emisorReceptor')
-          .eq('perfilId', user.id)
+          .eq('perfilId', perfil.id)
           .eq('activa', true)
           .eq('diaEmail', diaActual)
 

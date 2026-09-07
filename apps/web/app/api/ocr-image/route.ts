@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import type { OcrResult } from '@/lib/ocr'
 import { getAuthenticatedUser } from '@/lib/api-helpers'
+import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
 /**
  * POST /api/ocr-image
@@ -11,6 +12,11 @@ import { getAuthenticatedUser } from '@/lib/api-helpers'
 
 export async function POST(request: NextRequest) {
   try {
+    const { success } = rateLimitByIp(request)
+    if (!success) {
+      return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
+    }
+
     const user = await getAuthenticatedUser(request)
     if (!user) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })

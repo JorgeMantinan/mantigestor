@@ -24,11 +24,17 @@ export async function verificarAccesoFeature(feature: Feature) {
     }
   }
 
-  // Buscar suscripción activa para obtener el tier
+  const { data: perfil } = await supabase
+    .from('perfiles')
+    .select('id')
+    .eq('userId', user.id)
+    .single()
+  if (!perfil) return { error: NextResponse.json({ error: 'Perfil no encontrado' }, { status: 404 }), usuario: null }
+
   const { data: suscripcion } = await supabase
     .from('suscripciones')
     .select('tier')
-    .eq('perfilId', user.id)
+    .eq('perfilId', perfil.id)
     .eq('estado', 'active')
     .order('createdAt', { ascending: false })
     .limit(1)

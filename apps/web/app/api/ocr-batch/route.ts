@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { extractInvoiceData, type OcrResult } from '@/lib/ocr'
 
 interface ArchivoBatch {
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    const perfilId = user.id
+    const { perfilId } = await resolvePerfilActivo(req)
 
     const resultados: ResultadoBatch[] = []
 

@@ -119,7 +119,7 @@ export async function POST(req: Request) {
             .eq('id', dupes[0].id)
           dbError = upErr
         } else {
-          await admin.from('suscripciones').update(record).eq('perfilId', user.id)
+          await admin.from('suscripciones').update(record).eq('perfilId', perfilId)
         }
       }
 
