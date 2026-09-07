@@ -22,7 +22,7 @@ export async function resolvePerfilActivo(
     }
   )
 
-  const { data: { user } } = await (supabase.auth as any).getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { perfilId: '', esPropio: false, error: 'No autorizado' }
 
   // Obtener perfil propio

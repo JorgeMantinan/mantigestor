@@ -6,6 +6,11 @@ import crypto from 'crypto'
 // GET: obtener info del invitador (sin auth requirement)
 export async function GET(req: NextRequest) {
   try {
+    const { success } = rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
+    if (!success) {
+      return NextResponse.json({ error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' }, { status: 429 })
+    }
+
     const { searchParams } = new URL(req.url)
     const invitacionId = searchParams.get('invitacion')
     const email = searchParams.get('email')
@@ -85,7 +90,7 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    const { data: { user } } = await (supabase.auth as any).getUser()
+    const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.json({ error: 'Debes iniciar sesión para confirmar' }, { status: 401 })
     }

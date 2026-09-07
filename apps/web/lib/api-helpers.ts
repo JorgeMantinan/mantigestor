@@ -13,7 +13,7 @@ export async function getAuthenticatedUser(req: NextRequest) {
       },
     }
   )
-  const { data: { user } } = await (supabase.auth as any).getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   return user
 }
 

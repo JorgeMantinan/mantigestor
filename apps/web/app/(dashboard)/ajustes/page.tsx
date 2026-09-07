@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator'
 import { createClient } from '@/lib/supabase/client'
 import { NOTAS_PIE_PREDEFINIDAS, obtenerNotasPieDefecto, guardarNotasPieDefectoPorUserId } from '@/lib/notas-pie-factura'
 import { useLanguage } from '@/contexts/language-context'
+import { toast } from 'sonner'
 
 type Tab = 'perfil' | 'suscripcion' | 'apariencia'
 
@@ -138,16 +139,15 @@ function PerfilTab() {
 
       if (error) {
         console.error('Error guardando perfil:', JSON.stringify(error))
-        alert('Error guardando: ' + error.message)
+        toast.error('Error guardando: ' + error.message)
       } else {
-        console.log('Perfil guardado correctamente para:', user.id)
         setGuardadoOk(true)
         setTimeout(() => setGuardadoOk(false), 3000)
       }
       await guardarNotasPieDefectoPorUserId(user.id, notasPie)
     } catch (e) {
       console.error('Error inesperado guardando:', e)
-      alert('Error inesperado: ' + (e instanceof Error ? e.message : String(e)))
+      toast.error('Error inesperado: ' + (e instanceof Error ? e.message : String(e)))
     } finally {
       setGuardando(false)
     }
@@ -218,7 +218,7 @@ function PerfilTab() {
                       const file = e.target.files?.[0]
                       if (!file) return
                       if (file.size > 500 * 1024) {
-                        alert(t('ajustes.archivoGrande'))
+                        toast.error(t('ajustes.archivoGrande'))
                         return
                       }
                       const reader = new FileReader()

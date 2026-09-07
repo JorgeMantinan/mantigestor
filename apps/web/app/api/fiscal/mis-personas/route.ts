@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
 
     // Añadir personas que me gestionan a mí
     if (meGestionan && meGestionan.length > 0) {
-      const gestorIds = meGestionan.map((a: any) => a.owneruserid)
+      const gestorIds = meGestionan.map((a: { owneruserid: string }) => a.owneruserid)
 
       const { data: gestoresFn } = await supabase
         .rpc('obtener_perfiles_por_ids', { p_ids: gestorIds })

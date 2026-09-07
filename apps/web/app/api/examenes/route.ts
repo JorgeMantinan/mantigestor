@@ -3,6 +3,9 @@ import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/l
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { createServerClient } from '@supabase/ssr'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { z } from 'zod'
+
+const ExamenBodySchema = z.object({}).passthrough()
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,6 +38,12 @@ export async function POST(req: NextRequest) {
         },
       }
     )
+
+    const body = await req.json()
+    const parsedBody = ExamenBodySchema.safeParse(body)
+    if (!parsedBody.success) {
+      return badRequest('Cuerpo de solicitud inválido')
+    }
 
     const { data: docs } = await supabase
       .from('documentos')

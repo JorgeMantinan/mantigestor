@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    const { perfilId } = await resolvePerfilActivo(req as any)
+    const { perfilId } = await resolvePerfilActivo(req as unknown as NextRequest)
 
     const { data: suscripcion, error: subError } = await supabase
       .from('suscripciones')

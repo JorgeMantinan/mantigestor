@@ -45,6 +45,7 @@ interface Factura {
   total: number
   estado: string
   categoriaGasto: string | null
+  notas?: string | null
   tags?: string | null
   moneda?: string
   tipoCambio?: number
@@ -110,12 +111,12 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       if (data) {
         setFactura(data as Factura)
         setCategoriaGasto((data as Factura).categoriaGasto ?? null)
-        setNotas((data as unknown as { notas: string | null }).notas ?? '')
-        setTagsSeleccionados(parsearTags((data as unknown as { tags: string | null }).tags))
+        setNotas((data as Factura).notas ?? '')
+        setTagsSeleccionados(parsearTags((data as Factura).tags))
         setMonedaEdit((data as Factura).moneda ?? 'EUR')
         setTipoCambioEdit((data as Factura).tipoCambio ?? 1)
         setDescuentoPorcentajeEdit((data as Factura).descuentoPorcentaje ?? 0)
-        setPagosParciales(obtenerPagos((data as unknown as { pagosParciales: string | null }).pagosParciales))
+        setPagosParciales(obtenerPagos((data as Factura).pagosParciales ?? null))
       }
       const { data: perfilData } = await getSupabase()
         .from('perfiles')

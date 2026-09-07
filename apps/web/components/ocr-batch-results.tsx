@@ -171,8 +171,8 @@ export function OcrBatchResults({ resultados }: OcrBatchResultsProps) {
                           }
                           const key = mapping[campo]
                           if (key) {
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            ;(r.resultado as any)[key] = key === 'baseImponible' || key === 'iva' || key === 'total'
+                            const resultado = r.resultado as unknown as Record<string, string | number | boolean | null | undefined>
+                            resultado[key] = key === 'baseImponible' || key === 'iva' || key === 'total'
                               ? Number(sugerencia)
                               : sugerencia
                           }

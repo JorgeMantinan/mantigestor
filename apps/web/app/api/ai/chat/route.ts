@@ -1,6 +1,15 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { z } from 'zod'
+
+const ChatMessageSchema = z.object({
+  mensaje: z.string().min(1, 'Mensaje requerido'),
+  historial: z.array(z.object({
+    role: z.string(),
+    content: z.string(),
+  })).optional(),
+})
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 
@@ -32,10 +41,13 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { mensaje, historial } = await req.json()
-    if (!mensaje || typeof mensaje !== 'string') {
-      return badRequest('Mensaje requerido')
+    const body = await req.json()
+    const parsed = ChatMessageSchema.safeParse(body)
+    if (!parsed.success) {
+      return badRequest(parsed.error.flatten().fieldErrors)
     }
+
+    const { mensaje, historial } = parsed.data
 
     if (!ANTHROPIC_API_KEY) {
       return Response.json({
