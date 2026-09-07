@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
+import { useLanguage } from '@/contexts/language-context'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { generarReporteTrimestral, reporteTrimestralCSV, type DatosTrimestre } from '@mantigestor/utils'
@@ -11,6 +12,7 @@ import { toast, Toaster } from 'sonner'
 
 export default function ReporteTrimestralPage() {
   const { perfilActivoId } = usePersonaActiva()
+  const { t } = useLanguage()
   const [anyo, setAnyo] = useState(new Date().getFullYear())
   const [trimestre, setTrimestre] = useState<1 | 2 | 3 | 4>(Math.ceil((new Date().getMonth() + 1) / 3) as 1 | 2 | 3 | 4)
   const [cargando, setCargando] = useState(false)
@@ -87,7 +89,7 @@ export default function ReporteTrimestralPage() {
     a.download = `reporte-trimestral-Q${trimestre}-${anyo}.csv`
     a.click()
     URL.revokeObjectURL(url)
-    toast.success('CSV descargado')
+    toast.success(t('reporteTrimestral.csvDescargado'))
   }
 
   const formatEur = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
@@ -96,8 +98,8 @@ export default function ReporteTrimestralPage() {
     <div className="space-y-6">
       <Toaster />
       <div>
-        <h1 className="text-2xl font-bold">Reporte trimestral</h1>
-        <p className="text-muted-foreground">Resumen fiscal automático del trimestre</p>
+        <h1 className="text-2xl font-bold">{t('reporteTrimestral.titulo')}</h1>
+        <p className="text-muted-foreground">{t('reporteTrimestral.subtitulo')}</p>
       </div>
 
       <div className="flex gap-4">
@@ -106,10 +108,10 @@ export default function ReporteTrimestralPage() {
           onChange={e => setTrimestre(Number(e.target.value) as 1 | 2 | 3 | 4)}
           className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
-          <option value={1}>Q1 (Ene-Mar)</option>
-          <option value={2}>Q2 (Abr-Jun)</option>
-          <option value={3}>Q3 (Jul-Sep)</option>
-          <option value={4}>Q4 (Oct-Dic)</option>
+          <option value={1}>{t('reporteTrimestral.Q1')}</option>
+          <option value={2}>{t('reporteTrimestral.Q2')}</option>
+          <option value={3}>{t('reporteTrimestral.Q3')}</option>
+          <option value={4}>{t('reporteTrimestral.Q4')}</option>
         </select>
         <select
           value={anyo}
@@ -123,7 +125,7 @@ export default function ReporteTrimestralPage() {
         {reporte && (
           <Button onClick={descargarCSV} variant="outline">
             <Download className="mr-2 h-4 w-4" />
-            Descargar CSV
+            {t('reporteTrimestral.descargarCSV')}
           </Button>
         )}
       </div>
@@ -137,7 +139,7 @@ export default function ReporteTrimestralPage() {
           <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Ingresos</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('reporteTrimestral.ingresos')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-500">{formatEur(reporte.ingresos)}</div>
@@ -145,7 +147,7 @@ export default function ReporteTrimestralPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Gastos</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('reporteTrimestral.gastos')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-red-500">{formatEur(reporte.gastos)}</div>
@@ -153,7 +155,7 @@ export default function ReporteTrimestralPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Beneficio neto</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('reporteTrimestral.beneficioNeto')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className={`text-2xl font-bold ${reporte.beneficioNeto >= 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -163,7 +165,7 @@ export default function ReporteTrimestralPage() {
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">IVA a pagar</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">{t('reporteTrimestral.ivaAPagar')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{formatEur(reporte.ivaAPagar)}</div>
@@ -176,28 +178,28 @@ export default function ReporteTrimestralPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  IVA Trimestral
+                  {t('reporteTrimestral.ivaTrimestral')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between"><span>IVA repercutido</span><span>{formatEur(reporte.ivaAPagar + reporte.ivaSoportado)}</span></div>
-                <div className="flex justify-between"><span>IVA soportado</span><span className="text-green-500">-{formatEur(reporte.ivaSoportado)}</span></div>
-                <div className="flex justify-between border-t pt-2 font-medium"><span>IVA liquidado</span><span>{formatEur(reporte.ivaLiquidado)}</span></div>
+                <div className="flex justify-between"><span>{t('reporteTrimestral.ivaRepercutido')}</span><span>{formatEur(reporte.ivaAPagar + reporte.ivaSoportado)}</span></div>
+                <div className="flex justify-between"><span>{t('reporteTrimestral.ivaSoportado')}</span><span className="text-green-500">-{formatEur(reporte.ivaSoportado)}</span></div>
+                <div className="flex justify-between border-t pt-2 font-medium"><span>{t('reporteTrimestral.ivaLiquidado')}</span><span>{formatEur(reporte.ivaLiquidado)}</span></div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Modelo 130
+                  {t('reporteTrimestral.modelo130')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between"><span>Base imponible</span><span>{formatEur(reporte.baseImponible130)}</span></div>
-                <div className="flex justify-between"><span>Cuota (20%)</span><span>{formatEur(reporte.cuota130)}</span></div>
-                <div className="flex justify-between"><span>Retenciones IRPF nóminas</span><span className="text-green-500">-{formatEur(reporte.retencionesIRPF)}</span></div>
+                <div className="flex justify-between"><span>{t('reporteTrimestral.baseImponible')}</span><span>{formatEur(reporte.baseImponible130)}</span></div>
+                <div className="flex justify-between"><span>{t('reporteTrimestral.cuota')}</span><span>{formatEur(reporte.cuota130)}</span></div>
+                <div className="flex justify-between"><span>{t('reporteTrimestral.retencionesIRPF')}</span><span className="text-green-500">-{formatEur(reporte.retencionesIRPF)}</span></div>
                 <div className="flex justify-between border-t pt-2 font-medium">
-                  <span>Resultando</span>
+                  <span>{t('reporteTrimestral.resultando')}</span>
                   <span>{formatEur(Math.max(0, reporte.cuota130 - reporte.retencionesIRPF))}</span>
                 </div>
               </CardContent>
@@ -207,7 +209,7 @@ export default function ReporteTrimestralPage() {
       ) : (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
-            No hay datos para este trimestre.
+            {t('reporteTrimestral.sinDatos')}
           </CardContent>
         </Card>
       )}

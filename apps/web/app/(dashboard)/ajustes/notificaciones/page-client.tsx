@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Bell, Mail, Save, Loader2, Zap, Shield, BellOff } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Preferencia {
   canal: 'in_app' | 'email'
@@ -35,6 +36,7 @@ function preferenciaDefault(canal: 'in_app' | 'email', categoria: string): Prefe
 }
 
 export function NotificacionesPageClient() {
+  const { t } = useLanguage()
   const [preferencias, setPreferencias] = useState<Preferencia[]>([])
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
@@ -44,7 +46,7 @@ export function NotificacionesPageClient() {
   const cargarPreferencias = useCallback(async () => {
     try {
       const res = await fetch('/api/fiscal/preferencias-notificaciones')
-      if (!res.ok) throw new Error('Error al cargar')
+      if (!res.ok) throw new Error(t('notificacionesConfig.errorCargar'))
       const data = await res.json()
       const existentes = (data.preferencias ?? []) as Preferencia[]
 
@@ -99,12 +101,12 @@ export function NotificacionesPageClient() {
       })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Error al guardar')
+        throw new Error(data.error || t('notificacionesConfig.errorGuardar'))
       }
       setExito(true)
       setTimeout(() => setExito(false), 3000)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al guardar')
+      setError(e instanceof Error ? e.message : t('notificacionesConfig.errorGuardar'))
     }
     setGuardando(false)
   }
@@ -122,15 +124,15 @@ export function NotificacionesPageClient() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-heading font-bold tracking-tight">Preferencias de notificaciones</h1>
-        <p className="text-muted-foreground">Configura cómo y cuándo recibir recordatorios fiscales</p>
+        <h1 className="text-3xl font-heading font-bold tracking-tight">{t('notificacionesConfig.titulo')}</h1>
+        <p className="text-muted-foreground">{t('notificacionesConfig.subtitulo')}</p>
       </div>
 
       {/* Presets */}
       <Card className="border-dashed">
         <CardContent className="pt-6">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-medium text-muted-foreground">Atajos:</span>
+            <span className="text-sm font-medium text-muted-foreground">{t('notificacionesConfig.atajos')}</span>
             <Button variant="outline" size="sm"
               onClick={() => {
                 setPreferencias(prev => prev.map(p => ({
@@ -139,7 +141,7 @@ export function NotificacionesPageClient() {
                   diasAntelacion: p.canal === 'email' ? 1 : 15,
                 })))
               }}>
-              <Zap className="mr-1 h-3 w-3" /> Recomendado
+              <Zap className="mr-1 h-3 w-3" /> {t('notificacionesConfig.recomendado')}
             </Button>
             <Button variant="outline" size="sm"
               onClick={() => {
@@ -149,13 +151,13 @@ export function NotificacionesPageClient() {
                   diasAntelacion: p.canal === 'email' ? 7 : 15,
                 })))
               }}>
-              <Shield className="mr-1 h-3 w-3" /> Máximo (todos activos)
+              <Shield className="mr-1 h-3 w-3" /> {t('notificacionesConfig.maximo')}
             </Button>
             <Button variant="outline" size="sm"
               onClick={() => {
                 setPreferencias(prev => prev.map(p => ({ ...p, activo: false })))
               }}>
-              <BellOff className="mr-1 h-3 w-3" /> Desactivar todos
+              <BellOff className="mr-1 h-3 w-3" /> {t('notificacionesConfig.desactivarTodos')}
             </Button>
           </div>
         </CardContent>
@@ -173,8 +175,8 @@ export function NotificacionesPageClient() {
               <div className="flex items-center gap-3">
                 <Bell className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                 <div>
-                  <p className="text-sm font-medium">Notificación in-app</p>
-                  <p className="text-xs text-muted-foreground">Aparece en el icono de campana</p>
+                  <p className="text-sm font-medium">{t('notificacionesConfig.notificacionInApp')}</p>
+                  <p className="text-xs text-muted-foreground">{t('notificacionesConfig.descInApp')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -184,7 +186,7 @@ export function NotificacionesPageClient() {
                   className="h-8 rounded-md border bg-background px-2 text-sm"
                 >
                   {DIAS_OPCIONES.map(d => (
-                    <option key={d} value={d}>{d} días antes</option>
+                    <option key={d} value={d}>{t('notificacionesConfig.diasAntes').replace('{dias}', String(d))}</option>
                   ))}
                 </select>
                 <Switch
@@ -199,8 +201,8 @@ export function NotificacionesPageClient() {
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                 <div>
-                  <p className="text-sm font-medium">Email</p>
-                  <p className="text-xs text-muted-foreground">Recibe un email con los vencimientos</p>
+                  <p className="text-sm font-medium">{t('notificacionesConfig.email')}</p>
+                  <p className="text-xs text-muted-foreground">{t('notificacionesConfig.descEmail')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -210,7 +212,7 @@ export function NotificacionesPageClient() {
                   className="h-8 rounded-md border bg-background px-2 text-sm"
                 >
                   {DIAS_OPCIONES.map(d => (
-                    <option key={d} value={d}>{d} días antes</option>
+                    <option key={d} value={d}>{t('notificacionesConfig.diasAntes').replace('{dias}', String(d))}</option>
                   ))}
                 </select>
                 <Switch
@@ -224,7 +226,7 @@ export function NotificacionesPageClient() {
       ))}
 
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {exito && <p className="text-sm text-green-600">Preferencias guardadas correctamente</p>}
+      {exito && <p className="text-sm text-green-600">{t('notificacionesConfig.preferenciasGuardadas')}</p>}
 
       <div className="flex justify-end">
         <Button onClick={() => void guardar()} disabled={guardando}>
@@ -233,7 +235,7 @@ export function NotificacionesPageClient() {
           ) : (
             <Save className="mr-2 h-4 w-4" aria-hidden="true" />
           )}
-          {guardando ? 'Guardando...' : 'Guardar preferencias'}
+          {guardando ? t('notificacionesConfig.guardando') : t('notificacionesConfig.guardarPreferencias')}
         </Button>
       </div>
     </div>

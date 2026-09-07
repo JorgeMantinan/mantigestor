@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useLanguage } from '@/contexts/language-context'
 import { Play, Pause, Square, Clock, Trash2 } from 'lucide-react'
 
 interface SesionTrabajo {
@@ -17,6 +18,7 @@ interface SesionTrabajo {
 }
 
 export default function TemporizadorPage() {
+  const { t } = useLanguage()
   const [corriendo, setCorriendo] = useState(false)
   const [segundos, setSegundos] = useState(0)
   const [descripcion, setDescripcion] = useState('')
@@ -59,7 +61,7 @@ export default function TemporizadorPage() {
     const tarifa = parseFloat(tarifaHora) || 0
     const nuevaSesion: SesionTrabajo = {
       id: crypto.randomUUID(),
-      descripcion: descripcion || 'Sin descripción',
+      descripcion: descripcion || t('temporizador.sinDescripcion'),
       horas,
       tarifaHora: tarifa,
       inicio: inicioRef.current,
@@ -82,15 +84,15 @@ export default function TemporizadorPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Temporizador de trabajo</h1>
-        <p className="text-muted-foreground">Registra horas para facturación por horas</p>
+        <h1 className="text-2xl font-bold">{t('temporizador.titulo')}</h1>
+        <p className="text-muted-foreground">{t('temporizador.subtitulo')}</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Temporizador
+            {t('temporizador.temporizador')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -102,17 +104,17 @@ export default function TemporizadorPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="descripcion">Descripción</Label>
+              <Label htmlFor="descripcion">{t('temporizador.descripcion')}</Label>
               <Input
                 id="descripcion"
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
-                placeholder="Qué estás haciendo..."
+                placeholder={t('temporizador.placeholderDescripcion')}
                 disabled={corriendo}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="tarifa">Tarifa €/hora</Label>
+              <Label htmlFor="tarifa">{t('temporizador.tarifaHora')}</Label>
               <Input
                 id="tarifa"
                 type="number"
@@ -127,15 +129,15 @@ export default function TemporizadorPage() {
           <div className="flex gap-2 justify-center">
             {!corriendo ? (
               <Button onClick={iniciar} className="bg-green-600 hover:bg-green-700">
-                <Play className="mr-2 h-4 w-4" /> Iniciar
+                <Play className="mr-2 h-4 w-4" /> {t('temporizador.iniciar')}
               </Button>
             ) : (
               <>
                 <Button onClick={pausar} variant="outline">
-                  <Pause className="mr-2 h-4 w-4" /> Pausar
+                  <Pause className="mr-2 h-4 w-4" /> {t('temporizador.pausar')}
                 </Button>
                 <Button onClick={detener} variant="destructive">
-                  <Square className="mr-2 h-4 w-4" /> Detener
+                  <Square className="mr-2 h-4 w-4" /> {t('temporizador.detener')}
                 </Button>
               </>
             )}
@@ -148,7 +150,7 @@ export default function TemporizadorPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-sm">Sesiones registradas</CardTitle>
+                <CardTitle className="text-sm">{t('temporizador.sesionesRegistradas')}</CardTitle>
                 <CardDescription>
                   {totalHoras.toFixed(1)}h · {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(totalFacturar)}
                 </CardDescription>

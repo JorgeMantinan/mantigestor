@@ -1215,6 +1215,7 @@ export const en: DeepTraducciones = {
     Q2: 'Q2 (Apr-Jun)',
     Q3: 'Q3 (Jul-Sep)',
     Q4: 'Q4 (Oct-Dec)',
+    modelo130: 'Form 130',
   },
 
   // AI Assistant
@@ -1809,5 +1810,46 @@ export const en: DeepTraducciones = {
     gastos: 'Expenses',
     csvGenerico: 'Generic CSV',
     bancoOtro: 'Other',
+  },
+
+  // Work timer
+  temporizador: {
+    titulo: 'Work timer',
+    subtitulo: 'Track hours for hourly billing',
+    temporizador: 'Timer',
+    descripcion: 'Description',
+    placeholderDescripcion: 'What are you working on...',
+    tarifaHora: 'Rate €/hour',
+    iniciar: 'Start',
+    pausar: 'Pause',
+    detener: 'Stop',
+    sesionesRegistradas: 'Tracked sessions',
+    sinDescripcion: 'No description',
+  },
+
+  // Notification preferences
+  notificacionesConfig: {
+    titulo: 'Notification preferences',
+    subtitulo: 'Configure how and when to receive tax reminders',
+    atajos: 'Shortcuts:',
+    recomendado: 'Recommended',
+    maximo: 'Maximum (all active)',
+    desactivarTodos: 'Disable all',
+    notificacionInApp: 'In-app notification',
+    descInApp: 'Appears in the bell icon',
+    diasAntes: '{dias} days before',
+    email: 'Email',
+    descEmail: 'Receive an email with due dates',
+    guardando: 'Saving...',
+    guardarPreferencias: 'Save preferences',
+    preferenciasGuardadas: 'Preferences saved successfully',
+    errorCargar: 'Error loading',
+    errorGuardar: 'Error saving',
+  },
+
+  // Dashboard error
+  error: {
+    algoSalioMal: 'Something went wrong',
+    intentarDeNuevo: 'Try again',
   },
 } as const

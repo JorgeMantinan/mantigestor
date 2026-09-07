@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useLanguage } from '@/contexts/language-context'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,6 +20,7 @@ interface Encuesta {
 }
 
 export default function SatisfaccionPage() {
+  const { t } = useLanguage()
   const [encuestas, setEncuestas] = useState<Encuesta[]>([])
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
@@ -56,7 +58,7 @@ export default function SatisfaccionPage() {
 
   const enviar = async () => {
     if (!nombre.trim() || puntuacion === 0) {
-      toast.error('Nombre y puntuación son obligatorios')
+      toast.error(t('satisfaccion.camposObligatorios'))
       return
     }
     setGuardando(true)
@@ -85,9 +87,9 @@ export default function SatisfaccionPage() {
       })
 
     if (error) {
-      toast.error('Error al guardar: ' + error.message)
+      toast.error(t('satisfaccion.errorGuardar') + ': ' + error.message)
     } else {
-      toast.success('Encuesta guardada')
+      toast.success(t('satisfaccion.encuestaGuardada'))
       setEncuestas(prev => [{
         id: crypto.randomUUID(),
         clienteNombre: nombre.trim(),
@@ -117,14 +119,14 @@ export default function SatisfaccionPage() {
     <div className="space-y-6">
       <Toaster />
       <div>
-        <h1 className="text-2xl font-bold">Satisfacción del cliente</h1>
-        <p className="text-muted-foreground">Encuestas de satisfacción y NPS</p>
+        <h1 className="text-2xl font-bold">{t('satisfaccion.titulo')}</h1>
+        <p className="text-muted-foreground">{t('satisfaccion.subtitulo')}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total encuestas</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('satisfaccion.totalEncuestas')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{encuestas.length}</div>
@@ -132,7 +134,7 @@ export default function SatisfaccionPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Puntuación media</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('satisfaccion.puntuacionMedia')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold flex items-center gap-1">
@@ -142,7 +144,7 @@ export default function SatisfaccionPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Promotores (4-5★)</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('satisfaccion.promotores')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-500">
@@ -155,19 +157,19 @@ export default function SatisfaccionPage() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Nueva encuesta</CardTitle>
+            <CardTitle>{t('satisfaccion.nuevaEncuesta')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Nombre del cliente</Label>
-              <Input value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Nombre" />
+              <Label>{t('satisfaccion.nombreCliente')}</Label>
+              <Input value={nombre} onChange={e => setNombre(e.target.value)} placeholder={t('common.nombre')} />
             </div>
             <div className="space-y-2">
-              <Label>Email (opcional)</Label>
+              <Label>{t('satisfaccion.emailOpcional')}</Label>
               <Input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@ejemplo.com" type="email" />
             </div>
             <div className="space-y-2">
-              <Label>Puntuación</Label>
+              <Label>{t('satisfaccion.puntuacion')}</Label>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map(n => (
                   <button
@@ -186,17 +188,17 @@ export default function SatisfaccionPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Comentario (opcional)</Label>
+              <Label>{t('satisfaccion.comentarioOpcional')}</Label>
               <textarea
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={comentario}
                 onChange={e => setComentario(e.target.value)}
-                placeholder="Opinión del cliente..."
+                placeholder={t('satisfaccion.placeholderComentario')}
               />
             </div>
             <Button onClick={enviar} disabled={guardando || !nombre.trim() || puntuacion === 0}>
               <Send className="mr-2 h-4 w-4" />
-              {guardando ? 'Enviando...' : 'Enviar encuesta'}
+              {guardando ? t('satisfaccion.enviando') : t('satisfaccion.enviarEncuesta')}
             </Button>
           </CardContent>
         </Card>
@@ -205,7 +207,7 @@ export default function SatisfaccionPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
-              Distribución
+              {t('satisfaccion.distribucion')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -228,7 +230,7 @@ export default function SatisfaccionPage() {
       {encuestas.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Últimas encuestas</CardTitle>
+            <CardTitle>{t('satisfaccion.ultimasEncuestas')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

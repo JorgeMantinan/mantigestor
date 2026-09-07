@@ -1214,6 +1214,7 @@ export const es = {
     Q2: 'Q2 (Abr-Jun)',
     Q3: 'Q3 (Jul-Sep)',
     Q4: 'Q4 (Oct-Dic)',
+    modelo130: 'Modelo 130',
   },
 
   // Asistente IA
@@ -1808,6 +1809,47 @@ export const es = {
     gastos: 'Gastos',
     csvGenerico: 'CSV Genérico',
     bancoOtro: 'Otro',
+  },
+
+  // Temporizador de trabajo
+  temporizador: {
+    titulo: 'Temporizador de trabajo',
+    subtitulo: 'Registra horas para facturación por horas',
+    temporizador: 'Temporizador',
+    descripcion: 'Descripción',
+    placeholderDescripcion: 'Qué estás haciendo...',
+    tarifaHora: 'Tarifa €/hora',
+    iniciar: 'Iniciar',
+    pausar: 'Pausar',
+    detener: 'Detener',
+    sesionesRegistradas: 'Sesiones registradas',
+    sinDescripcion: 'Sin descripción',
+  },
+
+  // Configuración de notificaciones
+  notificacionesConfig: {
+    titulo: 'Preferencias de notificaciones',
+    subtitulo: 'Configura cómo y cuándo recibir recordatorios fiscales',
+    atajos: 'Atajos:',
+    recomendado: 'Recomendado',
+    maximo: 'Máximo (todos activos)',
+    desactivarTodos: 'Desactivar todos',
+    notificacionInApp: 'Notificación in-app',
+    descInApp: 'Aparece en el icono de campana',
+    diasAntes: '{dias} días antes',
+    email: 'Email',
+    descEmail: 'Recibe un email con los vencimientos',
+    guardando: 'Guardando...',
+    guardarPreferencias: 'Guardar preferencias',
+    preferenciasGuardadas: 'Preferencias guardadas correctamente',
+    errorCargar: 'Error al cargar',
+    errorGuardar: 'Error al guardar',
+  },
+
+  // Error del dashboard
+  error: {
+    algoSalioMal: 'Algo salió mal',
+    intentarDeNuevo: 'Intentar de nuevo',
   },
 } as const
 
