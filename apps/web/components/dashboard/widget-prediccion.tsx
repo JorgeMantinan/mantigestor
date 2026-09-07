@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { predecirGastos } from '@/lib/prediccion-gastos'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   total: number
@@ -14,10 +15,10 @@ interface Factura {
 const formatEuro = (cents: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
-function confianzaLabel(c: number): string {
-  if (c >= 0.7) return 'Alta'
-  if (c >= 0.4) return 'Media'
-  return 'Baja'
+function confianzaLabel(c: number, t: (key: string) => string): string {
+  if (c >= 0.7) return t('widgetPrediccion.alta')
+  if (c >= 0.4) return t('widgetPrediccion.media')
+  return t('widgetPrediccion.baja')
 }
 
 function confianzaColor(c: number): string {
@@ -27,6 +28,7 @@ function confianzaColor(c: number): string {
 }
 
 export function WidgetPrediccion({ facturas }: { facturas: Factura[] }) {
+  const { t } = useLanguage()
   const datos = useMemo(() => {
     if (facturas.length === 0) return null
     return predecirGastos(facturas)
@@ -38,7 +40,7 @@ export function WidgetPrediccion({ facturas }: { facturas: Factura[] }) {
     const ahora = new Date()
     const mesActual = ahora.getMonth()
     const anyoActual = ahora.getFullYear()
-    const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    const nombresMeses = [t('widgetPrediccion.ene'), t('widgetPrediccion.feb'), t('widgetPrediccion.mar'), t('widgetPrediccion.abr'), t('widgetPrediccion.may'), t('widgetPrediccion.jun'), t('widgetPrediccion.jul'), t('widgetPrediccion.ago'), t('widgetPrediccion.sep'), t('widgetPrediccion.oct'), t('widgetPrediccion.nov'), t('widgetPrediccion.dic')]
 
     const meses: { mes: string; total: number; esPrediccion: boolean }[] = []
 
@@ -72,20 +74,20 @@ export function WidgetPrediccion({ facturas }: { facturas: Factura[] }) {
 
   const TendenciaIcon = datos.tendencia === 'subida' ? TrendingUp : datos.tendencia === 'bajada' ? TrendingDown : Minus
   const tendenciaColor = datos.tendencia === 'subida' ? 'text-red-500' : datos.tendencia === 'bajada' ? 'text-green-500' : 'text-muted-foreground'
-  const tendenciaLabel = datos.tendencia === 'subida' ? '↑ Subida' : datos.tendencia === 'bajada' ? '↓ Bajada' : '→ Estable'
+  const tendenciaLabel = datos.tendencia === 'subida' ? t('widgetPrediccion.subida') : datos.tendencia === 'bajada' ? t('widgetPrediccion.bajada') : t('widgetPrediccion.estable')
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-orange-500" /> Predicción gastos
+          <TrendingUp className="h-4 w-4 text-orange-500" /> {t('widgetPrediccion.titulo')}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-xs text-muted-foreground">Próximo mes</p>
+              <p className="text-xs text-muted-foreground">{t('widgetPrediccion.proximoMes')}</p>
               <p className="text-2xl font-bold">{formatEuro(prediccion.gastoPrevisto)}</p>
             </div>
             <div className="flex items-center gap-2">
@@ -97,11 +99,11 @@ export function WidgetPrediccion({ facturas }: { facturas: Factura[] }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Confianza:</span>
+            <span className="text-xs text-muted-foreground">{t('widgetPrediccion.confianza')}</span>
             <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
               <div className={`h-full rounded-full ${confianzaColor(prediccion.confianza)}`} style={{ width: `${prediccion.confianza * 100}%` }} />
             </div>
-            <span className="text-xs font-medium">{confianzaLabel(prediccion.confianza)}</span>
+            <span className="text-xs font-medium">{confianzaLabel(prediccion.confianza, t)}</span>
           </div>
 
           <div className="flex items-end gap-1 h-20">

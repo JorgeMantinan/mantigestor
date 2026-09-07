@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Target, TrendingUp, TrendingDown, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react'
 import { analizarBenchmarking, type Insight } from '@/lib/ia-benchmarking'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   tipo: string
@@ -58,6 +59,7 @@ function InsightIcon({ tipo }: { tipo: Insight['tipo'] }) {
 
 export function WidgetBenchmarking({ facturas }: { facturas: Factura[] }) {
   const [expanded, setExpanded] = useState(false)
+  const { t } = useLanguage()
 
   const resultado = useMemo(() => {
     if (facturas.length === 0) return null
@@ -72,7 +74,7 @@ export function WidgetBenchmarking({ facturas }: { facturas: Factura[] }) {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Target className="h-4 w-4 text-purple-500" /> Benchmarking IA
+          <Target className="h-4 w-4 text-purple-500" /> {t('widgetBenchmarking.titulo')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -80,11 +82,11 @@ export function WidgetBenchmarking({ facturas }: { facturas: Factura[] }) {
           <PuntuacionRing puntuacion={resultado.puntuacion} />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium mb-1">
-              {resultado.puntuacion >= 70 ? 'Saludable' :
-               resultado.puntuacion >= 40 ? 'Mejorable' : 'Crítico'}
+              {resultado.puntuacion >= 70 ? t('widgetBenchmarking.saludable') :
+               resultado.puntuacion >= 40 ? t('widgetBenchmarking.mejorable') : t('widgetBenchmarking.critico')}
             </p>
             <p className="text-xs text-muted-foreground">
-              Margen: {(resultado.metricas.margenBruto * 100).toFixed(1)}% · Gastos: {(resultado.metricas.ratioGastos * 100).toFixed(1)}%
+              {t('widgetBenchmarking.margen')} {(resultado.metricas.margenBruto * 100).toFixed(1)}% · {t('widgetBenchmarking.gastos')} {(resultado.metricas.ratioGastos * 100).toFixed(1)}%
             </p>
           </div>
         </div>
@@ -117,7 +119,7 @@ export function WidgetBenchmarking({ facturas }: { facturas: Factura[] }) {
               className="flex items-center gap-1 text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 transition-colors"
             >
               {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              Ver recomendaciones ({resultado.recomendaciones.length})
+              {t('widgetBenchmarking.verRecomendaciones').replace('{count}', String(resultado.recomendaciones.length))}
             </button>
             {expanded && (
               <ul className="mt-2 space-y-1.5">

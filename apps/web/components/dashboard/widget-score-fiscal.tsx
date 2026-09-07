@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ShieldCheck, ChevronDown, ChevronUp, Check, AlertTriangle, XCircle } from 'lucide-react'
 import { calcularScoreFiscal, type FactorScore, type ScoreFiscal } from '@/lib/score-fiscal'
+import { useLanguage } from '@/contexts/language-context'
 
 interface FacturaWidget {
   id: string
@@ -97,6 +98,7 @@ function ScoreRing({ score, size = 120 }: { score: ScoreFiscal; size?: number })
 
 export function WidgetScoreFiscal({ facturas, perfil }: { facturas: FacturaWidget[]; perfil: PerfilWidget }) {
   const [expandido, setExpandido] = useState(false)
+  const { t } = useLanguage()
 
   const score = useMemo(
     () => calcularScoreFiscal(facturas, perfil),
@@ -110,7 +112,7 @@ export function WidgetScoreFiscal({ facturas, perfil }: { facturas: FacturaWidge
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-emerald-500" /> Score fiscal
+            <ShieldCheck className="h-4 w-4 text-emerald-500" /> {t('widgetScoreFiscal.titulo')}
           </CardTitle>
         </div>
       </CardHeader>
@@ -122,7 +124,7 @@ export function WidgetScoreFiscal({ facturas, perfil }: { facturas: FacturaWidge
               {score.resumen}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {score.factores.filter(f => f.estado === 'bien').length} de {score.factores.length} factores óptimos
+              {t('widgetScoreFiscal.factoresOptimos').replace('{count}', String(score.factores.filter(f => f.estado === 'bien').length)).replace('{total}', String(score.factores.length))}
             </p>
           </div>
         </div>
@@ -147,21 +149,21 @@ export function WidgetScoreFiscal({ facturas, perfil }: { facturas: FacturaWidge
             onClick={() => setExpandido(prev => !prev)}
           >
             {expandido ? (
-              <>Ver menos <ChevronUp className="ml-1 h-3 w-3" /></>
+              <>{t('common.verMenos')} <ChevronUp className="ml-1 h-3 w-3" /></>
             ) : (
-              <>Ver todos ({score.factores.length}) <ChevronDown className="ml-1 h-3 w-3" /></>
+              <>{t('widgetScoreFiscal.verTodos').replace('{count}', String(score.factores.length))} <ChevronDown className="ml-1 h-3 w-3" /></>
             )}
           </Button>
         )}
 
         {expandido && (
           <div className="mt-3 rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground space-y-1">
-            <p className="font-medium text-foreground">Consejos para mejorar:</p>
+            <p className="font-medium text-foreground">{t('widgetScoreFiscal.consejosParaMejorar')}</p>
             {score.factores.filter(f => f.estado !== 'bien').map(f => (
               <p key={f.nombre}>· <span className="font-medium">{f.nombre}:</span> {f.consejo}</p>
             ))}
             {score.factores.every(f => f.estado === 'bien') && (
-              <p>Tu cumplimiento fiscal está en condiciones óptimas. ¡Sigue así!</p>
+              <p>{t('widgetScoreFiscal.cumplimientoOptimo')}</p>
             )}
           </div>
         )}

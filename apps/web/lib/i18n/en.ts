@@ -1932,4 +1932,150 @@ export const en: DeepTraducciones = {
     presupuesto: 'Budget:',
     totalCategorias: 'Total ({count} categories)',
   },
+
+  // Widget config
+  widgetConfig: {
+    titulo: 'Dashboard widgets',
+    restablecer: 'Reset',
+    sparklines: 'Sparklines in KPIs',
+    graficaIngresosGastos: 'Income/expenses chart',
+    flujoDeCaja: 'Cash flow',
+    evolucionMensual: 'Monthly evolution',
+    ivaTrimestral: 'Quarterly VAT',
+    alquiler: 'Rental',
+    categoriasGasto: 'Expense categories',
+    presupuestoVsReal: 'Budget vs actual',
+    comparativaMensual: 'Monthly comparison',
+    interanual: 'Year-over-year',
+    prediccion: 'Forecast',
+    gastosPorCategoria: 'Expenses by category',
+    cascadaIngresosGastos: 'Income/expenses waterfall',
+    calendarioFiscal: 'Tax calendar',
+    actividadReciente: 'Recent activity',
+    ultimasFacturas: 'Latest invoices',
+    alertasIva: 'VAT alerts',
+    comparativaSector: 'Sector comparison',
+    mapaDeIngresos: 'Revenue map',
+    topGastos: 'Top expenses',
+    prediccionGastos: 'Expense forecast',
+    ratioDeCobro: 'Collection ratio',
+    benchmarkingIa: 'IA benchmarking',
+    alertasInteligentes: 'Smart alerts',
+    exportacionRapida: 'Quick export',
+    scoreFiscal: 'Tax score',
+    prediccionIa: 'AI forecast',
+    analisisDeClientes: 'Client analysis',
+    comparativaInteranual: 'Year-over-year comparison',
+    alertasDeCobro: 'Collection alerts',
+  },
+
+  // Widget forecasting
+  widgetForecasting: {
+    titulo: 'AI Forecast (next 3 months)',
+    ingresos: 'Income',
+    gastos: 'Expenses',
+    beneficioPrevisto: 'Expected profit',
+    confianza: 'Confidence:',
+    alta: 'High',
+    media: 'Medium',
+    baja: 'Low',
+    proximosMeses: 'Next months',
+  },
+
+  // Widget predicción
+  widgetPrediccion: {
+    titulo: 'Expense forecast',
+    proximoMes: 'Next month',
+    confianza: 'Confidence:',
+    alta: 'High',
+    media: 'Medium',
+    baja: 'Low',
+    subida: '↑ Rising',
+    bajada: '↓ Falling',
+    estable: '→ Stable',
+    ene: 'Jan',
+    feb: 'Feb',
+    mar: 'Mar',
+    abr: 'Apr',
+    may: 'May',
+    jun: 'Jun',
+    jul: 'Jul',
+    ago: 'Aug',
+    sep: 'Sep',
+    oct: 'Oct',
+    nov: 'Nov',
+    dic: 'Dec',
+  },
+
+  // Widget score fiscal
+  widgetScoreFiscal: {
+    titulo: 'Tax score',
+    factoresOptimos: '{count} of {total} optimal factors',
+    verMenos: 'Show less',
+    verTodos: 'Show all ({count})',
+    consejosParaMejorar: 'Tips to improve:',
+    cumplimientoOptimo: 'Your tax compliance is in optimal condition. Keep it up!',
+  },
+
+  // Widget benchmarking
+  widgetBenchmarking: {
+    titulo: 'IA benchmarking',
+    saludable: 'Healthy',
+    mejorable: 'Needs improvement',
+    critico: 'Critical',
+    margen: 'Margin:',
+    gastos: 'Expenses:',
+    verRecomendaciones: 'Show recommendations ({count})',
+  },
+
+  // Widget clientes
+  widgetClientes: {
+    titulo: 'Client analysis',
+    clientesTotales: 'Total clients',
+    retencion: 'Retention',
+    clientesRecurrentes: 'repeat clients',
+    riesgo: 'Risk:',
+    top3DelTotal: 'top 3 = {count}% of total',
+  },
+
+  // Widget comparativa anual
+  widgetComparativaAnual: {
+    titulo: 'Year-over-year comparison',
+    ingresos: 'Income',
+    gastos: 'Expenses',
+    beneficio: 'Profit',
+    ivaNeto: 'Net VAT',
+    anoAnterior: 'Previous year:',
+  },
+
+  // Widget cobro
+  widgetCobro: {
+    titulo: 'Collection ratio',
+    diasMedioCobro: 'Avg. collection days',
+    porcentajeCobrado: '% Collected',
+    vencidas: 'Overdue',
+    pendiente: 'Pending',
+  },
+
+  // Widget top gastos
+  widgetTopGastos: {
+    titulo: 'Top expenses',
+    sinCategoria: 'Uncategorized',
+  },
+
+  // Widget alertas cobro
+  widgetAlertasCobro: {
+    titulo: 'Collection alerts',
+    sinFacturasPendientes: 'No pending invoices to collect',
+  },
+
+  // Widget alertas inteligentes
+  widgetAlertasInteligentes: {
+    titulo: 'Smart alerts',
+    verMenos: 'Show less',
+    verTodas: 'Show all ({count})',
+  },
+
+  // Widget comparativa
+  widgetComparativa: {},
 } as const

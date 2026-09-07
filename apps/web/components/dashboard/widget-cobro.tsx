@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Clock, CircleCheck, AlertTriangle, Banknote } from 'lucide-react'
 import { calcularRatioCobro } from '@/lib/ratio-cobro'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   tipo: string
@@ -49,12 +50,13 @@ function CircularProgress({ value }: { value: number }) {
 }
 
 export function WidgetCobro({ facturas }: { facturas: Factura[] }) {
+  const { t } = useLanguage()
   const ratio = useMemo(() => calcularRatioCobro(facturas), [facturas])
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium">Ratio de cobro</CardTitle>
+        <CardTitle className="text-sm font-medium">{t('widgetCobro.titulo')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-3">
@@ -64,7 +66,7 @@ export function WidgetCobro({ facturas }: { facturas: Factura[] }) {
               <Clock className="h-3.5 w-3.5 text-blue-600" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] text-muted-foreground leading-tight">Días medio cobro</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">{t('widgetCobro.diasMedioCobro')}</p>
               <p className="text-lg font-bold leading-tight">{ratio.diasMedioCobro ?? '—'}</p>
             </div>
           </div>
@@ -73,7 +75,7 @@ export function WidgetCobro({ facturas }: { facturas: Factura[] }) {
           <div className="flex items-center gap-2.5 rounded-lg border p-2.5">
             <CircularProgress value={ratio.porcentajeCobrado} />
             <div className="min-w-0">
-              <p className="text-[10px] text-muted-foreground leading-tight">% Cobrado</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">{t('widgetCobro.porcentajeCobrado')}</p>
               <p className="text-lg font-bold leading-tight">{ratio.porcentajeCobrado}%</p>
             </div>
           </div>
@@ -84,7 +86,7 @@ export function WidgetCobro({ facturas }: { facturas: Factura[] }) {
               <AlertTriangle className={`h-3.5 w-3.5 ${ratio.facturasVencidas > 0 ? 'text-red-600' : 'text-green-600'}`} aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] text-muted-foreground leading-tight">Vencidas</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">{t('widgetCobro.vencidas')}</p>
               <p className={`text-lg font-bold leading-tight ${ratio.facturasVencidas > 0 ? 'text-red-600' : ''}`}>
                 {ratio.facturasVencidas}
               </p>
@@ -97,7 +99,7 @@ export function WidgetCobro({ facturas }: { facturas: Factura[] }) {
               <Banknote className="h-3.5 w-3.5 text-orange-600" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] text-muted-foreground leading-tight">Pendiente</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">{t('widgetCobro.pendiente')}</p>
               <p className="text-lg font-bold leading-tight truncate">{formatEuros(ratio.montoPendiente)}</p>
             </div>
           </div>

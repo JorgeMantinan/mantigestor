@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, Clock, ArrowRight } from 'lucide-react'
 import { detectarAlertasCobro, totalVencido, type AlertaCobro } from '@/lib/alertas-cobro'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   id: string
@@ -27,6 +28,7 @@ const NIVEL_CONFIG: Record<AlertaCobro['nivel'], { color: string; bg: string; la
 
 export function WidgetAlertasCobro({ facturas }: { facturas: Factura[] }) {
   const router = useRouter()
+  const { t } = useLanguage()
   const alertas = useMemo(() => detectarAlertasCobro(facturas), [facturas])
   const total = useMemo(() => totalVencido(alertas), [alertas])
 
@@ -38,7 +40,7 @@ export function WidgetAlertasCobro({ facturas }: { facturas: Factura[] }) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-orange-500" aria-hidden="true" />
-            Alertas de cobro
+            {t('widgetAlertasCobro.titulo')}
           </CardTitle>
           {total > 0 && (
             <span className="text-xs font-semibold text-red-600">{formatEuros(total)}</span>
@@ -49,7 +51,7 @@ export function WidgetAlertasCobro({ facturas }: { facturas: Factura[] }) {
         {top5.length === 0 ? (
           <div className="flex flex-col items-center py-4 text-center">
             <Clock className="h-6 w-6 text-muted-foreground mb-1" aria-hidden="true" />
-            <p className="text-xs text-muted-foreground">No hay facturas pendientes de cobro</p>
+            <p className="text-xs text-muted-foreground">{t('widgetAlertasCobro.sinFacturasPendientes')}</p>
           </div>
         ) : (
           <ul className="space-y-1.5">

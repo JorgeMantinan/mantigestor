@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, TrendingUp, TrendingDown, Copy, Layers, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
 import { detectarAnomalias, type Anomalia } from '@/lib/alertas-inteligentes'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   id: string
@@ -31,6 +32,7 @@ const BG_SEVERIDAD: Record<string, string> = {
 
 export function WidgetAlertasInteligentes({ facturas }: { facturas: Factura[] }) {
   const [expandido, setExpandido] = useState(false)
+  const { t } = useLanguage()
 
   const anomalias = useMemo(() => detectarAnomalias(facturas), [facturas])
 
@@ -43,7 +45,7 @@ export function WidgetAlertasInteligentes({ facturas }: { facturas: Factura[] })
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-amber-500" /> Alertas inteligentes
+            <Sparkles className="h-4 w-4 text-amber-500" /> {t('widgetAlertasInteligentes.titulo')}
             <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
               {anomalias.length}
             </span>
@@ -84,9 +86,9 @@ export function WidgetAlertasInteligentes({ facturas }: { facturas: Factura[] })
             onClick={() => setExpandido(prev => !prev)}
           >
             {expandido ? (
-              <>Ver menos <ChevronUp className="ml-1 h-3 w-3" /></>
+              <>{t('widgetAlertasInteligentes.verMenos')} <ChevronUp className="ml-1 h-3 w-3" /></>
             ) : (
-              <>Ver todas ({anomalias.length}) <ChevronDown className="ml-1 h-3 w-3" /></>
+              <>{t('widgetAlertasInteligentes.verTodas').replace('{count}', String(anomalias.length))} <ChevronDown className="ml-1 h-3 w-3" /></>
             )}
           </Button>
         )}

@@ -1931,6 +1931,152 @@ export const es = {
     presupuesto: 'Presupuesto:',
     totalCategorias: 'Total ({count} categorías)',
   },
+
+  // Widget config
+  widgetConfig: {
+    titulo: 'Widgets del dashboard',
+    restablecer: 'Restablecer',
+    sparklines: 'Sparklines en KPIs',
+    graficaIngresosGastos: 'Gráfica ingresos/gastos',
+    flujoDeCaja: 'Flujo de caja',
+    evolucionMensual: 'Evolución mensual',
+    ivaTrimestral: 'IVA trimestral',
+    alquiler: 'Alquiler',
+    categoriasGasto: 'Categorías gasto',
+    presupuestoVsReal: 'Presupuesto vs real',
+    comparativaMensual: 'Comparativa mensual',
+    interanual: 'Interanual',
+    prediccion: 'Predicción',
+    gastosPorCategoria: 'Gastos por categoría',
+    cascadaIngresosGastos: 'Cascada ingresos/gastos',
+    calendarioFiscal: 'Calendario fiscal',
+    actividadReciente: 'Actividad reciente',
+    ultimasFacturas: 'Últimas facturas',
+    alertasIva: 'Alertas IVA',
+    comparativaSector: 'Comparativa sector',
+    mapaDeIngresos: 'Mapa de ingresos',
+    topGastos: 'Top gastos',
+    prediccionGastos: 'Predicción gastos',
+    ratioDeCobro: 'Ratio de cobro',
+    benchmarkingIa: 'Benchmarking IA',
+    alertasInteligentes: 'Alertas inteligentes',
+    exportacionRapida: 'Exportación rápida',
+    scoreFiscal: 'Score fiscal',
+    prediccionIa: 'Predicción IA',
+    analisisDeClientes: 'Análisis de clientes',
+    comparativaInteranual: 'Comparativa interanual',
+    alertasDeCobro: 'Alertas de cobro',
+  },
+
+  // Widget forecasting
+  widgetForecasting: {
+    titulo: 'Predicción IA (próx. 3 meses)',
+    ingresos: 'Ingresos',
+    gastos: 'Gastos',
+    beneficioPrevisto: 'Beneficio previsto',
+    confianza: 'Confianza:',
+    alta: 'Alta',
+    media: 'Media',
+    baja: 'Baja',
+    proximosMeses: 'Próximos meses',
+  },
+
+  // Widget predicción
+  widgetPrediccion: {
+    titulo: 'Predicción gastos',
+    proximoMes: 'Próximo mes',
+    confianza: 'Confianza:',
+    alta: 'Alta',
+    media: 'Media',
+    baja: 'Baja',
+    subida: '↑ Subida',
+    bajada: '↓ Bajada',
+    estable: '→ Estable',
+    ene: 'Ene',
+    feb: 'Feb',
+    mar: 'Mar',
+    abr: 'Abr',
+    may: 'May',
+    jun: 'Jun',
+    jul: 'Jul',
+    ago: 'Ago',
+    sep: 'Sep',
+    oct: 'Oct',
+    nov: 'Nov',
+    dic: 'Dic',
+  },
+
+  // Widget score fiscal
+  widgetScoreFiscal: {
+    titulo: 'Score fiscal',
+    factoresOptimos: '{count} de {total} factores óptimos',
+    verMenos: 'Ver menos',
+    verTodos: 'Ver todos ({count})',
+    consejosParaMejorar: 'Consejos para mejorar:',
+    cumplimientoOptimo: 'Tu cumplimiento fiscal está en condiciones óptimas. ¡Sigue así!',
+  },
+
+  // Widget benchmarking
+  widgetBenchmarking: {
+    titulo: 'Benchmarking IA',
+    saludable: 'Saludable',
+    mejorable: 'Mejorable',
+    critico: 'Crítico',
+    margen: 'Margen:',
+    gastos: 'Gastos:',
+    verRecomendaciones: 'Ver recomendaciones ({count})',
+  },
+
+  // Widget clientes
+  widgetClientes: {
+    titulo: 'Análisis de clientes',
+    clientesTotales: 'Clientes totales',
+    retencion: 'Retención',
+    clientesRecurrentes: 'clientes recurrentes',
+    riesgo: 'Riesgo:',
+    top3DelTotal: 'top 3 = {count}% del total',
+  },
+
+  // Widget comparativa anual
+  widgetComparativaAnual: {
+    titulo: 'Comparativa interanual',
+    ingresos: 'Ingresos',
+    gastos: 'Gastos',
+    beneficio: 'Beneficio',
+    ivaNeto: 'IVA neto',
+    anoAnterior: 'Año anterior:',
+  },
+
+  // Widget cobro
+  widgetCobro: {
+    titulo: 'Ratio de cobro',
+    diasMedioCobro: 'Días medio cobro',
+    porcentajeCobrado: '% Cobrado',
+    vencidas: 'Vencidas',
+    pendiente: 'Pendiente',
+  },
+
+  // Widget top gastos
+  widgetTopGastos: {
+    titulo: 'Top gastos',
+    sinCategoria: 'Sin categoría',
+  },
+
+  // Widget alertas cobro
+  widgetAlertasCobro: {
+    titulo: 'Alertas de cobro',
+    sinFacturasPendientes: 'No hay facturas pendientes de cobro',
+  },
+
+  // Widget alertas inteligentes
+  widgetAlertasInteligentes: {
+    titulo: 'Alertas inteligentes',
+    verMenos: 'Ver menos',
+    verTodas: 'Ver todas ({count})',
+  },
+
+  // Widget comparativa
+  widgetComparativa: {},
 } as const
 
 export type Traducciones = typeof es

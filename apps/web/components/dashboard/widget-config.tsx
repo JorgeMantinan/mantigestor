@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Settings, Eye, EyeOff, GripVertical } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface WidgetConfig {
   id: string
@@ -88,14 +89,15 @@ export function WidgetCustomizer({ widgets, onToggle, onReset }: {
   onToggle: (id: string) => void
   onReset: () => void
 }) {
+  const { t } = useLanguage()
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Settings className="h-4 w-4" /> Widgets del dashboard
+            <Settings className="h-4 w-4" /> {t('widgetConfig.titulo')}
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onReset}>Restablecer</Button>
+          <Button variant="ghost" size="sm" onClick={onReset}>{t('widgetConfig.restablecer')}</Button>
         </div>
       </CardHeader>
       <CardContent>

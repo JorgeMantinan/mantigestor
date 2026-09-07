@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { compararConAnoAnterior, type ResultadoComparativa } from '@/lib/comparativa-anual'
+import { useLanguage } from '@/contexts/language-context'
 
 const formatMoney = (cents: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
@@ -44,6 +45,7 @@ function VariacionBadge({ variacion }: { variacion: number }) {
 }
 
 export function WidgetComparativaAnual({ facturas }: Props) {
+  const { t } = useLanguage()
   const resultado: ResultadoComparativa = useMemo(
     () => compararConAnoAnterior(facturas, new Date().getFullYear()),
     [facturas]
@@ -51,22 +53,22 @@ export function WidgetComparativaAnual({ facturas }: Props) {
 
   const items = [
     {
-      label: 'Ingresos',
+      label: t('widgetComparativaAnual.ingresos'),
       data: resultado.ingresos,
       color: 'text-green-600',
     },
     {
-      label: 'Gastos',
+      label: t('widgetComparativaAnual.gastos'),
       data: resultado.gastos,
       color: 'text-red-600',
     },
     {
-      label: 'Beneficio',
+      label: t('widgetComparativaAnual.beneficio'),
       data: resultado.beneficio,
       color: resultado.beneficio.actual >= 0 ? 'text-green-600' : 'text-red-600',
     },
     {
-      label: 'IVA neto',
+      label: t('widgetComparativaAnual.ivaNeto'),
       data: resultado.iva,
       color: resultado.iva.actual >= 0 ? 'text-red-600' : 'text-green-600',
     },
@@ -75,7 +77,7 @@ export function WidgetComparativaAnual({ facturas }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Comparativa interanual</CardTitle>
+        <CardTitle className="text-lg">{t('widgetComparativaAnual.titulo')}</CardTitle>
         <p className="text-xs text-muted-foreground">
           Enero–{resultado.mesComparado} · {new Date().getFullYear()} vs {new Date().getFullYear() - 1}
         </p>
@@ -92,7 +94,7 @@ export function WidgetComparativaAnual({ facturas }: Props) {
                 {formatMoney(item.data.actual)}
               </div>
               <div className="text-xs text-muted-foreground">
-                Año anterior: {formatMoney(item.data.anterior)}
+                {t('widgetComparativaAnual.anoAnterior')} {formatMoney(item.data.anterior)}
               </div>
             </div>
           ))}

@@ -9,6 +9,7 @@ import {
   predecirBeneficio,
   type ResultadoPrediccion,
 } from '@/lib/forecasting'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   total: number
@@ -19,9 +20,9 @@ interface Factura {
 const formatEuro = (cents: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
-function confianzaBar(c: number) {
+function confianzaBar(c: number, t: (key: string) => string) {
   const color = c >= 0.7 ? 'bg-green-500' : c >= 0.4 ? 'bg-yellow-500' : 'bg-red-500'
-  const label = c >= 0.7 ? 'Alta' : c >= 0.4 ? 'Media' : 'Baja'
+  const label = c >= 0.7 ? t('widgetForecasting.alta') : c >= 0.4 ? t('widgetForecasting.media') : t('widgetForecasting.baja')
   return { color, label }
 }
 
@@ -96,6 +97,7 @@ function MiniSparkline({
 }
 
 export function WidgetForecasting({ facturas }: { facturas: Factura[] }) {
+  const { t } = useLanguage()
   const datos = useMemo(() => {
     if (facturas.length === 0) return null
 
@@ -117,7 +119,7 @@ export function WidgetForecasting({ facturas }: { facturas: Factura[] }) {
 
   const { predIng, predGas, beneficios, confianza } = datos
   const primerBeneficio = beneficios[0]
-  const { color: confColor, label: confLabel } = confianzaBar(confianza)
+  const { color: confColor, label: confLabel } = confianzaBar(confianza, t)
 
   const tendenciaIngresos = predIng.tendencia === 'creciente' ? 'text-green-600' : predIng.tendencia === 'decreciente' ? 'text-red-600' : 'text-muted-foreground'
   const tendenciaGastos = predGas.tendencia === 'creciente' ? 'text-red-600' : predGas.tendencia === 'decreciente' ? 'text-green-600' : 'text-muted-foreground'
@@ -126,7 +128,7 @@ export function WidgetForecasting({ facturas }: { facturas: Factura[] }) {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Brain className="h-4 w-4 text-violet-500" /> Predicción IA (próx. 3 meses)
+          <Brain className="h-4 w-4 text-violet-500" /> {t('widgetForecasting.titulo')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -141,7 +143,7 @@ export function WidgetForecasting({ facturas }: { facturas: Factura[] }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span className="text-xs text-muted-foreground">Ingresos</span>
+              <span className="text-xs text-muted-foreground">{t('widgetForecasting.ingresos')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold">{formatEuro(primerBeneficio?.ingresoPrevisto ?? 0)}</span>
@@ -156,7 +158,7 @@ export function WidgetForecasting({ facturas }: { facturas: Factura[] }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-red-500" />
-              <span className="text-xs text-muted-foreground">Gastos</span>
+              <span className="text-xs text-muted-foreground">{t('widgetForecasting.gastos')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold">{formatEuro(primerBeneficio?.gastoPrevisto ?? 0)}</span>
@@ -169,7 +171,7 @@ export function WidgetForecasting({ facturas }: { facturas: Factura[] }) {
 
           {/* Beneficio */}
           <div className="border-t pt-2 flex items-center justify-between">
-            <span className="text-xs font-medium">Beneficio previsto</span>
+            <span className="text-xs font-medium">{t('widgetForecasting.beneficioPrevisto')}</span>
             <span className={`text-sm font-bold ${(primerBeneficio?.beneficioPrevisto ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatEuro(primerBeneficio?.beneficioPrevisto ?? 0)}
             </span>
@@ -177,7 +179,7 @@ export function WidgetForecasting({ facturas }: { facturas: Factura[] }) {
 
           {/* Confianza */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Confianza:</span>
+            <span className="text-xs text-muted-foreground">{t('widgetForecasting.confianza')}</span>
             <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
               <div className={`h-full rounded-full ${confColor}`} style={{ width: `${confianza * 100}%` }} />
             </div>
@@ -186,7 +188,7 @@ export function WidgetForecasting({ facturas }: { facturas: Factura[] }) {
 
           {/* Próximos meses */}
           <div className="border-t pt-2 space-y-1">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Próximos meses</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('widgetForecasting.proximosMeses')}</p>
             <div className="grid grid-cols-3 gap-2">
               {beneficios.map((b, i) => (
                 <div key={i} className="text-center">

@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingDown } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   tipo: string
@@ -22,12 +23,13 @@ const COLORES = [
 ]
 
 export function WidgetTopGastos({ facturas }: { facturas: Factura[] }) {
+  const { t } = useLanguage()
   const topGastos = useMemo(() => {
     const gastos = facturas.filter(f => f.tipo === 'gasto')
     const porCategoria = new Map<string, number>()
 
     gastos.forEach(f => {
-      const cat = f.categoriaGasto || 'Sin categoría'
+      const cat = f.categoriaGasto || t('widgetTopGastos.sinCategoria')
       porCategoria.set(cat, (porCategoria.get(cat) ?? 0) + f.total)
     })
 
@@ -50,7 +52,7 @@ export function WidgetTopGastos({ facturas }: { facturas: Factura[] }) {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <TrendingDown className="h-4 w-4 text-red-500" /> Top gastos
+          <TrendingDown className="h-4 w-4 text-red-500" /> {t('widgetTopGastos.titulo')}
         </CardTitle>
       </CardHeader>
       <CardContent>
