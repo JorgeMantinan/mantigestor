@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 export async function POST(req: Request) {
   try {
@@ -19,6 +20,8 @@ export async function POST(req: Request) {
     if (authError || !user) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
+
+    const { perfilId } = await resolvePerfilActivo(req as any)
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json({
@@ -43,7 +46,7 @@ export async function POST(req: Request) {
     const { data: existing } = await admin
       .from('suscripciones')
       .select('id, tier, estado')
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilId)
       .order('currentPeriodStart', { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -91,7 +94,7 @@ export async function POST(req: Request) {
       const subscription = await stripe.subscriptions.retrieve(subId)
       const record = {
         id: crypto.randomUUID(),
-        perfilId: user.id,
+        perfilId: perfilId,
         tier: 'PRO',
         provider: 'stripe',
         providerSubscriptionId: subId,
@@ -106,7 +109,7 @@ export async function POST(req: Request) {
         const { data: dupes } = await admin
           .from('suscripciones')
           .select('id')
-          .eq('perfilId', user.id)
+          .eq('perfilId', perfilId)
           .order('id', { ascending: false })
           .limit(1)
         if (dupes?.[0]) {

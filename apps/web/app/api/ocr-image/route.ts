@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import type { OcrResult } from '@/lib/ocr'
+import { getAuthenticatedUser } from '@/lib/api-helpers'
 
 /**
  * POST /api/ocr-image
@@ -8,8 +9,13 @@ import type { OcrResult } from '@/lib/ocr'
  * Returns: OcrResult from image (receipt, factura, ticket)
  */
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+    }
+
     const { image, mediaType } = await request.json()
 
     if (!image) {

@@ -52,13 +52,22 @@ export function useFiscalReminders() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
+      // Resolve auth userId → perfilId
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      if (!perfil) return
+      const perfilId = perfil.id
+
       // Cargar preferencias del usuario
       let preferencias: PreferenciaNotif[] = []
       try {
         const { data: prefsData } = await supabase
           .from('preferencias_notificaciones')
           .select('canal, categoria, diasAntelacion, activo')
-          .eq('perfilId', user.id)
+          .eq('perfilId', perfilId)
         preferencias = (prefsData ?? []) as PreferenciaNotif[]
       } catch { /* sin preferencias = defaults */ }
 
@@ -77,7 +86,7 @@ export function useFiscalReminders() {
       const { data: existentes } = await supabase
         .from('notificaciones')
         .select('contenido')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilId)
         .eq('tipo', 'fiscal')
         .gte('creadoEn', new Date(year, 0, 1).toISOString())
 
@@ -115,7 +124,7 @@ export function useFiscalReminders() {
         nuevas.push({
           tipo: 'fiscal',
           contenido,
-          perfilId: user.id,
+          perfilId,
         })
         creadas.push(clave)
       }

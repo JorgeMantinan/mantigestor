@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 interface ClasificacionResultado {
   tipo: 'nomina' | 'factura' | 'alquiler' | 'extracto_banco' | 'otro'
@@ -87,6 +88,8 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
+    const { perfilId } = await resolvePerfilActivo(req)
+
     // Check PRO subscription
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -96,7 +99,7 @@ export async function POST(req: NextRequest) {
     const { data: sub } = await supabase
       .from('suscripciones')
       .select('tier, estado')
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilId)
       .in('estado', ['active', 'trialing'])
       .order('currentPeriodStart', { ascending: false })
       .limit(1)

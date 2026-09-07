@@ -41,9 +41,22 @@ export async function POST(req: Request) {
           if (!existing.data) {
             const subscription = await stripe.subscriptions.retrieve(subscriptionId)
 
+            // Resolve auth userId → perfilId
+            const { data: perfil } = await getSupabaseAdmin()
+              .from('perfiles')
+              .select('id')
+              .eq('userId', userId)
+              .single()
+
+            const perfilId = perfil?.id
+            if (!perfilId) {
+              console.error('No perfil found for userId:', userId)
+              break
+            }
+
             const { error: insertError } = await getSupabaseAdmin().from('suscripciones').insert({
               id: crypto.randomUUID(),
-              perfilId: userId,
+              perfilId,
               tier: 'PRO',
               provider: 'stripe',
               providerSubscriptionId: subscriptionId,

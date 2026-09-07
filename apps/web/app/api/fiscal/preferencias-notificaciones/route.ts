@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, unauthorized, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { createServerClient } from '@supabase/ssr'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 export interface PreferenciaNotificacion {
   id: string
@@ -34,12 +35,14 @@ export async function GET(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
+    const { perfilId } = await resolvePerfilActivo(req)
+
     const supabase = getSupabase(req)
 
     const { data, error } = await supabase
       .from('preferencias_notificaciones')
       .select('*')
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilId)
       .order('categoria')
 
     if (error) return serverError(error)
@@ -59,6 +62,8 @@ export async function PUT(req: NextRequest) {
 
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
+
+    const { perfilId } = await resolvePerfilActivo(req)
 
     const body = await req.json()
     const { preferencias } = body as {
@@ -90,12 +95,12 @@ export async function PUT(req: NextRequest) {
     await supabase
       .from('preferencias_notificaciones')
       .delete()
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilId)
 
     if (limpias.length > 0) {
       const inserts = limpias.map(p => ({
         id: crypto.randomUUID(),
-        perfilId: user.id,
+        perfilId,
         canal: p.canal,
         categoria: p.categoria,
         diasAntelacion: p.diasAntelacion,

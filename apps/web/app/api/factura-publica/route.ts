@@ -5,6 +5,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
  * GET /api/factura-publica?token=xxx
  * Returns invoice data for public viewing (client portal).
  * The token is a signed URL or a simple UUID stored in the factura.
+ *
+ * NOTE: This endpoint is intentionally public (no auth) — it serves
+ * invoice data to clients via a shareable token link.
  */
 
 export async function GET(req: NextRequest) {

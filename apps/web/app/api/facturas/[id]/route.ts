@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { FacturaSchema } from '@mantigestor/utils'
 import { getAuthenticatedUser, unauthorized, notFound, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 export async function GET(
   req: NextRequest,
@@ -18,6 +19,8 @@ export async function GET(
     }
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
+
+    const { perfilId } = await resolvePerfilActivo(req)
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,7 +38,7 @@ export async function GET(
       .from('facturas')
       .select('*')
       .eq('id', params.id)
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilId)
       .single()
 
     if (error || !data) return notFound('Factura no encontrada')
@@ -60,6 +63,8 @@ export async function PUT(
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
+    const { perfilId } = await resolvePerfilActivo(req)
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -76,7 +81,7 @@ export async function PUT(
       .from('facturas')
       .select('*')
       .eq('id', params.id)
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilId)
       .single()
 
     if (findError || !existente) return notFound('Factura no encontrada')
@@ -124,6 +129,8 @@ export async function DELETE(
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
+    const { perfilId } = await resolvePerfilActivo(req)
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -140,7 +147,7 @@ export async function DELETE(
       .from('facturas')
       .select('id')
       .eq('id', params.id)
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilId)
       .single()
 
     if (findError || !existente) return notFound('Factura no encontrada')

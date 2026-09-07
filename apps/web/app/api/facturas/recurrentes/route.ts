@@ -1,17 +1,20 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, getSupabaseServer, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 export async function GET(req: NextRequest) {
   try {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
+    const { perfilId } = await resolvePerfilActivo(req)
+
     const supabase = await getSupabaseServer(req)
     const { data, error } = await supabase
       .from('facturas_recurrentes')
       .select('*')
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilId)
       .order('createdAt', { ascending: false })
 
     if (error) throw error
@@ -30,6 +33,8 @@ export async function POST(req: NextRequest) {
 
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
+
+    const { perfilId } = await resolvePerfilActivo(req)
 
     const body = await req.json()
     const { tipo, numero, emisorReceptor, nifContraparte, baseImponible, iva, diaGeneracion, diaEmail, notas } = body
@@ -60,7 +65,7 @@ export async function POST(req: NextRequest) {
       .from('facturas_recurrentes')
       .insert({
         id,
-        perfilId: user.id,
+        perfilId,
         tipo,
         numero,
         emisorReceptor,
