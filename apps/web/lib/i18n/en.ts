@@ -1852,4 +1852,84 @@ export const en: DeepTraducciones = {
     algoSalioMal: 'Something went wrong',
     intentarDeNuevo: 'Try again',
   },
+
+  // Tax calendar widget
+  calendarioFiscal: {
+    vencimientosFiscales: 'Upcoming tax deadlines',
+    anoAnterior: 'Previous year',
+    anoSiguiente: 'Next year',
+    sinVencimientos: 'No pending deadlines this year',
+    hoy: 'TODAY',
+    abrirSede: 'Open AEAT website for',
+  },
+
+  // Chart categories widget
+  chartCategorias: {
+    gastosPorCategoria: 'Expenses by category',
+    totalGastos: 'Total expenses',
+  },
+
+  // Chart evolution widget
+  chartEvolucion: {
+    evolucionBeneficio: 'Net profit evolution',
+    mesEne: 'Jan',
+    mesFeb: 'Feb',
+    mesMar: 'Mar',
+    mesAbr: 'Apr',
+    mesMay: 'May',
+    mesJun: 'Jun',
+    mesJul: 'Jul',
+    mesAgo: 'Aug',
+    mesSep: 'Sep',
+    mesOct: 'Oct',
+    mesNov: 'Nov',
+    mesDic: 'Dec',
+  },
+
+  // Chart expenses by category widget
+  chartGastosCategoria: {
+    gastosPorCategoria: 'Expenses by category',
+    sinGastos: 'No expenses recorded',
+    totalGastos: 'Total expenses',
+  },
+
+  // Chart prediction widget
+  chartPrediccion: {
+    prediccionProximoMes: 'Next month forecast',
+    ingresosEstimados: 'Estimated income',
+    gastosEstimados: 'Estimated expenses',
+    beneficioEstimado: 'Estimated profit',
+    basadoEnMedia: 'Based on 3-month average (60/40 weighting)',
+  },
+
+  // Chart quarterly VAT widget
+  chartIvaTrimestral: {
+    ivaPorTrimestre: 'VAT by quarter',
+    ivaIngresar: 'VAT to pay',
+    ivaSoportado: 'VAT deductible',
+    q1: 'Q1',
+    q2: 'Q2',
+    q3: 'Q3',
+    q4: 'Q4',
+  },
+
+  // Chart rental widget
+  chartAlquiler: {
+    balanceAlquiler: 'Rental balance',
+    sinDatos: 'No rental data this year',
+    ingresos: 'Income',
+    gastos: 'Expenses',
+  },
+
+  // Chart budget widget
+  chartPresupuesto: {
+    presupuestoVsReal: 'Budget vs Actual',
+    configurar: 'Configure',
+    ver: 'View',
+    configuraCategorias: 'Set budgets by category to see the comparison',
+    eurosAno: '€/year',
+    real: 'Actual:',
+    presupuesto: 'Budget:',
+    totalCategorias: 'Total ({count} categories)',
+  },
 } as const

@@ -1851,6 +1851,86 @@ export const es = {
     algoSalioMal: 'Algo salió mal',
     intentarDeNuevo: 'Intentar de nuevo',
   },
+
+  // Calendario fiscal widget
+  calendarioFiscal: {
+    vencimientosFiscales: 'Próximos vencimientos fiscales',
+    anoAnterior: 'Año anterior',
+    anoSiguiente: 'Año siguiente',
+    sinVencimientos: 'No hay vencimientos pendientes este año',
+    hoy: 'HOY',
+    abrirSede: 'Abrir sede AEAT para',
+  },
+
+  // Chart categorías widget
+  chartCategorias: {
+    gastosPorCategoria: 'Gastos por categoría',
+    totalGastos: 'Total gastos',
+  },
+
+  // Chart evolución widget
+  chartEvolucion: {
+    evolucionBeneficio: 'Evolución beneficio neto',
+    mesEne: 'Ene',
+    mesFeb: 'Feb',
+    mesMar: 'Mar',
+    mesAbr: 'Abr',
+    mesMay: 'May',
+    mesJun: 'Jun',
+    mesJul: 'Jul',
+    mesAgo: 'Ago',
+    mesSep: 'Sep',
+    mesOct: 'Oct',
+    mesNov: 'Nov',
+    mesDic: 'Dic',
+  },
+
+  // Chart gastos por categoría widget
+  chartGastosCategoria: {
+    gastosPorCategoria: 'Gastos por categoría',
+    sinGastos: 'Sin gastos registrados',
+    totalGastos: 'Total gastos',
+  },
+
+  // Chart predicción widget
+  chartPrediccion: {
+    prediccionProximoMes: 'Predicción próximo mes',
+    ingresosEstimados: 'Ingresos estimados',
+    gastosEstimados: 'Gastos estimados',
+    beneficioEstimado: 'Beneficio estimado',
+    basadoEnMedia: 'Basado en media de últimos 3 meses (ponderación 60/40)',
+  },
+
+  // Chart IVA trimestral widget
+  chartIvaTrimestral: {
+    ivaPorTrimestre: 'IVA por trimestre',
+    ivaIngresar: 'IVA a ingresar',
+    ivaSoportado: 'IVA soportado',
+    q1: 'Q1',
+    q2: 'Q2',
+    q3: 'Q3',
+    q4: 'Q4',
+  },
+
+  // Chart alquiler widget
+  chartAlquiler: {
+    balanceAlquiler: 'Balance alquiler',
+    sinDatos: 'Sin datos de alquiler este año',
+    ingresos: 'Ingresos',
+    gastos: 'Gastos',
+  },
+
+  // Chart presupuesto widget
+  chartPresupuesto: {
+    presupuestoVsReal: 'Presupuesto vs Real',
+    configurar: 'Configurar',
+    ver: 'Ver',
+    configuraCategorias: 'Configura presupuestos por categoría para ver la comparativa',
+    eurosAno: '€/año',
+    real: 'Real:',
+    presupuesto: 'Presupuesto:',
+    totalCategorias: 'Total ({count} categorías)',
+  },
 } as const
 
 export type Traducciones = typeof es

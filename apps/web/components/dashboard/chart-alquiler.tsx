@@ -1,7 +1,9 @@
 'use client'
 
+import { useMemo } from 'react'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Props {
   ingresos: number
@@ -14,10 +16,11 @@ const formatEuros = (v: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v / 100)
 
 export function ChartAlquiler({ ingresos, gastos }: Props) {
-  const data = [
-    { name: 'Ingresos', value: ingresos / 100 },
-    { name: 'Gastos', value: gastos / 100 },
-  ]
+  const { t } = useLanguage()
+  const data = useMemo(() => [
+    { name: t('chartAlquiler.ingresos'), value: ingresos / 100 },
+    { name: t('chartAlquiler.gastos'), value: gastos / 100 },
+  ], [ingresos, gastos, t])
 
   const total = ingresos + gastos
   const balance = ingresos - gastos
@@ -26,10 +29,10 @@ export function ChartAlquiler({ ingresos, gastos }: Props) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Balance alquiler</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('chartAlquiler.balanceAlquiler')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="py-8 text-center text-sm text-muted-foreground">Sin datos de alquiler este año</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">{t('chartAlquiler.sinDatos')}</p>
         </CardContent>
       </Card>
     )
@@ -39,7 +42,7 @@ export function ChartAlquiler({ ingresos, gastos }: Props) {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium">Balance alquiler</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('chartAlquiler.balanceAlquiler')}</CardTitle>
           <span className={`text-xs font-medium ${balance >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
             {formatEuros(balance)}
           </span>

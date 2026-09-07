@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { agruparGastosPorCategoria } from '@mantigestor/utils'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   total: number
@@ -17,6 +18,7 @@ interface ChartGastosCategoriaProps {
 const formatEuro = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
 export function ChartGastosCategoria({ facturas }: ChartGastosCategoriaProps) {
+  const { t } = useLanguage()
   const datos = useMemo(() => {
     const gastos = facturas.filter(f => f.tipo === 'gasto')
     const porCategoria = agruparGastosPorCategoria(gastos)
@@ -39,10 +41,10 @@ export function ChartGastosCategoria({ facturas }: ChartGastosCategoriaProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-medium">Gastos por categoría</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('chartGastosCategoria.gastosPorCategoria')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-8">Sin gastos registrados</p>
+          <p className="text-sm text-muted-foreground text-center py-8">{t('chartGastosCategoria.sinGastos')}</p>
         </CardContent>
       </Card>
     )
@@ -51,7 +53,7 @@ export function ChartGastosCategoria({ facturas }: ChartGastosCategoriaProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium">Gastos por categoría</CardTitle>
+        <CardTitle className="text-sm font-medium">{t('chartGastosCategoria.gastosPorCategoria')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -77,7 +79,7 @@ export function ChartGastosCategoria({ facturas }: ChartGastosCategoriaProps) {
           ))}
         </div>
         <div className="mt-4 pt-3 border-t flex items-center justify-between text-sm">
-          <span className="font-medium">Total gastos</span>
+          <span className="font-medium">{t('chartGastosCategoria.totalGastos')}</span>
           <span className="font-bold">{formatEuro(datos.total)}</span>
         </div>
       </CardContent>

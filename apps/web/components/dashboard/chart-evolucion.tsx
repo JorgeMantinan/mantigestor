@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PiggyBank } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   tipo: string
@@ -16,8 +17,6 @@ interface Nomina {
   rol: 'jefe' | 'empleado'
 }
 
-const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-
 const formatEuros = (v: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(v / 100)
 
@@ -27,6 +26,14 @@ interface Props {
 }
 
 export function ChartEvolucion({ facturas, nominas }: Props) {
+  const { t } = useLanguage()
+  const mesesCortos = useMemo(() => [
+    t('chartEvolucion.mesEne'), t('chartEvolucion.mesFeb'), t('chartEvolucion.mesMar'),
+    t('chartEvolucion.mesAbr'), t('chartEvolucion.mesMay'), t('chartEvolucion.mesJun'),
+    t('chartEvolucion.mesJul'), t('chartEvolucion.mesAgo'), t('chartEvolucion.mesSep'),
+    t('chartEvolucion.mesOct'), t('chartEvolucion.mesNov'), t('chartEvolucion.mesDic'),
+  ], [t])
+
   const datos = useMemo(() => {
     const acumulado = Array.from({ length: 12 }, () => 0)
     const totalNominasJefe = nominas
@@ -46,18 +53,18 @@ export function ChartEvolucion({ facturas, nominas }: Props) {
     }
 
     let acum = 0
-    return MESES_CORTOS.map((name, i) => {
+    return mesesCortos.map((name, i) => {
       acum += acumulado[i]!
       return { name, Beneficio: acum / 100 }
     })
-  }, [facturas, nominas])
+  }, [facturas, nominas, mesesCortos])
 
   const beneficioFinal = datos[datos.length - 1]?.Beneficio ?? 0
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Evolución beneficio neto</CardTitle>
+        <CardTitle className="text-sm font-medium">{t('chartEvolucion.evolucionBeneficio')}</CardTitle>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <PiggyBank className="h-3 w-3" aria-hidden="true" />
           <span className={`font-medium ${beneficioFinal >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>

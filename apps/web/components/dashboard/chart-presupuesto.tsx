@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { compararPresupuesto, CATEGORIAS_GASTO } from '@mantigestor/utils'
+import { useLanguage } from '@/contexts/language-context'
 
 interface ChartPresupuestoProps {
   facturas: { categoriaGasto: string | null; total: number; tipo: string }[]
@@ -14,6 +15,7 @@ interface ChartPresupuestoProps {
 const formatEuro = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
 export function ChartPresupuesto({ facturas }: ChartPresupuestoProps) {
+  const { t } = useLanguage()
   const [editando, setEditando] = useState(false)
   const [presupuestos, setPresupuestos] = useState<Record<string, number>>(
     Object.fromEntries(CATEGORIAS_GASTO.map(c => [c.id, 0]))
@@ -36,14 +38,14 @@ export function ChartPresupuesto({ facturas }: ChartPresupuestoProps) {
     return (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-medium">Presupuesto vs Real</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('chartPresupuesto.presupuestoVsReal')}</CardTitle>
           <Button variant="outline" size="sm" onClick={() => setEditando(true)}>
-            Configurar
+            {t('chartPresupuesto.configurar')}
           </Button>
         </CardHeader>
         <CardContent>
           <p className="text-xs text-muted-foreground text-center py-4">
-            Configura presupuestos por categoría para ver la comparativa
+            {t('chartPresupuesto.configuraCategorias')}
           </p>
         </CardContent>
       </Card>
@@ -53,9 +55,9 @@ export function ChartPresupuesto({ facturas }: ChartPresupuestoProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-medium">Presupuesto vs Real</CardTitle>
+        <CardTitle className="text-sm font-medium">{t('chartPresupuesto.presupuestoVsReal')}</CardTitle>
         <Button variant="outline" size="sm" onClick={() => setEditando(!editando)}>
-          {editando ? 'Ver' : 'Configurar'}
+          {editando ? t('chartPresupuesto.ver') : t('chartPresupuesto.configurar')}
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -77,7 +79,7 @@ export function ChartPresupuesto({ facturas }: ChartPresupuestoProps) {
                   }))}
                   className="h-7 w-24 text-xs"
                 />
-                <span className="text-xs text-muted-foreground">€/año</span>
+                <span className="text-xs text-muted-foreground">{t('chartPresupuesto.eurosAno')}</span>
               </div>
             ))}
           </div>
@@ -107,8 +109,8 @@ export function ChartPresupuesto({ facturas }: ChartPresupuestoProps) {
                       />
                     </div>
                     <div className="flex justify-between text-[10px] text-muted-foreground">
-                      <span>Real: {formatEuro(r.actual)}</span>
-                      <span>Presupuesto: {formatEuro(r.presupuesto)}</span>
+                      <span>{t('chartPresupuesto.real')} {formatEuro(r.actual)}</span>
+                      <span>{t('chartPresupuesto.presupuesto')} {formatEuro(r.presupuesto)}</span>
                     </div>
                   </div>
                 )
@@ -117,7 +119,7 @@ export function ChartPresupuesto({ facturas }: ChartPresupuestoProps) {
 
             {resultados.length > 1 && (
               <div className="border-t pt-2 flex items-center justify-between text-xs font-bold">
-                <span>Total ({resultados.length} categorías)</span>
+                <span>Total ({t('chartPresupuesto.totalCategorias').replace('{count}', String(resultados.length))})</span>
                 <span className={totalActual > totalPresupuesto ? 'text-destructive' : 'text-green-600'}>
                   {formatEuro(totalActual)} / {formatEuro(totalPresupuesto)}
                 </span>

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileText, User, Home, Briefcase, RefreshCw } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface AuditEntry {
   id: string
@@ -20,14 +21,15 @@ const ICONS: Record<string, typeof FileText> = {
   alumno: User,
 }
 
-const ACCION_LABELS: Record<string, string> = {
-  crear: 'creó',
-  editar: 'editó',
-  eliminar: 'eliminó',
-  cambio_estado: 'cambió estado de',
+const ACCION_MAP: Record<string, string> = {
+  crear: 'widgetActivity.creo',
+  editar: 'widgetActivity.edito',
+  eliminar: 'widgetActivity.elimino',
+  cambio_estado: 'widgetActivity.cambioEstado',
 }
 
 export function ActivityFeed() {
+  const { t } = useLanguage()
   const [actividad, setActividad] = useState<AuditEntry[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -60,32 +62,33 @@ export function ActivityFeed() {
   const timeAgo = (dateStr: string) => {
     const diff = Date.now() - new Date(dateStr).getTime()
     const mins = Math.floor(diff / 60000)
-    if (mins < 1) return 'ahora'
-    if (mins < 60) return `hace ${mins}m`
+    if (mins < 1) return t('widgetActivity.ahora')
+    if (mins < 60) return t('widgetActivity.haceMin').replace('{min}', String(mins))
     const hours = Math.floor(mins / 60)
-    if (hours < 24) return `hace ${hours}h`
+    if (hours < 24) return t('widgetActivity.haceHoras').replace('{hours}', String(hours))
     const days = Math.floor(hours / 24)
-    return `hace ${days}d`
+    return t('widgetActivity.haceDias').replace('{days}', String(days))
   }
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="text-sm font-medium">Actividad reciente</CardTitle>
-        <button onClick={() => void cargar()} className="text-muted-foreground hover:text-foreground" aria-label="Recargar actividad">
+        <CardTitle className="text-sm font-medium">{t('widgetActivity.actividadReciente')}</CardTitle>
+        <button onClick={() => void cargar()} className="text-muted-foreground hover:text-foreground" aria-label={t('widgetActivity.recargarActividad')}>
           <RefreshCw className="h-3.5 w-3.5" />
         </button>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-xs text-muted-foreground text-center py-4">Cargando...</p>
+          <p className="text-xs text-muted-foreground text-center py-4">{t('widgetActivity.cargando')}</p>
         ) : actividad.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-4">Sin actividad registrada</p>
+          <p className="text-xs text-muted-foreground text-center py-4">{t('widgetActivity.sinActividad')}</p>
         ) : (
           <div className="space-y-3">
             {actividad.map(entry => {
               const Icon = ICONS[entry.entidad] ?? FileText
-              const accionLabel = ACCION_LABELS[entry.accion] ?? entry.accion
+              const accionKey = ACCION_MAP[entry.accion]
+              const accionLabel = accionKey ? t(accionKey) : entry.accion
               return (
                 <div key={entry.id} className="flex items-start gap-3">
                   <div className="mt-0.5 rounded-md bg-muted p-1.5">

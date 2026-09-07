@@ -3,12 +3,14 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { agruparGastosPorCategoria } from '@mantigestor/utils'
+import { useLanguage } from '@/contexts/language-context'
 
 interface ChartCategoriasProps {
   facturas: { categoriaGasto: string | null; total: number; tipo: string }[]
 }
 
 export function ChartCategorias({ facturas }: ChartCategoriasProps) {
+  const { t } = useLanguage()
   const datos = useMemo(() => {
     const agrupados = agruparGastosPorCategoria(facturas)
     return Object.entries(agrupados)
@@ -25,7 +27,7 @@ export function ChartCategorias({ facturas }: ChartCategoriasProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium">Gastos por categoría</CardTitle>
+        <CardTitle className="text-sm font-medium">{t('chartCategorias.gastosPorCategoria')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Barra apilada visual */}
@@ -63,7 +65,7 @@ export function ChartCategorias({ facturas }: ChartCategoriasProps) {
         </div>
 
         <div className="border-t pt-2 flex items-center justify-between text-sm font-bold">
-          <span>Total gastos</span>
+          <span>{t('chartCategorias.totalGastos')}</span>
           <span>{formatEuro(totalGeneral)}</span>
         </div>
       </CardContent>

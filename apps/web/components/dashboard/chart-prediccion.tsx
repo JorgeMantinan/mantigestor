@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
   total: number
@@ -17,6 +18,7 @@ interface ChartPrediccionProps {
 const formatEuro = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
 export function ChartPrediccion({ facturas }: ChartPrediccionProps) {
+  const { t } = useLanguage()
   const datos = useMemo(() => {
     const ahora = new Date()
     const mesActual = ahora.getMonth()
@@ -92,33 +94,33 @@ export function ChartPrediccion({ facturas }: ChartPrediccionProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium">Predicción próximo mes</CardTitle>
+        <CardTitle className="text-sm font-medium">{t('chartPrediccion.prediccionProximoMes')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Ingresos estimados</span>
+            <span className="text-xs text-muted-foreground">{t('chartPrediccion.ingresosEstimados')}</span>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold">{formatEuro(datos.predIngresos)}</span>
               <TendenciaBadge valor={datos.tendenciaIngresos} />
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Gastos estimados</span>
+            <span className="text-xs text-muted-foreground">{t('chartPrediccion.gastosEstimados')}</span>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold">{formatEuro(datos.predGastos)}</span>
               <TendenciaBadge valor={datos.tendenciaGastos} />
             </div>
           </div>
           <div className="border-t pt-2 flex items-center justify-between">
-            <span className="text-xs font-medium">Beneficio estimado</span>
+            <span className="text-xs font-medium">{t('chartPrediccion.beneficioEstimado')}</span>
             <span className={`text-sm font-bold ${datos.predBeneficio >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatEuro(datos.predBeneficio)}
             </span>
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Basado en media de últimos 3 meses (ponderación 60/40)
+          {t('chartPrediccion.basadoEnMedia')}
         </p>
       </CardContent>
     </Card>
