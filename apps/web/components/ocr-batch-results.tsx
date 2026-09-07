@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -35,6 +36,7 @@ interface OcrBatchResultsProps {
 export function OcrBatchResults({ resultados }: OcrBatchResultsProps) {
   const router = useRouter()
   const [expandido, setExpandido] = useState<number | null>(null)
+  const { t } = useLanguage()
 
   const exitosos = resultados.filter(r => r.resultado !== null)
   const errores = resultados.filter(r => r.error)
@@ -59,16 +61,16 @@ export function OcrBatchResults({ resultados }: OcrBatchResultsProps) {
       <div className="flex items-center gap-4 text-sm">
         <span className="flex items-center gap-1">
           <FileText className="h-4 w-4" />
-          {resultados.length} procesados
+          {resultados.length} {t('ocrBatch.procesados')}
         </span>
         <span className="flex items-center gap-1 text-green-600">
           <CheckCircle className="h-4 w-4" />
-          {exitosos.length} exitosos
+          {exitosos.length} {t('ocrBatch.exitosos')}
         </span>
         {errores.length > 0 && (
           <span className="flex items-center gap-1 text-red-600">
             <XCircle className="h-4 w-4" />
-            {errores.length} errores
+            {errores.length} {t('ocrBatch.errores')}
           </span>
         )}
       </div>
@@ -77,13 +79,13 @@ export function OcrBatchResults({ resultados }: OcrBatchResultsProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/50">
-              <th className="px-3 py-2 text-left font-medium">Archivo</th>
-              <th className="px-3 py-2 text-left font-medium">Nº Factura</th>
-              <th className="px-3 py-2 text-left font-medium">Emisor/Receptor</th>
-              <th className="px-3 py-2 text-left font-medium">Fecha</th>
-              <th className="px-3 py-2 text-right font-medium">Total</th>
-              <th className="px-3 py-2 text-center font-medium">Estado</th>
-              <th className="px-3 py-2 text-center font-medium">Acción</th>
+              <th className="px-3 py-2 text-left font-medium">{t('ocrBatch.archivo')}</th>
+              <th className="px-3 py-2 text-left font-medium">{t('ocrBatch.numeroFactura')}</th>
+              <th className="px-3 py-2 text-left font-medium">{t('ocrBatch.emisorReceptor')}</th>
+              <th className="px-3 py-2 text-left font-medium">{t('ocrBatch.fecha')}</th>
+              <th className="px-3 py-2 text-right font-medium">{t('ocrBatch.total')}</th>
+              <th className="px-3 py-2 text-center font-medium">{t('ocrBatch.estado')}</th>
+              <th className="px-3 py-2 text-center font-medium">{t('ocrBatch.accion')}</th>
             </tr>
           </thead>
           <tbody>
@@ -113,7 +115,7 @@ export function OcrBatchResults({ resultados }: OcrBatchResultsProps) {
                         ) : tieneAdvertencias ? (
                           <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                             <AlertTriangle className="h-3 w-3 mr-1" />
-                            Avisos
+                            {t('ocrBatch.avisos')}
                           </Badge>
                         ) : (
                           <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
@@ -128,7 +130,7 @@ export function OcrBatchResults({ resultados }: OcrBatchResultsProps) {
                             size="sm"
                             onClick={() => setExpandido(expandido === i ? null : i)}
                           >
-                            {expandido === i ? 'Ocultar' : 'Detalles'}
+                            {expandido === i ? t('ocrBatch.ocultar') : t('ocrBatch.detalles')}
                           </Button>
                           <Button
                             variant="outline"
@@ -136,7 +138,7 @@ export function OcrBatchResults({ resultados }: OcrBatchResultsProps) {
                             onClick={() => irACrearFactura(r)}
                           >
                             <Plus className="h-3 w-3 mr-1" />
-                            Crear
+                            {t('ocrBatch.crear')}
                           </Button>
                         </div>
                       </td>

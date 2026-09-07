@@ -2077,6 +2077,153 @@ export const es = {
 
   // Widget comparativa
   widgetComparativa: {},
+
+  // Notification Dropdown
+  notificationDropdown: {
+    notificaciones: 'Notificaciones',
+    sinLeer: ' sin leer',
+    cargando: 'Cargando...',
+    noHayNotificaciones: 'No hay notificaciones',
+    mas: 'más',
+    marcarTodasLeidas: 'Marcar todas como leídas',
+    haceUnMomento: 'hace un momento',
+    haceMin: 'hace {min} min',
+    haceHoras: 'hace {horas}h',
+    haceDias: 'hace {dias} días',
+  },
+
+  // Notification Settings
+  notificationSettings: {
+    notificacionesPush: 'Notificaciones push',
+    navegadorNoSoporta: 'Tu navegador no soporta notificaciones push.',
+    recibeAlertas: 'Recibe alertas importantes aunque no estés navegando la aplicación.',
+    activarNotificaciones: 'Activar notificaciones',
+    activado: 'Activado',
+    desactivado: 'Desactivado',
+    estadoPermiso: 'Estado del permiso',
+    concedido: 'Concedido',
+    denegado: 'Denegado',
+    sinSolicitar: 'Sin solicitar',
+    permisoDenegado: 'El permiso fue denegado. Puedes reactivarlo desde la configuración de tu navegador.',
+  },
+
+  // File Upload
+  fileUpload: {
+    subirArchivo: 'Subir archivo',
+    tipoNoPermitido: 'Tipo de archivo no permitido. Extensiones aceptadas: {accept}',
+    archivoExcedeTamano: 'El archivo excede el tamaño máximo de {maxSize} MB',
+    arrastraArchivo: 'Arrastra un archivo aquí o haz clic para seleccionar',
+    extensiones: 'Extensiones',
+    errorSubir: 'Error al subir el archivo',
+    archivoSubido: 'Archivo subido correctamente',
+    subirOtro: 'Subir otro archivo',
+  },
+
+  // OCR Batch Results
+  ocrBatch: {
+    procesados: 'procesados',
+    exitosos: 'exitosos',
+    errores: 'errores',
+    archivo: 'Archivo',
+    numeroFactura: 'Nº Factura',
+    emisorReceptor: 'Emisor/Receptor',
+    fecha: 'Fecha',
+    total: 'Total',
+    estado: 'Estado',
+    accion: 'Acción',
+    ocultar: 'Ocultar',
+    detalles: 'Detalles',
+    crear: 'Crear',
+    avisos: 'Avisos',
+  },
+
+  // Validación OCR
+  validacionOcr: {
+    validacionDocumento: 'Validación del documento',
+    todosCamposValidos: 'Todos los campos obligatorios son válidos',
+    erroresEncontrados: 'Se encontraron {errores} error(es) y {avisos} aviso(s)',
+    error: 'Error',
+    aviso: 'Aviso',
+    noDetectado: 'No detectado',
+    sugerencia: 'Sugerencia',
+    corregir: 'Corregir',
+    errores: 'Errores',
+    avisos: 'Avisos',
+  },
+
+  // Comparativa Sector
+  comparativaSector: {
+    comparativaSector: 'Comparativa con sector: {sector}',
+    margenBeneficio: 'Margen beneficio',
+    ratioGastosIngresos: 'Ratio gastos/ingresos',
+    ivaMedioFacturado: 'IVA medio facturado',
+    vsMedia: 'vs {media}{unidad}',
+    vsMediaLabel: 'vs media',
+    mediaSimulada: 'Media basada en datos simulados del sector. En producción se conectaría a datos reales de AEAT.',
+  },
+
+  // Importar Facturas CSV
+  importarFacturasCsv: {
+    importarFacturasCsv: 'Importar facturas CSV',
+    formato: 'Formato: tipo;contraparte;nif;fecha;base;iva;estado (separado por punto y coma)',
+    seleccionarArchivo: 'Seleccionar archivo',
+    importando: 'Importando...',
+    importarFacturas: 'Importar {count} facturas',
+    vistaPrevia: 'Vista previa: {count} facturas',
+    mostrandoPrimeras10: ' (mostrando primeras 10)',
+    exitosas: 'exitosas',
+    fallidas: 'fallidas',
+    noAutenticado: 'No autenticado',
+    errorProcesar: 'Error al procesar el archivo',
+  },
+
+  // Feature Gate
+  featureGate: {
+    funcionRequierePlan: 'Esta función requiere el plan',
+    verPlanes: 'Ver planes',
+  },
+
+  // Offline Indicator
+  offlineIndicator: {
+    modoOffline: 'Modo offline',
+    conexionRestaurada: 'Conexión restaurada',
+  },
+
+  // Email Preview
+  emailPreview: {
+    asunto: 'Asunto:',
+    editar: 'Editar',
+    vistaPrevia: 'Vista previa',
+    cuerpoEmail: 'Cuerpo del email',
+  },
+
+  // Firma Canvas
+  firmaCanvas: {
+    nombreFirma: 'Nombre para la firma',
+    placeholderNombre: 'Tu nombre completo',
+    dibujaFirma: 'Dibuja tu firma',
+    deshacer: 'Deshacer',
+    limpiar: 'Limpiar',
+    guardarFirma: 'Guardar firma',
+  },
+
+  // Alertas IVA
+  alertasIva: {
+    alertasInteligentesIva: 'Alertas inteligentes de IVA',
+    quedanDias: 'Quedan {dias} días para presentar el 303',
+    plazoVence: 'El plazo para presentar la declaración de IVA del Q{trimestre} vence el {fecha}.',
+    irCalculadora303: 'Ir a calculadora 303',
+    aTuFavor: '{importe} a tu favor',
+    ivaSoportadoSupera: 'El IVA soportado supera al repercutido. Puedes compensar este saldo en la próxima declaración.',
+    gastosSinIvaDeducible: '{count} gastos sin IVA deducible',
+    totalEnGastos: '{importe} en gastos con IVA 0%. Verifica si son correctos.',
+    facturasGastoPendientes: '{count} facturas de gasto pendientes',
+    pagarPermiteDeducir: 'Pagar facturas antes de fin de trimestre permite deducir el IVA en el periodo actual.',
+    verFacturasPendientes: 'Ver facturas pendientes',
+    deduccionIvaAnticipada: 'Deducción IVA anticipada',
+    siPagasFacturas: 'Si pagas {count} facturas antes del {fecha}, podrás deducir {importe} de IVA.',
+    marcarComoPagadas: 'Marcar como pagadas',
+  },
 } as const
 
 export type Traducciones = typeof es

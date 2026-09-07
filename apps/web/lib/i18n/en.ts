@@ -2078,4 +2078,151 @@ export const en: DeepTraducciones = {
 
   // Widget comparativa
   widgetComparativa: {},
+
+  // Notification Dropdown
+  notificationDropdown: {
+    notificaciones: 'Notifications',
+    sinLeer: ' unread',
+    cargando: 'Loading...',
+    noHayNotificaciones: 'No notifications',
+    mas: 'more',
+    marcarTodasLeidas: 'Mark all as read',
+    haceUnMomento: 'just now',
+    haceMin: '{min}m ago',
+    haceHoras: '{horas}h ago',
+    haceDias: '{dias} days ago',
+  },
+
+  // Notification Settings
+  notificationSettings: {
+    notificacionesPush: 'Push notifications',
+    navegadorNoSoporta: 'Your browser does not support push notifications.',
+    recibeAlertas: 'Receive important alerts even when you are not browsing the application.',
+    activarNotificaciones: 'Enable notifications',
+    activado: 'Enabled',
+    desactivado: 'Disabled',
+    estadoPermiso: 'Permission status',
+    concedido: 'Granted',
+    denegado: 'Denied',
+    sinSolicitar: 'Not requested',
+    permisoDenegado: 'Permission was denied. You can re-enable it from your browser settings.',
+  },
+
+  // File Upload
+  fileUpload: {
+    subirArchivo: 'Upload file',
+    tipoNoPermitido: 'File type not allowed. Accepted extensions: {accept}',
+    archivoExcedeTamano: 'File exceeds maximum size of {maxSize} MB',
+    arrastraArchivo: 'Drag a file here or click to select',
+    extensiones: 'Extensions',
+    errorSubir: 'Error uploading file',
+    archivoSubido: 'File uploaded successfully',
+    subirOtro: 'Upload another file',
+  },
+
+  // OCR Batch Results
+  ocrBatch: {
+    procesados: 'processed',
+    exitosos: 'successful',
+    errores: 'errors',
+    archivo: 'File',
+    numeroFactura: 'Invoice #',
+    emisorReceptor: 'Issuer/Recipient',
+    fecha: 'Date',
+    total: 'Total',
+    estado: 'Status',
+    accion: 'Action',
+    ocultar: 'Hide',
+    detalles: 'Details',
+    crear: 'Create',
+    avisos: 'Warnings',
+  },
+
+  // OCR Validation
+  validacionOcr: {
+    validacionDocumento: 'Document validation',
+    todosCamposValidos: 'All required fields are valid',
+    erroresEncontrados: 'Found {errores} error(s) and {avisos} warning(s)',
+    error: 'Error',
+    aviso: 'Warning',
+    noDetectado: 'Not detected',
+    sugerencia: 'Suggestion',
+    corregir: 'Fix',
+    errores: 'Errors',
+    avisos: 'Warnings',
+  },
+
+  // Sector Comparison
+  comparativaSector: {
+    comparativaSector: 'Sector comparison: {sector}',
+    margenBeneficio: 'Profit margin',
+    ratioGastosIngresos: 'Expenses/income ratio',
+    ivaMedioFacturado: 'Average invoiced VAT',
+    vsMedia: 'vs {media}{unidad}',
+    vsMediaLabel: 'vs average',
+    mediaSimulada: 'Average based on simulated sector data. In production it would connect to real AEAT data.',
+  },
+
+  // Import Invoices CSV
+  importarFacturasCsv: {
+    importarFacturasCsv: 'Import invoices CSV',
+    formato: 'Format: type;counterparty;tax_id;date;base;vat;status (semicolon separated)',
+    seleccionarArchivo: 'Select file',
+    importando: 'Importing...',
+    importarFacturas: 'Import {count} invoices',
+    vistaPrevia: 'Preview: {count} invoices',
+    mostrandoPrimeras10: ' (showing first 10)',
+    exitosas: 'successful',
+    fallidas: 'failed',
+    noAutenticado: 'Not authenticated',
+    errorProcesar: 'Error processing file',
+  },
+
+  // Feature Gate
+  featureGate: {
+    funcionRequierePlan: 'This feature requires the',
+    verPlanes: 'View plans',
+  },
+
+  // Offline Indicator
+  offlineIndicator: {
+    modoOffline: 'Offline mode',
+    conexionRestaurada: 'Connection restored',
+  },
+
+  // Email Preview
+  emailPreview: {
+    asunto: 'Subject:',
+    editar: 'Edit',
+    vistaPrevia: 'Preview',
+    cuerpoEmail: 'Email body',
+  },
+
+  // Signature Canvas
+  firmaCanvas: {
+    nombreFirma: 'Name for signature',
+    placeholderNombre: 'Your full name',
+    dibujaFirma: 'Draw your signature',
+    deshacer: 'Undo',
+    limpiar: 'Clear',
+    guardarFirma: 'Save signature',
+  },
+
+  // VAT Alerts
+  alertasIva: {
+    alertasInteligentesIva: 'Smart VAT alerts',
+    quedanDias: '{dias} days left to file model 303',
+    plazoVence: 'The deadline to file the Q{trimestre} VAT return is {fecha}.',
+    irCalculadora303: 'Go to calculator 303',
+    aTuFavor: '{importe} in your favor',
+    ivaSoportadoSupera: 'Input VAT exceeds output VAT. You can offset this balance in the next return.',
+    gastosSinIvaDeducible: '{count} expenses without deductible VAT',
+    totalEnGastos: '{importe} in expenses with 0% VAT. Check if they are correct.',
+    facturasGastoPendientes: '{count} pending expense invoices',
+    pagarPermiteDeducir: 'Paying invoices before end of quarter allows VAT deduction in the current period.',
+    verFacturasPendientes: 'View pending invoices',
+    deduccionIvaAnticipada: 'Early VAT deduction',
+    siPagasFacturas: 'If you pay {count} invoices before {fecha}, you can deduct {importe} in VAT.',
+    marcarComoPagadas: 'Mark as paid',
+  },
 } as const

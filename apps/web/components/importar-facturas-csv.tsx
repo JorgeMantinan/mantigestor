@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react'
@@ -56,6 +57,7 @@ export function ImportarFacturasCSV({ onImportadas }: { onImportadas: () => void
   const [importando, setImportando] = useState(false)
   const [resultado, setResultado] = useState<ResultadoImportacion | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const { t } = useLanguage()
 
   const handleArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -82,7 +84,7 @@ export function ImportarFacturasCSV({ onImportadas }: { onImportadas: () => void
       const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { toast.error('No autenticado'); setImportando(false); return }
+      if (!user) { toast.error(t('importarFacturasCsv.noAutenticado')); setImportando(false); return }
 
       let exitosas = 0
       let fallidas = 0
@@ -122,7 +124,7 @@ export function ImportarFacturasCSV({ onImportadas }: { onImportadas: () => void
         onImportadas()
       }
     } catch {
-      toast.error('Error al procesar el archivo')
+      toast.error(t('importarFacturasCsv.errorProcesar'))
     }
 
     setImportando(false)
@@ -132,26 +134,26 @@ export function ImportarFacturasCSV({ onImportadas }: { onImportadas: () => void
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Upload className="h-4 w-4" /> Importar facturas CSV
+          <Upload className="h-4 w-4" /> {t('importarFacturasCsv.importarFacturasCsv')}
         </CardTitle>
-        <CardDescription>Formato: tipo;contraparte;nif;fecha;base;iva;estado (separado por punto y coma)</CardDescription>
+        <CardDescription>{t('importarFacturasCsv.formato')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <input ref={inputRef} type="file" accept=".csv,.txt" onChange={handleArchivo} className="hidden" />
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
-            <FileText className="mr-1 h-3 w-3" /> Seleccionar archivo
+            <FileText className="mr-1 h-3 w-3" /> {t('importarFacturasCsv.seleccionarArchivo')}
           </Button>
           {archivo && (
             <Button size="sm" onClick={() => void importar()} disabled={importando || vistaPrevia.length === 0}>
-              {importando ? 'Importando...' : `Importar ${vistaPrevia.length} facturas`}
+              {importando ? t('importarFacturasCsv.importando') : t('importarFacturasCsv.importarFacturas').replace('{count}', String(vistaPrevia.length))}
             </Button>
           )}
         </div>
 
         {vistaPrevia.length > 0 && (
           <div className="text-xs text-muted-foreground">
-            Vista previa: {vistaPrevia.length} facturas{vistaPrevia.length === 10 ? ' (mostrando primeras 10)' : ''}
+            {t('importarFacturasCsv.vistaPrevia').replace('{count}', String(vistaPrevia.length))}{vistaPrevia.length === 10 ? t('importarFacturasCsv.mostrandoPrimeras10') : ''}
           </div>
         )}
 
@@ -160,7 +162,7 @@ export function ImportarFacturasCSV({ onImportadas }: { onImportadas: () => void
             <div className="flex items-center gap-2 mb-1">
               {resultado.fallidas > 0 ? <AlertCircle className="h-4 w-4 text-yellow-600" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
               <span className="font-medium">
-                {resultado.exitosas} exitosas{resultado.fallidas > 0 ? `, ${resultado.fallidas} fallidas` : ''}
+                {resultado.exitosas} {t('importarFacturasCsv.exitosas')}{resultado.fallidas > 0 ? `, ${resultado.fallidas} ${t('importarFacturasCsv.fallidas')}` : ''}
               </span>
             </div>
             {resultado.errores.length > 0 && (

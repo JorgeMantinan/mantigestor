@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, type ChangeEvent, type DragEvent } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -45,6 +46,7 @@ export function FileUpload({
   const [success, setSuccess] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const { t } = useLanguage()
 
   const maxBytes = maxSizeMB * 1024 * 1024
 
@@ -55,14 +57,18 @@ export function FileUpload({
     setSuccess(false)
   }
 
+  const acceptProp = accept
+  const maxSizeMBProp = maxSizeMB
+  const buttonTextProp = buttonText
+
   function validateFile(selected: File): string | null {
     const ext = '.' + selected.name.split('.').pop()?.toLowerCase()
     const acceptedList = accept.split(',').map(a => a.trim().toLowerCase())
     if (!acceptedList.includes(ext)) {
-      return `Tipo de archivo no permitido. Extensiones aceptadas: ${accept}`
+      return t('fileUpload.tipoNoPermitido').replace('{accept}', accept)
     }
     if (selected.size > maxBytes) {
-      return `El archivo excede el tamaño máximo de ${maxSizeMB} MB`
+      return t('fileUpload.archivoExcedeTamano').replace('{maxSize}', String(maxSizeMB))
     }
     return null
   }
@@ -163,7 +169,7 @@ export function FileUpload({
     } catch (err) {
       clearInterval(interval)
       const message = err instanceof Error ? err.message : (err as { message?: string })?.message ?? JSON.stringify(err)
-      setError(message !== '{}' ? message : 'Error al subir el archivo')
+      setError(message !== '{}' ? message : t('fileUpload.errorSubir'))
       setProgress(0)
     } finally {
       setUploading(false)
@@ -187,10 +193,10 @@ export function FileUpload({
           >
             <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              Arrastra un archivo aquí o haz clic para seleccionar
+              {t('fileUpload.arrastraArchivo')}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Extensiones: {accept}
+              {t('fileUpload.extensiones')}: {accept}
             </p>
             <input
               ref={inputRef}
@@ -249,7 +255,7 @@ export function FileUpload({
             {success && (
               <div className="flex items-center gap-2 text-sm text-emerald-600">
                 <CheckCircle2 className="h-5 w-5" />
-                <span>Archivo subido correctamente</span>
+                <span>{t('fileUpload.archivoSubido')}</span>
               </div>
             )}
 
@@ -269,7 +275,7 @@ export function FileUpload({
 
             {success && (
               <Button variant="outline" onClick={reset} className="w-full">
-                Subir otro archivo
+                {t('fileUpload.subirOtro')}
               </Button>
             )}
           </div>

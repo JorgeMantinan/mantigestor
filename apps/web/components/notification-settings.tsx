@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,6 +21,7 @@ export function NotificationSettings() {
   const [subscribed, setSubscribed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState(false)
+  const { t } = useLanguage()
 
   const loadState = useCallback(async () => {
     const pushSupported = isPushSupported()
@@ -83,10 +85,10 @@ export function NotificationSettings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <BellOff className="h-4 w-4" aria-hidden="true" />
-            Notificaciones push
+            {t('notificationSettings.notificacionesPush')}
           </CardTitle>
           <CardDescription>
-            Tu navegador no soporta notificaciones push.
+            {t('notificationSettings.navegadorNoSoporta')}
           </CardDescription>
         </CardHeader>
       </Card>
@@ -98,23 +100,23 @@ export function NotificationSettings() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Bell className="h-4 w-4" aria-hidden="true" />
-          Notificaciones push
+          {t('notificationSettings.notificacionesPush')}
         </CardTitle>
         <CardDescription>
-          Recibe alertas importantes aunque no estés navegando la aplicación.
+          {t('notificationSettings.recibeAlertas')}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">Activar notificaciones</span>
+              <span className="text-sm font-medium">{t('notificationSettings.activarNotificaciones')}</span>
               <Badge variant={subscribed ? 'default' : 'secondary'}>
-                {subscribed ? 'Activado' : 'Desactivado'}
+                {subscribed ? t('notificationSettings.activado') : t('notificationSettings.desactivado')}
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground">
-              Estado del permiso: {permission === 'granted' ? 'Concedido' : permission === 'denied' ? 'Denegado' : 'Sin solicitar'}
+              {t('notificationSettings.estadoPermiso')}: {permission === 'granted' ? t('notificationSettings.concedido') : permission === 'denied' ? t('notificationSettings.denegado') : t('notificationSettings.sinSolicitar')}
             </p>
           </div>
           <Switch
@@ -125,7 +127,7 @@ export function NotificationSettings() {
         </div>
         {permission === 'denied' && (
           <p className="mt-3 text-xs text-destructive">
-            El permiso fue denegado. Puedes reactivarlo desde la configuración de tu navegador.
+            {t('notificationSettings.permisoDenegado')}
           </p>
         )}
       </CardContent>

@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 import { WifiOff, Wifi } from 'lucide-react'
 
 export function OfflineIndicator() {
   const [status, setStatus] = useState<'offline' | 'online' | null>(null)
+  const { t } = useLanguage()
 
   useEffect(() => {
     const handleOffline = () => setStatus('offline')
@@ -42,7 +44,7 @@ export function OfflineIndicator() {
         <Wifi className="h-4 w-4" aria-hidden="true" />
       )}
       <span className="text-sm font-medium">
-        {status === 'offline' ? 'Modo offline' : 'Conexión restaurada'}
+        {status === 'offline' ? t('offlineIndicator.modoOffline') : t('offlineIndicator.conexionRestaurada')}
       </span>
     </div>
   )

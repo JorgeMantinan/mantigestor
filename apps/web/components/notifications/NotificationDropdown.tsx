@@ -1,6 +1,7 @@
 'use client'
 
 import { useNotifications } from '@/hooks/useNotifications'
+import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -26,7 +27,7 @@ function getIcon(tipo: string) {
   }
 }
 
-function tiempoRelativo(fecha: string): string {
+function tiempoRelativo(fecha: string, t: (key: string) => string): string {
   const ahora = new Date()
   const date = new Date(fecha)
   const diffMs = ahora.getTime() - date.getTime()
@@ -34,19 +35,20 @@ function tiempoRelativo(fecha: string): string {
   const diffHoras = Math.floor(diffMs / 3600000)
   const diffDias = Math.floor(diffMs / 86400000)
 
-  if (diffMin < 1) return 'hace un momento'
-  if (diffMin < 60) return `hace ${diffMin} min`
-  if (diffHoras < 24) return `hace ${diffHoras}h`
-  return `hace ${diffDias} días`
+  if (diffMin < 1) return t('notificationDropdown.haceUnMomento')
+  if (diffMin < 60) return t('notificationDropdown.haceMin').replace('{min}', String(diffMin))
+  if (diffHoras < 24) return t('notificationDropdown.haceHoras').replace('{horas}', String(diffHoras))
+  return t('notificationDropdown.haceDias').replace('{dias}', String(diffDias))
 }
 
 export function NotificationDropdown() {
   const { notificaciones, noLeidas, cargando, markAsRead, markAllAsRead } = useNotifications()
+  const { t } = useLanguage()
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8" aria-label={`Notificaciones${noLeidas > 0 ? ` (${noLeidas} sin leer)` : ''}`}>
+        <Button variant="ghost" className="relative h-8 w-8" aria-label={`${t('notificationDropdown.notificaciones')}${noLeidas > 0 ? ` (${noLeidas}${t('notificationDropdown.sinLeer')})` : ''}`}>
           {noLeidas > 0 ? (
             <BellRing className="h-5 w-5 text-yellow-500" aria-hidden="true" />
           ) : (
@@ -62,11 +64,11 @@ export function NotificationDropdown() {
       <DropdownMenuContent className="w-[320px] max-h-[400px] overflow-y-auto" align="end" forceMount>
         {cargando ? (
           <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
-            Cargando...
+            {t('notificationDropdown.cargando')}
           </div>
         ) : notificaciones.length === 0 ? (
           <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
-            No hay notificaciones
+            {t('notificationDropdown.noHayNotificaciones')}
           </div>
         ) : (
           <>
@@ -84,7 +86,7 @@ export function NotificationDropdown() {
                       : notif.contenido}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {tiempoRelativo(notif.creadoEn)}
+                    {tiempoRelativo(notif.creadoEn, t)}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
@@ -94,7 +96,7 @@ export function NotificationDropdown() {
             ))}
             {notificaciones.length > 20 && (
               <div className="px-4 py-2 text-center text-xs text-muted-foreground">
-                +{notificaciones.length - 20} más
+                +{notificaciones.length - 20} {t('notificationDropdown.mas')}
               </div>
             )}
             {noLeidas > 0 && (
@@ -105,7 +107,7 @@ export function NotificationDropdown() {
                   onClick={markAllAsRead}
                 >
                   <CheckCheck className="h-4 w-4" />
-                  Marcar todas como leídas
+                  {t('notificationDropdown.marcarTodasLeidas')}
                 </DropdownMenuItem>
               </>
             )}

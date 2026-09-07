@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useCallback, useState } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,6 +20,7 @@ export function FirmaCanvas({ onFirmaGuardada, nombreInicial = '' }: FirmaCanvas
   const [tieneTrazos, setTieneTrazos] = useState(false)
   const trazosRef = useRef<{ x: number; y: number }[][]>([])
   const trazoActualRef = useRef<{ x: number; y: number }[]>([])
+  const { t } = useLanguage()
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -130,16 +132,16 @@ export function FirmaCanvas({ onFirmaGuardada, nombreInicial = '' }: FirmaCanvas
   return (
     <div className="space-y-3">
       <div className="space-y-2">
-        <Label htmlFor="firma-nombre">Nombre para la firma</Label>
+        <Label htmlFor="firma-nombre">{t('firmaCanvas.nombreFirma')}</Label>
         <Input
           id="firma-nombre"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
-          placeholder="Tu nombre completo"
+          placeholder={t('firmaCanvas.placeholderNombre')}
         />
       </div>
       <div className="space-y-2">
-        <Label>Dibuja tu firma</Label>
+        <Label>{t('firmaCanvas.dibujaFirma')}</Label>
         <div className="relative rounded-md border border-dashed bg-white" style={{ height: 120 }}>
           <canvas
             ref={canvasRef}
@@ -156,13 +158,13 @@ export function FirmaCanvas({ onFirmaGuardada, nombreInicial = '' }: FirmaCanvas
       </div>
       <div className="flex gap-2">
         <Button variant="outline" size="sm" onClick={deshacer} disabled={trazosRef.current.length === 0}>
-          Deshacer
+          {t('firmaCanvas.deshacer')}
         </Button>
         <Button variant="outline" size="sm" onClick={limpiar} disabled={!tieneTrazos}>
-          Limpiar
+          {t('firmaCanvas.limpiar')}
         </Button>
         <Button size="sm" onClick={guardar} disabled={!tieneTrazos || !nombre.trim()}>
-          Guardar firma
+          {t('firmaCanvas.guardarFirma')}
         </Button>
       </div>
     </div>

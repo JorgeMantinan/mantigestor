@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -59,6 +60,7 @@ function TextoResaltado({ texto, className }: { texto: string; className?: strin
 
 export function EmailPreview({ plantilla, asuntoRenderizado, cuerpoRenderizado, onAsuntoChange, onCuerpoChange, editable = false }: EmailPreviewProps) {
   const [editMode, setEditMode] = useState(false)
+  const { t } = useLanguage()
 
   const placeholdersDisponibles = Object.entries(PLACEHOLDER_DESCRIPTIONS)
 
@@ -81,14 +83,14 @@ export function EmailPreview({ plantilla, asuntoRenderizado, cuerpoRenderizado, 
             className="h-7 text-xs shrink-0"
           >
             {editMode ? <Eye className="mr-1 h-3 w-3" aria-hidden="true" /> : <Pencil className="mr-1 h-3 w-3" aria-hidden="true" />}
-            {editMode ? 'Vista previa' : 'Editar'}
+            {editMode ? t('emailPreview.vistaPrevia') : t('emailPreview.editar')}
           </Button>
         )}
       </div>
 
       <Card className="overflow-hidden">
         <div className="bg-muted/50 px-4 py-2 border-b">
-          <div className="text-xs text-muted-foreground mb-1">Asunto:</div>
+          <div className="text-xs text-muted-foreground mb-1">{t('emailPreview.asunto')}</div>
           {editMode && onAsuntoChange ? (
             <Input
               value={asuntoRenderizado}
@@ -104,7 +106,7 @@ export function EmailPreview({ plantilla, asuntoRenderizado, cuerpoRenderizado, 
         <CardContent className="p-0">
           {editMode && onCuerpoChange ? (
             <div className="p-4">
-              <Label className="text-xs text-muted-foreground mb-1 block">Cuerpo del email</Label>
+              <Label className="text-xs text-muted-foreground mb-1 block">{t('emailPreview.cuerpoEmail')}</Label>
               <Textarea
                 value={cuerpoRenderizado}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onCuerpoChange(e.target.value)}

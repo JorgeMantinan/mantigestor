@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, Minus, Info } from 'lucide-react'
 
@@ -23,6 +24,7 @@ interface Factura {
 }
 
 export function ComparativaSector({ facturas, sector = 'servicios' }: { facturas: Factura[]; sector?: string }) {
+  const { t } = useLanguage()
   const stats = useMemo(() => {
     const ingresos = facturas.filter(f => f.tipo === 'ingreso')
     const gastos = facturas.filter(f => f.tipo === 'gasto')
@@ -48,21 +50,21 @@ export function ComparativaSector({ facturas, sector = 'servicios' }: { facturas
 
   const comparativas = [
     {
-      label: 'Margen beneficio',
+      label: t('comparativaSector.margenBeneficio'),
       valor: stats.margen,
       media: stats.media.margen,
       unidad: '%',
       mejor: stats.margen >= stats.media.margen,
     },
     {
-      label: 'Ratio gastos/ingresos',
+      label: t('comparativaSector.ratioGastosIngresos'),
       valor: stats.ratioGastos,
       media: stats.media.gastos,
       unidad: '%',
       mejor: stats.ratioGastos <= stats.media.gastos,
     },
     {
-      label: 'IVA medio facturado',
+      label: t('comparativaSector.ivaMedioFacturado'),
       valor: stats.ivaMedio,
       media: stats.media.ivaMedio,
       unidad: '%',
@@ -74,7 +76,7 @@ export function ComparativaSector({ facturas, sector = 'servicios' }: { facturas
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Info className="h-4 w-4" /> Comparativa con sector: {sector}
+          <Info className="h-4 w-4" /> {t('comparativaSector.comparativaSector').replace('{sector}', sector)}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -90,7 +92,7 @@ export function ComparativaSector({ facturas, sector = 'servicios' }: { facturas
                   <span className="text-muted-foreground">{c.label}</span>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{c.valor}{c.unidad}</span>
-                    <span className="text-xs text-muted-foreground">vs {c.media}{c.unidad}</span>
+                    <span className="text-xs text-muted-foreground">{t('comparativaSector.vsMedia').replace('{media}', String(c.media)).replace('{unidad}', c.unidad)}</span>
                   </div>
                 </div>
                 <div className="h-2 bg-muted rounded-full overflow-hidden relative">
@@ -103,7 +105,7 @@ export function ComparativaSector({ facturas, sector = 'servicios' }: { facturas
                   <span className="text-[10px] text-muted-foreground">0%</span>
                   <div className={`flex items-center gap-0.5 text-xs ${color}`}>
                     <Icon className="h-3 w-3" />
-                    {diff > 0 ? '+' : ''}{diff}{c.unidad} vs media
+                    {diff > 0 ? '+' : ''}{diff}{c.unidad} {t('comparativaSector.vsMediaLabel')}
                   </div>
                   <span className="text-[10px] text-muted-foreground">100%</span>
                 </div>
@@ -112,7 +114,7 @@ export function ComparativaSector({ facturas, sector = 'servicios' }: { facturas
           })}
         </div>
         <p className="text-[10px] text-muted-foreground mt-4 text-center">
-          Media basada en datos simulados del sector. En producción se conectaría a datos reales de AEAT.
+          {t('comparativaSector.mediaSimulada')}
         </p>
       </CardContent>
     </Card>

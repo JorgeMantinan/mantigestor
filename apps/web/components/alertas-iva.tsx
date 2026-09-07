@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, CheckCircle, Lightbulb, ArrowRight } from 'lucide-react'
@@ -30,6 +31,7 @@ const ICONOS: Record<string, React.ReactNode> = {
 }
 
 export function AlertasIVA({ facturas }: { facturas: Factura[] }) {
+  const { t } = useLanguage()
   const alertas = useMemo(() => {
     const ahora = new Date()
     const mesActual = ahora.getMonth()
@@ -54,9 +56,9 @@ export function AlertasIVA({ facturas }: { facturas: Factura[] }) {
     if (diasRestantes <= 15 && diasRestantes > 0) {
       alertas.push({
         tipo: 'plazo',
-        titulo: `Quedan ${diasRestantes} días para presentar el 303`,
-        descripcion: `El plazo para presentar la declaración de IVA del Q${trimestre + 1} vence el ${finTrimestre.toLocaleDateString('es-ES')}.`,
-        accion: 'Ir a calculadora 303',
+        titulo: t('alertasIva.quedanDias').replace('{dias}', String(diasRestantes)),
+        descripcion: t('alertasIva.plazoVence').replace('{trimestre}', String(trimestre + 1)).replace('{fecha}', finTrimestre.toLocaleDateString('es-ES')),
+        accion: t('alertasIva.irCalculadora303'),
         prioridad: 'alta',
       })
     }
@@ -66,8 +68,8 @@ export function AlertasIVA({ facturas }: { facturas: Factura[] }) {
       const aFavor = ivaSoportado - ivaRepercutido
       alertas.push({
         tipo: 'optimizacion',
-        titulo: `Tienes ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(aFavor / 100)} a tu favor`,
-        descripcion: 'El IVA soportado supera al repercutido. Puedes compensar este saldo en la próxima declaración.',
+        titulo: t('alertasIva.aTuFavor').replace('{importe}', new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(aFavor / 100)),
+        descripcion: t('alertasIva.ivaSoportadoSupera'),
         prioridad: 'media',
       })
     }
@@ -78,8 +80,8 @@ export function AlertasIVA({ facturas }: { facturas: Factura[] }) {
       const totalSinDeducir = gastosSinDeducir.reduce((s, f) => s + f.total, 0)
       alertas.push({
         tipo: 'recordatorio',
-        titulo: `${gastosSinDeducir.length} gastos sin IVA deducible`,
-        descripcion: `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(totalSinDeducir / 100)} en gastos con IVA 0%. Verifica si son correctos.`,
+        titulo: t('alertasIva.gastosSinIvaDeducible').replace('{count}', String(gastosSinDeducir.length)),
+        descripcion: t('alertasIva.totalEnGastos').replace('{importe}', new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(totalSinDeducir / 100)),
         prioridad: 'baja',
       })
     }
@@ -89,9 +91,9 @@ export function AlertasIVA({ facturas }: { facturas: Factura[] }) {
     if (pendientes.length > 3) {
       alertas.push({
         tipo: 'recordatorio',
-        titulo: `${pendientes.length} facturas de gasto pendientes`,
-        descripcion: 'Pagar facturas antes de fin de trimestre permite deducir el IVA en el periodo actual.',
-        accion: 'Ver facturas pendientes',
+        titulo: t('alertasIva.facturasGastoPendientes').replace('{count}', String(pendientes.length)),
+        descripcion: t('alertasIva.pagarPermiteDeducir'),
+        accion: t('alertasIva.verFacturasPendientes'),
         prioridad: 'media',
       })
     }
@@ -106,9 +108,9 @@ export function AlertasIVA({ facturas }: { facturas: Factura[] }) {
         const total = gastosPendientes.reduce((s, f) => s + Math.round(f.baseImponible * (f.iva / 100)), 0)
         alertas.push({
           tipo: 'deduccion',
-          titulo: 'Deducción IVA anticipada',
-          descripcion: `Si pagas ${gastosPendientes.length} facturas antes del ${finTrimestre.toLocaleDateString('es-ES')}, podrás deducir ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(total / 100)} de IVA.`,
-          accion: 'Marcar como pagadas',
+          titulo: t('alertasIva.deduccionIvaAnticipada'),
+          descripcion: t('alertasIva.siPagasFacturas').replace('{count}', String(gastosPendientes.length)).replace('{fecha}', finTrimestre.toLocaleDateString('es-ES')).replace('{importe}', new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(total / 100)),
+          accion: t('alertasIva.marcarComoPagadas'),
           prioridad: 'alta',
         })
       }
@@ -126,7 +128,7 @@ export function AlertasIVA({ facturas }: { facturas: Factura[] }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Lightbulb className="h-4 w-4 text-yellow-500" /> Alertas inteligentes de IVA
+          <Lightbulb className="h-4 w-4 text-yellow-500" /> {t('alertasIva.alertasInteligentesIva')}
         </CardTitle>
       </CardHeader>
       <CardContent>

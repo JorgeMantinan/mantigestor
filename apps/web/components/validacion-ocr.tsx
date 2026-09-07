@@ -1,5 +1,6 @@
 'use client'
 
+import { useLanguage } from '@/contexts/language-context'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,7 +13,7 @@ interface ValidacionOcrProps {
   compact?: boolean
 }
 
-function CampoEstado({ campo }: { campo: CampoValidacion }) {
+function CampoEstado({ campo, t }: { campo: CampoValidacion; t: (key: string) => string }) {
   return (
     <div className={`flex items-start justify-between gap-3 rounded-lg border p-3 ${
       !campo.valido
@@ -35,16 +36,16 @@ function CampoEstado({ campo }: { campo: CampoValidacion }) {
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-muted-foreground">{campo.etiqueta}</span>
             {!campo.valido && (
-              <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Error</Badge>
+              <Badge variant="destructive" className="text-[10px] px-1.5 py-0">{t('validacionOcr.error')}</Badge>
             )}
             {campo.valido && campo.advertencia && (
               <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-yellow-300 text-yellow-700 dark:text-yellow-400">
-                Aviso
+                {t('validacionOcr.aviso')}
               </Badge>
             )}
           </div>
           <p className="text-sm font-medium truncate" title={String(campo.valor ?? '')}>
-            {campo.valor != null ? String(campo.valor) : <span className="text-muted-foreground italic">No detectado</span>}
+            {campo.valor != null ? String(campo.valor) : <span className="text-muted-foreground italic">{t('validacionOcr.noDetectado')}</span>}
           </p>
           {campo.error && (
             <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{campo.error}</p>
@@ -54,7 +55,7 @@ function CampoEstado({ campo }: { campo: CampoValidacion }) {
           )}
           {campo.sugerencia && (
             <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
-              Sugerencia: <span className="font-mono">{campo.sugerencia}</span>
+              {t('validacionOcr.sugerencia')}: <span className="font-mono">{campo.sugerencia}</span>
             </p>
           )}
         </div>
@@ -68,6 +69,7 @@ export function ValidacionOcr({ resultado, onCorregir, compact = false }: Valida
   const camposValidos = resultado.campos.filter(c => c.valido && !c.advertencia).length
   const camposConAdvertencia = resultado.campos.filter(c => c.valido && c.advertencia).length
   const camposConError = resultado.campos.filter(c => !c.valido).length
+  const { t } = useLanguage()
 
   if (compact) {
     return (
@@ -97,11 +99,11 @@ export function ValidacionOcr({ resultado, onCorregir, compact = false }: Valida
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base">Validación del documento</CardTitle>
+            <CardTitle className="text-base">{t('validacionOcr.validacionDocumento')}</CardTitle>
             <CardDescription>
               {resultado.valido
-                ? 'Todos los campos obligatorios son válidos'
-                : `Se encontraron ${camposConError} error(es) y ${camposConAdvertencia} aviso(s)`
+                ? t('validacionOcr.todosCamposValidos')
+                : t('validacionOcr.erroresEncontrados').replace('{errores}', String(camposConError)).replace('{avisos}', String(camposConAdvertencia))
               }
             </CardDescription>
           </div>
@@ -117,7 +119,7 @@ export function ValidacionOcr({ resultado, onCorregir, compact = false }: Valida
         {resultado.campos.map(campo => (
           <div key={campo.campo} className="flex items-center gap-2">
             <div className="flex-1">
-              <CampoEstado campo={campo} />
+              <CampoEstado campo={campo} t={t} />
             </div>
             {onCorregir && (
               <Button
@@ -125,7 +127,7 @@ export function ValidacionOcr({ resultado, onCorregir, compact = false }: Valida
                 size="sm"
                 className="shrink-0 h-8 w-8 p-0"
                 onClick={() => onCorregir(campo.campo, campo.sugerencia)}
-                title={`Corregir ${campo.etiqueta}`}
+                title={`${t('validacionOcr.corregir')} ${campo.etiqueta}`}
               >
                 <Pencil className="h-3 w-3" aria-hidden="true" />
               </Button>
@@ -135,7 +137,7 @@ export function ValidacionOcr({ resultado, onCorregir, compact = false }: Valida
 
         {resultado.errores.length > 0 && (
           <div className="rounded-md bg-red-50 p-3 dark:bg-red-950/30">
-            <p className="text-xs font-medium text-red-700 dark:text-red-400 mb-1">Errores</p>
+            <p className="text-xs font-medium text-red-700 dark:text-red-400 mb-1">{t('validacionOcr.errores')}</p>
             <ul className="space-y-0.5">
               {resultado.errores.map((e, i) => (
                 <li key={i} className="text-xs text-red-600 dark:text-red-400">• {e}</li>
@@ -146,7 +148,7 @@ export function ValidacionOcr({ resultado, onCorregir, compact = false }: Valida
 
         {resultado.advertencias.length > 0 && (
           <div className="rounded-md bg-yellow-50 p-3 dark:bg-yellow-950/30">
-            <p className="text-xs font-medium text-yellow-700 dark:text-yellow-400 mb-1">Avisos</p>
+            <p className="text-xs font-medium text-yellow-700 dark:text-yellow-400 mb-1">{t('validacionOcr.avisos')}</p>
             <ul className="space-y-0.5">
               {resultado.advertencias.map((a, i) => (
                 <li key={i} className="text-xs text-yellow-600 dark:text-yellow-400">• {a}</li>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useFeatureAccess } from '@/hooks/useFeatureAccess'
+import { useLanguage } from '@/contexts/language-context'
 import { FEATURES_POR_TIER } from '@mantigestor/types'
 import type { Feature, SubscriptionTier } from '@mantigestor/types'
 import Link from 'next/link'
@@ -19,6 +20,7 @@ interface Props {
 
 export function FeatureGate({ feature, children, fallback }: Props) {
   const { puedeUsar } = useFeatureAccess()
+  const { t } = useLanguage()
 
   if (puedeUsar(feature)) return <>{children}</>
 
@@ -28,13 +30,13 @@ export function FeatureGate({ feature, children, fallback }: Props) {
   return (
     <div className="rounded-lg border border-dashed border-border p-6 text-center">
       <p className="mb-3 text-sm text-muted-foreground">
-        Esta función requiere el plan <strong>{tierNecesario}</strong>
+        {t('featureGate.funcionRequierePlan')} <strong>{tierNecesario}</strong>
       </p>
       <Link
         href="/precios"
         className="text-sm font-medium text-primary hover:underline"
       >
-        Ver planes &rarr;
+        {t('featureGate.verPlanes')} &rarr;
       </Link>
     </div>
   )
