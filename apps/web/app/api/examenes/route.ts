@@ -38,12 +38,21 @@ export async function POST(req: NextRequest) {
 
     const { data: docs } = await supabase
       .from('documentos')
-      .select('id, nombre, url, tipo')
+      .select('id, nombre, url, tipo, tamanoBytes')
       .eq('perfilId', perfilId)
       .eq('tipo', 'alumno')
 
     if (!docs || docs.length === 0) {
       return badRequest('No hay documentos de tipo alumno para generar un examen')
+    }
+
+    const MAX_DOC_SIZE = 5 * 1024 * 1024 // 5MB per document
+    const oversized = docs.filter((d: { tamanoBytes?: number }) => d.tamanoBytes && d.tamanoBytes > MAX_DOC_SIZE)
+    if (oversized.length > 0) {
+      return NextResponse.json(
+        { error: `Documentos demasiado grandes: ${oversized.map((d: { nombre: string }) => d.nombre).join(', ')}. Máximo 5MB por documento.` },
+        { status: 400 }
+      )
     }
 
     const { data: examen, error: insertError } = await supabase

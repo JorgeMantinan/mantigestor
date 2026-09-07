@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const FacturaSchema = z.object({
-  tipo: z.enum(['ingreso', 'gasto']),
+  tipo: z.enum(['ingreso', 'gasto', 'proforma']),
   numero: z.string().min(1, 'El número de factura es requerido').max(50),
   emisorReceptor: z.string().min(1, 'El nombre de la contraparte es requerido').max(200),
   nifContraparte: z
@@ -31,6 +31,7 @@ export const FacturaSchema = z.object({
   notas: z.string().optional().nullable(),
   tags: z.string().optional().nullable(),
   pdfUrl: z.string().optional().nullable(),
+  tokenCliente: z.string().optional().nullable(),
   moneda: z.string().optional(),
   tipoCambio: z.number().optional(),
   pagosParciales: z.string().optional().nullable(),

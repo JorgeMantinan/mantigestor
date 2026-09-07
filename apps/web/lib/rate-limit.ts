@@ -5,6 +5,18 @@ interface RateLimitEntry {
 
 const store = new Map<string, RateLimitEntry>()
 
+// Cleanup old entries every 5 minutes
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now()
+    for (const [key, entry] of store.entries()) {
+      if (now - entry.resetAt > 0) {
+        store.delete(key)
+      }
+    }
+  }, 5 * 60 * 1000)
+}
+
 export interface RateLimitConfig {
   maxRequests: number
   windowMs: number

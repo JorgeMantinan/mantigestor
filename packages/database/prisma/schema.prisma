@@ -25,55 +25,56 @@ model Perfil {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  facturas       Factura[]
-  documentos     Documento[]
-  examenes       Examen[]
-  suscripciones  Suscripcion[]
-  notificaciones     Notificacion[]
+  facturas                   Factura[]
+  documentos                 Documento[]
+  examenes                   Examen[]
+  suscripciones              Suscripcion[]
+  notificaciones             Notificacion[]
   preferenciasNotificaciones PreferenciaNotificacion[]
-  propiedadesAlquiler PropiedadAlquiler[]
-  nominas            Nomina[]
-  auditLogs          AuditLog[]
-  pushSubscriptions  PushSubscription[]
+  propiedadesAlquiler        PropiedadAlquiler[]
+  nominas                    Nomina[]
+  auditLogs                  AuditLog[]
+  pushSubscriptions          PushSubscription[]
 
   @@map("perfiles")
 }
 
 model PerfilAsociado {
-  id            String   @id @default(uuid())
-  ownerUserId   String   // auth.users id del gestor
-  perfilId      String   // perfiles.id de la persona gestionada
-  rol           String   @default("gestor") // "propietario" | "gestor" | "visualizador"
-  createdAt     DateTime @default(now())
+  id          String   @id @default(uuid())
+  ownerUserId String // auth.users id del gestor
+  perfilId    String // perfiles.id de la persona gestionada
+  rol         String   @default("gestor") // "propietario" | "gestor" | "visualizador"
+  createdAt   DateTime @default(now())
 
   @@unique([ownerUserId, perfilId])
+  @@index([ownerUserId])
   @@map("perfil_asociado")
 }
 
 model Factura {
-  id              String   @id @default(cuid())
-  perfilId        String
-  perfil          Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  numero          String
-  tipo            String   // 'ingreso' | 'gasto' | 'proforma'
-  emisorReceptor  String
-  nifContraparte  String?
-  fechaEmision    DateTime
+  id               String    @id @default(cuid())
+  perfilId         String
+  perfil           Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  numero           String
+  tipo             String // 'ingreso' | 'gasto' | 'proforma'
+  emisorReceptor   String
+  nifContraparte   String?
+  fechaEmision     DateTime
   fechaVencimiento DateTime?
-  baseImponible   Int      // en céntimos
-  iva             Int      // 0, 4, 10 o 21
-  total           Int      // en céntimos
-  estado          String   @default("pendiente") // facturas: pendiente|pagada|vencida; proformas: borrador|enviada|aceptada|rechazada
+  baseImponible    Int // en céntimos
+  iva              Int // 0, 4, 10 o 21
+  total            Int // en céntimos
+  estado           String    @default("pendiente") // facturas: pendiente|pagada|vencida; proformas: borrador|enviada|aceptada|rechazada
   // proformaEstado String?  // campo dedicado si se separa proformas de facturas en el futuro
-  categoriaGasto  String?  // etiqueta: suministros, alquiler, nomina, seguridad, marketing, otros
-  notas           String?  // notas internas sobre la factura
-  tags            String?  // etiquetas separadas por coma: marketing,software,custom
-  pdfUrl          String?
-  tokenCliente    String?  // token compartido para portal de cliente (mismo token = mismo cliente)
-  moneda          String   @default("EUR") // código ISO 4217: EUR, USD, GBP, etc.
-  tipoCambio      Float    @default(1.0)   // tasa de cambio vs EUR (1.0 si es EUR)
-  pagosParciales   String?  // JSON array de pagos parciales [{id, fecha, importe, metodo, notas}]
-  createdAt       DateTime @default(now())
+  categoriaGasto   String? // etiqueta: suministros, alquiler, nomina, seguridad, marketing, otros
+  notas            String? // notas internas sobre la factura
+  tags             String? // etiquetas separadas por coma: marketing,software,custom
+  pdfUrl           String?
+  tokenCliente     String? // token compartido para portal de cliente (mismo token = mismo cliente)
+  moneda           String    @default("EUR") // código ISO 4217: EUR, USD, GBP, etc.
+  tipoCambio       Float     @default(1.0) // tasa de cambio vs EUR (1.0 si es EUR)
+  pagosParciales   String? // JSON array de pagos parciales [{id, fecha, importe, metodo, notas}]
+  createdAt        DateTime  @default(now())
 
   @@index([perfilId, tipo])
   @@index([perfilId, fechaEmision])
@@ -82,17 +83,17 @@ model Factura {
 }
 
 model Nomina {
-  id            String   @id @default(cuid())
-  perfilId      String
-  perfil        Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  empleada      String
-  mes           Int
-  anyo          Int
-  salarioBruto  Int      // en céntimos
-  irpf          Float    // porcentaje (ej: 15.0)
-  neto          Int      // en céntimos
-  rol           String   // 'jefe' | 'empleado'
-  createdAt     DateTime @default(now())
+  id           String   @id @default(cuid())
+  perfilId     String
+  perfil       Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  empleada     String
+  mes          Int
+  anyo         Int
+  salarioBruto Int // en céntimos
+  irpf         Float // porcentaje (ej: 15.0)
+  neto         Int // en céntimos
+  rol          String // 'jefe' | 'empleado'
+  createdAt    DateTime @default(now())
 
   @@index([perfilId, anyo])
   @@map("nominas")
@@ -102,40 +103,43 @@ model Documento {
   id          String   @id @default(cuid())
   perfilId    String
   perfil      Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  tipo        String   // 'alumno', 'factura', 'trimestre', 'alquiler', 'nomina'
+  tipo        String // 'alumno', 'factura', 'trimestre', 'alquiler', 'nomina'
   nombre      String
   tamanoBytes Int?
   url         String
   subidoEn    DateTime @default(now())
 
+  @@index([perfilId])
   @@map("documentos")
 }
 
 model Examen {
-  id          String    @id @default(cuid())
-  perfilId    String
-  perfil      Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  tipo        String    // 'facturas', 'trimestres', 'alquiler', 'nominas', 'alumnos'
-  estado      String    @default("pendiente")
-  resultado   String?
-  creadoEn    DateTime  @default(now())
+  id           String    @id @default(cuid())
+  perfilId     String
+  perfil       Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  tipo         String // 'facturas', 'trimestres', 'alquiler', 'nominas', 'alumnos'
+  estado       String    @default("pendiente")
+  resultado    String?
+  creadoEn     DateTime  @default(now())
   completadoEn DateTime?
 
+  @@index([perfilId])
   @@map("examenes")
 }
 
 model Suscripcion {
-  id                     String   @id @default(cuid())
+  id                     String    @id @default(cuid())
   perfilId               String
-  perfil                 Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  tier                   String   // 'BASIC' | 'PRO'
-  provider               String   // 'stripe' | 'paypal'
-  providerSubscriptionId String   @unique
+  perfil                 Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  tier                   String // 'BASIC' | 'PRO'
+  provider               String // 'stripe' | 'paypal'
+  providerSubscriptionId String    @unique
   estado                 String
   currentPeriodStart     DateTime
   currentPeriodEnd       DateTime?
-  createdAt              DateTime @default(now())
+  createdAt              DateTime  @default(now())
 
+  @@index([perfilId])
   @@map("suscripciones")
 }
 
@@ -153,46 +157,47 @@ model Notificacion {
 }
 
 model PreferenciaNotificacion {
-  id               String   @id @default(cuid())
-  perfilId         String
-  perfil           Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  canal            String   @default("in_app") // 'in_app' | 'email'
-  categoria        String   // 'iva' | 'irpf' | 'retenciones' | 'renta' | 'todos'
-  diasAntelacion   Int      @default(15)
-  activo           Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id             String   @id @default(cuid())
+  perfilId       String
+  perfil         Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  canal          String   @default("in_app") // 'in_app' | 'email'
+  categoria      String // 'iva' | 'irpf' | 'retenciones' | 'renta' | 'todos'
+  diasAntelacion Int      @default(15)
+  activo         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@unique([perfilId, canal, categoria])
   @@map("preferencias_notificaciones")
 }
 
 model PropiedadAlquiler {
-  id               String   @id @default(cuid())
-  perfilId         String
-  perfil           Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  direccion        String
-  ingresos         Int      @default(0)
-  inquilinoNombre  String?
-  inquilinoEmail   String?
+  id                String   @id @default(cuid())
+  perfilId          String
+  perfil            Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  direccion         String
+  ingresos          Int      @default(0)
+  inquilinoNombre   String?
+  inquilinoEmail    String?
   inquilinoTelefono String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   gastos GastoAlquiler[]
 
+  @@index([perfilId])
   @@map("propiedades_alquiler")
 }
 
 model GastoAlquiler {
-  id          String   @id @default(cuid())
+  id          String            @id @default(cuid())
   propiedadId String
   propiedad   PropiedadAlquiler @relation(fields: [propiedadId], references: [id], onDelete: Cascade)
   concepto    String
   descripcion String?
   importe     Int
-  fecha       DateTime @default(now())
-  createdAt   DateTime @default(now())
+  fecha       DateTime          @default(now())
+  createdAt   DateTime          @default(now())
 
   @@map("gastos_alquiler")
 }
@@ -217,9 +222,9 @@ model PushSubscription {
 
 model FiscalSource {
   id                 String    @id // SRC_BOE_HAC_1526_2024
-  authority          String    // BOE, AEAT, Seguridad Social...
+  authority          String // BOE, AEAT, Seguridad Social...
   title              String
-  sourceType         String    // BOE | OFFICIAL_MODEL | OFFICIAL_GUIDE | ...
+  sourceType         String // BOE | OFFICIAL_MODEL | OFFICIAL_GUIDE | ...
   url                String?
   documentUrl        String?
   publicationDate    DateTime?
@@ -230,26 +235,26 @@ model FiscalSource {
   verificationStatus String    @default("OFFICIAL_UNVERIFIED")
   notes              String?
 
-  taxModels             TaxModel[]
-  deadlines             Deadline[]
-  fiscalRates           FiscalRate[]
-  irpfTramosEstatales   IrpfTramoEstatal[]
-  irpfTramosAutonomicos IrpfTramoAutonomico[]
-  retaTramos            RetaTramo[]
-  cotizaciones          CotizacionSegSocial[]
-  isTipos               IsTipo[]
-  vatRules              VatRule[]
-  minimosPersonales     MinimoPersonalFamiliar[]
-  reduccionesIrpf       ReduccionGeneralIrpf[]
-  isdReglas             IsdRegla[]
-  itpAjdReglas          ItpAjdRegla[]
-  patrimonioEscalas     PatrimonioEscala[]
-  deduccionesAutonomicas DeduccionAutonomica[]
+  taxModels                TaxModel[]
+  deadlines                Deadline[]
+  fiscalRates              FiscalRate[]
+  irpfTramosEstatales      IrpfTramoEstatal[]
+  irpfTramosAutonomicos    IrpfTramoAutonomico[]
+  retaTramos               RetaTramo[]
+  cotizaciones             CotizacionSegSocial[]
+  isTipos                  IsTipo[]
+  vatRules                 VatRule[]
+  minimosPersonales        MinimoPersonalFamiliar[]
+  reduccionesIrpf          ReduccionGeneralIrpf[]
+  isdReglas                IsdRegla[]
+  itpAjdReglas             ItpAjdRegla[]
+  patrimonioEscalas        PatrimonioEscala[]
+  deduccionesAutonomicas   DeduccionAutonomica[]
   patrimonioBonificaciones PatrimonioBonificacion[]
-  sanciones             Sancion[]
-  amortizaciones        AmortizacionDietaKm[]
-  umbrales              UmbralTamanoEmpresa[]
-  reglasTerritoriales   ReglaTerritorial[]
+  sanciones                Sancion[]
+  amortizaciones           AmortizacionDietaKm[]
+  umbrales                 UmbralTamanoEmpresa[]
+  reglasTerritoriales      ReglaTerritorial[]
 
   @@map("fiscal_sources")
 }
@@ -261,7 +266,7 @@ model Jurisdiction {
   country String  @default("España")
   active  Boolean @default(true)
 
-  administrations Administration[]
+  administrations    Administration[]
   reglasTeritoriales ReglaTerritorial[]
 
   @@map("jurisdicciones")
@@ -288,7 +293,7 @@ model EstadoVerificacion {
 }
 
 model AuditoriaCorreccion {
-  id             String   @id
+  id             String    @id
   archivo        String
   hoja           String?
   fila           Int?
@@ -306,7 +311,7 @@ model AuditoriaCorreccion {
 
 model TaxModel {
   // Clave lógica: administrationId + modelNumber + taxYear + version
-  id                  String    @id @default(cuid())
+  id                  String        @id @default(cuid())
   modelNumber         String // MOD036, MOD303...
   nombreOficial       String
   categoria           String // Censal | IVA | IRPF | IS | Retenciones...
@@ -324,12 +329,12 @@ model TaxModel {
   applicationYear     Int?
   effectiveFrom       DateTime?
   effectiveTo         DateTime?
-  version             Int       @default(1)
-  status              String    @default("OFFICIAL_UNVERIFIED")
+  version             Int           @default(1)
+  status              String        @default("OFFICIAL_UNVERIFIED")
   replacementModel    String? // p.ej. MOD037 â†’ MOD036
   sourceId            String?
   source              FiscalSource? @relation(fields: [sourceId], references: [id])
-  productionEligible  Boolean   @default(false)
+  productionEligible  Boolean       @default(false)
   verificationNotes   String?
 
   deadlines Deadline[]
@@ -341,210 +346,210 @@ model TaxModel {
 
 model FiscalRate {
   // Porcentajes y tipos genéricos (02_porcentajes_y_tipos.csv y similares)
-  id                 String    @id
-  modeloRelacionado  String? // MOD303...
-  concepto           String
-  valor              Decimal   @db.Decimal(9, 4)
-  baseCalculo        String?
+  id                  String        @id
+  modeloRelacionado   String? // MOD303...
+  concepto            String
+  valor               Decimal       @db.Decimal(9, 4)
+  baseCalculo         String?
   condicionAplicacion String?
-  vigenteDesde       Int? // año
-  vigenteHasta       Int?
-  taxYear            Int?
-  jurisdictionId     String? // null = estatal / territorio común
-  notes              String?
-  fuenteUrl          String?
-  sourceId           String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status             String    @default("OFFICIAL_UNVERIFIED")
+  vigenteDesde        Int? // año
+  vigenteHasta        Int?
+  taxYear             Int?
+  jurisdictionId      String? // null = estatal / territorio común
+  notes               String?
+  fuenteUrl           String?
+  sourceId            String?
+  source              FiscalSource? @relation(fields: [sourceId], references: [id])
+  status              String        @default("OFFICIAL_UNVERIFIED")
 
   @@index([concepto])
   @@map("fiscal_rates")
 }
 
 model IrpfTramoEstatal {
-  id            String  @id
-  tramo         Int
-  desdeEur      Decimal @db.Decimal(12, 2)
-  hastaEur      Decimal? // null = sin límite
-  tipoEstatalPct Decimal @db.Decimal(5, 2)
-  tipoCombinadoRefPct Decimal @db.Decimal(5, 2)
-  taxYear       Int
-  nota          String?
-  sourceId      String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status        String  @default("OFFICIAL_UNVERIFIED")
+  id                  String        @id
+  tramo               Int
+  desdeEur            Decimal       @db.Decimal(12, 2)
+  hastaEur            Decimal? // null = sin límite
+  tipoEstatalPct      Decimal       @db.Decimal(5, 2)
+  tipoCombinadoRefPct Decimal       @db.Decimal(5, 2)
+  taxYear             Int
+  nota                String?
+  sourceId            String?
+  source              FiscalSource? @relation(fields: [sourceId], references: [id])
+  status              String        @default("OFFICIAL_UNVERIFIED")
 
   @@unique([tramo, taxYear])
   @@map("irpf_tramos_estatales")
 }
 
 model IrpfTramoAutonomico {
-  id             String  @id
-  comunidad      String // Andalucía, Aragón... (nombre normalizado)
-  jurisdictionId String? // ES-AN...
-  tramo          Int
-  desdeEur       Decimal @db.Decimal(12, 2)
-  hastaEur       Decimal?
-  tipoAutonomicoPct Decimal @db.Decimal(5, 2)
-  regimen        String  @default("Común") // Común | Foral Álava | Foral Bizkaia | Foral Gipuzkoa | Navarra
-  taxYear        Int
-  confianza      String?
-  notas          String?
-  fuenteTexto    String?
-  sourceId       String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status         String  @default("OFFICIAL_UNVERIFIED")
+  id                String        @id
+  comunidad         String // Andalucía, Aragón... (nombre normalizado)
+  jurisdictionId    String? // ES-AN...
+  tramo             Int
+  desdeEur          Decimal       @db.Decimal(12, 2)
+  hastaEur          Decimal?
+  tipoAutonomicoPct Decimal       @db.Decimal(5, 2)
+  regimen           String        @default("Común") // Común | Foral Álava | Foral Bizkaia | Foral Gipuzkoa | Navarra
+  taxYear           Int
+  confianza         String?
+  notas             String?
+  fuenteTexto       String?
+  sourceId          String?
+  source            FiscalSource? @relation(fields: [sourceId], references: [id])
+  status            String        @default("OFFICIAL_UNVERIFIED")
 
   @@unique([comunidad, tramo, taxYear])
   @@map("irpf_tramos_autonomicos")
 }
 
 model IrpfTramoAhorro {
-  id          String  @id
+  id          String   @id
   territorio  String // 'Común' | 'País Vasco - Álava' | ... | 'Navarra (Comunidad Foral de)'
   tramo       Int
-  desdeEur    Decimal @db.Decimal(12, 2)
+  desdeEur    Decimal  @db.Decimal(12, 2)
   hastaEur    Decimal?
-  tipoPct     Decimal @db.Decimal(5, 2)
-  regimen     String  @default("Comun")
+  tipoPct     Decimal  @db.Decimal(5, 2)
+  regimen     String   @default("Comun")
   taxYear     Int
   notas       String?
   fuenteTexto String?
-  status      String  @default("OFFICIAL_UNVERIFIED")
+  status      String   @default("OFFICIAL_UNVERIFIED")
 
   @@unique([territorio, tramo, taxYear])
   @@map("irpf_tramos_ahorro")
 }
 
 model RetaTramo {
-  id                    String  @id
-  tabla                 String // Reducida | General...
-  tramo                 Int
-  rendimientoNetoDesde  Decimal @db.Decimal(10, 2)
-  rendimientoNetoHasta  Decimal?
-  baseMinimaEur         Decimal @db.Decimal(10, 2)
-  baseMaximaEur         Decimal?
-  cuotaMinimaRefEur     Decimal? @db.Decimal(10, 2)
-  confianza             String?
-  fuenteTexto           String?
-  taxYear               Int
-  status                String  @default("OFFICIAL_UNVERIFIED")
-  productionNote        String?
-  sourceId              String?
-  source                FiscalSource? @relation(fields: [sourceId], references: [id])
+  id                   String        @id
+  tabla                String // Reducida | General...
+  tramo                Int
+  rendimientoNetoDesde Decimal       @db.Decimal(10, 2)
+  rendimientoNetoHasta Decimal?
+  baseMinimaEur        Decimal       @db.Decimal(10, 2)
+  baseMaximaEur        Decimal?
+  cuotaMinimaRefEur    Decimal?      @db.Decimal(10, 2)
+  confianza            String?
+  fuenteTexto          String?
+  taxYear              Int
+  status               String        @default("OFFICIAL_UNVERIFIED")
+  productionNote       String?
+  sourceId             String?
+  source               FiscalSource? @relation(fields: [sourceId], references: [id])
 
   @@unique([tabla, tramo, taxYear])
   @@map("reta_tramos")
 }
 
 model CotizacionSegSocial {
-  id                String  @id
-  regimen           String
-  concepto          String
+  id             String        @id
+  regimen        String
+  concepto       String
   // Nullable: conceptos parciales del dataset (p.ej. MEI solo aplica a una parte)
-  pctEmpresa        Decimal? @db.Decimal(5, 2)
-  pctTrabajador     Decimal? @db.Decimal(5, 2)
-  pctTotal          Decimal? @db.Decimal(5, 2)
-  baseReferencia    String?
-  taxYear           Int
-  status            String  @default("OFFICIAL_UNVERIFIED")
-  productionNote    String?
-  sourceId          String?
-  source            FiscalSource? @relation(fields: [sourceId], references: [id])
+  pctEmpresa     Decimal?      @db.Decimal(5, 2)
+  pctTrabajador  Decimal?      @db.Decimal(5, 2)
+  pctTotal       Decimal?      @db.Decimal(5, 2)
+  baseReferencia String?
+  taxYear        Int
+  status         String        @default("OFFICIAL_UNVERIFIED")
+  productionNote String?
+  sourceId       String?
+  source         FiscalSource? @relation(fields: [sourceId], references: [id])
 
   @@unique([regimen, concepto, taxYear])
   @@map("cotizaciones_seg_social")
 }
 
 model IsTipo {
-  id                 String  @id
-  tipoEntidad        String
+  id                   String        @id
+  tipoEntidad          String
   requisitoFacturacion String?
-  tipoPct            Decimal @db.Decimal(5, 2)
-  taxYear            Int // año del tipo (2025/2026); previsiones futuras van como filas DRAFT/RESEARCH
-  previsto           Boolean @default(false) // true para columnas *_previsto
-  notas              String?
-  status             String  @default("OFFICIAL_UNVERIFIED")
-  productionNote     String?
-  sourceId           String?
-  source             FiscalSource? @relation(fields: [sourceId], references: [id])
+  tipoPct              Decimal       @db.Decimal(5, 2)
+  taxYear              Int // año del tipo (2025/2026); previsiones futuras van como filas DRAFT/RESEARCH
+  previsto             Boolean       @default(false) // true para columnas *_previsto
+  notas                String?
+  status               String        @default("OFFICIAL_UNVERIFIED")
+  productionNote       String?
+  sourceId             String?
+  source               FiscalSource? @relation(fields: [sourceId], references: [id])
 
   @@unique([tipoEntidad, taxYear])
   @@map("is_tipos")
 }
 
 model DeduccionAutonomica {
-  id                String  @id
-  taxYear           Int
-  comunidad         String
-  tipo              String  // nacimiento, ascendientes, discapacidad, alquiler, guarderia, etc.
-  descripcion       String
-  importeBaseCents  Int?    // cantidad fija en céntimos (ej: 72170 = 721,70€)
-  porcentaje        Decimal? @db.Decimal(5, 2) // % sobre gasto/base (ej: 20.00 para 20%)
-  importeMaxCents   Int?    // tope máximo anual de la deducción en céntimos
-  rentaMinimaCents  Int?    // base imponible mínima para aplicación plena
-  rentaMaximaCents  Int?    // base imponible máxima (hasta la que se reduce linealmente)
-  duplicable        Boolean @default(false) // true si se duplica con discapacidad ≥33%
+  id                 String        @id
+  taxYear            Int
+  comunidad          String
+  tipo               String // nacimiento, ascendientes, discapacidad, alquiler, guarderia, etc.
+  descripcion        String
+  importeBaseCents   Int? // cantidad fija en céntimos (ej: 72170 = 721,70€)
+  porcentaje         Decimal?      @db.Decimal(5, 2) // % sobre gasto/base (ej: 20.00 para 20%)
+  importeMaxCents    Int? // tope máximo anual de la deducción en céntimos
+  rentaMinimaCents   Int? // base imponible mínima para aplicación plena
+  rentaMaximaCents   Int? // base imponible máxima (hasta la que se reduce linealmente)
+  duplicable         Boolean       @default(false) // true si se duplica con discapacidad ≥33%
   incompatibilidades String? // IDs o tipos de deducciones incompatibles
-  periodoAplicacion String? // "nacimiento+2", "anual", etc.
-  notas             String? // condiciones específicas,.umbral de renta de descendiente, etc.
-  status            String  @default("OFFICIAL_UNVERIFIED")
-  productionNote    String?
-  sourceId          String?
-  source            FiscalSource? @relation(fields: [sourceId], references: [id])
+  periodoAplicacion  String? // "nacimiento+2", "anual", etc.
+  notas              String? // condiciones específicas,.umbral de renta de descendiente, etc.
+  status             String        @default("OFFICIAL_UNVERIFIED")
+  productionNote     String?
+  sourceId           String?
+  source             FiscalSource? @relation(fields: [sourceId], references: [id])
 
   @@unique([comunidad, tipo, descripcion, taxYear])
   @@map("deducciones_autonomicas")
 }
 
 model PatrimonioBonificacion {
-  id                String  @id
-  taxYear           Int
-  comunidad         String
-  descripcion       String
-  porcentajeCents   Int     // porcentaje de bonificación en céntimos (10000 = 100%)
-  importeMaxCents   Int?    // tope máximo de bonificación en céntimos (null = sin tope)
-  condiciones       String? // condiciones específicas
-  notas             String? // notas adicionales (anti-ITSGF, etc.)
-  status            String  @default("OFFICIAL_UNVERIFIED")
-  productionNote    String?
-  sourceId          String?
-  source            FiscalSource? @relation(fields: [sourceId], references: [id])
+  id              String        @id
+  taxYear         Int
+  comunidad       String
+  descripcion     String
+  porcentajeCents Int // porcentaje de bonificación en céntimos (10000 = 100%)
+  importeMaxCents Int? // tope máximo de bonificación en céntimos (null = sin tope)
+  condiciones     String? // condiciones específicas
+  notas           String? // notas adicionales (anti-ITSGF, etc.)
+  status          String        @default("OFFICIAL_UNVERIFIED")
+  productionNote  String?
+  sourceId        String?
+  source          FiscalSource? @relation(fields: [sourceId], references: [id])
 
   @@unique([comunidad, taxYear])
   @@map("patrimonio_bonificaciones")
 }
 
 model Deadline {
-  id               String   @id @default(cuid())
-  modeloNumero     String? // MOD303...
-  modeloId         String?
-  modelo           TaxModel? @relation(fields: [modeloId], references: [id])
-  periodo          String // Enero-Marzo, 1T...
-  periodType       String // TRIMESTRAL | MENSUAL | ANUAL | PUNTUAL
-  deadlineType     String // RULE_REVIEW_REQUIRED | FECHA_FIJA | ...
-  deadlineRule     String?
-  deadlineRuleJson Json?
+  id                    String        @id @default(cuid())
+  modeloNumero          String? // MOD303...
+  modeloId              String?
+  modelo                TaxModel?     @relation(fields: [modeloId], references: [id])
+  periodo               String // Enero-Marzo, 1T...
+  periodType            String // TRIMESTRAL | MENSUAL | ANUAL | PUNTUAL
+  deadlineType          String // RULE_REVIEW_REQUIRED | FECHA_FIJA | ...
+  deadlineRule          String?
+  deadlineRuleJson      Json?
   fechaLimiteReferencia DateTime? // referencia 2026 del CSV corregido
   diasAvisoRecomendados String?
-  aplicaA          String?
-  taxYear          Int
-  effectiveFrom    DateTime?
-  effectiveTo      DateTime?
-  jurisdictionId   String?
-  sourceId         String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status           String   @default("OFFICIAL_UNVERIFIED")
-  productionNote   String?
+  aplicaA               String?
+  taxYear               Int
+  effectiveFrom         DateTime?
+  effectiveTo           DateTime?
+  jurisdictionId        String?
+  sourceId              String?
+  source                FiscalSource? @relation(fields: [sourceId], references: [id])
+  status                String        @default("OFFICIAL_UNVERIFIED")
+  productionNote        String?
 
   @@index([modeloNumero, taxYear])
   @@map("deadlines")
 }
 
 model VatRule {
-  id              String  @id @default(cuid())
+  id              String        @id @default(cuid())
   tipo            String // General | Reducido | Superreducido | Cero | Exento
-  ratePct         Decimal @db.Decimal(5, 2)
+  ratePct         Decimal       @db.Decimal(5, 2)
   productCategory String?
   operationType   String?
   recipientType   String?
@@ -556,47 +561,47 @@ model VatRule {
   effectiveFrom   DateTime?
   effectiveTo     DateTime?
   sourceId        String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status          String  @default("OFFICIAL_UNVERIFIED")
+  source          FiscalSource? @relation(fields: [sourceId], references: [id])
+  status          String        @default("OFFICIAL_UNVERIFIED")
 
   @@index([tipo, taxYear])
   @@map("vat_rules")
 }
 
 model MinimoPersonalFamiliar {
-  id           String  @id
-  territorio   String // Estatal (referencia común) | nombre CCAA
-  concepto     String
-  importeEur   Decimal @db.Decimal(10, 2)
-  notas        String?
-  fuenteTexto  String?
-  taxYear      Int?
-  sourceId     String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status       String  @default("OFFICIAL_UNVERIFIED")
+  id          String        @id
+  territorio  String // Estatal (referencia común) | nombre CCAA
+  concepto    String
+  importeEur  Decimal       @db.Decimal(10, 2)
+  notas       String?
+  fuenteTexto String?
+  taxYear     Int?
+  sourceId    String?
+  source      FiscalSource? @relation(fields: [sourceId], references: [id])
+  status      String        @default("OFFICIAL_UNVERIFIED")
 
   @@unique([territorio, concepto, taxYear])
   @@map("minimo_personal_familiar")
 }
 
 model ReduccionGeneralIrpf {
-  id          String  @id
-  concepto    String
-  importeEur  Decimal? @db.Decimal(10, 2)
+  id           String        @id
+  concepto     String
+  importeEur   Decimal?      @db.Decimal(10, 2)
   formulaTexto String?
-  condiciones String?
-  notas       String?
-  fuenteTexto String?
-  taxYear     Int?
-  sourceId    String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status      String  @default("OFFICIAL_UNVERIFIED")
+  condiciones  String?
+  notas        String?
+  fuenteTexto  String?
+  taxYear      Int?
+  sourceId     String?
+  source       FiscalSource? @relation(fields: [sourceId], references: [id])
+  status       String        @default("OFFICIAL_UNVERIFIED")
 
   @@map("reducciones_generales_irpf")
 }
 
 model IsdRegla {
-  id              String  @id
+  id              String        @id
   concepto        String
   territorioGrupo String?
   valor           String? // descripción textual (escalas, bonificaciones...)
@@ -608,15 +613,15 @@ model IsdRegla {
   sourceClass     String? // OFFICIAL_REFERENCE_BUT_EXACT_SOURCE_REQUIRED...
   actionRequired  String?
   sourceId        String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status          String  @default("OFFICIAL_UNVERIFIED")
+  source          FiscalSource? @relation(fields: [sourceId], references: [id])
+  status          String        @default("OFFICIAL_UNVERIFIED")
   productionNote  String?
 
   @@map("isd_reglas")
 }
 
 model ItpAjdRegla {
-  id             String  @id
+  id             String        @id
   impuesto       String // ITP | AJD | IP | ITSdGF
   concepto       String
   valor          String?
@@ -628,97 +633,97 @@ model ItpAjdRegla {
   sourceClass    String?
   actionRequired String?
   sourceId       String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status         String  @default("OFFICIAL_UNVERIFIED")
+  source         FiscalSource? @relation(fields: [sourceId], references: [id])
+  status         String        @default("OFFICIAL_UNVERIFIED")
   productionNote String?
 
   @@map("itp_ajd_reglas")
 }
 
 model PatrimonioEscala {
-  id        String  @id
-  tramo     Int
-  desdeEur  Decimal @db.Decimal(14, 2)
-  hastaEur  Decimal?
-  tipoPct   Decimal @db.Decimal(5, 3)
-  territorio String? @default("Estatal")
-  taxYear   Int?
-  sourceId  String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status    String  @default("OFFICIAL_UNVERIFIED")
+  id         String        @id
+  tramo      Int
+  desdeEur   Decimal       @db.Decimal(14, 2)
+  hastaEur   Decimal?
+  tipoPct    Decimal       @db.Decimal(5, 3)
+  territorio String?       @default("Estatal")
+  taxYear    Int?
+  sourceId   String?
+  source     FiscalSource? @relation(fields: [sourceId], references: [id])
+  status     String        @default("OFFICIAL_UNVERIFIED")
 
   @@unique([tramo, territorio, taxYear])
   @@map("patrimonio_escala_estatal")
 }
 
 model Sancion {
-  id             String  @id
-  norma          String // LGT | RGAT | ...
-  articulo       String?
-  tipoInfraccion String
-  gravedad       String? // LEVE | GRAVE | MUY_GRAVE
-  sancionFija    String?
+  id                String        @id
+  norma             String // LGT | RGAT | ...
+  articulo          String?
+  tipoInfraccion    String
+  gravedad          String? // LEVE | GRAVE | MUY_GRAVE
+  sancionFija       String?
   sancionProporcion String? // "50%â€“100% de lo no ingresado"
-  reduccion      String?
-  recargo        String?
-  aplazamiento   String?
-  notas          String?
-  fuenteTexto    String?
-  sourceClass    String?
-  taxYear        Int?
-  sourceId       String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status         String  @default("SECONDARY_SOURCE")
+  reduccion         String?
+  recargo           String?
+  aplazamiento      String?
+  notas             String?
+  fuenteTexto       String?
+  sourceClass       String?
+  taxYear           Int?
+  sourceId          String?
+  source            FiscalSource? @relation(fields: [sourceId], references: [id])
+  status            String        @default("SECONDARY_SOURCE")
 
   @@map("sanciones")
 }
 
 model AmortizacionDietaKm {
-  id         String  @id
-  categoria  String // AMORTIZACION | DIETAS | KM
-  concepto   String
-  valor      Decimal? @db.Decimal(12, 4)
-  valorTexto String?
-  unidad     String? // %/año, €/km, €/día...
-  ambito     String?
-  taxYear    Int?
-  notas      String?
+  id          String        @id
+  categoria   String // AMORTIZACION | DIETAS | KM
+  concepto    String
+  valor       Decimal?      @db.Decimal(12, 4)
+  valorTexto  String?
+  unidad      String? // %/año, €/km, €/día...
+  ambito      String?
+  taxYear     Int?
+  notas       String?
   fuenteTexto String?
-  sourceId   String?
-  source     FiscalSource? @relation(fields: [sourceId], references: [id])
-  status     String  @default("OFFICIAL_UNVERIFIED")
+  sourceId    String?
+  source      FiscalSource? @relation(fields: [sourceId], references: [id])
+  status      String        @default("OFFICIAL_UNVERIFIED")
 
   @@map("amortizacion_dietas_km")
 }
 
 model UmbralTamanoEmpresa {
-  id                 String  @id
-  sistema            String // PYME_UE | EMPRESA_REDUCIDA_DIMENSION_IS | AUDITORIA | CONTABILIDAD...
-  criterio           String
-  umbralValor        Decimal? @db.Decimal(14, 2)
-  umbralUnidad       String? // â‚¬ cifra negocio, nÂº empleados...
-  baseLegal          String?
-  taxYear            Int?
-  notas              String?
-  sourceId           String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status             String  @default("OFFICIAL_UNVERIFIED")
+  id           String        @id
+  sistema      String // PYME_UE | EMPRESA_REDUCIDA_DIMENSION_IS | AUDITORIA | CONTABILIDAD...
+  criterio     String
+  umbralValor  Decimal?      @db.Decimal(14, 2)
+  umbralUnidad String? // â‚¬ cifra negocio, nÂº empleados...
+  baseLegal    String?
+  taxYear      Int?
+  notas        String?
+  sourceId     String?
+  source       FiscalSource? @relation(fields: [sourceId], references: [id])
+  status       String        @default("OFFICIAL_UNVERIFIED")
 
   @@map("umbrales_tamano_empresa")
 }
 
 model ReglaTerritorial {
-  id        String @id // JR001...
-  tax       String // IRPF | IVA | IS | ISD | ITP_AJD | PATRIMONIO
-  scope     String // TERRITORIO_COMUN | PAIS_VASCO_NAVARRA | SUCESIONES | INMUEBLE...
-  caseType  String?
-  rule      String
+  id             String        @id // JR001...
+  tax            String // IRPF | IVA | IS | ISD | ITP_AJD | PATRIMONIO
+  scope          String // TERRITORIO_COMUN | PAIS_VASCO_NAVARRA | SUCESIONES | INMUEBLE...
+  caseType       String?
+  rule           String
   jurisdictionId String?
   jurisdiction   Jurisdiction? @relation(fields: [jurisdictionId], references: [id])
-  taxYear   Int?
-  sourceId  String?
-  source           FiscalSource? @relation(fields: [sourceId], references: [id])
-  status    String @default("OFFICIAL_UNVERIFIED")
+  taxYear        Int?
+  sourceId       String?
+  source         FiscalSource? @relation(fields: [sourceId], references: [id])
+  status         String        @default("OFFICIAL_UNVERIFIED")
 
   @@map("reglas_territoriales")
 }
@@ -728,23 +733,23 @@ model ReglaTerritorial {
 // =============================================================
 
 model ImportRun {
-  id          String   @id @default(cuid()) // run_id
-  file        String
-  sheet       String?
-  rowsRead    Int      @default(0)
-  rowsInserted Int     @default(0)
-  rowsUpdated Int      @default(0)
-  rowsRejected Int     @default(0)
-  errorsJson  Json?
-  startedAt   DateTime @default(now())
-  finishedAt  DateTime?
+  id           String    @id @default(cuid()) // run_id
+  file         String
+  sheet        String?
+  rowsRead     Int       @default(0)
+  rowsInserted Int       @default(0)
+  rowsUpdated  Int       @default(0)
+  rowsRejected Int       @default(0)
+  errorsJson   Json?
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
 
   @@index([file])
   @@map("import_log")
 }
 
 model DataQualityError {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   runId      String
   sourceFile String
   rowNumber  Int?
@@ -752,23 +757,23 @@ model DataQualityError {
   value      String?
   errorCode  String
   message    String
-  severity   String   @default("ERROR") // ERROR | WARNING
-  resolved   Boolean  @default(false)
+  severity   String  @default("ERROR") // ERROR | WARNING
+  resolved   Boolean @default(false)
 
   @@index([runId])
   @@map("data_quality_errors")
 }
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  perfilId   String
-  perfil     Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  accion     String   // 'crear' | 'editar' | 'eliminar' | 'cambio_estado'
-  entidad    String   // 'factura' | 'propiedad' | 'nomina' | 'alumno' | 'suscripcion'
-  entidadId  String?
-  detalle    String?  // descripción legible de la acción
-  meta       String?  // JSON con datos adicionales (campos cambiados, estado anterior/nuevo)
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  perfilId  String
+  perfil    Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  accion    String // 'crear' | 'editar' | 'eliminar' | 'cambio_estado'
+  entidad   String // 'factura' | 'propiedad' | 'nomina' | 'alumno' | 'suscripcion'
+  entidadId String?
+  detalle   String? // descripción legible de la acción
+  meta      String? // JSON con datos adicionales (campos cambiados, estado anterior/nuevo)
+  createdAt DateTime @default(now())
 
   @@index([perfilId])
   @@index([createdAt])
