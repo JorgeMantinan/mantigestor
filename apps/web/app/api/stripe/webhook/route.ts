@@ -128,7 +128,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ received: true })
-  } catch {
-    return NextResponse.json({ error: 'Error del servidor' }, { status: 500 })
+  } catch (err) {
+    console.error('Webhook error:', err)
+    return NextResponse.json({ received: true, error: 'Internal error' }, { status: 200 })
   }
 }
