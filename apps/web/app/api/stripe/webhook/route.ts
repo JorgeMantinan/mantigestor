@@ -78,6 +78,21 @@ export async function POST(req: Request) {
         const subscriptionId = invoice.subscription as string
 
         if (subscriptionId) {
+          const existing = await getSupabaseAdmin()
+            .from('suscripciones')
+            .select('id, estado')
+            .eq('providerSubscriptionId', subscriptionId)
+            .maybeSingle()
+
+          if (!existing.data) {
+            console.error('No subscription found for invoice.paid, subscriptionId:', subscriptionId)
+            break
+          }
+
+          if (existing.data.estado === 'active') {
+            break
+          }
+
           const subscription = await stripe.subscriptions.retrieve(subscriptionId)
 
           const { error: updateError } = await getSupabaseAdmin()
@@ -88,6 +103,7 @@ export async function POST(req: Request) {
               estado: 'active',
             })
             .eq('providerSubscriptionId', subscriptionId)
+            .eq('id', existing.data.id)
 
           if (updateError) {
             console.error('Failed to update subscription on invoice.paid:', updateError)
@@ -115,10 +131,26 @@ export async function POST(req: Request) {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as import('stripe').Stripe.Subscription
 
+        const existing = await getSupabaseAdmin()
+          .from('suscripciones')
+          .select('id, estado')
+          .eq('providerSubscriptionId', subscription.id)
+          .maybeSingle()
+
+        if (!existing.data) {
+          console.error('No subscription found for subscription.deleted, id:', subscription.id)
+          break
+        }
+
+        if (existing.data.estado === 'canceled') {
+          break
+        }
+
         const { error: updateError } = await getSupabaseAdmin()
           .from('suscripciones')
           .update({ estado: 'canceled' })
           .eq('providerSubscriptionId', subscription.id)
+          .eq('id', existing.data.id)
 
         if (updateError) {
           console.error('Failed to cancel subscription:', updateError)

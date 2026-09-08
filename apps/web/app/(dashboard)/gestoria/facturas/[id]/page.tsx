@@ -4,33 +4,30 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { FileMinus, FilePlus, ArrowUpRight } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, Pencil, Trash2, Download, Mail, FileMinus, FilePlus, ArrowUpRight } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { enviarFacturaPorEmail } from '@/lib/factura-email'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useParsearVoz } from '@/hooks/use-parsear-voz'
-import { VoiceInput } from '@/components/facturas/voice-input'
 import { logAccion } from '@/lib/audit-log'
 import { descargarFacturaXML } from '@/lib/factura-xml'
-import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
-import { generarFacturaClientePDF, NOMBRES_PLANTILLAS, type PlantillaFactura } from '@/lib/factura-cliente-pdf'
-import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
+import { generarFacturaClientePDF, type PlantillaFactura } from '@/lib/factura-cliente-pdf'
 import { TimelineFactura } from '@/components/timeline-factura'
 import { MOEDAS, formatoMoneda, obtenerTasaCambio } from '@/lib/divisas'
-import { SelectorMoneda } from '@/components/selector-moneda'
-import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, serializarTags, obtenerNombreTag } from '@/lib/tags'
-import { obtenerPlantillas, renderPlantilla, type PlantillaEmail } from '@/lib/plantillas-email'
-import { EmailPreview } from '@/components/email-preview'
+import { parsearTags, serializarTags, obtenerColorTag, obtenerNombreTag } from '@/lib/tags'
+import { obtenerPlantillas, renderPlantilla } from '@/lib/plantillas-email'
 import { calcularDescuento, formatoDescuento } from '@/lib/descuento-factura'
 import { useLanguage } from '@/contexts/language-context'
 import { crearRectificativa, obtenerRectificativas, calcularImporteMaximo, esNotaCredito, esNotaDebito, type RectificativaData, type TipoRectificativa } from '@/lib/rectificativa'
-import { obtenerPagos, calcularSaldoPendiente, estaPagada, registrarPago, METODOS_PAGO, type PagoParcial } from '@/lib/pago-parcial'
+import { obtenerPagos, calcularSaldoPendiente, registrarPago, METODOS_PAGO, type PagoParcial } from '@/lib/pago-parcial'
+import { FacturaHeader } from '@/components/facturas/factura-header'
+import { FacturaForm } from '@/components/facturas/factura-form'
+import { FacturaEmailPreview } from '@/components/facturas/factura-email-preview'
 
 interface Factura {
   id: string
@@ -357,25 +354,40 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/gestoria/facturas">
-            <Button variant="ghost" size="icon" aria-label={t('facturaDetalle.volverFacturas')}>
-              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-heading font-bold tracking-tight">
-              {t('facturaDetalle.factura')} {factura.numero}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {factura.tipo === 'ingreso' ? t('facturaDetalle.emitida') : t('facturaDetalle.recibida')} —{' '}
-              {new Date(factura.fechaEmision).toLocaleDateString('es-ES')}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <VistaPreviaPlantilla datos={{
+      <FacturaHeader
+        facturaNumero={factura.numero}
+        facturaTipo={factura.tipo}
+        fechaEmision={factura.fechaEmision}
+        plantilla={plantilla}
+        onPlantillaChange={setPlantilla}
+        onEmailOpen={() => {
+          const looksLikeEmail = /@.*\./.test(factura.emisorReceptor)
+          setEmailDestino(looksLikeEmail ? factura.emisorReceptor : '')
+          const plantillas = obtenerPlantillas()
+          const defaultPlantilla = plantillas.find(p => p.id === 'envio-factura') ?? plantillas[0]
+          if (defaultPlantilla) {
+            const { asunto, cuerpo } = renderPlantilla(defaultPlantilla, {
+              numero: factura.numero,
+              emisorReceptor: factura.emisorReceptor,
+              nifContraparte: factura.nifContraparte,
+              fechaEmision: factura.fechaEmision,
+              baseImponible: factura.baseImponible,
+              iva: factura.iva,
+              total: factura.total,
+              tipo: factura.tipo,
+            }, {
+              nombre: perfil?.nombre ?? null,
+              empresa_nombre: perfil?.empresa_nombre ?? null,
+            })
+            setPlantillaEmailId('envio-factura')
+            setAsuntoEmail(asunto)
+            setCuerpoEmail(cuerpo)
+          }
+          setEmailDialogOpen(true)
+        }}
+        onPdfDownload={() => {
+          void logAccion('crear', 'factura', factura.id, `PDF descargado para factura ${factura.numero}`, { tipo: 'pdf_descargada' })
+          void generarFacturaClientePDF({
             numero: factura.numero,
             emisorReceptor: factura.emisorReceptor,
             nifContraparte: factura.nifContraparte,
@@ -389,116 +401,54 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             empresaNif: perfil?.empresa_nif ?? undefined,
             notas: notas || null,
             descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
+            pagosParciales: pagosParciales.length > 0 ? pagosParciales : undefined,
             logoBase64: perfil?.logoBase64 ?? undefined,
-          }} />
-          <select value={plantilla} onChange={(e) => setPlantilla(e.target.value as PlantillaFactura)} className="h-8 rounded border border-input bg-background px-2 text-xs">
-            {(Object.entries(NOMBRES_PLANTILLAS) as Array<[PlantillaFactura, string]>).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </select>
-          <Button variant="outline" size="sm" onClick={() => {
-            const looksLikeEmail = /@.*\./.test(factura.emisorReceptor)
-            setEmailDestino(looksLikeEmail ? factura.emisorReceptor : '')
-            const plantillas = obtenerPlantillas()
-            const defaultPlantilla = plantillas.find(p => p.id === 'envio-factura') ?? plantillas[0]
-            if (defaultPlantilla) {
-              const { asunto, cuerpo } = renderPlantilla(defaultPlantilla, {
-                numero: factura.numero,
-                emisorReceptor: factura.emisorReceptor,
-                nifContraparte: factura.nifContraparte,
-                fechaEmision: factura.fechaEmision,
-                baseImponible: factura.baseImponible,
-                iva: factura.iva,
-                total: factura.total,
-                tipo: factura.tipo,
-              }, {
-                nombre: perfil?.nombre ?? null,
-                empresa_nombre: perfil?.empresa_nombre ?? null,
-              })
-              setPlantillaEmailId('envio-factura')
-              setAsuntoEmail(asunto)
-              setCuerpoEmail(cuerpo)
-            }
-            setEmailDialogOpen(true)
-          }}>
-            <Mail className="mr-2 h-4 w-4" />
-            {t('facturaDetalle.enviarPorEmail')}
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => {
-            void logAccion('crear', 'factura', factura.id, `PDF descargado para factura ${factura.numero}`, { tipo: 'pdf_descargada' })
-            void generarFacturaClientePDF({
+            firmaBase64: perfil?.firmaBase64 ?? undefined,
+            qrUrl: `${window.location.origin}/factura?token=${factura.id}`,
+            idioma: (perfil?.idiomaFactura as 'es' | 'en') ?? 'es',
+          }, plantilla)
+        }}
+        onXmlDownload={() => {
+          void logAccion('crear', 'factura', factura.id, `XML descargado para factura ${factura.numero}`, { tipo: 'xml_descargado' })
+          descargarFacturaXML(
+            {
               numero: factura.numero,
+              fechaEmision: factura.fechaEmision,
               emisorReceptor: factura.emisorReceptor,
               nifContraparte: factura.nifContraparte,
-              fechaEmision: factura.fechaEmision,
               baseImponible: factura.baseImponible,
               iva: factura.iva,
               total: factura.total,
               tipo: factura.tipo,
-              empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
-              empresaDireccion: perfil?.empresa_direccion ?? undefined,
-              empresaNif: perfil?.empresa_nif ?? undefined,
-              notas: notas || null,
-              descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
-              pagosParciales: pagosParciales.length > 0 ? pagosParciales : undefined,
-              logoBase64: perfil?.logoBase64 ?? undefined,
-              firmaBase64: perfil?.firmaBase64 ?? undefined,
-              qrUrl: `${window.location.origin}/factura?token=${factura.id}`,
-              idioma: (perfil?.idiomaFactura as 'es' | 'en') ?? 'es',
-            }, plantilla)
-          }}>
-            <Download className="mr-2 h-4 w-4" />
-            {t('facturaDetalle.descargarPdf')}
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => {
-            void logAccion('crear', 'factura', factura.id, `XML descargado para factura ${factura.numero}`, { tipo: 'xml_descargado' })
-            descargarFacturaXML(
-              {
-                numero: factura.numero,
-                fechaEmision: factura.fechaEmision,
-                emisorReceptor: factura.emisorReceptor,
-                nifContraparte: factura.nifContraparte,
-                baseImponible: factura.baseImponible,
-                iva: factura.iva,
-                total: factura.total,
-                tipo: factura.tipo,
-                notas,
-              },
-              {
-                nombre: perfil?.empresa_nombre ?? perfil?.nombre ?? null,
-                nif: perfil?.empresa_nif ?? null,
-                direccion: perfil?.empresa_direccion ?? null,
-                email: perfil?.email ?? null,
-              }
-            )
-          }}>
-            <Download className="mr-2 h-4 w-4" />
-            {t('facturaDetalle.descargarXml')}
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setEditing(!editing)}>
-            <Pencil className="mr-2 h-4 w-4" />
-            {t('facturaDetalle.editar')}
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm">
-                <Trash2 className="mr-2 h-4 w-4" />
-                {t('facturaDetalle.eliminar')}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t('facturaDetalle.eliminarTitle')}</AlertDialogTitle>
-                <AlertDialogDescription>{t('facturaDetalle.eliminarDesc')}</AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{t('facturaDetalle.cancelar')}</AlertDialogCancel>
-                <AlertDialogAction onClick={() => void handleDelete()}>{t('facturaDetalle.eliminar')}</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </div>
+              notas,
+            },
+            {
+              nombre: perfil?.empresa_nombre ?? perfil?.nombre ?? null,
+              nif: perfil?.empresa_nif ?? null,
+              direccion: perfil?.empresa_direccion ?? null,
+              email: perfil?.email ?? null,
+            }
+          )
+        }}
+        onEditToggle={() => setEditing(!editing)}
+        onDelete={() => void handleDelete()}
+        vistaPreviaDatos={{
+          numero: factura.numero,
+          emisorReceptor: factura.emisorReceptor,
+          nifContraparte: factura.nifContraparte,
+          fechaEmision: factura.fechaEmision,
+          baseImponible: factura.baseImponible,
+          iva: factura.iva,
+          total: factura.total,
+          tipo: factura.tipo,
+          empresaNombre: perfil?.empresa_nombre ?? perfil?.nombre ?? undefined,
+          empresaDireccion: perfil?.empresa_direccion ?? undefined,
+          empresaNif: perfil?.empresa_nif ?? undefined,
+          notas: notas || null,
+          descuentoPorcentaje: factura.descuentoPorcentaje ?? 0,
+          logoBase64: perfil?.logoBase64 ?? undefined,
+        }}
+      />
 
       <Card>
         <CardHeader>
@@ -511,257 +461,40 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         </CardHeader>
         <CardContent>
           {editing ? (
-            <form ref={formRef} onSubmit={handleSave} className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="tipo">{t('facturaDetalle.tipo')}</Label>
-                  <select
-                    id="tipo"
-                    name="tipo"
-                    defaultValue={factura.tipo}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value="ingreso">{t('facturaDetalle.tipoIngreso')}</option>
-                    <option value="gasto">{t('facturaDetalle.tipoGasto')}</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="numero">{t('facturaDetalle.numeroFactura')}</Label>
-                  <Input id="numero" name="numero" defaultValue={factura.numero} required />
-                </div>
-              </div>
-              {factura.tipo === 'gasto' && (
-                <div className="space-y-2">
-                  <Label>{t('facturaDetalle.categoriaGasto')}</Label>
-                  <input type="hidden" name="categoriaGasto" value={categoriaGasto ?? ''} />
-                  <CategoriaGastoPicker value={categoriaGasto} onChange={setCategoriaGasto} />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="moneda-edit">{t('facturaDetalle.moneda')}</Label>
-                <SelectorMoneda
-                  id="moneda-edit"
-                  value={monedaEdit}
-                  onChange={async (nuevaMoneda) => {
-                    setMonedaEdit(nuevaMoneda)
-                    if (nuevaMoneda === 'EUR') {
-                      setTipoCambioEdit(1)
-                      return
-                    }
-                    setCargandoTasaEdit(true)
-                    const tasa = await obtenerTasaCambio(nuevaMoneda, 'EUR')
-                    setTipoCambioEdit(tasa)
-                    setCargandoTasaEdit(false)
-                  }}
-                />
-              </div>
-              {monedaEdit !== 'EUR' && (
-                <div className="space-y-2">
-                  <Label htmlFor="tipoCambio-edit">{t('facturaDetalle.tipoCambio')} ({monedaEdit} → EUR)</Label>
-                  <Input
-                    id="tipoCambio-edit"
-                    type="number"
-                    step="0.0001"
-                    value={tipoCambioEdit}
-                    onChange={(e) => setTipoCambioEdit(parseFloat(e.target.value) || 1)}
-                    disabled={cargandoTasaEdit}
-                  />
-                  {cargandoTasaEdit && <p className="text-xs text-muted-foreground">{t('facturaDetalle.cargandoTasa')}</p>}
-                </div>
-              )}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="emisorReceptor">{t('facturaDetalle.contraparte')}</Label>
-                  <Input id="emisorReceptor" name="emisorReceptor" defaultValue={factura.emisorReceptor} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="nifContraparte">{t('facturaDetalle.nifCif')}</Label>
-                  <Input id="nifContraparte" name="nifContraparte" defaultValue={factura.nifContraparte ?? ''} />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="fechaEmision">{t('facturaDetalle.fechaEmision')}</Label>
-                  <Input id="fechaEmision" name="fechaEmision" type="date" defaultValue={factura.fechaEmision?.split('T')[0]} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fechaVencimiento">{t('facturaDetalle.fechaVencimiento')}</Label>
-                  <Input id="fechaVencimiento" name="fechaVencimiento" type="date" defaultValue={factura.fechaVencimiento?.split('T')[0] ?? ''} />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="baseImponible">{t('facturaDetalle.baseImponible')} ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
-                  <Input id="baseImponible" name="baseImponible" type="number" step="0.01" defaultValue={(factura.baseImponible / 100).toFixed(2)} required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="iva">{t('facturaDetalle.ivaPorcentaje')}</Label>
-                  <select
-                    id="iva"
-                    name="iva"
-                    defaultValue={factura.iva}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    {[21, 10, 4, 0].map((t) => (
-                      <option key={t} value={t}>{t}%</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="total">{t('facturaDetalle.total')} ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
-                  <Input id="total" disabled value={(factura.total / 100).toFixed(2)} />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="descuentoPorcentaje">{t('facturaDetalle.descuentoPorcentaje')}</Label>
-                  <Input
-                    id="descuentoPorcentaje"
-                    name="descuentoPorcentaje"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.5"
-                    value={descuentoPorcentajeEdit}
-                    onChange={(e) => setDescuentoPorcentajeEdit(parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-                {descuentoPorcentajeEdit > 0 && (
-                  <div className="space-y-2">
-                    <Label>{t('facturaDetalle.importeDescuento')} ({MOEDAS.find(m => m.code === monedaEdit)?.symbol ?? '€'})</Label>
-                    <Input
-                      disabled
-                      value={`-${formatoMoneda(calcularDescuento(factura.baseImponible, descuentoPorcentajeEdit) / 100, monedaEdit)}`}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="notas">{t('facturaDetalle.notasInternas')}</Label>
-                <textarea
-                  id="notas"
-                  value={notas}
-                  onChange={(e) => setNotas(e.target.value)}
-                  placeholder={t('facturaDetalle.placeholderNotas')}
-                  rows={3}
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t('facturaDetalle.etiquetas')}</Label>
-                <div className="relative" ref={tagsDropdownRef}>
-                  <button
-                    type="button"
-                    onClick={() => setMostrarTagsDropdown(!mostrarTagsDropdown)}
-                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <span className={tagsSeleccionados.length === 0 ? 'text-muted-foreground' : ''}>
-                      {tagsSeleccionados.length === 0 ? t('facturaDetalle.seleccionarEtiquetas') : `${tagsSeleccionados.length} ${t('facturaDetalle.etiquetasCount')}`}
-                    </span>
-                    <svg className="h-4 w-4 opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                  </button>
-                  {mostrarTagsDropdown && (
-                    <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover p-2 shadow-md">
-                      <div className="max-h-60 overflow-y-auto space-y-1">
-                        {TAGS_PREDEFINIDOS.map(tag => (
-                          <label key={tag.id} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent">
-                            <input
-                              type="checkbox"
-                              className="rounded border-input"
-                              checked={tagsSeleccionados.includes(tag.id)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setTagsSeleccionados(prev => [...prev, tag.id])
-                                } else {
-                                  setTagsSeleccionados(prev => prev.filter(t => t !== tag.id))
-                                }
-                              }}
-                            />
-                            <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: tag.color }} />
-                            {tag.nombre}
-                          </label>
-                        ))}
-                      </div>
-                      <div className="mt-2 border-t pt-2">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder={t('facturaDetalle.etiquetaPersonalizada')}
-                            value={nuevoTagCustom}
-                            onChange={(e) => setNuevoTagCustom(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault()
-                                const val = nuevoTagCustom.trim().toLowerCase().replace(/\s+/g, '-')
-                                if (val && !tagsSeleccionados.includes(val)) {
-                                  setTagsSeleccionados(prev => [...prev, val])
-                                  setNuevoTagCustom('')
-                                }
-                              }
-                            }}
-                            className="flex-1 rounded-md border border-input bg-background px-2 py-1 text-sm"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const val = nuevoTagCustom.trim().toLowerCase().replace(/\s+/g, '-')
-                              if (val && !tagsSeleccionados.includes(val)) {
-                                setTagsSeleccionados(prev => [...prev, val])
-                                setNuevoTagCustom('')
-                              }
-                            }}
-                          >
-                            {t('facturaDetalle.annadir')}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {tagsSeleccionados.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {tagsSeleccionados.map(tagId => (
-                      <span
-                        key={tagId}
-                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                        style={{ backgroundColor: obtenerColorTag(tagId) }}
-                      >
-                        {obtenerNombreTag(tagId)}
-                        <button
-                          type="button"
-                          onClick={() => setTagsSeleccionados(prev => prev.filter(t => t !== tagId))}
-                          className="ml-0.5 rounded-full hover:bg-white/20 h-3.5 w-3.5 flex items-center justify-center"
-                          aria-label={`Quitar ${obtenerNombreTag(tagId)}`}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-4 pt-4">
-                <Button variant="outline" type="button" onClick={() => setEditing(false)} className="flex-1">
-                  {t('facturaDetalle.cancelar')}
-                </Button>
-                <Button type="submit" disabled={saving} className="flex-1">
-                  {saving ? t('facturaDetalle.guardando') : t('facturaDetalle.guardarCambios')}
-                </Button>
-              </div>
-
-              {speech.soportado && (
-                <div className="rounded-md border p-3">
-                  <VoiceInput
-                    speech={speech}
-                    parseandoVoz={parseandoVoz}
-                    onParsear={handleParsearVoz}
-                    compact
-                  />
-                </div>
-              )}
-            </form>
+            <FacturaForm
+              factura={factura}
+              categoriaGasto={categoriaGasto}
+              onCategoriaGastoChange={setCategoriaGasto}
+              monedaEdit={monedaEdit}
+              onMonedaChange={setMonedaEdit}
+              tipoCambioEdit={tipoCambioEdit}
+              onTipoCambioChange={setTipoCambioEdit}
+              cargandoTasaEdit={cargandoTasaEdit}
+              descuentoPorcentajeEdit={descuentoPorcentajeEdit}
+              onDescuentoChange={setDescuentoPorcentajeEdit}
+              notas={notas}
+              onNotasChange={setNotas}
+              tagsSeleccionados={tagsSeleccionados}
+              onTagsChange={setTagsSeleccionados}
+              mostrarTagsDropdown={mostrarTagsDropdown}
+              onToggleTagsDropdown={() => setMostrarTagsDropdown(!mostrarTagsDropdown)}
+              tagsDropdownRef={tagsDropdownRef}
+              nuevoTagCustom={nuevoTagCustom}
+              onNuevoTagCustomChange={setNuevoTagCustom}
+              onAddCustomTag={() => {
+                const val = nuevoTagCustom.trim().toLowerCase().replace(/\s+/g, '-')
+                if (val && !tagsSeleccionados.includes(val)) {
+                  setTagsSeleccionados(prev => [...prev, val])
+                  setNuevoTagCustom('')
+                }
+              }}
+              speech={speech}
+              parseandoVoz={parseandoVoz}
+              onParsearVoz={handleParsearVoz}
+              onSave={handleSave}
+              onCancel={() => setEditing(false)}
+              saving={saving}
+            />
           ) : (
             <dl className="grid grid-cols-2 gap-4 text-sm">
               <div>
@@ -1156,98 +889,32 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         </DialogContent>
       </Dialog>
 
-      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t('facturaDetalle.enviarEmailTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('facturaDetalle.enviarEmailDesc')} {factura.numero} {t('facturaDetalle.comoPdf')}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email-destino">{t('facturaDetalle.direccionEmail')}</Label>
-              <Input
-                id="email-destino"
-                type="email"
-                placeholder="ejemplo@email.com"
-                value={emailDestino}
-                onChange={(e) => setEmailDestino(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email-plantilla-tipo">{t('facturaDetalle.plantillaEmail')}</Label>
-              <select
-                id="email-plantilla-tipo"
-                value={plantillaEmailId}
-                onChange={(e) => {
-                  const id = e.target.value
-                  setPlantillaEmailId(id)
-                  const plantillas = obtenerPlantillas()
-                  const seleccionada = plantillas.find(p => p.id === id)
-                  if (seleccionada && factura && perfil) {
-                    const { asunto, cuerpo } = renderPlantilla(seleccionada, {
-                      numero: factura.numero,
-                      emisorReceptor: factura.emisorReceptor,
-                      nifContraparte: factura.nifContraparte,
-                      fechaEmision: factura.fechaEmision,
-                      baseImponible: factura.baseImponible,
-                      iva: factura.iva,
-                      total: factura.total,
-                      tipo: factura.tipo,
-                    }, {
-                      nombre: perfil.nombre,
-                      empresa_nombre: perfil.empresa_nombre,
-                    })
-                    setAsuntoEmail(asunto)
-                    setCuerpoEmail(cuerpo)
-                  }
-                }}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                {obtenerPlantillas().map(p => (
-                  <option key={p.id} value={p.id}>{p.nombre}</option>
-                ))}
-              </select>
-            </div>
-            {factura && perfil && (() => {
-              const plantillas = obtenerPlantillas()
-              const plantillaActual = plantillas.find(p => p.id === plantillaEmailId) ?? plantillas[0]
-              if (!plantillaActual) return null
-              const datosFactura = {
-                numero: factura.numero,
-                emisorReceptor: factura.emisorReceptor,
-                nifContraparte: factura.nifContraparte,
-                fechaEmision: factura.fechaEmision,
-                baseImponible: factura.baseImponible,
-                iva: factura.iva,
-                total: factura.total,
-                tipo: factura.tipo,
-              }
-              const datosPerfil = { nombre: perfil.nombre, empresa_nombre: perfil.empresa_nombre }
-              const renderDefault = renderPlantilla(plantillaActual, datosFactura, datosPerfil)
-              return (
-                <EmailPreview
-                  plantilla={plantillaActual}
-                  asuntoRenderizado={asuntoEmail || renderDefault.asunto}
-                  cuerpoRenderizado={cuerpoEmail || renderDefault.cuerpo}
-                  onAsuntoChange={setAsuntoEmail}
-                  onCuerpoChange={setCuerpoEmail}
-                  editable
-                />
-              )
-            })()}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEmailDialogOpen(false)} disabled={enviandoEmail}>
-              {t('facturaDetalle.cancelar')}
-            </Button>
-            <Button onClick={() => void handleEnviarEmail()} disabled={!emailDestino || enviandoEmail}>
-              {enviandoEmail ? t('facturaDetalle.enviando') : t('facturaDetalle.enviarEmail')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FacturaEmailPreview
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        facturaNumero={factura.numero}
+        emailDestino={emailDestino}
+        onEmailDestinoChange={setEmailDestino}
+        plantillaEmailId={plantillaEmailId}
+        onPlantillaEmailIdChange={setPlantillaEmailId}
+        asuntoEmail={asuntoEmail}
+        onAsuntoEmailChange={setAsuntoEmail}
+        cuerpoEmail={cuerpoEmail}
+        onCuerpoEmailChange={setCuerpoEmail}
+        enviando={enviandoEmail}
+        onSend={() => void handleEnviarEmail()}
+        datosFactura={{
+          numero: factura.numero,
+          emisorReceptor: factura.emisorReceptor,
+          nifContraparte: factura.nifContraparte,
+          fechaEmision: factura.fechaEmision,
+          baseImponible: factura.baseImponible,
+          iva: factura.iva,
+          total: factura.total,
+          tipo: factura.tipo,
+        }}
+        perfil={perfil ? { nombre: perfil.nombre, empresa_nombre: perfil.empresa_nombre } : null}
+      />
     </div>
   )
 }
