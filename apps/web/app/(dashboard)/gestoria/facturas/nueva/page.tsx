@@ -25,12 +25,14 @@ import { obtenerNotasPieDefecto } from '@/lib/notas-pie-factura'
 import { logAccion } from '@/lib/audit-log'
 import { calcularDescuento } from '@/lib/descuento-factura'
 import { useLanguage } from '@/contexts/language-context'
+import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
 export default function NuevaFacturaPage() {
   const router = useRouter()
   const { t } = useLanguage()
+  const { empresaActiva } = useEmpresaActiva()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
@@ -224,6 +226,7 @@ export default function NuevaFacturaPage() {
       moneda,
       tipoCambio,
       descuentoPorcentaje,
+      empresaId: empresaActiva?.id ?? null,
     })
 
     if (insertError) {

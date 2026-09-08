@@ -22,6 +22,7 @@ import { detectarDuplicados, verificarPoliticaGasto } from '@mantigestor/utils'
 import { MOEDAS, formatoMoneda } from '@/lib/divisas'
 import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, obtenerNombreTag } from '@/lib/tags'
 import { useLanguage } from '@/contexts/language-context'
+import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
 
 interface Factura {
   id: string
@@ -60,6 +61,7 @@ export default function FacturasPage() {
   const [mostrarFiltroTag, setMostrarFiltroTag] = useState(false)
   const filtroTagRef = useRef<HTMLDivElement>(null)
   const { t } = useLanguage()
+  const { empresaActiva } = useEmpresaActiva()
   const searchRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
@@ -85,15 +87,19 @@ export default function FacturasPage() {
     setLoading(true)
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) { setLoading(false); return }
-    const { data, error } = await getSupabase()
+    let query = getSupabase()
       .from('facturas')
       .select('*')
       .eq('perfilId', user.id)
       .order('fechaEmision', { ascending: false })
       .range(0, 499)
+    if (empresaActiva?.id) {
+      query = query.eq('empresaId', empresaActiva.id)
+    }
+    const { data, error } = await query
     if (!error && data) setFacturas(data as Factura[])
     setLoading(false)
-  }, [getSupabase])
+  }, [getSupabase, empresaActiva?.id])
 
   useEffect(() => { fetchFacturas() }, [fetchFacturas])
 

@@ -12,6 +12,7 @@ import Image from 'next/image'
 import { toast } from 'sonner'
 import { OcrBatchResults, type ResultadoOcrLote } from '@/components/ocr-batch-results'
 import { useLanguage } from '@/contexts/language-context'
+import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
 
 interface Documento {
   id: string
@@ -58,6 +59,7 @@ export default function DocumentosPage() {
   const [resultadosLote, setResultadosLote] = useState<ResultadoOcrLote[] | null>(null)
   const [dialogAbierto, setDialogAbierto] = useState(false)
   const getSupabase = useCallback(() => createClient(), [])
+  const { empresaActiva } = useEmpresaActiva()
 
   const tipoLabel = useCallback((tipo: string) => {
     const key = `documentosTipo.${tipo}` as 'documentosTipo.factura'
@@ -69,17 +71,22 @@ export default function DocumentosPage() {
       const { data: { user } } = await getSupabase().auth.getUser()
       if (!user) { setCargando(false); return }
 
-      const { data } = await getSupabase()
+      let query = getSupabase()
         .from('documentos')
         .select('*')
         .eq('perfilId', user.id)
         .order('subidoEn', { ascending: false })
+      if (empresaActiva?.id) {
+        query = query.eq('empresaId', empresaActiva.id)
+      }
+
+      const { data } = await query
 
       if (data) setDocumentos(data as Documento[])
       setCargando(false)
     }
     cargar()
-  }, [getSupabase])
+  }, [getSupabase, empresaActiva?.id])
 
   const eliminar = async (doc: Documento) => {
     await getSupabase().from('documentos').delete().eq('id', doc.id)

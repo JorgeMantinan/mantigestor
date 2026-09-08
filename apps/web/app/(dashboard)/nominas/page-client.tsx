@@ -16,6 +16,7 @@ import { descargarCsv } from '@/lib/descargar-csv'
 import { descargarExcel } from '@/lib/descargar-excel'
 import { generarNominaPDF } from '@/lib/nomina-pdf'
 import { useLanguage } from '@/contexts/language-context'
+import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
 
 type OrdenCampo = 'empleada' | 'mes' | 'salarioBruto' | 'neto'
 type OrdenDireccion = 'asc' | 'desc'
@@ -53,6 +54,7 @@ export default function NominasPage() {
   const searchRef = useRef<HTMLInputElement>(null)
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
+  const { empresaActiva } = useEmpresaActiva()
 
   useKeyboardShortcuts({
     onSearch: () => searchRef.current?.focus(),
@@ -70,17 +72,22 @@ export default function NominasPage() {
       const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
       if (!perfil) return
 
-      const { data } = await supabase
+      let query = supabase
         .from('nominas')
         .select('*')
         .eq('perfilId', perfil.id)
         .eq('anyo', anyoFiltro)
         .order('mes', { ascending: false })
+      if (empresaActiva?.id) {
+        query = query.eq('empresaId', empresaActiva.id)
+      }
+
+      const { data } = await query
 
       if (data) setNominas(data as Nomina[])
     }
     init()
-  }, [getSupabase, anyoFiltro])
+  }, [getSupabase, anyoFiltro, empresaActiva?.id])
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

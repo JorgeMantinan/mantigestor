@@ -15,6 +15,7 @@ import { descargarCsv } from '@/lib/descargar-csv'
 import { descargarExcel } from '@/lib/descargar-excel'
 import { logAccion } from '@/lib/audit-log'
 import { useLanguage } from '@/contexts/language-context'
+import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
 
 type OrdenCampo = 'direccion' | 'ingresos' | 'gastos' | 'balance'
 type OrdenDir = 'asc' | 'desc'
@@ -53,6 +54,7 @@ export default function AlquilerPage() {
   const searchRef = useRef<HTMLInputElement>(null)
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
+  const { empresaActiva } = useEmpresaActiva()
 
   useKeyboardShortcuts({
     onSearch: () => searchRef.current?.focus(),
@@ -64,11 +66,16 @@ export default function AlquilerPage() {
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) { setCargando(false); return }
 
-    const { data } = await getSupabase()
+    let query = getSupabase()
       .from('propiedades_alquiler')
       .select('*, gastos_alquiler(*)')
       .eq('perfilId', user.id)
       .order('createdAt', { ascending: false })
+    if (empresaActiva?.id) {
+      query = query.eq('empresaId', empresaActiva.id)
+    }
+
+    const { data } = await query
 
     setPropiedades((data ?? []).map((p: Record<string, unknown>) => ({
       id: p.id as string,
@@ -89,7 +96,7 @@ export default function AlquilerPage() {
       })),
     })))
     setCargando(false)
-  }, [getSupabase])
+  }, [getSupabase, empresaActiva?.id])
 
   useEffect(() => { cargar() }, [cargar])
 
