@@ -1295,6 +1295,15 @@ export const es = {
     fechaGeneracion: 'Se genera la factura cuando los gastos del mes superen este importe',
     fechaEspecificaDesc: 'Se genera en el día seleccionado de cada mes',
     saldoBajoDesc: 'Se genera cuando el saldo del banco baje de este importe',
+    editarPlantilla: 'Editar plantilla',
+    editarPlantillaTitle: 'Editar plantilla recurrente',
+    editarPlantillaDesc: 'Modifica los datos de la plantilla {nombre}',
+    guardarCambios: 'Guardar cambios',
+    verHistorial: 'Ver historial',
+    historialTitle: 'Historial de facturas generadas',
+    historialDesc: 'Facturas generadas desde la plantilla {nombre}',
+    sinHistorial: 'No se han generado facturas desde esta plantilla',
+    cerrar: 'Cerrar',
   },
 
   // Factura proforma

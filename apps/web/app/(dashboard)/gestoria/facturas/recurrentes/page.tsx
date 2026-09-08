@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText, Zap, CircleDollarSign, CalendarDays, Wallet, Paperclip, Link as LinkIcon, CreditCard } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Pause, Play, RefreshCw, Download, FileText, Zap, CircleDollarSign, CalendarDays, Wallet, Paperclip, Link as LinkIcon, CreditCard, Pencil, Clock } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { VistaPreviaPlantilla } from '@/components/vista-previa-plantilla'
@@ -128,6 +128,26 @@ export default function FacturasRecurrentesPage() {
   const [editingPlantilla, setEditingPlantilla] = useState<FacturaRecurrente | null>(null)
   const [nuevoAttachmentNombre, setNuevoAttachmentNombre] = useState('')
   const [nuevoAttachmentUrl, setNuevoAttachmentUrl] = useState('')
+
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editPlantilla, setEditPlantilla] = useState<FacturaRecurrente | null>(null)
+  const [editTipo, setEditTipo] = useState('gasto')
+  const [editNumero, setEditNumero] = useState('')
+  const [editEmisorReceptor, setEditEmisorReceptor] = useState('')
+  const [editNifContraparte, setEditNifContraparte] = useState('')
+  const [editBaseImponible, setEditBaseImponible] = useState('')
+  const [editIva, setEditIva] = useState('21')
+  const [editDiaGeneracion, setEditDiaGeneracion] = useState('5')
+  const [editDiaEmail, setEditDiaEmail] = useState('')
+  const [editGuardando, setEditGuardando] = useState(false)
+  const [editError, setEditError] = useState('')
+
+  // History dialog state
+  const [historialOpen, setHistorialOpen] = useState(false)
+  const [historialPlantilla, setHistorialPlantilla] = useState<FacturaRecurrente | null>(null)
+  const [historialFacturas, setHistorialFacturas] = useState<Array<{ id: string; numero: string; emisorReceptor: string; fechaEmision: string; total: number; estado: string }>>([])
+  const [historialLoading, setHistorialLoading] = useState(false)
 
   const ORDER_KEY = 'facturas-recurrentes-orden'
 
@@ -354,6 +374,78 @@ export default function FacturasRecurrentesPage() {
       }
     } finally {
       setCobrandoId(null)
+    }
+  }
+
+  const abrirEdicion = (p: FacturaRecurrente) => {
+    setEditPlantilla(p)
+    setEditTipo(p.tipo)
+    setEditNumero(p.numero)
+    setEditEmisorReceptor(p.emisorReceptor)
+    setEditNifContraparte(p.nifContraparte ?? '')
+    setEditBaseImponible(String(p.baseImponible))
+    setEditIva(String(p.iva))
+    setEditDiaGeneracion(String(p.diaGeneracion))
+    setEditDiaEmail(p.diaEmail != null ? String(p.diaEmail) : '')
+    setEditError('')
+    setEditDialogOpen(true)
+  }
+
+  const guardarEdicion = async () => {
+    if (!editPlantilla || !editNumero || !editEmisorReceptor || !editBaseImponible) {
+      setEditError(t('facturaRecurrente.errorRellenarCampos'))
+      return
+    }
+    setEditGuardando(true)
+    setEditError('')
+    try {
+      const res = await fetch(`/api/facturas/recurrentes/${editPlantilla.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: editTipo,
+          numero: editNumero,
+          emisorReceptor: editEmisorReceptor,
+          nifContraparte: editNifContraparte || null,
+          baseImponible: parseFloat(editBaseImponible),
+          iva: parseInt(editIva),
+          diaGeneracion: parseInt(editDiaGeneracion),
+          diaEmail: editDiaEmail ? parseInt(editDiaEmail) : null,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        setEditError(err.error || t('facturaRecurrente.errorCrear'))
+        setEditGuardando(false)
+        return
+      }
+      setEditDialogOpen(false)
+      await fetchPlantillas()
+    } catch {
+      setEditError(t('facturaRecurrente.errorServidor'))
+    }
+    setEditGuardando(false)
+  }
+
+  const abrirHistorial = async (p: FacturaRecurrente) => {
+    setHistorialPlantilla(p)
+    setHistorialFacturas([])
+    setHistorialOpen(true)
+    setHistorialLoading(true)
+    try {
+      const { data: { user } } = await getSupabase().auth.getUser()
+      if (!user) return
+      const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
+      if (!perfil) return
+      const { data } = await getSupabase()
+        .from('facturas')
+        .select('id, numero, emisorReceptor, fechaEmision, total, estado')
+        .eq('perfilId', perfil.id as string)
+        .like('numero', `${p.numero}-%`)
+        .order('fechaEmision', { ascending: false })
+      setHistorialFacturas((data as Array<{ id: string; numero: string; emisorReceptor: string; fechaEmision: string; total: number; estado: string }>) ?? [])
+    } finally {
+      setHistorialLoading(false)
     }
   }
 
@@ -931,6 +1023,24 @@ export default function FacturasRecurrentesPage() {
                     >
                       <Paperclip className="h-3 w-3" aria-hidden="true" />
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => abrirEdicion(p)}
+                      aria-label={t('facturaRecurrente.editarPlantilla')}
+                    >
+                      <Pencil className="h-3 w-3" aria-hidden="true" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => void abrirHistorial(p)}
+                      aria-label={t('facturaRecurrente.verHistorial')}
+                    >
+                      <Clock className="h-3 w-3" aria-hidden="true" />
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => void toggleActiva(p.id, p.activa)} aria-label={p.activa ? t('facturaRecurrente.desactivarRecurrente') : t('facturaRecurrente.activarRecurrente')}>
                       {p.activa ? <Pause className="h-3 w-3" aria-hidden="true" /> : <Play className="h-3 w-3" aria-hidden="true" />}
                     </Button>
@@ -1048,6 +1158,122 @@ export default function FacturasRecurrentesPage() {
             >
               {t('facturaRecurrente.guardarAdjuntos')}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('facturaRecurrente.editarPlantillaTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('facturaRecurrente.editarPlantillaDesc').replace('{nombre}', editPlantilla?.emisorReceptor ?? '')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>{t('facturaRecurrente.tipo')}</Label>
+                <select value={editTipo} onChange={e => setEditTipo(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  <option value="ingreso">{t('facturaRecurrente.tipoIngreso')}</option>
+                  <option value="gasto">{t('facturaRecurrente.tipoGasto')}</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('facturaRecurrente.numeroFacturaPrefijo')}</Label>
+                <Input value={editNumero} onChange={e => setEditNumero(e.target.value)} placeholder="F-2024-" />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>{t('facturaRecurrente.nombreProveedor')}</Label>
+                <Input value={editEmisorReceptor} onChange={e => setEditEmisorReceptor(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('facturaRecurrente.nifCif')}</Label>
+                <Input value={editNifContraparte} onChange={e => setEditNifContraparte(e.target.value)} />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label>{t('facturaRecurrente.baseImponible')}</Label>
+                <Input type="number" step="0.01" value={editBaseImponible} onChange={e => setEditBaseImponible(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('facturaRecurrente.ivaPorcentaje')}</Label>
+                <select value={editIva} onChange={e => setEditIva(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  {TIPOS_IVA.map(t => <option key={t} value={t}>{t}%</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('facturaRecurrente.diaDelMes')}</Label>
+                <select value={editDiaGeneracion} onChange={e => setEditDiaGeneracion(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('facturaRecurrente.diaAvisoEmail')}</Label>
+              <select value={editDiaEmail} onChange={e => setEditDiaEmail(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                <option value="">{t('facturaRecurrente.sinAviso')}</option>
+                {Array.from({ length: 28 }, (_, i) => i + 1).map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+            {editError && <p className="text-sm text-destructive">{editError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('facturaRecurrente.cancelar')}</Button>
+            <Button onClick={() => void guardarEdicion()} disabled={editGuardando}>
+              {editGuardando ? t('facturaRecurrente.guardando') : t('facturaRecurrente.guardarCambios')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={historialOpen} onOpenChange={setHistorialOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t('facturaRecurrente.historialTitle')}</DialogTitle>
+            <DialogDescription>
+              {t('facturaRecurrente.historialDesc').replace('{nombre}', historialPlantilla?.emisorReceptor ?? '')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {historialLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : historialFacturas.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">
+                {t('facturaRecurrente.sinHistorial')}
+              </p>
+            ) : (
+              <div className="space-y-1.5">
+                {historialFacturas.map(f => (
+                  <div key={f.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{f.numero}</p>
+                      <p className="text-xs text-muted-foreground">{f.emisorReceptor} · {new Date(f.fechaEmision).toLocaleDateString('es-ES')}</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant={f.estado === 'pagada' ? 'default' : 'secondary'} className="text-xs">{f.estado}</Badge>
+                      <span className="text-sm font-medium">{formatMoney(f.total)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHistorialOpen(false)}>{t('facturaRecurrente.cerrar')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

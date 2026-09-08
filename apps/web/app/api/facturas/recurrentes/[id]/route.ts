@@ -24,6 +24,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.diaGeneracion !== undefined) updates.diaGeneracion = body.diaGeneracion
     if (body.diaEmail !== undefined) updates.diaEmail = body.diaEmail
     if (body.notas !== undefined) updates.notas = body.notas
+    if (body.tipo !== undefined) updates.tipo = body.tipo
+    if (body.numero !== undefined) updates.numero = body.numero
+    if (body.emisorReceptor !== undefined) updates.emisorReceptor = body.emisorReceptor
+    if (body.nifContraparte !== undefined) updates.nifContraparte = body.nifContraparte
+    if (body.baseImponible !== undefined) updates.baseImponible = body.baseImponible
+    if (body.iva !== undefined) updates.iva = body.iva
 
     const supabase = await getSupabaseServer(req)
     const { error } = await supabase

@@ -1296,6 +1296,15 @@ export const en: DeepTraducciones = {
     fechaGeneracion: 'The invoice generates when monthly expenses exceed this amount',
     fechaEspecificaDesc: 'Generates on the selected day of each month',
     saldoBajoDesc: 'Generates when the bank balance falls below this amount',
+    editarPlantilla: 'Edit template',
+    editarPlantillaTitle: 'Edit recurring template',
+    editarPlantillaDesc: 'Modify the details of the template {nombre}',
+    guardarCambios: 'Save changes',
+    verHistorial: 'View history',
+    historialTitle: 'Generated invoices history',
+    historialDesc: 'Invoices generated from template {nombre}',
+    sinHistorial: 'No invoices have been generated from this template',
+    cerrar: 'Close',
   },
 
   // Proforma invoice
