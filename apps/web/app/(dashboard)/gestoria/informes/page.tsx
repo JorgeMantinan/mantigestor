@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import { descargarExcel } from '@/lib/descargar-excel'
 import { generarReporteGastosPDF } from '@/lib/reporte-gastos-pdf'
+import { useLanguage } from '@/contexts/language-context'
 import { FileText, Download, Filter } from 'lucide-react'
 import { SELECT_CLS } from '@/lib/ui-constants'
 
@@ -36,15 +37,23 @@ export default function InformesPage() {
   const [estado, setEstado] = useState('todos')
   const [resultados, setResultados] = useState<Factura[]>([])
   const getSupabase = useCallback(() => createClient(), [])
+  const { t } = useLanguage()
 
   useEffect(() => {
     const cargar = async () => {
-      const { data: { user } } = await getSupabase().auth.getUser()
+      const supabase = getSupabase()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setCargando(false); return }
-      const { data } = await getSupabase()
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      if (!perfil) { setCargando(false); return }
+      const { data } = await supabase
         .from('facturas')
         .select('*')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfil.id)
         .order('fechaEmision', { ascending: false })
       if (data) setFacturas(data as Factura[])
       setCargando(false)
@@ -81,7 +90,7 @@ export default function InformesPage() {
   const exportarPDF = async () => {
     const periodo = `${fechaDesde || 'Inicio'} al ${fechaHasta || 'Fin'}`
     await generarReporteGastosPDF({
-      titulo: 'Informe de gastos',
+      titulo: t('informes.titulo'),
       periodo,
       lineas: resultados.map(f => ({
         fecha: f.fechaEmision,
@@ -106,53 +115,53 @@ export default function InformesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Informes</h1>
-        <p className="text-muted-foreground">Genera informes personalizados de tus facturas</p>
+        <h1 className="text-2xl font-bold">{t('informes.titulo')}</h1>
+        <p className="text-muted-foreground">{t('informes.subtitulo')}</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <Filter className="h-4 w-4" /> Filtros
+            <Filter className="h-4 w-4" /> {t('common.filtrar')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
-              <Label>Fecha desde</Label>
+              <Label>{t('informes.fechaDesde')}</Label>
               <Input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Fecha hasta</Label>
+              <Label>{t('informes.fechaHasta')}</Label>
               <Input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Tipo</Label>
+              <Label>{t('informes.tipo')}</Label>
               <select value={tipo} onChange={(e) => setTipo(e.target.value)} className={SELECT_CLS}>
-                <option value="todos">Todos</option>
-                <option value="ingreso">Ingresos</option>
-                <option value="gasto">Gastos</option>
+                <option value="todos">{t('informes.todos')}</option>
+                <option value="ingreso">{t('informes.ingresos')}</option>
+                <option value="gasto">{t('informes.gastos')}</option>
               </select>
             </div>
             <div className="space-y-2">
-              <Label>Estado</Label>
+              <Label>{t('informes.estado')}</Label>
               <select value={estado} onChange={(e) => setEstado(e.target.value)} className={SELECT_CLS}>
-                <option value="todos">Todos</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="pagada">Pagada</option>
-                <option value="vencida">Vencida</option>
+                <option value="todos">{t('informes.todos')}</option>
+                <option value="pendiente">{t('informes.pendiente')}</option>
+                <option value="pagada">{t('informes.pagada')}</option>
+                <option value="vencida">{t('informes.vencida')}</option>
               </select>
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <Button onClick={generarInforme}>Generar informe</Button>
+            <Button onClick={generarInforme}>{t('informes.generarInforme')}</Button>
             {resultados.length > 0 && (
               <>
                 <Button variant="outline" onClick={() => void exportarPDF()}>
-                  <FileText className="mr-2 h-4 w-4" /> Exportar PDF
+                  <FileText className="mr-2 h-4 w-4" /> {t('informes.exportarPdf')}
                 </Button>
                 <Button variant="outline" onClick={exportarExcel}>
-                  <Download className="mr-2 h-4 w-4" /> Exportar Excel
+                  <Download className="mr-2 h-4 w-4" /> {t('informes.exportarExcel')}
                 </Button>
               </>
             )}
@@ -165,25 +174,25 @@ export default function InformesPage() {
           <div className="grid gap-4 sm:grid-cols-4">
             <Card>
               <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">Ingresos</p>
+                <p className="text-xs text-muted-foreground">{t('informes.ingresos')}</p>
                 <p className="text-lg font-bold text-green-600">{formatEuro(totalIngresos)}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">Gastos</p>
+                <p className="text-xs text-muted-foreground">{t('informes.gastos')}</p>
                 <p className="text-lg font-bold text-red-600">{formatEuro(totalGastos)}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">IVA repercutido</p>
+                <p className="text-xs text-muted-foreground">{t('informes.ivaRepercutido')}</p>
                 <p className="text-lg font-bold">{formatEuro(totalIvaRepercutido)}</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-4">
-                <p className="text-xs text-muted-foreground">IVA soportado</p>
+                <p className="text-xs text-muted-foreground">{t('informes.ivaSoportado')}</p>
                 <p className="text-lg font-bold">{formatEuro(totalIvaSoportado)}</p>
               </CardContent>
             </Card>
@@ -191,21 +200,21 @@ export default function InformesPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Resultados ({resultados.length} facturas)</CardTitle>
+              <CardTitle className="text-sm">{t('informes.resultados')} ({resultados.length} {t('informes.facturas')})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="rounded-lg border overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <th className="px-3 py-2 text-left">Fecha</th>
-                      <th className="px-3 py-2 text-left">Nº</th>
-                      <th className="px-3 py-2 text-left">Tipo</th>
-                      <th className="px-3 py-2 text-left">Contraparte</th>
-                      <th className="px-3 py-2 text-right">Base</th>
-                      <th className="px-3 py-2 text-right">IVA</th>
-                      <th className="px-3 py-2 text-right">Total</th>
-                      <th className="px-3 py-2 text-left">Estado</th>
+                      <th className="px-3 py-2 text-left">{t('informes.fecha')}</th>
+                      <th className="px-3 py-2 text-left">{t('informes.numero')}</th>
+                      <th className="px-3 py-2 text-left">{t('informes.tipo')}</th>
+                      <th className="px-3 py-2 text-left">{t('informes.contraparte')}</th>
+                      <th className="px-3 py-2 text-right">{t('informes.base')}</th>
+                      <th className="px-3 py-2 text-right">{t('informes.ivaLabel')}</th>
+                      <th className="px-3 py-2 text-right">{t('informes.total')}</th>
+                      <th className="px-3 py-2 text-left">{t('informes.estadoLabel')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -215,7 +224,7 @@ export default function InformesPage() {
                         <td className="px-3 py-2 font-mono">{f.numero}</td>
                         <td className="px-3 py-2">
                           <span className={`inline-block px-1.5 py-0.5 rounded text-xs ${f.tipo === 'ingreso' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                            {f.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}
+                            {f.tipo === 'ingreso' ? t('informes.ingresos') : t('informes.gastos')}
                           </span>
                         </td>
                         <td className="px-3 py-2">{f.emisorReceptor}</td>
