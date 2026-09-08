@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { acquireLock, releaseLock } from '@/lib/recurring-invoice-lock'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -377,111 +378,123 @@ export default function FacturasRecurrentesPage() {
     const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
     if (!perfil) return
 
-    const primerDiaMes = `${anyo}-${String(mes).padStart(2, '0')}-01`
-    const ultimoDiaMes = `${anyo}-${String(mes).padStart(2, '0')}-31`
+    const perfilId = perfil.id as string
 
-    const plantillasPendientes = plantillas.filter(
-      p => p.activa && p.diaGeneracion <= diaActual
-    )
-
-    if (plantillasPendientes.length === 0) {
+    if (!acquireLock(perfilId)) {
       setBatchResult({ generadas: 0, omitidas: 0 })
       setTimeout(() => setBatchResult(null), 4000)
       return
     }
 
-    setBatchProgress({ actual: 0, total: plantillasPendientes.length })
-    let generadas = 0
-    let omitidas = 0
+    try {
+      const primerDiaMes = `${anyo}-${String(mes).padStart(2, '0')}-01`
+      const ultimoDiaMes = `${anyo}-${String(mes).padStart(2, '0')}-31`
 
-    for (let i = 0; i < plantillasPendientes.length; i++) {
-      const p = plantillasPendientes[i]
-      if (!p) continue
-      setBatchProgress({ actual: i + 1, total: plantillasPendientes.length })
+      const plantillasPendientes = plantillas.filter(
+        p => p.activa && p.diaGeneracion <= diaActual
+      )
 
-      const { triggerTipo, triggerValor } = parseTriggerConfig(p.notas)
+      if (plantillasPendientes.length === 0) {
+        setBatchResult({ generadas: 0, omitidas: 0 })
+        setTimeout(() => setBatchResult(null), 4000)
+        return
+      }
 
-      if (triggerTipo === 'umbral_gasto' && triggerValor != null) {
-        const { data: gastos } = await getSupabase()
+      setBatchProgress({ actual: 0, total: plantillasPendientes.length })
+      let generadas = 0
+      let omitidas = 0
+
+      for (let i = 0; i < plantillasPendientes.length; i++) {
+        const p = plantillasPendientes[i]
+        if (!p) continue
+        setBatchProgress({ actual: i + 1, total: plantillasPendientes.length })
+
+        const { triggerTipo, triggerValor } = parseTriggerConfig(p.notas)
+
+        if (triggerTipo === 'umbral_gasto' && triggerValor != null) {
+          const { data: gastos } = await getSupabase()
+            .from('facturas')
+            .select('total')
+            .eq('perfilId', perfilId)
+            .eq('tipo', 'gasto')
+            .gte('fechaEmision', primerDiaMes)
+            .lte('fechaEmision', ultimoDiaMes)
+          const totalGastos = (gastos ?? []).reduce((sum, f) => sum + (f.total ?? 0), 0)
+          if (totalGastos < triggerValor) {
+            omitidas++
+            continue
+          }
+        }
+
+        if (triggerTipo === 'saldo_bajo' && triggerValor != null) {
+          const { data: ultimasFacturas } = await getSupabase()
+            .from('facturas')
+            .select('total, tipo')
+            .eq('perfilId', perfilId)
+            .lte('fechaEmision', ultimoDiaMes)
+            .order('fechaEmision', { ascending: false })
+            .limit(50)
+          const saldoCalculado = (ultimasFacturas ?? []).reduce((sum, f) => {
+            return sum + (f.tipo === 'ingreso' ? (f.total ?? 0) : -(f.total ?? 0))
+          }, 0)
+          if (saldoCalculado >= triggerValor) {
+            omitidas++
+            continue
+          }
+        }
+
+        const numero = `${p.numero}-${anyo}-${String(mes).padStart(2, '0')}`
+
+        const { data: existente } = await getSupabase()
           .from('facturas')
-          .select('total')
-          .eq('perfilId', perfil.id)
-          .eq('tipo', 'gasto')
-          .gte('fechaEmision', primerDiaMes)
-          .lte('fechaEmision', ultimoDiaMes)
-        const totalGastos = (gastos ?? []).reduce((sum, f) => sum + (f.total ?? 0), 0)
-        if (totalGastos < triggerValor) {
+          .select('id')
+          .eq('perfilId', perfilId)
+          .eq('numero', numero)
+          .limit(1)
+          .maybeSingle()
+
+        if (existente) {
           omitidas++
           continue
         }
-      }
 
-      if (triggerTipo === 'saldo_bajo' && triggerValor != null) {
-        const { data: ultimasFacturas } = await getSupabase()
-          .from('facturas')
-          .select('total, tipo')
-          .eq('perfilId', perfil.id)
-          .lte('fechaEmision', ultimoDiaMes)
-          .order('fechaEmision', { ascending: false })
-          .limit(50)
-        const saldoCalculado = (ultimasFacturas ?? []).reduce((sum, f) => {
-          return sum + (f.tipo === 'ingreso' ? (f.total ?? 0) : -(f.total ?? 0))
-        }, 0)
-        if (saldoCalculado >= triggerValor) {
-          omitidas++
-          continue
-        }
-      }
+        const baseImponible = p.baseImponible
+        const importeIva = Math.round(baseImponible * (p.iva / 100))
+        const total = baseImponible + importeIva
 
-      const numero = `${p.numero}-${anyo}-${String(mes).padStart(2, '0')}`
-
-      const { data: existente } = await getSupabase()
-        .from('facturas')
-        .select('id')
-        .eq('perfilId', perfil.id)
-        .eq('numero', numero)
-        .limit(1)
-        .maybeSingle()
-
-      if (existente) {
-        omitidas++
-        continue
-      }
-
-      const baseImponible = p.baseImponible
-      const importeIva = Math.round(baseImponible * (p.iva / 100))
-      const total = baseImponible + importeIva
-
-      const { error } = await getSupabase().from('facturas').insert({
-        id: crypto.randomUUID(),
-        perfilId: perfil.id,
-        numero,
-        tipo: p.tipo,
-        emisorReceptor: p.emisorReceptor,
-        nifContraparte: p.nifContraparte,
-        fechaEmision: ahora.toISOString().slice(0, 10),
-        baseImponible,
-        iva: p.iva,
-        total,
-        estado: 'pendiente',
-      })
-
-      if (!error) {
-        generadas++
-        await fetch(`/api/facturas/recurrentes/${p.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ultimaGeneracion: ahora.toISOString() }),
+        const { error } = await getSupabase().from('facturas').insert({
+          id: crypto.randomUUID(),
+          perfilId,
+          numero,
+          tipo: p.tipo,
+          emisorReceptor: p.emisorReceptor,
+          nifContraparte: p.nifContraparte,
+          fechaEmision: ahora.toISOString().slice(0, 10),
+          baseImponible,
+          iva: p.iva,
+          total,
+          estado: 'pendiente',
         })
-        setPlantillas(prev => prev.map(pl =>
-          pl.id === p.id ? { ...pl, ultimaGeneracion: ahora.toISOString() } : pl
-        ))
-      }
-    }
 
-    setBatchProgress(null)
-    setBatchResult({ generadas, omitidas })
-    setTimeout(() => setBatchResult(null), 5000)
+        if (!error) {
+          generadas++
+          await fetch(`/api/facturas/recurrentes/${p.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ultimaGeneracion: ahora.toISOString() }),
+          })
+          setPlantillas(prev => prev.map(pl =>
+            pl.id === p.id ? { ...pl, ultimaGeneracion: ahora.toISOString() } : pl
+          ))
+        }
+      }
+
+      setBatchProgress(null)
+      setBatchResult({ generadas, omitidas })
+      setTimeout(() => setBatchResult(null), 5000)
+    } finally {
+      releaseLock(perfilId)
+    }
   }
 
   const formatMoney = (cents: number) =>
