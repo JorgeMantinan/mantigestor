@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FileText, Download, TrendingUp, TrendingDown, Calculator } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useLanguage } from '@/contexts/language-context'
 
 interface Factura {
@@ -85,6 +86,23 @@ export default function InformeTrimestralPage() {
   const trimestres = [0, 1, 2, 3].map(q => calcularTrimestre(q))
   const resumen = trimestres[trimestreActivo]!
   const formatEuro = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
+
+  const MESES_CORTOS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+
+  const datosMensuales = [0, 1, 2].map(m => {
+    const mesIdx = trimestreActivo * 3 + m
+    const mesInicio = new Date(anyo, mesIdx, 1)
+    const mesFin = new Date(anyo, mesIdx + 1, 0)
+    const filtradas = facturas.filter(f => {
+      const d = new Date(f.fechaEmision)
+      return d >= mesInicio && d <= mesFin
+    })
+    return {
+      name: MESES_CORTOS[mesIdx] ?? '',
+      Ingresos: filtradas.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + f.total, 0) / 100,
+      Gastos: filtradas.filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.total, 0) / 100,
+    }
+  })
 
   const exportarPDF = async () => {
     const { generarPDFDeHTML } = await import('@/lib/pdf')
@@ -196,6 +214,30 @@ export default function InformeTrimestralPage() {
               </CardContent>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Desglose mensual del trimestre</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={datosMensuales} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => `${v.toLocaleString('es-ES')}€`} />
+                    <Tooltip
+                      formatter={(value: number) => formatEuro(value * 100)}
+                      contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="Ingresos" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Gastos" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardContent className="pt-6">

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { generarReporteTrimestral, reporteTrimestralCSV, type DatosTrimestre } from '@mantigestor/utils'
 import { Download, FileText } from 'lucide-react'
 import { toast, Toaster } from 'sonner'
+import { generarPDFDeHTML } from '@/lib/pdf'
 
 export default function ReporteTrimestralPage() {
   const { perfilActivoId } = usePersonaActiva()
@@ -94,6 +95,60 @@ export default function ReporteTrimestralPage() {
 
   const formatEur = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
+  const exportarPDF = async () => {
+    if (!reporte) return
+    const html = `
+      <div style="font-family:system-ui,sans-serif;padding:40px;color:#1a1a1a">
+        <h1 style="font-size:22px;font-weight:800;margin:0 0 4px 0">Informe Trimestral — Q${trimestre} ${anyo}</h1>
+        <p style="font-size:12px;color:#6b7280;margin:0 0 24px 0">Resumen fiscal del trimestre</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:24px">
+          <div style="background:#f0fdf4;border-radius:8px;padding:16px;text-align:center">
+            <p style="font-size:10px;color:#6b7280;margin:0">INGRESOS</p>
+            <p style="font-size:18px;font-weight:800;color:#16a34a;margin:4px 0">${formatEur(reporte.ingresos)}</p>
+          </div>
+          <div style="background:#fef2f2;border-radius:8px;padding:16px;text-align:center">
+            <p style="font-size:10px;color:#6b7280;margin:0">GASTOS</p>
+            <p style="font-size:18px;font-weight:800;color:#ef4444;margin:4px 0">${formatEur(reporte.gastos)}</p>
+          </div>
+          <div style="background:#eff6ff;border-radius:8px;padding:16px;text-align:center">
+            <p style="font-size:10px;color:#6b7280;margin:0">BENEFICIO NETO</p>
+            <p style="font-size:18px;font-weight:800;color:#2563eb;margin:4px 0">${formatEur(reporte.beneficioNeto)}</p>
+          </div>
+          <div style="background:#fefce8;border-radius:8px;padding:16px;text-align:center">
+            <p style="font-size:10px;color:#6b7280;margin:0">IVA A PAGAR</p>
+            <p style="font-size:18px;font-weight:800;margin:4px 0">${formatEur(reporte.ivaAPagar)}</p>
+          </div>
+        </div>
+        <h2 style="font-size:16px;font-weight:700;margin:0 0 12px 0">Liquidación IVA trimestral</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+          <thead><tr style="background:#1a1a1a;color:white">
+            <th style="padding:10px 12px;text-align:left;font-size:11px">Concepto</th>
+            <th style="padding:10px 12px;text-align:right;font-size:11px">Importe</th>
+          </tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #e5e7eb"><td style="padding:10px 12px;font-size:12px">IVA Repercutido</td><td style="padding:10px 12px;font-size:12px;text-align:right">${formatEur(reporte.ivaAPagar + reporte.ivaSoportado)}</td></tr>
+            <tr style="border-bottom:1px solid #e5e7eb"><td style="padding:10px 12px;font-size:12px">IVA Soportado</td><td style="padding:10px 12px;font-size:12px;text-align:right;color:#16a34a">-${formatEur(reporte.ivaSoportado)}</td></tr>
+            <tr style="background:#f3f4f6;font-weight:700"><td style="padding:10px 12px;font-size:12px">IVA Liquidado</td><td style="padding:10px 12px;font-size:12px;text-align:right">${formatEur(reporte.ivaLiquidado)}</td></tr>
+          </tbody>
+        </table>
+        <h2 style="font-size:16px;font-weight:700;margin:0 0 12px 0">Modelo 130</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+          <thead><tr style="background:#1a1a1a;color:white">
+            <th style="padding:10px 12px;text-align:left;font-size:11px">Concepto</th>
+            <th style="padding:10px 12px;text-align:right;font-size:11px">Importe</th>
+          </tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #e5e7eb"><td style="padding:10px 12px;font-size:12px">Base imponible</td><td style="padding:10px 12px;font-size:12px;text-align:right">${formatEur(reporte.baseImponible130)}</td></tr>
+            <tr style="border-bottom:1px solid #e5e7eb"><td style="padding:10px 12px;font-size:12px">Cuota</td><td style="padding:10px 12px;font-size:12px;text-align:right">${formatEur(reporte.cuota130)}</td></tr>
+            <tr style="border-bottom:1px solid #e5e7eb"><td style="padding:10px 12px;font-size:12px">Retenciones IRPF</td><td style="padding:10px 12px;font-size:12px;text-align:right;color:#16a34a">-${formatEur(reporte.retencionesIRPF)}</td></tr>
+            <tr style="background:#f3f4f6;font-weight:700"><td style="padding:10px 12px;font-size:12px">Resultado</td><td style="padding:10px 12px;font-size:12px;text-align:right">${formatEur(Math.max(0, reporte.cuota130 - reporte.retencionesIRPF))}</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:9px;color:#9ca3af;text-align:center">Informe generado por MantiGestor</p>
+      </div>`
+    await generarPDFDeHTML(html, `reporte-trimestral-Q${trimestre}-${anyo}`, { orientacion: 'landscape' })
+  }
+
   return (
     <div className="space-y-6">
       <Toaster />
@@ -123,10 +178,16 @@ export default function ReporteTrimestralPage() {
           ))}
         </select>
         {reporte && (
-          <Button onClick={descargarCSV} variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            {t('reporteTrimestral.descargarCSV')}
-          </Button>
+          <>
+            <Button onClick={descargarCSV} variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              {t('reporteTrimestral.descargarCSV')}
+            </Button>
+            <Button onClick={() => void exportarPDF()} variant="outline">
+              <FileText className="mr-2 h-4 w-4" />
+              PDF
+            </Button>
+          </>
         )}
       </div>
 

@@ -13,6 +13,11 @@ import {
   BarChart3, Users, Calculator, ChevronLeft, ChevronRight, Building2,
 } from 'lucide-react'
 import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell, LineChart, Line,
+} from 'recharts'
+import { CATEGORIAS_GASTO } from '@mantigestor/utils'
+import {
   generarReporteAnual, exportarReportePDF,
   type ReporteAnual, type FacturaInput,
 } from '@/lib/reporte-anual'
@@ -176,6 +181,111 @@ export function ReporteAnualPageClient() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Charts */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* BarChart: Ingresos vs Gastos mensuales */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Ingresos vs Gastos mensuales</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={reporte.meses.filter(m => m.numFacturas > 0).map(m => ({
+                        name: m.nombre.slice(0, 3),
+                        Ingresos: m.ingresos / 100,
+                        Gastos: m.gastos / 100,
+                      }))}
+                      margin={{ top: 5, right: 10, left: -10, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                      <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => `${v.toLocaleString('es-ES')}€`} />
+                      <Tooltip
+                        formatter={(value: number) => formatMoney(value * 100)}
+                        contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Bar dataKey="Ingresos" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="Gastos" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* PieChart: Categorías de gasto */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Distribución de gastos por categoría</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[280px]">
+                  {reporte.categorias.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-12">No hay gastos registrados</p>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={reporte.categorias.map(c => ({
+                            name: c.label,
+                            value: c.total / 100,
+                          }))}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={2}
+                          dataKey="value"
+                        >
+                          {reporte.categorias.map((c) => {
+                            const catDef = CATEGORIAS_GASTO.find(cat => cat.id === c.categoria)
+                            return <Cell key={c.categoria} fill={catDef?.color ?? '#6b7280'} />
+                          })}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value: number) => formatMoney(value * 100)}
+                          contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* LineChart: Evolución del beneficio */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Evolución mensual del beneficio</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[260px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={reporte.meses.filter(m => m.numFacturas > 0).map(m => ({
+                      name: m.nombre.slice(0, 3),
+                      Beneficio: m.beneficio / 100,
+                    }))}
+                    margin={{ top: 5, right: 10, left: -10, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => `${v.toLocaleString('es-ES')}€`} />
+                    <Tooltip
+                      formatter={(value: number) => formatMoney(value * 100)}
+                      contentStyle={{ borderRadius: 8, border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
+                    />
+                    <Line type="monotone" dataKey="Beneficio" stroke="hsl(47, 95%, 50%)" strokeWidth={2} dot={{ r: 4 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Resumen general */}
           <Card id="reporte-resumen">
