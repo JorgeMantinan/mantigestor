@@ -10,6 +10,17 @@ const EmpresaSchema = z.object({
   direccion: z.string().max(200).optional().default(''),
 })
 
+const EmpresaUpdateSchema = z.object({
+  id: z.string().uuid(),
+  nombre: z.string().min(1).max(100).optional(),
+  nif: z.string().min(1).max(20).optional(),
+  direccion: z.string().max(200).optional(),
+})
+
+const EmpresaDeleteSchema = z.object({
+  id: z.string().uuid(),
+})
+
 function supabaseDeReq(req: NextRequest) {
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -117,6 +128,125 @@ export async function POST(req: NextRequest) {
     }
 
     return guardarEmpresa(perfil, parsed.data, supabase)
+  } catch (error) {
+    return serverError(error)
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const { success } = rateLimitByIp(req)
+    if (!success) {
+      return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
+    }
+    const user = await getAuthenticatedUser(req)
+    if (!user) return unauthorized()
+
+    const body: unknown = await req.json()
+    const parsed = EmpresaUpdateSchema.safeParse(body)
+    if (!parsed.success) {
+      console.error('Zod validation error:', parsed.error.flatten())
+      return badRequest(new Error(`Datos inválidos: ${parsed.error.issues.map(i => i.message).join(', ')}`))
+    }
+
+    const supabase = supabaseDeReq(req)
+    const { data: perfil, error: perfilError } = await supabase
+      .from('perfiles')
+      .select('id, empresas')
+      .eq('userId', user.id)
+      .maybeSingle()
+
+    if (perfilError || !perfil) {
+      return serverError(new Error('Perfil no encontrado'))
+    }
+
+    let empresas: { id: string; nombre: string; nif: string; direccion: string; activa: boolean }[] = []
+    if (perfil.empresas) {
+      try {
+        empresas = JSON.parse(perfil.empresas)
+      } catch {
+        empresas = []
+      }
+    }
+
+    const idx = empresas.findIndex(e => e.id === parsed.data.id)
+    if (idx === -1) {
+      return badRequest(new Error('Empresa no encontrada'))
+    }
+
+    const empresa = empresas[idx]!
+    if (parsed.data.nombre !== undefined) empresa.nombre = parsed.data.nombre
+    if (parsed.data.nif !== undefined) empresa.nif = parsed.data.nif
+    if (parsed.data.direccion !== undefined) empresa.direccion = parsed.data.direccion
+
+    const { error } = await supabase
+      .from('perfiles')
+      .update({ empresas: JSON.stringify(empresas), updatedAt: new Date().toISOString() })
+      .eq('id', perfil.id)
+
+    if (error) {
+      console.error('Error updating empresa:', error.message, error.code)
+      return serverError(new Error('No se pudo actualizar: ' + error.message))
+    }
+
+    return Response.json({ empresa: empresas[idx] })
+  } catch (error) {
+    return serverError(error)
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { success } = rateLimitByIp(req)
+    if (!success) {
+      return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
+    }
+    const user = await getAuthenticatedUser(req)
+    if (!user) return unauthorized()
+
+    const body: unknown = await req.json()
+    const parsed = EmpresaDeleteSchema.safeParse(body)
+    if (!parsed.success) {
+      console.error('Zod validation error:', parsed.error.flatten())
+      return badRequest(new Error(`Datos inválidos: ${parsed.error.issues.map(i => i.message).join(', ')}`))
+    }
+
+    const supabase = supabaseDeReq(req)
+    const { data: perfil, error: perfilError } = await supabase
+      .from('perfiles')
+      .select('id, empresas')
+      .eq('userId', user.id)
+      .maybeSingle()
+
+    if (perfilError || !perfil) {
+      return serverError(new Error('Perfil no encontrado'))
+    }
+
+    let empresas: { id: string; nombre: string; nif: string; direccion: string; activa: boolean }[] = []
+    if (perfil.empresas) {
+      try {
+        empresas = JSON.parse(perfil.empresas)
+      } catch {
+        empresas = []
+      }
+    }
+
+    const newEmpresas = empresas.filter(e => e.id !== parsed.data.id)
+    if (newEmpresas.length === empresas.length) {
+      return badRequest(new Error('Empresa no encontrada'))
+    }
+
+    const { error } = await supabase
+      .from('perfiles')
+      .update({ empresas: JSON.stringify(newEmpresas), updatedAt: new Date().toISOString() })
+      .eq('id', perfil.id)
+
+    if (error) {
+      console.error('Error deleting empresa:', error.message, error.code)
+      return serverError(new Error('No se pudo eliminar: ' + error.message))
+    }
+
+    return Response.json({ success: true })
   } catch (error) {
     return serverError(error)
   }

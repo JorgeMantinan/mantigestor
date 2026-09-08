@@ -78,6 +78,7 @@ model Factura {
   id                  String    @id @default(cuid())
   perfilId            String
   perfil              Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  empresaId           String? // ID de la empresa (JSON en perfil.empresas)
   numero              String
   tipo                String // 'ingreso' | 'gasto' | 'proforma'
   emisorReceptor      String
@@ -106,6 +107,7 @@ model Factura {
   @@index([perfilId, tipo])
   @@index([perfilId, fechaEmision])
   @@index([tokenCliente])
+  @@index([empresaId])
   @@map("facturas")
 }
 
@@ -113,6 +115,7 @@ model Nomina {
   id              String   @id @default(cuid())
   perfilId        String
   perfil          Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  empresaId       String? // ID de la empresa (JSON en perfil.empresas)
   empleada        String
   mes             Int
   anyo            Int
@@ -125,6 +128,7 @@ model Nomina {
   createdAt       DateTime @default(now())
 
   @@index([perfilId, anyo])
+  @@index([empresaId])
   @@map("nominas")
 }
 
@@ -132,6 +136,7 @@ model Documento {
   id          String   @id @default(cuid())
   perfilId    String
   perfil      Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  empresaId   String? // ID de la empresa (JSON en perfil.empresas)
   tipo        String // 'alumno', 'factura', 'trimestre', 'alquiler', 'nomina'
   nombre      String
   tamanoBytes Int?
@@ -139,6 +144,7 @@ model Documento {
   subidoEn    DateTime @default(now())
 
   @@index([perfilId])
+  @@index([empresaId])
   @@map("documentos")
 }
 
@@ -190,6 +196,7 @@ model PropiedadAlquiler {
   id                    String    @id @default(cuid())
   perfilId              String
   perfil                Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  empresaId             String? // ID de la empresa (JSON en perfil.empresas)
   direccion             String
   ingresos              Int       @default(0)
   inquilinoNombre       String?
@@ -204,6 +211,7 @@ model PropiedadAlquiler {
   gastos GastoAlquiler[]
 
   @@index([perfilId])
+  @@index([empresaId])
   @@map("propiedades_alquiler")
 }
 
