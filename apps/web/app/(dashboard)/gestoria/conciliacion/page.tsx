@@ -33,10 +33,16 @@ export default function ConciliacionPage() {
     const cargar = async () => {
       const { data: { user } } = await getSupabase().auth.getUser()
       if (!user) return
+      const { data: perfil } = await getSupabase()
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      if (!perfil) return
       const { data } = await getSupabase()
         .from('facturas')
         .select('id, fechaEmision, emisorReceptor, nifContraparte, baseImponible, total, estado, tipo')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfil.id)
         .eq('estado', 'pendiente')
         .order('fechaEmision', { ascending: false })
       if (data) setFacturas(data as LineaFactura[])
