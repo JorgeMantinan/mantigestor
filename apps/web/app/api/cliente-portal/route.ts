@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
 /**
  * GET /api/cliente-portal?token=xxx
@@ -10,6 +11,11 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function GET(req: NextRequest) {
   try {
+    const { success } = rateLimitByIp(req)
+    if (!success) {
+      return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
+    }
+
     const token = req.nextUrl.searchParams.get('token')
     if (!token) {
       return NextResponse.json({ error: 'Token requerido' }, { status: 400 })

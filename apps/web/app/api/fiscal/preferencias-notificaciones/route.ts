@@ -32,6 +32,11 @@ function getSupabase(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    const { success } = rateLimitByIp(req)
+    if (!success) {
+      return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
+    }
+
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 

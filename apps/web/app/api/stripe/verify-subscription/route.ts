@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { success } = rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
     if (!success) {
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    const { perfilId } = await resolvePerfilActivo(req as unknown as NextRequest)
+    const { perfilId } = await resolvePerfilActivo(req)
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json({
