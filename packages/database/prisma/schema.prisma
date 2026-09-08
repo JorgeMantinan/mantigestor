@@ -35,6 +35,8 @@ model Perfil {
   facturasRecurrentes        FacturaRecurrente[]
   auditLogs                  AuditLog[]
   pushSubscriptions          PushSubscription[]
+  movimientosBanco           MovimientoBanco[]
+  conciliacionLogs           ConciliacionLog[]
 
   @@map("perfiles")
 }
@@ -97,6 +99,9 @@ model Factura {
   tipoCambio          Float     @default(1.0) // tasa de cambio vs EUR (1.0 si es EUR)
   pagosParciales      String? // JSON array de pagos parciales [{id, fecha, importe, metodo, notas}]
   createdAt           DateTime  @default(now())
+
+  movimientosBanco MovimientoBanco[]
+  conciliacionLogs ConciliacionLog[]
 
   @@index([perfilId, tipo])
   @@index([perfilId, fechaEmision])
@@ -791,4 +796,42 @@ model AuditLog {
   @@index([perfilId])
   @@index([createdAt])
   @@map("audit_log")
+}
+
+model MovimientoBanco {
+  id            String   @id @default(cuid())
+  perfilId      String
+  perfil        Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  fecha         DateTime
+  concepto      String
+  importe       Int      // cents
+  saldo         Int      // cents
+  referencia    String?
+  categoria     String?  // 'ingreso' | 'gasto' | 'transferencia'
+  conciliado    Boolean  @default(false)
+  facturaId     String?  // linked invoice
+  createdAt     DateTime @default(now())
+
+  factura Factura? @relation(fields: [facturaId], references: [id], onDelete: SetNull)
+
+  @@index([perfilId])
+  @@index([facturaId])
+  @@map("movimientos_banco")
+}
+
+model ConciliacionLog {
+  id            String   @id @default(cuid())
+  perfilId      String
+  perfil        Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  movimientoId  String
+  movimiento    MovimientoBanco @relation(fields: [movimientoId], references: [id], onDelete: Cascade)
+  facturaId     String
+  factura       Factura  @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  puntuacion    Int      // matching score
+  accion        String   // 'auto' | 'manual'
+  creadoEn      DateTime @default(now())
+
+  @@index([perfilId])
+  @@index([facturaId])
+  @@map("conciliacion_logs")
 }
