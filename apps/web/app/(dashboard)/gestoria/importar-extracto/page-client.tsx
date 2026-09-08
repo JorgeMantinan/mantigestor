@@ -4,7 +4,8 @@ import { useState, useCallback, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Upload, FileText, TrendingUp, TrendingDown, AlertCircle, CheckCircle } from 'lucide-react'
+import { Upload, FileText, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Save } from 'lucide-react'
+import { toast } from 'sonner'
 import type { FormatoExtracto } from '@mantigestor/utils'
 import { useLanguage } from '@/contexts/language-context'
 
@@ -41,6 +42,7 @@ export function ImportarExtractoPageClient() {
   const [resultado, setResultado] = useState<ResultadoImportacion | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,6 +99,36 @@ export function ImportarExtractoPageClient() {
     setError(null)
     if (inputRef.current) inputRef.current.value = ''
   }, [])
+
+  const handleSave = useCallback(async () => {
+    if (!resultado?.movimientos) return
+    setSaving(true)
+    try {
+      const movimientos = resultado.movimientos.map(m => ({
+        fecha: m.fecha,
+        concepto: m.concepto,
+        importe: m.importe / 100,
+        saldo: m.saldo / 100,
+        referencia: m.referencia,
+        categoria: m.tipo,
+      }))
+      const res = await fetch('/api/fiscal/conciliacion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ movimientos }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        toast.error(data.error ?? 'Error guardando movimientos')
+        return
+      }
+      toast.success(`${movimientos.length} movimientos guardados en la base de datos`)
+    } catch {
+      toast.error('Error de conexión')
+    } finally {
+      setSaving(false)
+    }
+  }, [resultado])
 
   return (
     <div className="space-y-6">
@@ -235,6 +267,11 @@ export function ImportarExtractoPageClient() {
                     </div>
                   ))}
                 </div>
+
+                <Button onClick={() => void handleSave()} disabled={saving} className="w-full" variant="outline">
+                  <Save className="mr-2 h-4 w-4" />
+                  {saving ? 'Guardando...' : 'Guardar en base de datos'}
+                </Button>
               </div>
             )}
           </CardContent>

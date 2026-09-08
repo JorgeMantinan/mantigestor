@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Upload, CheckCircle, AlertCircle, ArrowRight, FileText, Building2 } from 'lucide-react'
+import { Upload, CheckCircle, AlertCircle, ArrowRight, FileText, Building2, Save, Database } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from '@/contexts/language-context'
 import {
@@ -17,6 +17,18 @@ import {
   type LineaFactura,
 } from '@/lib/conciliacion-bancaria'
 
+interface MovimientoGuardado {
+  id: string
+  fecha: string
+  concepto: string
+  importe: number
+  saldo: number
+  referencia: string | null
+  categoria: string | null
+  conciliado: boolean
+  facturaId: string | null
+}
+
 export default function ConciliacionPage() {
   const [coincidencias, setCoincidencias] = useState<Coincidencia[]>([])
   const [facturas, setFacturas] = useState<LineaFactura[]>([])
@@ -26,8 +38,24 @@ export default function ConciliacionPage() {
   const [bancoDetectado, setBancoDetectado] = useState<BancoId | null>(null)
   const [bancoManual, setBancoManual] = useState<BancoId>('generico')
   const [textoOriginal, setTextoOriginal] = useState('')
+  const [movimientosGuardados, setMovimientosGuardados] = useState<MovimientoGuardado[]>([])
+  const [guardando, setGuardando] = useState(false)
+  const [guardadosIds, setGuardadosIds] = useState<Set<string>>(new Set())
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
+
+  const cargarMovimientosGuardados = useCallback(async () => {
+    try {
+      const res = await fetch('/api/fiscal/conciliacion')
+      if (!res.ok) return
+      const { data } = await res.json()
+      if (data) setMovimientosGuardados(data as MovimientoGuardado[])
+    } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => {
+    cargarMovimientosGuardados()
+  }, [cargarMovimientosGuardados])
 
   useEffect(() => {
     const cargar = async () => {
@@ -82,26 +110,84 @@ export default function ConciliacionPage() {
     }
   }
 
-  const reconciliar = async (coincidencia: Coincidencia) => {
-    const { error } = await getSupabase()
-      .from('facturas')
-      .update({ estado: 'pagada' })
-      .eq('id', coincidencia.factura.id)
-
-    if (!error) {
-      setReconciliadas(prev => new Set(prev).add(coincidencia.factura.id))
-      setFacturas(prev => prev.filter(f => f.id !== coincidencia.factura.id))
-      toast.success(t('conciliacion.facturaMarcada'))
+  const guardarMovimientos = async () => {
+    if (!textoOriginal) return
+    setGuardando(true)
+    try {
+      const { lineas } = parsearExtractoCSV(textoOriginal, bancoManual)
+      const movimientos = lineas.map(l => ({
+        fecha: l.fecha,
+        concepto: l.descripcion,
+        importe: l.importe / 100,
+        saldo: (l.saldo ?? 0) / 100,
+        referencia: null as string | null,
+        categoria: l.importe >= 0 ? 'ingreso' as const : 'gasto' as const,
+      }))
+      const res = await fetch('/api/fiscal/conciliacion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ movimientos }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        toast.error(data.error ?? 'Error guardando movimientos')
+        return
+      }
+      const { data } = await res.json()
+      toast.success(`${movimientos.length} movimientos guardados`)
+      if (data) {
+        const ids = new Set<string>(data.map((m: MovimientoGuardado) => m.id))
+        setGuardadosIds(ids)
+        setMovimientosGuardados(prev => [...data as MovimientoGuardado[], ...prev])
+      }
+    } catch {
+      toast.error('Error de conexión')
+    } finally {
+      setGuardando(false)
     }
+  }
+
+  const reconciliar = async (coincidencia: Coincidencia) => {
+    const guardado = movimientosGuardados.find(
+      m => !m.conciliado && Math.abs(m.importe - coincidencia.extracto.importe) < 1
+    )
+
+    if (guardado) {
+      const res = await fetch('/api/fiscal/conciliacion/conciliar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          movimientoId: guardado.id,
+          facturaId: coincidencia.factura.id,
+          puntuacion: coincidencia.puntuacion,
+          accion: 'manual',
+        }),
+      })
+      if (!res.ok) {
+        toast.error('Error al conciliar')
+        return
+      }
+      setMovimientosGuardados(prev =>
+        prev.map(m => m.id === guardado.id ? { ...m, conciliado: true, facturaId: coincidencia.factura.id } : m)
+      )
+    } else {
+      const { error } = await getSupabase()
+        .from('facturas')
+        .update({ estado: 'pagada' })
+        .eq('id', coincidencia.factura.id)
+      if (error) return
+    }
+
+    setReconciliadas(prev => new Set(prev).add(coincidencia.factura.id))
+    setFacturas(prev => prev.filter(f => f.id !== coincidencia.factura.id))
+    toast.success(t('conciliacion.facturaMarcada'))
   }
 
   const reconciliarTodas = async () => {
     const pendientes = coincidencias.filter(c => !reconciliadas.has(c.factura.id) && c.puntuacion >= 70)
     for (const c of pendientes) {
-      await getSupabase().from('facturas').update({ estado: 'pagada' }).eq('id', c.factura.id)
-      setReconciliadas(prev => new Set(prev).add(c.factura.id))
+      await reconciliar(c)
     }
-    setFacturas(prev => prev.filter(f => !pendientes.some(c => c.factura.id === f.id)))
     toast.success(`${pendientes.length} ${t('conciliacion.facturasReconciliadas')}`)
   }
 
@@ -206,6 +292,12 @@ export default function ConciliacionPage() {
                 <FileText className="mr-2 h-4 w-4" /> {t('conciliacion.seleccionarExtracto')}
               </label>
             </Button>
+            {extractoCargado && (
+              <Button onClick={() => void guardarMovimientos()} disabled={guardando} size="sm">
+                <Save className="mr-1 h-4 w-4" />
+                {guardando ? 'Guardando...' : 'Guardar movimientos'}
+              </Button>
+            )}
             {procesando && <span className="text-sm text-muted-foreground">{t('conciliacion.procesando')}</span>}
             {extractoCargado && bancoDetectado && (
               <span className="text-sm text-muted-foreground">
@@ -279,6 +371,47 @@ export default function ConciliacionPage() {
             <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>{t('conciliacion.sinCoincidencias')}</p>
             <p className="text-xs mt-1">{t('conciliacion.verificaFormato')}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Movimientos guardados */}
+      {movimientosGuardados.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Database className="h-4 w-4" /> Movimientos guardados ({movimientosGuardados.length})
+            </CardTitle>
+            <CardDescription>Movimientos persistidos en la base de datos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="max-h-96 space-y-1 overflow-y-auto">
+              {movimientosGuardados.map(m => (
+                <div
+                  key={m.id}
+                  className="flex items-center justify-between rounded-lg border p-2"
+                >
+                  <div className="flex items-center gap-3">
+                    {m.conciliado ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" aria-hidden="true" />
+                    ) : (
+                      <div className="h-4 w-4 rounded-full border border-muted-foreground/30" aria-hidden="true" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium">{m.concepto}</p>
+                      <p className="text-xs text-muted-foreground">{m.fecha?.slice(0, 10)}</p>
+                    </div>
+                  </div>
+                  <span className={`text-sm font-medium ${
+                    m.importe >= 0
+                      ? 'text-green-700 dark:text-green-300'
+                      : 'text-red-700 dark:text-red-300'
+                  }`}>
+                    {m.importe >= 0 ? '+' : ''}{formatEuro(m.importe)}
+                  </span>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
