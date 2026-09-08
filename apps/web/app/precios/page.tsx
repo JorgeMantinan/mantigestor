@@ -15,7 +15,6 @@ const planes = [
     features: [
       '10 facturas/mes con OCR básico',
       'Trimestres automáticos (Modelo 303)',
-      'Hasta 10 alumnos',
       'Gestión de alquiler',
       'Documentos hasta 50MB',
       'Soporte por email',
@@ -32,9 +31,7 @@ const planes = [
     features: [
       'Facturas ilimitadas con OCR IA',
       'Nóminas para empleadas del hogar',
-      'Alumnos ilimitados',
       'Chat con documentos con IA',
-      'Exámenes generados por IA',
       'Documentos hasta 5GB',
       'Conversiones de moneda y unidades',
       'Soporte prioritario',

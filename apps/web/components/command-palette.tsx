@@ -13,14 +13,13 @@ interface SearchResult {
   titulo: string
   subtitulo: string
   href: string
-  tipo: 'factura' | 'propiedad' | 'nomina' | 'alumno'
+  tipo: 'factura' | 'propiedad' | 'nomina'
 }
 
 const ICONOS: Record<SearchResult['tipo'], React.ReactNode> = {
   factura: <Receipt className="h-4 w-4" aria-hidden="true" />,
   propiedad: <Home className="h-4 w-4" aria-hidden="true" />,
   nomina: <Users className="h-4 w-4" aria-hidden="true" />,
-  alumno: <FileText className="h-4 w-4" aria-hidden="true" />,
 }
 
 export function CommandPalette() {
@@ -41,18 +40,16 @@ export function CommandPalette() {
     if (!user) { setLoading(false); return }
 
     const term = `%${q}%`
-    const [facturas, propiedades, nominas, alumnos] = await Promise.all([
+    const [facturas, propiedades, nominas] = await Promise.all([
       supabase.from('facturas').select('id, numero, emisorReceptor, nifContraparte').eq('perfilId', user.id).or(`numero.ilike.${term},emisorReceptor.ilike.${term},nifContraparte.ilike.${term}`).limit(5),
       supabase.from('propiedades_alquiler').select('id, direccion, inquilinoNombre').eq('perfilId', user.id).or(`direccion.ilike.${term},inquilinoNombre.ilike.${term}`).limit(5),
       supabase.from('nominas').select('id, empleada, mes, anyo').eq('perfilId', user.id).ilike('empleada', term).limit(5),
-      supabase.from('alumnos').select('id, nombre').eq('perfilId', user.id).ilike('nombre', term).limit(5),
     ])
 
     const items: SearchResult[] = []
     for (const f of facturas.data ?? []) items.push({ id: f.id, titulo: `Factura ${f.numero}`, subtitulo: f.emisorReceptor, href: `/gestoria/facturas/${f.id}`, tipo: 'factura' })
     for (const p of propiedades.data ?? []) items.push({ id: p.id, titulo: p.direccion, subtitulo: p.inquilinoNombre ?? t('commandPalette.sinInquilino'), href: '/alquiler', tipo: 'propiedad' })
     for (const n of nominas.data ?? []) items.push({ id: n.id, titulo: n.empleada, subtitulo: `${n.mes}/${n.anyo}`, href: '/nominas', tipo: 'nomina' })
-    for (const a of alumnos.data ?? []) items.push({ id: a.id, titulo: a.nombre, subtitulo: t('commandPalette.alumno'), href: '/alumnos', tipo: 'alumno' })
 
     setResults(items)
     setSelectedIndex(0)

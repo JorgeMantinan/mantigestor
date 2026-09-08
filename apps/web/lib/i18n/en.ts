@@ -55,7 +55,6 @@ export const en: DeepTraducciones = {
     backup: 'Backup',
     registro: 'Activity Log',
     nominas: 'Payroll',
-    alumnos: 'Students',
     herramientas: 'Tools',
     ia: 'AI',
     conversiones: 'Conversions',
@@ -84,7 +83,6 @@ export const en: DeepTraducciones = {
     conciliacion: 'Reconciliation',
     informeTrimestral: 'Quarterly Report',
     presupuestos: 'Budgets',
-    examenes: 'Exams',
     simuladorRetenciones: 'Withholding Simulator',
     googleCalendar: 'Google Calendar',
     automatizaciones: 'Automations',
@@ -239,13 +237,12 @@ export const en: DeepTraducciones = {
   // Command palette
   commandPalette: {
     busquedaGlobal: 'Global search',
-    placeholder: 'Search invoices, properties, payrolls, students...',
+    placeholder: 'Search invoices, properties, payrolls...',
     buscando: 'Searching...',
     sinResultados: 'No results for',
     escribeMinimo: 'Type at least 2 characters to search',
     atajoTeclado: 'Ctrl+K to open/close',
     sinInquilino: 'No tenant',
-    alumno: 'Student',
   },
 
   // Property card
@@ -532,29 +529,6 @@ export const en: DeepTraducciones = {
     gastoEliminado: 'Expense deleted',
     sinGastos: 'No expenses recorded',
     buscarPlaceholder: 'Search by address or tenant...',
-  },
-
-  // Alumnos
-  alumnos: {
-    titulo: 'Students',
-    subtitulo: 'Documents and materials for your students',
-    nuevoAlumno: 'New student',
-    nombre: 'First name',
-    apellidos: 'Last name',
-    email: 'Email',
-    telefono: 'Phone',
-    documentos: 'Documents',
-    examenes: 'Exams',
-    subirDocumento: 'Upload document',
-    examen: 'Exam',
-    tipo: 'Type',
-    resultado: 'Result',
-    cargando: 'Loading documents...',
-    sinDocumentos: 'No documents',
-    sinDocumentosDesc: 'Upload notes or materials to generate summaries and exams with AI',
-    eliminarDocumento: 'Delete document',
-    eliminarDocumentoTitle: 'Delete this document?',
-    eliminarDocumentoDesc: 'This action cannot be undone.',
   },
 
   // Documentos
@@ -1234,7 +1208,6 @@ export const en: DeepTraducciones = {
     sugerencia1: 'How do I calculate VAT on an invoice?',
     sugerencia2: 'When is Form 303 due?',
     sugerencia3: 'What expenses can I deduct as self-employed?',
-    sugerencia4: 'How does the students module work?',
   },
 
   // Recurring invoice

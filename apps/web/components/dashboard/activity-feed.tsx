@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { FileText, User, Home, Briefcase, RefreshCw } from 'lucide-react'
+import { FileText, Home, Briefcase, RefreshCw } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 
 interface AuditEntry {
@@ -18,7 +18,6 @@ const ICONS: Record<string, typeof FileText> = {
   factura: FileText,
   nomina: Briefcase,
   propiedad: Home,
-  alumno: User,
 }
 
 const ACCION_MAP: Record<string, string> = {

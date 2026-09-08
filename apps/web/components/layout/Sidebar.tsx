@@ -9,7 +9,7 @@ import {
   Receipt,
   BarChart3,
   Landmark,
-  GraduationCap,
+
   FileText,
   Home,
   Settings,
@@ -90,13 +90,7 @@ export function Sidebar() {
         { label: t('nav.registro'), href: '/gestoria/audit-log', icon: History },
       ],
     },
-    {
-      group: t('nav.alumnos'),
-      items: [
-        { label: t('nav.documentos'), href: '/alumnos', icon: FileText },
-        { label: t('nav.examenes'), href: '/alumnos/examenes', icon: GraduationCap },
-      ],
-    },
+
     {
       group: t('nav.herramientas'),
       items: [

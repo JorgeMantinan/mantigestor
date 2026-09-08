@@ -103,20 +103,6 @@ CREATE POLICY "Users can delete own documents" ON public.documentos
 GRANT SELECT, INSERT, DELETE ON public.documentos TO authenticated;
 
 -- =============================================================
--- 5. examenes (SELECT)
--- =============================================================
-ALTER TABLE public.examenes ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Users can select own exams" ON public.examenes;
-CREATE POLICY "Users can select own exams" ON public.examenes
-  FOR SELECT USING (
-    auth.uid()::text = "perfilId"
-    OR public.es_gestor_del_perfil(auth.uid()::text, "perfilId")
-  );
-
-GRANT SELECT ON public.examenes TO authenticated;
-
--- =============================================================
 -- 6. facturas (SELECT, INSERT, UPDATE, DELETE)
 -- =============================================================
 ALTER TABLE public.facturas ENABLE ROW LEVEL SECURITY;
@@ -234,7 +220,6 @@ GRANT ALL ON public."perfil_asociado" TO service_role;
 GRANT ALL ON public.suscripciones TO service_role;
 GRANT ALL ON public.notificaciones TO service_role;
 GRANT ALL ON public.documentos TO service_role;
-GRANT ALL ON public.examenes TO service_role;
 GRANT ALL ON public.facturas TO service_role;
 GRANT ALL ON public.propiedades_alquiler TO service_role;
 GRANT ALL ON public.gastos_alquiler TO service_role;

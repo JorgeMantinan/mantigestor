@@ -53,7 +53,6 @@ export const es = {
     backup: 'Backup',
     registro: 'Registro',
     nominas: 'Nóminas',
-    alumnos: 'Alumnos',
     herramientas: 'Herramientas',
     ia: 'IA',
     conversiones: 'Conversiones',
@@ -82,7 +81,6 @@ export const es = {
     conciliacion: 'Conciliación',
     informeTrimestral: 'Informe trimestral',
     presupuestos: 'Presupuestos',
-    examenes: 'Exámenes',
     simuladorRetenciones: 'Simulador retenciones',
     googleCalendar: 'Google Calendar',
     automatizaciones: 'Automatizaciones',
@@ -237,13 +235,12 @@ export const es = {
   // Command palette
   commandPalette: {
     busquedaGlobal: 'Búsqueda global',
-    placeholder: 'Buscar facturas, propiedades, nóminas, alumnos...',
+    placeholder: 'Buscar facturas, propiedades, nóminas...',
     buscando: 'Buscando...',
     sinResultados: 'Sin resultados para',
     escribeMinimo: 'Escribe al menos 2 caracteres para buscar',
     atajoTeclado: 'Ctrl+K para abrir/cerrar',
     sinInquilino: 'Sin inquilino',
-    alumno: 'Alumno',
   },
 
   // Property card
@@ -530,29 +527,6 @@ export const es = {
     gastoEliminado: 'Gasto eliminado',
     sinGastos: 'Sin gastos registrados',
     buscarPlaceholder: 'Buscar por dirección o inquilino...',
-  },
-
-  // Alumnos
-  alumnos: {
-    titulo: 'Alumnos',
-    subtitulo: 'Documentos y materiales para tus estudiantes',
-    nuevoAlumno: 'Nuevo alumno',
-    nombre: 'Nombre',
-    apellidos: 'Apellidos',
-    email: 'Email',
-    telefono: 'Teléfono',
-    documentos: 'Documentos',
-    examenes: 'Exámenes',
-    subirDocumento: 'Subir documento',
-    examen: 'Examen',
-    tipo: 'Tipo',
-    resultado: 'Resultado',
-    cargando: 'Cargando documentos...',
-    sinDocumentos: 'No hay documentos',
-    sinDocumentosDesc: 'Sube apuntes o materiales para generar resúmenes y exámenes con IA',
-    eliminarDocumento: 'Eliminar documento',
-    eliminarDocumentoTitle: '¿Eliminar este documento?',
-    eliminarDocumentoDesc: 'Esta acción no se puede deshacer.',
   },
 
   // Documentos
@@ -1233,7 +1207,6 @@ export const es = {
     sugerencia1: '¿Cómo calculo el IVA de una factura?',
     sugerencia2: '¿Cuándo se presenta el Modelo 303?',
     sugerencia3: '¿Qué gastos puedo deducir como autónomo?',
-    sugerencia4: '¿Cómo funciona el módulo de alumnos?',
   },
 
   // Factura recurrente

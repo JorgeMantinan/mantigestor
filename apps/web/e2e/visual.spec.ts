@@ -87,11 +87,6 @@ test.describe('Protected pages redirect', () => {
     await expect(page).toHaveURL(/\/login/)
   })
 
-  test('alumnos redirects to login', async ({ page }) => {
-    await page.goto('/alumnos')
-    await expect(page).toHaveURL(/\/login/)
-  })
-
   test('conversiones redirects to login', async ({ page }) => {
     await page.goto('/conversiones')
     await expect(page).toHaveURL(/\/login/)

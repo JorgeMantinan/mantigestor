@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { FileText, User, Home, Briefcase, ArrowRight, RefreshCw } from 'lucide-react'
+import { FileText, Home, Briefcase, ArrowRight, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/language-context'
 
@@ -20,7 +20,6 @@ const ICONS: Record<string, typeof FileText> = {
   factura: FileText,
   nomina: Briefcase,
   propiedad: Home,
-  alumno: User,
 }
 
 export function WidgetActivity() {

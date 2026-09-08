@@ -45,7 +45,7 @@ export default async function LandingPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
             Fotografía facturas, controla tu IVA e IRPF, prepara la declaración de la renta
-            y gestiona tus alumnos. Todo en un solo lugar, con inteligencia artificial.
+            y gestiona todo tu negocio. Todo en un solo lugar, con inteligencia artificial.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             {user ? (
@@ -91,12 +91,12 @@ export default async function LandingPage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl">Módulo alumnos</CardTitle>
+                <CardTitle className="text-xl">Gestoría completa</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Sube apuntes y genera resúmenes, exámenes y preguntas con IA para tus
-                  estudiantes.
+                  Controla facturas, trimestres, renta, alquiler y más.
+                  Todo lo que necesitas como autónomo en un solo sitio.
                 </p>
               </CardContent>
             </Card>

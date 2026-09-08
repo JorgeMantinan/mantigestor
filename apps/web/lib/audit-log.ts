@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client'
 
 type Accion = 'crear' | 'editar' | 'eliminar' | 'cambio_estado'
-type Entidad = 'factura' | 'propiedad' | 'nomina' | 'alumno' | 'suscripcion' | 'proforma'
+type Entidad = 'factura' | 'propiedad' | 'nomina' | 'suscripcion' | 'proforma'
 
 export async function logAccion(
   accion: Accion,

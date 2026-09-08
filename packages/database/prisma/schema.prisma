@@ -27,7 +27,6 @@ model Perfil {
 
   facturas                   Factura[]
   documentos                 Documento[]
-  examenes                   Examen[]
   suscripciones              Suscripcion[]
   notificaciones             Notificacion[]
   preferenciasNotificaciones PreferenciaNotificacion[]
@@ -136,20 +135,6 @@ model Documento {
 
   @@index([perfilId])
   @@map("documentos")
-}
-
-model Examen {
-  id           String    @id @default(cuid())
-  perfilId     String
-  perfil       Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
-  tipo         String // 'facturas', 'trimestres', 'alquiler', 'nominas', 'alumnos'
-  estado       String    @default("pendiente")
-  resultado    String?
-  creadoEn     DateTime  @default(now())
-  completadoEn DateTime?
-
-  @@index([perfilId])
-  @@map("examenes")
 }
 
 model Suscripcion {

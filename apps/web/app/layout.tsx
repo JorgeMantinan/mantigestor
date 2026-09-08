@@ -23,12 +23,12 @@ export const metadata: Metadata = {
     template: '%s | MantiGestor',
   },
   description:
-    'SaaS con IA para autónomos españoles. Gestiona facturas, IVA, IRPF, nóminas, alumnos y más.',
-  keywords: ['autónomos', 'facturas', 'gestoría', 'IVA', 'IRPF', 'nóminas', 'alumnos', 'España', 'IA'],
+    'SaaS con IA para autónomos españoles. Gestiona facturas, IVA, IRPF, nóminas y más.',
+  keywords: ['autónomos', 'facturas', 'gestoría', 'IVA', 'IRPF', 'nóminas', 'España', 'IA'],
   openGraph: {
     title: 'MantiGestor - Gestión inteligente para autónomos',
     description:
-      'SaaS con IA para autónomos españoles. Gestiona facturas, IVA, IRPF, nóminas, alumnos y más.',
+      'SaaS con IA para autónomos españoles. Gestiona facturas, IVA, IRPF, nóminas y más.',
     locale: 'es_ES',
     type: 'website',
   },

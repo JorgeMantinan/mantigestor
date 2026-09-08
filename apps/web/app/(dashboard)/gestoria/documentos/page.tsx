@@ -24,7 +24,6 @@ interface Documento {
 
 const TIPO_LABELS: Record<string, string> = {
   factura: 'Factura',
-  alumno: 'Alumno',
   trimestre: 'Trimestre',
   alquiler: 'Alquiler',
   nomina: 'Nómina',
@@ -32,7 +31,6 @@ const TIPO_LABELS: Record<string, string> = {
 
 const TIPO_COLORS: Record<string, string> = {
   factura: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  alumno: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   trimestre: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
   alquiler: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
   nomina: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
