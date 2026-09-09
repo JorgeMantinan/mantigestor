@@ -3,6 +3,7 @@ import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/l
 import { createServerClient } from '@supabase/ssr'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import crypto from 'crypto'
+import { z } from 'zod'
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -21,12 +22,18 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const body = await req.json()
-    const { email, nombre, nif } = body as { email?: string; nombre?: string; nif?: string }
+    const BodySchema = z.object({
+      email: z.string().email(),
+      nombre: z.string().optional(),
+      nif: z.string().optional(),
+      rol: z.enum(['gestor', 'visualizador']).default('gestor'),
+    })
 
-    if (!email || !email.includes('@') || !email.includes('.')) {
-      return badRequest(new Error('Email inválido'))
+    const parseResult = BodySchema.safeParse(await req.json())
+    if (!parseResult.success) {
+      return badRequest(new Error('Datos inválidos'))
     }
+    const { email, nombre, nif, rol } = parseResult.data
 
     // No poder asociarse a sí mismo
     if (email === user.email) {
@@ -90,6 +97,7 @@ export async function POST(req: NextRequest) {
         invitadoPorUserId: user.id,
         invitadoPorEmail: user.email ?? '',
         aceptada: false,
+        rol,
         createdAt: now,
       })
 

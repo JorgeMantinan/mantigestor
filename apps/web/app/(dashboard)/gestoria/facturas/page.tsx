@@ -23,6 +23,8 @@ import { MOEDAS, formatoMoneda } from '@/lib/divisas'
 import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, obtenerNombreTag } from '@/lib/tags'
 import { useLanguage } from '@/contexts/language-context'
 import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
+import { esSoloLectura } from '@/lib/resolve-perfil-activo'
 
 interface Factura {
   id: string
@@ -62,8 +64,12 @@ export default function FacturasPage() {
   const filtroTagRef = useRef<HTMLDivElement>(null)
   const { t } = useLanguage()
   const { empresaActiva } = useEmpresaActiva()
+  const { perfilActivoId, personas, esPropio } = usePersonaActiva()
   const searchRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+
+  const personaActiva = personas.find(p => p.perfilId === perfilActivoId)
+  const soloLectura = !esPropio && personaActiva && esSoloLectura(personaActiva.rol)
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -313,6 +319,11 @@ export default function FacturasPage() {
         <div>
           <h1 className="text-3xl font-heading font-bold tracking-tight">{t('facturas.titulo')}</h1>
           <p className="text-muted-foreground">{t('facturas.subtitulo')}</p>
+          {soloLectura && (
+            <span className="inline-block mt-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+              Solo lectura
+            </span>
+          )}
         </div>
         <div className="flex gap-2">
           <Link href="/gestoria/facturas/recurrentes">
@@ -321,9 +332,11 @@ export default function FacturasPage() {
             </Button>
           </Link>
           <BotonPDF elementId="tabla-facturas" filename={`facturas-${new Date().toISOString().slice(0, 10)}`} />
-          <Link href="/gestoria/facturas/nueva">
-            <Button><Plus className="mr-2 h-4 w-4" /> {t('facturas.nuevaFactura')}</Button>
-          </Link>
+          {!soloLectura && (
+            <Link href="/gestoria/facturas/nueva">
+              <Button><Plus className="mr-2 h-4 w-4" /> {t('facturas.nuevaFactura')}</Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -487,7 +500,7 @@ export default function FacturasPage() {
                 {busqueda ? t('facturas.resultadoBusqueda') : t('facturas.primeraFactura')}
               </p>
             </div>
-            {!busqueda && (
+            {!busqueda && !soloLectura && (
               <Link href="/gestoria/facturas/nueva">
                 <Button><Plus className="mr-2 h-4 w-4" /> {t('facturas.crearFactura')}</Button>
               </Link>
@@ -505,18 +518,20 @@ export default function FacturasPage() {
             <div className="flex items-center gap-2 rounded-lg border bg-muted/50 p-2 flex-wrap">
               <span className="text-sm font-medium">{seleccionadas.size} seleccionada{seleccionadas.size !== 1 ? 's' : ''}</span>
               <div className="flex-1" />
-              <div className="flex items-center gap-1 border-r pr-2">
-                <span className="text-xs text-muted-estado">Estado:</span>
-                <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('pendiente')}>
-                  <Clock className="mr-1 h-3 w-3" /> Pendiente
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('pagada')}>
-                  <CheckCircle className="mr-1 h-3 w-3" /> Pagada
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('vencida')}>
-                  <XCircle className="mr-1 h-3 w-3" /> Vencida
-                </Button>
-              </div>
+              {!soloLectura && (
+                <div className="flex items-center gap-1 border-r pr-2">
+                  <span className="text-xs text-muted-estado">Estado:</span>
+                  <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('pendiente')}>
+                    <Clock className="mr-1 h-3 w-3" /> Pendiente
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('pagada')}>
+                    <CheckCircle className="mr-1 h-3 w-3" /> Pagada
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('vencida')}>
+                    <XCircle className="mr-1 h-3 w-3" /> Vencida
+                  </Button>
+                </div>
+              )}
               <div className="flex items-center gap-1 border-r pr-2">
                 <span className="text-xs text-muted-foreground">Exportar:</span>
                 <Button variant="outline" size="sm" onClick={() => void exportarSeleccionadasPDF()}>
@@ -526,23 +541,25 @@ export default function FacturasPage() {
                   <Download className="mr-1 h-3 w-3" /> Excel
                 </Button>
               </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                    <Trash2 className="mr-1 h-3 w-3" /> Eliminar
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>¿Eliminar {seleccionadas.size} factura{seleccionadas.size !== 1 ? 's' : ''}?</AlertDialogTitle>
-                    <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => void eliminarSeleccionadas()}>Eliminar</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              {!soloLectura && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                      <Trash2 className="mr-1 h-3 w-3" /> Eliminar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Eliminar {seleccionadas.size} factura{seleccionadas.size !== 1 ? 's' : ''}?</AlertDialogTitle>
+                      <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => void eliminarSeleccionadas()}>Eliminar</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
               <Button variant="ghost" size="sm" onClick={() => setSeleccionadas(new Set())}>Cancelar</Button>
             </div>
           )}
@@ -641,23 +658,25 @@ export default function FacturasPage() {
                           <Link href={`/gestoria/facturas/${f.id}`}>
                             <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Ver factura"><ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Button>
                           </Link>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label="Eliminar factura">
-                                <Trash2 className="h-4 w-4" aria-hidden="true" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>¿Eliminar esta factura?</AlertDialogTitle>
-                                <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => void eliminar(f.id)}>Eliminar</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          {!soloLectura && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" aria-label="Eliminar factura">
+                                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Eliminar esta factura?</AlertDialogTitle>
+                                  <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => void eliminar(f.id)}>Eliminar</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </div>
                       </td>
                     </tr>

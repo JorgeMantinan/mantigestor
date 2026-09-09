@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
 
     const { data: invitacion, error: invError } = await supabase
       .from('invitaciones_pendientes')
-      .select('id, invitadoPorUserId, aceptada')
+      .select('id, invitadoPorUserId, aceptada, rol')
       .eq('id', invitacionId)
       .eq('email', email)
       .maybeSingle()
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
       const { error: fnError } = await supabase.rpc('crear_asociacion_segura', {
         p_owner_user_id: invitacion.invitadoPorUserId,
         p_perfil_id: miPerfil.id,
-        p_rol: 'gestor',
+        p_rol: invitacion.rol ?? 'gestor',
       })
 
       if (fnError) {
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
             id: crypto.randomUUID(),
             ownerUserId: invitacion.invitadoPorUserId,
             perfilId: miPerfil.id,
-            rol: 'gestor',
+            rol: invitacion.rol ?? 'gestor',
           })
 
         if (asocError) {

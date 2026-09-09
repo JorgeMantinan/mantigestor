@@ -30,6 +30,7 @@ export function PersonaSelector() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [nuevoEmail, setNuevoEmail] = useState('')
   const [nuevoNombre, setNuevoNombre] = useState('')
+  const [nuevoRol, setNuevoRol] = useState<'gestor' | 'visualizador'>('gestor')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
   const [invitationLink, setInvitationLink] = useState('')
@@ -47,7 +48,7 @@ export function PersonaSelector() {
       const res = await fetch('/api/fiscal/asociar-persona', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: nuevoEmail, nombre: nuevoNombre }),
+        body: JSON.stringify({ email: nuevoEmail, nombre: nuevoNombre, rol: nuevoRol }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -58,6 +59,7 @@ export function PersonaSelector() {
         setDialogOpen(false)
         setNuevoEmail('')
         setNuevoNombre('')
+        setNuevoRol('gestor')
         window.location.reload()
       } else {
         setInvitationLink(data.confirmacionLink || data.invitacionLink)
@@ -125,7 +127,7 @@ export function PersonaSelector() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setInvitationLink(''); setInvitationSent(false); } }}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) { setInvitationLink(''); setInvitationSent(false); setNuevoRol('gestor'); } }}>
         <DialogContent>
           {invitationSent && invitationLink ? (
             <>
@@ -165,6 +167,18 @@ export function PersonaSelector() {
                 <div className="grid gap-2">
                   <Label htmlFor="asoc-email">{t('personaSelector.email')}</Label>
                   <Input id="asoc-email" type="email" value={nuevoEmail} onChange={e => setNuevoEmail(e.target.value)} placeholder="maria@ejemplo.com" required />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="asoc-rol">{t('personaSelector.rol')}</Label>
+                  <select
+                    id="asoc-rol"
+                    value={nuevoRol}
+                    onChange={e => setNuevoRol(e.target.value as 'gestor' | 'visualizador')}
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    <option value="gestor">{t('personaSelector.rolGestor')}</option>
+                    <option value="visualizador">{t('personaSelector.rolVisualizador')}</option>
+                  </select>
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
               </div>

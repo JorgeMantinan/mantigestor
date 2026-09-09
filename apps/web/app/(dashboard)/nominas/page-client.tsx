@@ -17,6 +17,8 @@ import { descargarExcel } from '@/lib/descargar-excel'
 import { generarNominaPDF } from '@/lib/nomina-pdf'
 import { useLanguage } from '@/contexts/language-context'
 import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
+import { esSoloLectura } from '@/lib/resolve-perfil-activo'
 
 type OrdenCampo = 'empleada' | 'mes' | 'salarioBruto' | 'neto'
 type OrdenDireccion = 'asc' | 'desc'
@@ -55,10 +57,13 @@ export default function NominasPage() {
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
   const { empresaActiva } = useEmpresaActiva()
+  const { perfilActivoId, personas, esPropio } = usePersonaActiva()
+  const personaActiva = personas.find(p => p.perfilId === perfilActivoId)
+  const soloLectura = !esPropio && personaActiva && esSoloLectura(personaActiva.rol)
 
   useKeyboardShortcuts({
     onSearch: () => searchRef.current?.focus(),
-    onNew: () => setShowForm(true),
+    onNew: () => !soloLectura && setShowForm(true),
     onEscape: () => setShowForm(false),
   })
 
@@ -206,6 +211,11 @@ export default function NominasPage() {
             <p className="text-muted-foreground">
               {t('nominas.subtitulo')}
             </p>
+            {soloLectura && (
+              <span className="inline-block mt-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                Solo lectura
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 rounded-md border p-0.5">
@@ -230,10 +240,12 @@ export default function NominasPage() {
                 {t('nominas.soyEmpleada')}
               </Button>
             </div>
-            <Button onClick={() => setShowForm(true)}>
-              <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-              {t('nominas.nuevaNomina')}
-            </Button>
+            {!soloLectura && (
+              <Button onClick={() => setShowForm(true)}>
+                <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+                {t('nominas.nuevaNomina')}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -430,6 +442,7 @@ export default function NominasPage() {
             setPage={setPage}
             onDelete={handleDelete}
             onDownloadPdf={(n) => void generarNominaPDF(n)}
+            soloLectura={soloLectura}
           />
         )}
       </div>

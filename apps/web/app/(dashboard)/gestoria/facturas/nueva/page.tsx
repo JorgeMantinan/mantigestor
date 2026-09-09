@@ -26,6 +26,8 @@ import { logAccion } from '@/lib/audit-log'
 import { calcularDescuento } from '@/lib/descuento-factura'
 import { useLanguage } from '@/contexts/language-context'
 import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
+import { esSoloLectura } from '@/lib/resolve-perfil-activo'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -33,6 +35,9 @@ export default function NuevaFacturaPage() {
   const router = useRouter()
   const { t } = useLanguage()
   const { empresaActiva } = useEmpresaActiva()
+  const { perfilActivoId, personas, esPropio } = usePersonaActiva()
+  const personaActiva = personas.find(p => p.perfilId === perfilActivoId)
+  const soloLectura = !esPropio && personaActiva && esSoloLectura(personaActiva.rol)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
@@ -244,6 +249,15 @@ export default function NuevaFacturaPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      {soloLectura ? (
+        <div className="flex flex-col items-center gap-4 py-12">
+          <h1 className="text-3xl font-heading font-bold tracking-tight">{t('facturaNueva.titulo')}</h1>
+          <p className="text-muted-foreground">No puedes crear facturas en modo solo lectura.</p>
+          <Link href="/gestoria/facturas">
+            <Button>Volver a facturas</Button>
+          </Link>
+        </div>
+      ) : (<>
       <div className="flex items-center gap-4">
         <Link href="/gestoria/facturas">
           <Button variant="ghost" size="icon" aria-label={t('facturaNueva.volverFacturas')}>
@@ -531,6 +545,7 @@ export default function NuevaFacturaPage() {
           </CardContent>
         </Card>
       )}
+      </>)}
     </div>
   )
 }

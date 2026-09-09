@@ -42,9 +42,10 @@ interface Props {
   setPage: (page: number) => void
   onDelete: (id: string) => void
   onDownloadPdf: (nomina: Nomina) => void
+  soloLectura?: boolean
 }
 
-export const NominaTable = memo(function NominaTable({ paginadas, visibles, page, totalPages, ordenCampo, ordenDir, busqueda, toggleSort, setPage, onDelete, onDownloadPdf }: Props) {
+export const NominaTable = memo(function NominaTable({ paginadas, visibles, page, totalPages, ordenCampo, ordenDir, busqueda, toggleSort, setPage, onDelete, onDownloadPdf, soloLectura }: Props) {
   const { t } = useLanguage()
   const SortIcon = ({ campo }: { campo: OrdenCampo }) => {
     if (ordenCampo !== campo) return <ArrowUpDown className="ml-1 h-3 w-3 opacity-40" />
@@ -114,32 +115,34 @@ export const NominaTable = memo(function NominaTable({ paginadas, visibles, page
                       >
                         <Download className="h-3 w-3 mr-1" /> PDF
                       </Button>
-                      <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-xs text-destructive hover:text-destructive"
-                        >
-                          {t('nominaTable.borrar')}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>{t('nominaTable.eliminarNominaTitle')}</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t('nominaTable.eliminarNominaDesc')} {n.empleada} {t('nominaTable.permanentemente')}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>{t('nominaTable.cancelar')}</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => void onDelete(n.id)}>
-                            {t('nominaTable.eliminar')}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                      {!soloLectura && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs text-destructive hover:text-destructive"
+                            >
+                              {t('nominaTable.borrar')}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{t('nominaTable.eliminarNominaTitle')}</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t('nominaTable.eliminarNominaDesc')} {n.empleada} {t('nominaTable.permanentemente')}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{t('nominaTable.cancelar')}</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => void onDelete(n.id)}>
+                                {t('nominaTable.eliminar')}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </td>
                 </tr>

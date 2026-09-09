@@ -46,7 +46,7 @@ export async function resolvePerfilActivo(
     .select('rol')
     .eq('ownerUserId', user.id)
     .eq('perfilId', perfilSolicitado)
-    .in('rol', ['gestor', 'propietario'])
+    .in('rol', ['gestor', 'propietario', 'visualizador'])
     .single()
 
   if (!asociacion) {
@@ -54,4 +54,8 @@ export async function resolvePerfilActivo(
   }
 
   return { perfilId: perfilSolicitado, esPropio: false }
+}
+
+export function esSoloLectura(rol: string): boolean {
+  return rol === 'visualizador'
 }
