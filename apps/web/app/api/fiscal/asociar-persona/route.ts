@@ -11,7 +11,7 @@ function escapeHtml(str: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { success } = rateLimitByIp(req, { maxRequests: 5, windowMs: 60 * 1000 })
+    const { success } = await rateLimitByIp(req, { maxRequests: 5, windowMs: 60 * 1000 })
     if (!success) {
       return NextResponse.json(
         { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },

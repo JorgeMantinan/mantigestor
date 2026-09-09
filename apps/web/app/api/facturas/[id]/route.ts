@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { success } = rateLimitByIp(req)
+    const { success } = await rateLimitByIp(req)
     if (!success) {
       return NextResponse.json(
         { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },
@@ -53,7 +53,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { success } = rateLimitByIp(req)
+    const { success } = await rateLimitByIp(req)
     if (!success) {
       return NextResponse.json(
         { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },
@@ -119,7 +119,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { success } = rateLimitByIp(req)
+    const { success } = await rateLimitByIp(req)
     if (!success) {
       return NextResponse.json(
         { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },

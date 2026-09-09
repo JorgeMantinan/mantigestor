@@ -12,7 +12,7 @@ import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
 export async function POST(request: NextRequest) {
   try {
-    const { success } = rateLimitByIp(request)
+    const { success } = await rateLimitByIp(request)
     if (!success) {
       return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
     }

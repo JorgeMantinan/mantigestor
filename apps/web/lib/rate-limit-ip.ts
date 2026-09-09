@@ -5,10 +5,14 @@ const DEFAULT_CONFIG: RateLimitConfig = {
   windowMs: 60 * 1000,
 }
 
-export function rateLimitByIp(req: Request, config: RateLimitConfig = DEFAULT_CONFIG) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    ?? req.headers.get('x-real-ip')
-    ?? 'unknown'
+export async function rateLimitByIp(
+  req: Request,
+  config: RateLimitConfig = DEFAULT_CONFIG
+): Promise<{ success: boolean; remaining: number }> {
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    req.headers.get('x-real-ip') ??
+    'unknown'
 
   return rateLimit(`ip:${ip}`, config)
 }

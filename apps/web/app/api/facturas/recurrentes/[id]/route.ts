@@ -5,7 +5,7 @@ import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { success } = rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
+    const { success } = await rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
     if (!success) {
       return NextResponse.json(
         { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },
@@ -47,7 +47,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { success } = rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
+    const { success } = await rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
     if (!success) {
       return NextResponse.json(
         { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },

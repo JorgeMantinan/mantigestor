@@ -32,7 +32,7 @@ function getSupabase(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const { success } = rateLimitByIp(req)
+    const { success } = await rateLimitByIp(req)
     if (!success) {
       return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
     }
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const { success } = rateLimitByIp(req, { maxRequests: 30, windowMs: 60 * 1000 })
+    const { success } = await rateLimitByIp(req, { maxRequests: 30, windowMs: 60 * 1000 })
     if (!success) {
       return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
     }

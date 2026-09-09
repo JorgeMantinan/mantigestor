@@ -3,7 +3,7 @@ import { rateLimitByIp } from '@/lib/rate-limit-ip'
 
 export async function GET(req: NextRequest) {
   try {
-    const { success } = rateLimitByIp(req)
+    const { success } = await rateLimitByIp(req)
     if (!success) {
       return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
     }

@@ -5,7 +5,7 @@ import { createServerClient } from '@supabase/ssr'
 
 export async function POST(req: NextRequest) {
   try {
-    const { success } = rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
+    const { success } = await rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
     if (!success) {
       return NextResponse.json(
         { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },

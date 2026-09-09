@@ -34,7 +34,7 @@ function supabaseDeReq(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const { success } = rateLimitByIp(req)
+    const { success } = await rateLimitByIp(req)
     if (!success) {
       return NextResponse.json(
         { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },
@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { success } = rateLimitByIp(req)
+    const { success } = await rateLimitByIp(req)
     if (!success) {
       return NextResponse.json(
         { error: 'Demasiadas peticiones. Intenta de nuevo en un minuto.' },

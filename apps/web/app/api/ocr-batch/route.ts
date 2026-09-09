@@ -18,7 +18,7 @@ interface ResultadoBatch {
 
 export async function POST(req: NextRequest) {
   try {
-    const { success } = rateLimitByIp(req, { maxRequests: 3, windowMs: 60 * 1000 })
+    const { success } = await rateLimitByIp(req, { maxRequests: 3, windowMs: 60 * 1000 })
     if (!success) {
       return NextResponse.json({ error: 'Demasiadas peticiones de OCR en lote' }, { status: 429 })
     }
