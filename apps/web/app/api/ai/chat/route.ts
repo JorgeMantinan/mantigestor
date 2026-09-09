@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { z } from 'zod'
@@ -47,7 +48,46 @@ export async function POST(req: NextRequest) {
       return badRequest(parsed.error.flatten().fieldErrors)
     }
 
-    const { mensaje, historial } = parsed.data
+    const { mensaje } = parsed.data
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get: (name: string) => req.cookies.get(name)?.value,
+          set: () => {},
+          remove: () => {},
+        },
+      }
+    )
+
+    const { data: perfil } = await supabase
+      .from('perfiles')
+      .select('id')
+      .eq('userId', user.id)
+      .single()
+
+    if (!perfil) {
+      return NextResponse.json(
+        { error: 'Perfil no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    await supabase.from('chat_historial').insert({
+      id: crypto.randomUUID(),
+      perfilId: perfil.id,
+      rol: 'user',
+      contenido: mensaje,
+    })
+
+    const { data: historialDB } = await supabase
+      .from('chat_historial')
+      .select('rol, contenido')
+      .eq('perfilId', perfil.id)
+      .order('creadoEn', { ascending: true })
+      .limit(20)
 
     if (!ANTHROPIC_API_KEY) {
       return Response.json({
@@ -57,13 +97,10 @@ export async function POST(req: NextRequest) {
 
     const messages = [
       { role: 'system', content: SYSTEM_PROMPT },
-      ...(historial ?? [])
-        .filter((m: { role: string }) => m.role !== 'system')
-        .map((m: { role: string; content: string }) => ({
-          role: m.role,
-          content: m.content,
-        })),
-      { role: 'user', content: mensaje },
+      ...(historialDB ?? []).map(m => ({
+        role: m.rol as 'user' | 'assistant',
+        content: m.contenido,
+      })),
     ]
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -90,6 +127,13 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json()
     const respuesta = data.content?.[0]?.text ?? 'No se pudo generar una respuesta.'
+
+    await supabase.from('chat_historial').insert({
+      id: crypto.randomUUID(),
+      perfilId: perfil.id,
+      rol: 'assistant',
+      contenido: respuesta,
+    })
 
     return Response.json({ respuesta })
   } catch (error) {

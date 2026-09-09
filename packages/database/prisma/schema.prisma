@@ -37,6 +37,7 @@ model Perfil {
   pushSubscriptions          PushSubscription[]
   movimientosBanco           MovimientoBanco[]
   conciliacionLogs           ConciliacionLog[]
+  chatHistorial              ChatHistorial[]
 
   @@map("perfiles")
 }
@@ -821,6 +822,7 @@ model MovimientoBanco {
   createdAt     DateTime @default(now())
 
   factura Factura? @relation(fields: [facturaId], references: [id], onDelete: SetNull)
+  conciliacionLogs ConciliacionLog[]
 
   @@index([perfilId])
   @@index([facturaId])
@@ -842,4 +844,16 @@ model ConciliacionLog {
   @@index([perfilId])
   @@index([facturaId])
   @@map("conciliacion_logs")
+}
+
+model ChatHistorial {
+  id        String   @id @default(cuid())
+  perfilId  String
+  perfil    Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  rol       String
+  contenido String
+  creadoEn  DateTime @default(now())
+
+  @@index([perfilId])
+  @@map("chat_historial")
 }
