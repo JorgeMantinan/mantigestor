@@ -13,11 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { proximosPlazos, getCalendarioFiscal } from '@mantigestor/utils'
 import { Kbd } from '@/components/ui/kbd'
-import { ChartIngresosGastos } from '@/components/dashboard/chart-ingresos-gastos'
-import { ChartCashflow } from '@/components/dashboard/chart-cashflow'
-import { ChartIvaTrimestral } from '@/components/dashboard/chart-iva-trimestral'
-import { ChartAlquiler } from '@/components/dashboard/chart-alquiler'
-import { ChartEvolucion } from '@/components/dashboard/chart-evolucion'
+import { Suspense } from 'react'
 import { SkeletonDashboard } from '@/components/dashboard/skeleton-dashboard'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
 import { CalendarioFiscal } from '@/components/dashboard/calendario-fiscal'
@@ -89,6 +85,21 @@ const WidgetComparativaAnual = dynamic(() => import('@/components/dashboard/widg
 })
 const WidgetAlertasCobro = dynamic(() => import('@/components/dashboard/widget-alertas-cobro').then(m => m.WidgetAlertasCobro), {
   loading: () => <div className="h-[200px] animate-pulse bg-muted rounded" />,
+})
+const ChartIngresosGastos = dynamic(() => import('@/components/dashboard/chart-ingresos-gastos').then(m => m.ChartIngresosGastos), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
+const ChartCashflow = dynamic(() => import('@/components/dashboard/chart-cashflow').then(m => m.ChartCashflow), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
+const ChartIvaTrimestral = dynamic(() => import('@/components/dashboard/chart-iva-trimestral').then(m => m.ChartIvaTrimestral), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
+const ChartAlquiler = dynamic(() => import('@/components/dashboard/chart-alquiler').then(m => m.ChartAlquiler), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
+})
+const ChartEvolucion = dynamic(() => import('@/components/dashboard/chart-evolucion').then(m => m.ChartEvolucion), {
+  loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
 })
 
 interface Factura {
@@ -492,11 +503,21 @@ export default function DashboardPage() {
       {/* Gráficas */}
       {!loading && facturas.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2" role="region" aria-label={t('dashboard.graficas')}>
-          <ChartIngresosGastos facturas={facturasFiltradas} />
-          <ChartCashflow facturas={facturasFiltradas} />
-          <ChartEvolucion facturas={facturasFiltradas} nominas={nominas} />
-          <ChartIvaTrimestral facturas={facturasFiltradas} />
-          <ChartAlquiler ingresos={totalIngresosAlquiler} gastos={totalGastosAlquiler} />
+          <Suspense fallback={<div className="h-[300px] animate-pulse rounded bg-muted" />}>
+            <ChartIngresosGastos facturas={facturasFiltradas} />
+          </Suspense>
+          <Suspense fallback={<div className="h-[300px] animate-pulse rounded bg-muted" />}>
+            <ChartCashflow facturas={facturasFiltradas} />
+          </Suspense>
+          <Suspense fallback={<div className="h-[300px] animate-pulse rounded bg-muted" />}>
+            <ChartEvolucion facturas={facturasFiltradas} nominas={nominas} />
+          </Suspense>
+          <Suspense fallback={<div className="h-[300px] animate-pulse rounded bg-muted" />}>
+            <ChartIvaTrimestral facturas={facturasFiltradas} />
+          </Suspense>
+          <Suspense fallback={<div className="h-[300px] animate-pulse rounded bg-muted" />}>
+            <ChartAlquiler ingresos={totalIngresosAlquiler} gastos={totalGastosAlquiler} />
+          </Suspense>
           <ChartCategorias facturas={facturasFiltradas} />
           <ChartPresupuesto facturas={facturasFiltradas} />
           <ChartComparativa facturas={facturasFiltradas} />

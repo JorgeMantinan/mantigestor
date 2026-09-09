@@ -202,7 +202,7 @@ function PerfilTab() {
               {logoBase64 ? (
                 <div className="flex items-center gap-4">
                   <img src={logoBase64} alt="Logo de empresa" className="h-16 w-auto rounded border bg-white p-1 object-contain" />
-                  <Button variant="ghost" size="sm" className="text-destructive gap-1" onClick={() => setLogoBase64(null)}>
+                  <Button variant="ghost" size="sm" className="text-destructive gap-1" onClick={() => setLogoBase64(null)} aria-label="Delete logo">
                     <Trash2 className="h-4 w-4" /> {t('ajustes.eliminarLogo')}
                   </Button>
                 </div>
@@ -251,6 +251,7 @@ function PerfilTab() {
                         size="icon"
                         className="shrink-0"
                         onClick={() => setNotasPie(notasPie.filter((_, j) => j !== i))}
+                        aria-label="Delete note"
                       >
                         ×
                       </Button>
@@ -351,7 +352,7 @@ function FirmaSection({ firma, onFirmaGuardada }: { firma: FirmaDigital | null; 
               <p className="text-sm text-muted-foreground">
                 Firma de <strong>{firma.nombre}</strong> — {new Date(firma.fecha).toLocaleDateString('es-ES')}
               </p>
-              <Button variant="ghost" size="sm" className="text-destructive gap-1" onClick={handleEliminar} disabled={eliminando}>
+              <Button variant="ghost" size="sm" className="text-destructive gap-1" onClick={handleEliminar} disabled={eliminando} aria-label="Delete signature">
                 <Trash2 className="h-4 w-4" />
                 {eliminando ? t('ajustes.eliminando') + '...' : t('ajustes.eliminarFirma')}
               </Button>
@@ -601,7 +602,7 @@ function ShareDialog() {
 
   return (
     <>
-      <Button variant="outline" size="sm" className="gap-2" onClick={() => setOpen(true)}>
+      <Button variant="outline" size="sm" className="gap-2" onClick={() => setOpen(true)} aria-label="Share access">
         <Share2 className="h-4 w-4" />
         {t('ajustes.compartir')}
       </Button>
@@ -652,7 +653,7 @@ function ShareDialog() {
                     className="font-mono text-xs"
                     onClick={e => (e.target as HTMLInputElement).select()}
                   />
-                  <Button variant="outline" size="icon" className="shrink-0" onClick={copiarEnlace}>
+                  <Button variant="outline" size="icon" className="shrink-0" onClick={copiarEnlace} aria-label="Copy link">
                     {copiado ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
