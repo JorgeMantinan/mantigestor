@@ -38,8 +38,27 @@ model Perfil {
   movimientosBanco           MovimientoBanco[]
   conciliacionLogs           ConciliacionLog[]
   chatHistorial              ChatHistorial[]
+  plantillasFactura          PlantillaFactura[]
 
   @@map("perfiles")
+}
+
+model PlantillaFactura {
+  id             String   @id @default(cuid())
+  perfilId       String
+  perfil         Perfil   @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  nombre         String
+  tipo           String
+  emisorReceptor String
+  nifContraparte String?
+  concepto       String?
+  baseImponible  Int
+  iva            Int      @default(21)
+  categoriaGasto String?
+  createdAt      DateTime @default(now())
+
+  @@index([perfilId])
+  @@map("plantillas_factura")
 }
 
 model FacturaRecurrente {

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ChevronLeft, ScanLine, Loader2, Lightbulb, Camera } from 'lucide-react'
+import { ChevronLeft, ScanLine, Loader2, Lightbulb, Camera, Bookmark, ChevronDown } from 'lucide-react'
 import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
 import { generarSiguienteNumeroFactura } from '@mantigestor/utils'
 import { FileUpload } from '@/components/upload/FileUpload'
@@ -28,6 +28,18 @@ import { useLanguage } from '@/contexts/language-context'
 import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { esSoloLectura } from '@/lib/resolve-perfil-activo'
+
+interface PlantillaFactura {
+  id: string
+  nombre: string
+  tipo: string
+  emisorReceptor: string
+  nifContraparte: string | null
+  concepto: string | null
+  baseImponible: number
+  iva: number
+  categoriaGasto: string | null
+}
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
 
@@ -54,6 +66,10 @@ export default function NuevaFacturaPage() {
   const [ocrUsado, setOcrUsado] = useState(false)
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState(0)
   const [validacionOcr, setValidacionOcr] = useState<ResultadoValidacion | null>(null)
+  const [plantillas, setPlantillas] = useState<PlantillaFactura[]>([])
+  const [guardandoPlantilla, setGuardandoPlantilla] = useState(false)
+  const [nombrePlantilla, setNombrePlantilla] = useState('')
+  const [mostrarFormPlantilla, setMostrarFormPlantilla] = useState(false)
 
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
@@ -77,6 +93,77 @@ export default function NuevaFacturaPage() {
       }
     })
   }, [getSupabase])
+
+  useEffect(() => {
+    if (!userId) return
+    getSupabase()
+      .from('plantillas_factura')
+      .select('*')
+      .eq('perfilId', userId)
+      .order('nombre')
+      .then(({ data }) => {
+        if (data) setPlantillas(data as PlantillaFactura[])
+      })
+  }, [getSupabase, userId])
+
+  async function guardarPlantilla() {
+    if (!userId || !nombrePlantilla.trim() || !formRef.current) return
+    setGuardandoPlantilla(true)
+    const form = formRef.current
+    const getVal = (name: string): string => {
+      const el = form.elements.namedItem(name)
+      if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) return el.value
+      return ''
+    }
+    const baseImponible = parseFloat(getVal('baseImponible') || '0') * 100
+    const iva = parseInt(getVal('iva') || '21', 10)
+    const emisorReceptor = getVal('emisorReceptor')
+    const nifContraparte = getVal('nifContraparte') || null
+    const { error } = await getSupabase().from('plantillas_factura').insert({
+      id: crypto.randomUUID(),
+      perfilId: userId,
+      nombre: nombrePlantilla.trim(),
+      tipo: tipoSeleccionado,
+      emisorReceptor,
+      nifContraparte,
+      concepto: null,
+      baseImponible: Math.round(baseImponible),
+      iva,
+      categoriaGasto,
+    })
+    if (!error) {
+      setPlantillas(prev => [...prev, {
+        id: crypto.randomUUID(),
+        nombre: nombrePlantilla.trim(),
+        tipo: tipoSeleccionado,
+        emisorReceptor,
+        nifContraparte,
+        concepto: null,
+        baseImponible: Math.round(baseImponible),
+        iva,
+        categoriaGasto,
+      }])
+      setNombrePlantilla('')
+      setMostrarFormPlantilla(false)
+    }
+    setGuardandoPlantilla(false)
+  }
+
+  function cargarPlantilla(p: PlantillaFactura) {
+    setTipoSeleccionado(p.tipo)
+    if (p.categoriaGasto) setCategoriaGasto(p.categoriaGasto)
+    const setField = (name: string, value: string) => {
+      const el = formRef.current?.elements.namedItem(name)
+      if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) {
+        el.value = value
+      }
+    }
+    setField('tipo', p.tipo)
+    setField('emisorReceptor', p.emisorReceptor)
+    setField('nifContraparte', p.nifContraparte ?? '')
+    setField('baseImponible', String(p.baseImponible / 100))
+    setField('iva', String(p.iva))
+  }
 
   async function escanearFactura() {
     if (!pdfUrl) return
@@ -426,6 +513,43 @@ export default function NuevaFacturaPage() {
 
             {error && (
               <p className="text-sm text-destructive">{error}</p>
+            )}
+
+            {plantillas.length > 0 && (
+              <div className="space-y-2">
+                <Label>Cargar plantilla guardada</Label>
+                <div className="flex flex-wrap gap-2">
+                  {plantillas.map(p => (
+                    <Button key={p.id} type="button" variant="outline" size="sm"
+                      onClick={() => cargarPlantilla(p)}>
+                      <Bookmark className="mr-1 h-3 w-3" aria-hidden="true" />
+                      {p.nombre}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {mostrarFormPlantilla ? (
+              <div className="flex gap-2 items-end">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="nombrePlantilla">Nombre de la plantilla</Label>
+                  <Input id="nombrePlantilla" value={nombrePlantilla} onChange={e => setNombrePlantilla(e.target.value)}
+                    placeholder="Ej: Factura Hosting" />
+                </div>
+                <Button type="button" variant="secondary" size="sm" onClick={() => void guardarPlantilla()}
+                  disabled={guardandoPlantilla || !nombrePlantilla.trim()}>
+                  {guardandoPlantilla ? 'Guardando...' : 'Guardar'}
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => { setMostrarFormPlantilla(false); setNombrePlantilla('') }}>
+                  Cancelar
+                </Button>
+              </div>
+            ) : (
+              <Button type="button" variant="ghost" size="sm" onClick={() => setMostrarFormPlantilla(true)}>
+                <Bookmark className="mr-1 h-3 w-3" aria-hidden="true" />
+                Guardar como plantilla
+              </Button>
             )}
 
             <div className="flex gap-4 pt-4">
