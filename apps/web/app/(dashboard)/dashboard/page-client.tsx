@@ -6,7 +6,7 @@ import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { useLanguage } from '@/contexts/language-context'
 import {
   Receipt, TrendingUp, TrendingDown, PiggyBank, Calendar, Users, Home,
-  Plus, FileText, Calculator, ArrowRight, AlertCircle, ChevronLeft, ChevronRight, Clock
+  Plus, FileText, Calculator, ArrowRight, AlertCircle, ChevronLeft, ChevronRight, Clock, Wallet
 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -392,6 +392,11 @@ export default function DashboardPage() {
           <Link href="/gestoria/facturas/nueva">
             <Button size="sm">
               <Plus className="mr-1.5 h-4 w-4" /> {t('dashboard.nuevaFactura')} <Kbd className="ml-2">Ctrl+N</Kbd>
+            </Button>
+          </Link>
+          <Link href="/dashboard/cashflow">
+            <Button variant="outline" size="sm">
+              <Wallet className="mr-1.5 h-4 w-4" /> Flujo de caja
             </Button>
           </Link>
           <Link href="/fiscal">
