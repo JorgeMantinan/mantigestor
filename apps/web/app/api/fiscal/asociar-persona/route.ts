@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
     let emailSent = false
 
     if (!process.env.RESEND_API_KEY) {
-      console.log('RESEND_API_KEY not set — email skipped. Link:', confirmacionLink)
+      console.warn('RESEND_API_KEY not set — email skipped')
     } else {
       try {
         const { Resend } = await import('resend')

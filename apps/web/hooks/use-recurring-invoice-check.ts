@@ -45,7 +45,7 @@ export function useRecurringInvoiceCheck() {
       const ultimaGen = localStorage.getItem(STORAGE_KEY_GEN)
       if (ultimaGen !== hoyStr) {
         if (!acquireLock(perfilId)) {
-          console.log('Another generation in progress, skipping')
+
           return
         }
 

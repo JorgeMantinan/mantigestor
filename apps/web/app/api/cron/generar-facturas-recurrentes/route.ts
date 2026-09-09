@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
 
   for (const [perfilId, templates] of porPerfil) {
     if (!acquireLock(perfilId)) {
-      console.log(`Lock activo para perfil ${perfilId}, saltando`)
+
       continue
     }
 
