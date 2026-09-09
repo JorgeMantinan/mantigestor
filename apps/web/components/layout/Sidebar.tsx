@@ -33,6 +33,7 @@ import {
   Repeat,
   Zap,
   ListChecks,
+  LayoutGrid,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -81,6 +82,7 @@ export function Sidebar() {
       items: [
         { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
         { label: t('nav.cobros'), href: '/gestoria/cobros', icon: Landmark },
+        { label: t('nav.kanbanCobros') ?? 'Kanban Cobros', href: '/gestoria/cobros/kanban', icon: LayoutGrid },
         { label: t('nav.documentos'), href: '/gestoria/documentos', icon: FileText },
         { label: t('nav.informes'), href: '/gestoria/informes', icon: FileSpreadsheet },
         { label: t('nav.conciliacion'), href: '/gestoria/conciliacion', icon: RefreshCw },

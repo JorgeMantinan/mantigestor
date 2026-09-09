@@ -6,6 +6,16 @@ import { type IdiomaPDF, obtenerTextosPDF } from '@/lib/i18n-pdf'
 
 export type PlantillaFactura = 'clasico' | 'moderno' | 'minimalista'
 
+export interface EmpresaDatos {
+  id: string
+  nombre: string
+  nif: string
+  direccion: string
+  activa: boolean
+  logoBase64?: string
+  firmaBase64?: string
+}
+
 interface FacturaPDF {
   numero: string
   emisorReceptor: string
@@ -15,6 +25,7 @@ interface FacturaPDF {
   iva: number
   total: number
   tipo: string
+  empresaId?: string
   empresaNombre?: string
   empresaDireccion?: string
   empresaNif?: string
@@ -25,6 +36,25 @@ interface FacturaPDF {
   firmaBase64?: string
   qrUrl?: string
   idioma?: IdiomaPDF
+}
+
+export function resolverLogoFirmaEmpresa(
+  factura: FacturaPDF,
+  empresas: EmpresaDatos[]
+): { logoBase64?: string; firmaBase64?: string } {
+  if (factura.empresaId && empresas.length > 0) {
+    const empresa = empresas.find(e => e.id === factura.empresaId)
+    if (empresa) {
+      return {
+        logoBase64: empresa.logoBase64 ?? factura.logoBase64,
+        firmaBase64: empresa.firmaBase64 ?? factura.firmaBase64,
+      }
+    }
+  }
+  return {
+    logoBase64: factura.logoBase64,
+    firmaBase64: factura.firmaBase64,
+  }
 }
 
 function esRectificativa(tipo: string): boolean {
@@ -389,9 +419,16 @@ export const NOMBRES_PLANTILLAS: Record<PlantillaFactura, string> = {
 
 export async function generarFacturaClientePDF(
   factura: FacturaPDF,
-  plantilla: PlantillaFactura = 'clasico'
+  plantilla: PlantillaFactura = 'clasico',
+  empresas: EmpresaDatos[] = []
 ): Promise<void> {
+  const { logoBase64, firmaBase64 } = resolverLogoFirmaEmpresa(factura, empresas)
+  const facturaResuelta: FacturaPDF = {
+    ...factura,
+    logoBase64: logoBase64 ?? factura.logoBase64,
+    firmaBase64: firmaBase64 ?? factura.firmaBase64,
+  }
   const htmlFn = plantillas[plantilla] ?? htmlClasico
-  const html = htmlFn(factura)
+  const html = htmlFn(facturaResuelta)
   await generarPDFDeHTML(html, `factura-${factura.numero}`, { orientacion: 'portrait' })
 }
