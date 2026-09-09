@@ -34,6 +34,8 @@ import {
   Zap,
   ListChecks,
   LayoutGrid,
+  Briefcase,
+  HelpCircle,
 } from 'lucide-react'
 import { useState } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -108,9 +110,20 @@ export function Sidebar() {
         { label: t('nav.notificaciones'), href: '/ajustes/notificaciones', icon: Bell },
         { label: t('nav.apiDocs'), href: '/api-docs', icon: BookOpen },
         { label: t('nav.ajustes'), href: '/ajustes', icon: Settings },
+        { label: 'FAQ Fiscal', href: '/herramientas/faq', icon: HelpCircle },
       ],
     },
   ]
+
+  // Add advisor link if user manages other people
+  const { personas } = usePersonaActiva()
+  const tieneClientes = personas.some(p => p.tipo === 'gestiono')
+  if (tieneClientes) {
+    const herramientasGroup = menuItems.find(g => g.group === t('nav.herramientas'))
+    if (herramientasGroup) {
+      herramientasGroup.items.push({ label: 'Asesor (Vista Consolidada)', href: '/asesor', icon: Briefcase })
+    }
+  }
 
   return (
     <>

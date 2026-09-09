@@ -15,6 +15,7 @@ import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { Kbd } from '@/components/ui/kbd'
 import { Download } from 'lucide-react'
 import { descargarExcelConResumen } from '@/lib/descargar-excel'
+import { exportarContaplus, exportarSage, descargarCSV } from '@/lib/exportar-contaplus'
 import { generarPDFDeHTML } from '@/lib/pdf'
 import { exportarTodoZIP } from '@/lib/exportar-zip'
 import { logAccion } from '@/lib/audit-log'
@@ -443,6 +444,14 @@ export default function FacturasPage() {
           <Download className="mr-1 h-4 w-4" /> {t('facturas.exportarZip')}
         </Button>
         <Button variant="outline" size="sm" disabled={visibles.length === 0}
+          onClick={() => descargarCSV(exportarContaplus(visibles), `facturas-contaplus-${new Date().toISOString().slice(0, 10)}.csv`)}>
+          <Download className="mr-1 h-4 w-4" /> ContaPlus
+        </Button>
+        <Button variant="outline" size="sm" disabled={visibles.length === 0}
+          onClick={() => descargarCSV(exportarSage(visibles), `facturas-sage-${new Date().toISOString().slice(0, 10)}.csv`)}>
+          <Download className="mr-1 h-4 w-4" /> Sage
+        </Button>
+        <Button variant="outline" size="sm" disabled={visibles.length === 0}
           onClick={async () => {
             const { generarReporteGastosPDF } = await import('@/lib/reporte-gastos-pdf')
             const totalBase = visibles.reduce((s, v) => s + v.baseImponible, 0)
@@ -553,6 +562,18 @@ export default function FacturasPage() {
                 </Button>
                 <Button variant="outline" size="sm" onClick={exportarSeleccionadas}>
                   <Download className="mr-1 h-3 w-3" /> Excel
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => {
+                  const sel = facturas.filter(f => seleccionadas.has(f.id))
+                  descargarCSV(exportarContaplus(sel), `facturas-contaplus-${new Date().toISOString().slice(0, 10)}.csv`)
+                }}>
+                  <Download className="mr-1 h-3 w-3" /> ContaPlus
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => {
+                  const sel = facturas.filter(f => seleccionadas.has(f.id))
+                  descargarCSV(exportarSage(sel), `facturas-sage-${new Date().toISOString().slice(0, 10)}.csv`)
+                }}>
+                  <Download className="mr-1 h-3 w-3" /> Sage
                 </Button>
               </div>
               {!soloLectura && (
