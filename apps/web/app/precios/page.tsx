@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
+import { useLanguage } from '@/contexts/language-context'
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -47,6 +48,7 @@ export default function PreciosPage() {
   const [loading, setLoading] = useState(false)
   const { user, cargando } = useAuth()
   const [stripeOk, setStripeOk] = useState(true)
+  const { t } = useLanguage()
 
   async function handleProCheckout() {
     setLoading(true)
@@ -75,23 +77,23 @@ export default function PreciosPage() {
               <>
                 <Link href="/dashboard" className="hidden sm:inline-flex">
                   <Button variant="ghost" size="sm">
-                    ← Volver al Dashboard
+                    ← {t('precios.volverAlDashboard')}
                   </Button>
                 </Link>
                 <Link href="/dashboard">
-                  <Button>Ir al dashboard</Button>
+                  <Button>{t('precios.irDashboard')}</Button>
                 </Link>
               </>
             ) : (
               <>
                 <Link href="/">
-                  <Button variant="ghost">← Volver</Button>
+                  <Button variant="ghost">← {t('precios.volver')}</Button>
                 </Link>
                 <Link href="/login">
-                  <Button variant="ghost">Iniciar sesión</Button>
+                  <Button variant="ghost">{t('precios.iniciarSesion')}</Button>
                 </Link>
                 <Link href="/register">
-                  <Button>Crear cuenta</Button>
+                  <Button>{t('precios.crearCuenta')}</Button>
                 </Link>
               </>
             )}
@@ -102,12 +104,10 @@ export default function PreciosPage() {
       <main className="flex-1">
         <section className="container py-24 text-center">
           <h1 className="text-4xl font-heading font-bold tracking-tight sm:text-5xl">
-            Precios sencillos,{' '}
-            <span className="text-primary">sin sorpresas</span>
+            {t('precios.titulo')}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            Elige el plan que mejor se adapte a tu actividad. Todos incluyen 30 días de prueba
-            gratuita del plan PRO.
+            {t('precios.subtitulo')}
           </p>
         </section>
 
@@ -120,7 +120,7 @@ export default function PreciosPage() {
               >
                 {plan.destacado && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
-                    RECOMENDADO
+                    {t('precios.recomendado')}
                   </div>
                 )}
                 <CardHeader>
@@ -157,12 +157,12 @@ export default function PreciosPage() {
                       className="w-full"
                       disabled={loading}
                     >
-                      {loading ? 'Redirigiendo...' : stripeOk ? plan.cta : 'Próximamente'}
+                      {loading ? t('precios.redirigiendo') : stripeOk ? plan.cta : t('precios.proximamente')}
                     </Button>
                   ) : (
                     <Link href={user ? '/dashboard' : plan.href} className="w-full">
                       <Button variant="outline" size="lg" className="w-full">
-                        {user ? 'Ir al dashboard' : plan.cta}
+                        {user ? t('precios.irDashboard') : plan.cta}
                       </Button>
                     </Link>
                   )}
@@ -175,7 +175,7 @@ export default function PreciosPage() {
 
       <footer className="border-t py-8">
         <div className="container text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} MantiGestor. Todos los derechos reservados.
+          &copy; {new Date().getFullYear()} MantiGestor. {t('precios.todosDerechosReservados')}
         </div>
       </footer>
     </div>

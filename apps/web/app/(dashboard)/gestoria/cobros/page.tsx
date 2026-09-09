@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { KanbanCobros } from '@/components/kanban-cobros'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { toast, Toaster } from 'sonner'
 import { formatoMoneda } from '@/lib/divisas'
 import { logAccion } from '@/lib/audit-log'
-import { Landmark, Clock, CheckCircle, ArrowUpRight } from 'lucide-react'
+import { Landmark, Clock, CheckCircle, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Factura {
   id: string
@@ -28,6 +29,8 @@ export default function CobrosPage() {
   const [loading, setLoading] = useState(true)
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
+  const [page, setPage] = useState(0)
+  const ITEMS_PER_PAGE = 25
 
   const fetchFacturas = useCallback(async () => {
     setLoading(true)
@@ -68,6 +71,11 @@ export default function CobrosPage() {
   const totalCobrado = useMemo(() =>
     facturasFiltradas.filter(f => f.estado === 'pagada' || f.estado === 'parcial').reduce((s, f) => s + f.total, 0)
   , [facturasFiltradas])
+
+  const totalPages = Math.ceil(facturasFiltradas.length / ITEMS_PER_PAGE)
+  const paginadas = useMemo(() =>
+    facturasFiltradas.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE)
+  , [facturasFiltradas, page])
 
   const handleEstadoCambiado = useCallback(async (facturaId: string, nuevoEstado: string) => {
     const supabase = createClient()
@@ -167,10 +175,27 @@ export default function CobrosPage() {
           </CardContent>
         </Card>
       ) : (
-        <KanbanCobros
-          facturas={facturasFiltradas}
-          onEstadoCambiado={handleEstadoCambiado}
-        />
+        <>
+          <KanbanCobros
+            facturas={paginadas}
+            onEstadoCambiado={handleEstadoCambiado}
+          />
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                Página {page + 1} de {totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
+                  <ChevronLeft className="h-4 w-4" /> Anterior
+                </Button>
+                <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
+                  Siguiente <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
       <Toaster richColors position="top-right" />
     </div>

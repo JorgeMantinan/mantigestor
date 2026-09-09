@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { useLanguage } from '@/contexts/language-context'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,6 +33,7 @@ function RegisterForm() {
   const invitado = searchParams.get('invitado') === 'true'
   const emailInvitado = searchParams.get('email') ?? ''
   const invitacionId = searchParams.get('invitacion') ?? ''
+  const { t } = useLanguage()
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -41,20 +43,20 @@ function RegisterForm() {
     setError(null)
 
     if (password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres')
+      setError(t('register.errorLongitud'))
       setCargando(false)
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden')
+      setError(t('register.errorCoincidencia'))
       setCargando(false)
       return
     }
 
     const emailFinal = email || emailInvitado
     if (!emailFinal) {
-      setError('Introduce tu email')
+      setError(t('register.errorEmail'))
       setCargando(false)
       return
     }
@@ -178,7 +180,7 @@ function RegisterForm() {
 
       router.push('/dashboard')
     } else {
-      setError('Revisa tu correo electrónico para confirmar la cuenta antes de iniciar sesión.')
+      setError(t('register.revisaCorreo'))
       setCargando(false)
     }
   }
@@ -207,7 +209,7 @@ function RegisterForm() {
       }
     } catch (err) {
       console.error('OAuth exception:', err)
-      const msg = err instanceof Error ? err.message : 'Error al conectar con el proveedor'
+      const msg = err instanceof Error ? err.message : t('register.errorProveedor')
       setError(msg)
       setCargando(false)
     }
@@ -224,16 +226,16 @@ function RegisterForm() {
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m15 18-6-6 6-6" />
             </svg>
-            Volver al inicio
+            {t('register.volver')}
           </Link>
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
             <span className="text-xl font-bold text-primary-foreground">M</span>
           </div>
-          <CardTitle className="text-2xl">Crear cuenta</CardTitle>
+          <CardTitle className="text-2xl">{t('register.titulo')}</CardTitle>
           <CardDescription>
             {invitado
-              ? 'Se te ha invitado a gestionar una persona en MantiGestor'
-              : 'Empieza a gestionar tu actividad con MantiGestor'}
+              ? t('register.subtituloInvitado')
+              : t('register.subtitulo')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -250,7 +252,7 @@ function RegisterForm() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               </svg>
-              Registrarse con Google
+              {t('register.registrarGoogle')}
             </Button>
             <Button
               variant="outline"
@@ -264,7 +266,7 @@ function RegisterForm() {
                 <path fill="#7FBA00" d="M11.4 22H2v-9.4h9.4V22z" />
                 <path fill="#FFB900" d="M22 22h-9.4v-9.4H22V22z" />
               </svg>
-              Registrarse con Outlook
+              {t('register.registrarOutlook')}
             </Button>
           </div>
 
@@ -274,25 +276,25 @@ function RegisterForm() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-card px-2 text-muted-foreground">
-                O con email
+                {t('register.oConEmail')}
               </span>
             </div>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="nombre">Nombre</Label>
+              <Label htmlFor="nombre">{t('register.nombre')}</Label>
               <Input
                 id="nombre"
                 type="text"
-                placeholder="Tu nombre"
+                placeholder={t('register.placeholderNombre')}
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('register.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -304,27 +306,27 @@ function RegisterForm() {
               />
               {invitado && (
                 <p className="text-xs text-muted-foreground">
-                  Este email fue añadido por un gestor. Al crear tu cuenta se vinculará tu perfil.
+                  {t('register.emailInvitado')}
                 </p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">{t('register.contrasena')}</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Mínimo 8 caracteres"
+                placeholder={t('register.placeholderContrasena')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+              <Label htmlFor="confirmPassword">{t('register.confirmarContrasena')}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Repite la contraseña"
+                placeholder={t('register.placeholderConfirmar')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -336,15 +338,15 @@ function RegisterForm() {
             )}
 
             <Button type="submit" className="w-full" disabled={cargando}>
-              {cargando ? 'Creando cuenta...' : 'Crear cuenta'}
+              {cargando ? t('register.creandoCuenta') : t('register.registrar')}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
-            ¿Ya tienes cuenta?{' '}
+            {t('register.yaTieneCuenta')}{' '}
             <Link href="/login" className="font-medium text-primary hover:underline">
-              Iniciar sesión
+              {t('register.iniciarSesion')}
             </Link>
           </p>
         </CardFooter>
