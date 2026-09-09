@@ -168,6 +168,7 @@ export const es = {
     modelo: 'Modelo',
     diasRestantes: 'días',
     hoy: 'Hoy',
+    ultimaActualizacion: 'Última actualización',
   },
 
   // Facturas

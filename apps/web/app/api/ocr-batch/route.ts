@@ -49,12 +49,11 @@ export async function POST(req: NextRequest) {
 
     const { perfilId } = await resolvePerfilActivo(req)
 
-    const resultados: ResultadoBatch[] = []
+    const CONCURRENT_LIMIT = 5
 
-    for (const archivo of archivos) {
+    async function procesarArchivo(archivo: ArchivoBatch): Promise<ResultadoBatch> {
       if (!archivo.url || !archivo.nombre) {
-        resultados.push({ nombre: archivo.nombre ?? '(sin nombre)', resultado: null, error: 'URL o nombre inválido' })
-        continue
+        return { nombre: archivo.nombre ?? '(sin nombre)', resultado: null, error: 'URL o nombre inválido' }
       }
 
       const { data: existente } = await supabase
@@ -65,17 +64,23 @@ export async function POST(req: NextRequest) {
         .limit(1)
 
       if (existente && existente.length > 0) {
-        resultados.push({ nombre: archivo.nombre, resultado: null, error: 'Ya existe una factura con este nombre' })
-        continue
+        return { nombre: archivo.nombre, resultado: null, error: 'Ya existe una factura con este nombre' }
       }
 
       try {
         const resultado = await extractInvoiceData(archivo.url)
-        resultados.push({ nombre: archivo.nombre, resultado })
+        return { nombre: archivo.nombre, resultado }
       } catch (err) {
         const mensaje = err instanceof Error ? err.message : 'Error al procesar'
-        resultados.push({ nombre: archivo.nombre, resultado: null, error: mensaje })
+        return { nombre: archivo.nombre, resultado: null, error: mensaje }
       }
+    }
+
+    const resultados: ResultadoBatch[] = []
+    for (let i = 0; i < archivos.length; i += CONCURRENT_LIMIT) {
+      const chunk = archivos.slice(i, i + CONCURRENT_LIMIT)
+      const chunkResults = await Promise.all(chunk.map(procesarArchivo))
+      resultados.push(...chunkResults)
     }
 
     return NextResponse.json({ resultados })

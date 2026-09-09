@@ -145,6 +145,7 @@ export default function DashboardPage() {
   const [perfilNif, setPerfilNif] = useState<string | null>(null)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedMonth, setSelectedMonth] = useState(0) // 0 = todos
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const getSupabase = useCallback(() => createClient(), [])
   const { perfilActivoId, personas, esPropio } = usePersonaActiva()
   const { t } = useLanguage()
@@ -196,10 +197,60 @@ export default function DashboardPage() {
         setError(e instanceof Error ? e.message : 'Error al cargar datos')
       } finally {
         setLoading(false)
+        setLastUpdated(new Date())
       }
     }
     fetchData()
   }, [getSupabase, perfilActivoId, personas, selectedYear])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const fetchData = async () => {
+        try {
+          const supabase = getSupabase()
+          const { data: { user } } = await supabase.auth.getUser()
+          if (!user) return
+
+          let perfilId = user.id
+          if (perfilActivoId) {
+            perfilId = perfilActivoId
+          }
+
+          const [perfilRes, facturasRes, nominasRes, propsRes] = await Promise.all([
+            supabase.from('perfiles').select('nombre, nif').eq('id', perfilId).single(),
+            supabase.from('facturas').select('*').eq('perfilId', perfilId)
+              .gte('fechaEmision', `${selectedYear}-01-01`).lt('fechaEmision', `${selectedYear + 1}-01-01`)
+              .order('fechaEmision', { ascending: false }),
+            supabase.from('nominas').select('*').eq('perfilId', perfilId).eq('anyo', selectedYear).order('mes', { ascending: false }),
+            supabase.from('propiedades_alquiler').select('*, gastos_alquiler(*)').eq('perfilId', perfilId),
+          ])
+
+          if (perfilRes.data?.nombre) setNombre(perfilRes.data.nombre)
+          if (perfilRes.data?.nif) setPerfilNif(perfilRes.data.nif)
+
+          if (facturasRes.data) setFacturas(facturasRes.data as Factura[])
+          if (nominasRes.data) setNominas(nominasRes.data as Nomina[])
+
+          if (propsRes.data) {
+            setPropiedades(propsRes.data as unknown as Propiedad[])
+            const allGastos = (propsRes.data as unknown as Array<{ gastos_alquiler: GastoAlquiler[] }>)
+              .flatMap(p => p.gastos_alquiler ?? [])
+              .filter(g => {
+                const fecha = g.fecha as unknown as string
+                return fecha >= `${selectedYear}-01-01` && fecha < `${selectedYear + 1}-01-01`
+              })
+            setGastosAlquiler(allGastos)
+          }
+
+          setLastUpdated(new Date())
+        } catch {
+          // silently ignore polling errors
+        }
+      }
+      fetchData()
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [getSupabase, perfilActivoId, selectedYear])
 
   const facturasFiltradas = useMemo(() => {
     if (selectedMonth === 0) return facturas
@@ -279,6 +330,7 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">
             {t('dashboard.subtitulo')}
             {!esPropio && ` · ${t('dashboard.gestionandoOtraPersona')}`}
+            {lastUpdated && ` · ${t('dashboard.ultimaActualizacion')}: ${lastUpdated.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`}
           </p>
         </div>
         <div className="flex items-center gap-2">

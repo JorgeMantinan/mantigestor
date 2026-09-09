@@ -170,6 +170,7 @@ export const en: DeepTraducciones = {
     modelo: 'Form',
     diasRestantes: 'days',
     hoy: 'Today',
+    ultimaActualizacion: 'Last updated',
   },
 
   // Facturas
