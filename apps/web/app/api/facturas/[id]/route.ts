@@ -87,6 +87,34 @@ export async function PUT(
 
     if (findError || !existente) return notFound('Factura no encontrada')
 
+    // Save version before update
+    try {
+      const { data: ultimaVersion } = await supabase
+        .from('versiones_registro')
+        .select('version')
+        .eq('perfilId', perfilId)
+        .eq('entidad', 'factura')
+        .eq('entidadId', params.id)
+        .order('version', { ascending: false })
+        .limit(1)
+        .single()
+
+      const nuevaVersion = (ultimaVersion?.version ?? 0) + 1
+
+      await supabase.from('versiones_registro').insert({
+        id: crypto.randomUUID(),
+        perfilId,
+        entidad: 'factura',
+        entidadId: params.id,
+        version: nuevaVersion,
+        datos: existente,
+        usuarioId: user.id,
+        creadoEn: new Date().toISOString(),
+      })
+    } catch {
+      // Version saving should not break the update
+    }
+
     const body = await req.json()
     const parsed = FacturaSchema.partial().safeParse(body)
     if (!parsed.success) return badRequest(parsed.error.flatten().fieldErrors)

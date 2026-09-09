@@ -113,6 +113,7 @@ model Factura {
   descuentoPorcentaje Float     @default(0)
   categoriaGasto      String? // etiqueta: suministros, alquiler, nomina, seguridad, marketing, otros
   notas               String? // notas internas sobre la factura
+  notasPrivadas       String? // notas privadas del gestor (no visibles al cliente)
   tags                String? // etiquetas separadas por coma: marketing,software,custom
   pdfUrl              String?
   tokenCliente        String? // token compartido para portal de cliente (mismo token = mismo cliente)
@@ -824,6 +825,21 @@ model AuditLog {
   @@index([perfilId])
   @@index([createdAt])
   @@map("audit_log")
+}
+
+model VersionRegistro {
+  id        String   @id @default(cuid())
+  perfilId  String
+  entidad   String
+  entidadId String
+  version   Int
+  datos     Json
+  usuarioId String
+  creadoEn  DateTime @default(now())
+
+  @@index([perfilId])
+  @@index([entidad, entidadId])
+  @@map("versiones_registro")
 }
 
 model MovimientoBanco {

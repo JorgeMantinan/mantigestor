@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { FileMinus, FilePlus, ArrowUpRight } from 'lucide-react'
+import { FileMinus, FilePlus, ArrowUpRight, History } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
@@ -43,6 +44,7 @@ interface Factura {
   estado: string
   categoriaGasto: string | null
   notas?: string | null
+  notasPrivadas?: string | null
   tags?: string | null
   moneda?: string
   tipoCambio?: number
@@ -59,6 +61,9 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [saving, setSaving] = useState(false)
   const [categoriaGasto, setCategoriaGasto] = useState<string | null>(null)
   const [notas, setNotas] = useState<string>('')
+  const [notasPrivadas, setNotasPrivadas] = useState<string>('')
+  const [versiones, setVersiones] = useState<{ id: string; version: number; datos: Record<string, unknown>; creadoEn: string }[]>([])
+  const [cargandoVersiones, setCargandoVersiones] = useState(false)
   const [tagsSeleccionados, setTagsSeleccionados] = useState<string[]>([])
   const [nuevoTagCustom, setNuevoTagCustom] = useState('')
   const [mostrarTagsDropdown, setMostrarTagsDropdown] = useState(false)
@@ -109,6 +114,8 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         setFactura(data as Factura)
         setCategoriaGasto((data as Factura).categoriaGasto ?? null)
         setNotas((data as Factura).notas ?? '')
+        setNotasPrivadas((data as Factura).notasPrivadas ?? '')
+        setNotasPrivadas((data as Factura).notasPrivadas ?? '')
         setTagsSeleccionados(parsearTags((data as Factura).tags))
         setMonedaEdit((data as Factura).moneda ?? 'EUR')
         setTipoCambioEdit((data as Factura).tipoCambio ?? 1)
@@ -125,6 +132,24 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
     }
     fetchFactura()
   }, [params.id, getSupabase])
+
+  useEffect(() => {
+    if (!factura) return
+    const fetchVersiones = async () => {
+      setCargandoVersiones(true)
+      try {
+        const res = await fetch(`/api/fiscal/versiones?entidad=factura&entidadId=${factura.id}`)
+        if (res.ok) {
+          const { data } = await res.json()
+          setVersiones(data ?? [])
+        }
+      } catch {
+        // Silently fail
+      }
+      setCargandoVersiones(false)
+    }
+    fetchVersiones()
+  }, [factura])
 
   useEffect(() => {
     if (!factura) return
@@ -680,6 +705,26 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         </CardContent>
       </Card>
 
+      {/* Notas privadas */}
+      <Card>
+        <CardContent className="pt-6">
+          <h3 className="text-sm font-medium mb-4">{editing ? 'Notas privadas (gestor)' : 'Notas privadas (gestor)'}</h3>
+          {editing ? (
+            <textarea
+              value={notasPrivadas}
+              onChange={(e) => setNotasPrivadas(e.target.value)}
+              placeholder="Notas privadas visibles solo para el gestor..."
+              rows={3}
+              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {notasPrivadas || 'Sin notas privadas'}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Rectificativas vinculadas */}
       {(rectificativas.length > 0 || cargandoRectificativas) && (
         <Card>
@@ -888,6 +933,37 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Historial de versiones */}
+      {(versiones.length > 0 || cargandoVersiones) && (
+        <Card>
+          <CardContent className="pt-6">
+            <h3 className="text-sm font-medium mb-4">Historial de versiones</h3>
+            {cargandoVersiones ? (
+              <p className="text-xs text-muted-foreground">{t('facturaDetalle.cargando')}</p>
+            ) : (
+              <div className="space-y-2">
+                {versiones.map(v => (
+                  <div key={v.id} className="flex items-center justify-between rounded-md border p-3">
+                    <div className="flex items-center gap-3">
+                      <History className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                      <div>
+                        <p className="text-sm font-medium">Versión {v.version}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(v.creadoEn).toLocaleDateString('es-ES')} {new Date(v.creadoEn).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {String((v.datos as Record<string, unknown>).numero ?? '—')}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <FacturaEmailPreview
         open={emailDialogOpen}

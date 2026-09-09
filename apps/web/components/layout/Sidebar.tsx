@@ -9,7 +9,6 @@ import {
   Receipt,
   BarChart3,
   Landmark,
-
   FileText,
   Home,
   Settings,
@@ -36,11 +35,51 @@ import {
   LayoutGrid,
   Briefcase,
   HelpCircle,
+  AlertTriangle,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { useLanguage } from '@/contexts/language-context'
 import { Badge } from '@/components/ui/badge'
+import { getCalendarioFiscal } from '@mantigestor/utils'
+
+function PlazosFiscalesWidget({ collapsed }: { collapsed: boolean }) {
+  const [plazos, setPlazos] = useState<{ fecha: Date; nombre: string }[]>([])
+  const { t } = useLanguage()
+
+  useEffect(() => {
+    const hoy = new Date()
+    const anioActual = hoy.getFullYear()
+    const calendario = getCalendarioFiscal(anioActual)
+    const proximos = calendario
+      .filter(p => p.fechaLimite > hoy)
+      .sort((a, b) => a.fechaLimite.getTime() - b.fechaLimite.getTime())
+      .slice(0, 3)
+      .map(p => ({ fecha: p.fechaLimite, nombre: p.descripcion }))
+    setPlazos(proximos)
+  }, [])
+
+  if (collapsed || plazos.length === 0) return null
+
+  return (
+    <div className="border-t p-4">
+      <h4 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+        <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+        {t('nav.proximosPlazos') ?? 'Próximos plazos'}
+      </h4>
+      <div className="space-y-1">
+        {plazos.map(p => (
+          <div key={p.nombre} className="flex justify-between text-xs py-1">
+            <span className="truncate mr-2">{p.nombre}</span>
+            <span className="text-muted-foreground whitespace-nowrap">
+              {p.fecha.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -206,6 +245,8 @@ export function Sidebar() {
             ))}
           </nav>
         </div>
+
+        <PlazosFiscalesWidget collapsed={collapsed} />
 
         <div className="border-t p-3">
           <Button
