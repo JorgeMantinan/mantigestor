@@ -13,6 +13,7 @@ let fromHandler: (table: string) => unknown
 vi.mock('@supabase/ssr', () => ({
   createServerClient: vi.fn(() => ({
     from: vi.fn((table: string) => fromHandler(table)),
+    rpc: vi.fn().mockResolvedValue({ data: null }),
   })),
 }))
 
@@ -22,6 +23,11 @@ vi.mock('@/lib/api-helpers', () => ({
   serverError: vi.fn(() => jsonResponse({ error: 'Error interno del servidor' }, 500)),
 }))
 
+vi.mock('@/lib/rate-limit-ip', () => ({
+  rateLimitByIp: vi.fn().mockResolvedValue({ success: true, remaining: 29 }),
+}))
+
+import { createServerClient } from '@supabase/ssr'
 import { GET } from '@/app/api/fiscal/mis-personas/route'
 import { getAuthenticatedUser } from '@/lib/api-helpers'
 
@@ -57,6 +63,10 @@ function req() {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(createServerClient).mockImplementation(() => ({
+    from: vi.fn((table: string) => fromHandler(table)),
+    rpc: vi.fn().mockResolvedValue({ data: null }),
+  }) as any)
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://test.supabase.co'
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-key'
   vi.mocked(getAuthenticatedUser).mockResolvedValue({ id: 'user-1', email: 'test@example.com' } as any)
@@ -110,12 +120,14 @@ describe('GET /api/fiscal/mis-personas', () => {
       nombre: 'Juan',
       email: 'juan@test.com',
       rol: 'gestor',
+      tipo: 'gestiono',
     })
     expect(body.personas[1]).toEqual({
       perfilId: 'perfil-b',
       nombre: 'Ana',
       email: 'ana@test.com',
       rol: 'propietario',
+      tipo: 'gestiono',
     })
   })
 

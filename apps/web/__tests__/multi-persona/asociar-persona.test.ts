@@ -23,16 +23,20 @@ vi.mock('@/lib/api-helpers', () => ({
   serverError: vi.fn(() => jsonResponse({ error: 'Error interno del servidor' }, 500)),
 }))
 
+vi.mock('@/lib/rate-limit-ip', () => ({
+  rateLimitByIp: vi.fn().mockResolvedValue({ success: true, remaining: 29 }),
+}))
+
+import { createServerClient } from '@supabase/ssr'
 import { POST } from '@/app/api/fiscal/asociar-persona/route'
 import { getAuthenticatedUser } from '@/lib/api-helpers'
 
-function perfilLookup(result: unknown) {
+function queryChain(result: unknown) {
   return {
-    select: vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue(result),
-      }),
-    }),
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue(result),
+    insert: vi.fn().mockResolvedValue(result),
   }
 }
 
@@ -50,6 +54,9 @@ function req(body: unknown) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.mocked(createServerClient).mockImplementation(() => ({
+    from: vi.fn((table: string) => fromHandler(table)),
+  }) as any)
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://test.supabase.co'
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-key'
   delete process.env.RESEND_API_KEY
@@ -70,40 +77,40 @@ describe('POST /api/fiscal/asociar-persona', () => {
 
     expect(res.status).toBe(400)
     const body = await res.json()
-    expect(body.error).toBe('Email inválido')
+    expect(body.error).toBe('Datos inválidos')
   })
 
   it('returns 400 when email already has a profile', async () => {
-    fromHandler = vi.fn().mockReturnValue(perfilLookup({ data: { id: 'existing', userId: 'uid' } }))
+    fromHandler = vi.fn()
+      .mockReturnValueOnce(queryChain({ data: { id: 'existing', userId: 'uid' } }))
+      .mockReturnValueOnce(queryChain({ data: { id: 'assoc-1' } }))
 
     const res = await POST(req({ email: 'existing@test.com' }))
 
     expect(res.status).toBe(400)
     const body = await res.json()
-    expect(body.error).toContain('ya tiene un perfil')
+    expect(body.error).toContain('ya está asociada')
   })
 
   it('creates profile + association and returns ok', async () => {
-    const Builder = { insert: vi.fn().mockResolvedValue({ error: null }) }
     fromHandler = vi.fn()
-      .mockReturnValueOnce(perfilLookup({ data: null }))
-      .mockReturnValueOnce(Builder)
-      .mockReturnValueOnce(Builder)
+      .mockReturnValueOnce(queryChain({ data: null }))
+      .mockReturnValueOnce(queryChain({ data: null }))
+      .mockReturnValueOnce(queryChain({ error: null }))
 
     const res = await POST(req({ email: 'new@test.com', nombre: 'Juan', nif: '12345678A' }))
 
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.ok).toBe(true)
-    expect(body.perfilId).toBeDefined()
-    expect(Builder.insert).toHaveBeenCalledTimes(2)
+    expect(body.invitacionId).toBeDefined()
   })
 
   it('returns 500 when profile creation fails', async () => {
-    const Builder = { insert: vi.fn().mockResolvedValueOnce({ error: { message: 'db error' } }) }
     fromHandler = vi.fn()
-      .mockReturnValueOnce(perfilLookup({ data: null }))
-      .mockReturnValueOnce(Builder)
+      .mockReturnValueOnce(queryChain({ data: null }))
+      .mockReturnValueOnce(queryChain({ data: null }))
+      .mockReturnValueOnce(queryChain({ error: { message: 'db error' } }))
 
     const res = await POST(req({ email: 'new@test.com' }))
 
@@ -111,11 +118,10 @@ describe('POST /api/fiscal/asociar-persona', () => {
   })
 
   it('skips email when RESEND_API_KEY is not set', async () => {
-    const Builder = { insert: vi.fn().mockResolvedValue({ error: null }) }
     fromHandler = vi.fn()
-      .mockReturnValueOnce(perfilLookup({ data: null }))
-      .mockReturnValueOnce(Builder)
-      .mockReturnValueOnce(Builder)
+      .mockReturnValueOnce(queryChain({ data: null }))
+      .mockReturnValueOnce(queryChain({ data: null }))
+      .mockReturnValueOnce(queryChain({ error: null }))
 
     const res = await POST(req({ email: 'new@test.com' }))
 
