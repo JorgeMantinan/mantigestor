@@ -4,6 +4,7 @@ import { FacturaSchema } from '@mantigestor/utils'
 import { getAuthenticatedUser, unauthorized, notFound, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { registrarAccion } from '@/lib/audit-log'
 
 export async function GET(
   req: NextRequest,
@@ -108,6 +109,11 @@ export async function PUT(
       .single()
 
     if (error) throw error
+
+    await registrarAccion(req, perfilId, 'factura', params.id, 'editar', {
+      camposModificados: Object.keys(updateData),
+    })
+
     return Response.json({ data })
   } catch (error) {
     return serverError(error)
@@ -149,6 +155,10 @@ export async function DELETE(
       .select('id')
     if (error) throw error
     if (!eliminada || eliminada.length === 0) return notFound('Factura no encontrada')
+
+    await registrarAccion(req, perfilId, 'factura', params.id, 'eliminar', {
+      facturaId: params.id,
+    })
 
     return Response.json({ data: null })
   } catch (error) {

@@ -4,6 +4,7 @@ import { FacturaSchema } from '@mantigestor/utils'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { registrarAccion } from '@/lib/audit-log'
 
 export async function GET(req: NextRequest) {
   try {
@@ -104,6 +105,12 @@ export async function POST(req: NextRequest) {
     }).select().single()
 
     if (error) throw error
+
+    await registrarAccion(req, perfilId, 'factura', data.id, 'crear', {
+      numero: data.numero,
+      tipo: data.tipo,
+      emisorReceptor: data.emisorReceptor,
+    })
 
     return Response.json({ data }, { status: 201 })
   } catch (error) {

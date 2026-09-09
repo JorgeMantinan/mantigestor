@@ -56,7 +56,7 @@ function htmlPagosParciales(pagos: PagoParcial[], total: number, idioma?: Idioma
   const pagado = pagos.reduce((s, p) => s + p.importe, 0)
   const pendiente = calcularSaldoPendiente(total, JSON.stringify(pagos))
   const porcentaje = Math.min(100, (pagado / total) * 100)
-  const locale = idioma === 'en' ? 'en-GB' : 'es-ES'
+  const locale = idioma === 'en' ? 'en-GB' : idioma === 'ca' ? 'ca-ES' : 'es-ES'
 
   return `
     <div style="margin-bottom:24px;border:1px solid #e5e7eb;border-radius:8px;padding:16px">
@@ -121,11 +121,12 @@ function htmlFirma(firmaBase64?: string): string {
   `
 }
 
-function htmlQR(qrUrl: string): string {
+function htmlQR(qrUrl: string, idioma?: IdiomaPDF): string {
+  const t = obtenerTextosPDF(idioma)
   return `
     <div style="text-align:center;margin-top:16px">
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}" alt="QR factura" style="width:100px;height:100px" />
-      <p style="font-size:8px;color:#9ca3af;margin:4px 0 0 0">Escanear para ver factura</p>
+      <p style="font-size:8px;color:#9ca3af;margin:4px 0 0 0">${t.scan_para_ver}</p>
     </div>
   `
 }
@@ -139,7 +140,7 @@ function htmlClasico(f: FacturaPDF): string {
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
   const importeDescuento = calcularImporteDescuento(f.baseImponible, f.descuentoPorcentaje ?? 0)
-  const locale = f.idioma === 'en' ? 'en-GB' : 'es-ES'
+  const locale = f.idioma === 'en' ? 'en-GB' : f.idioma === 'ca' ? 'ca-ES' : 'es-ES'
   const clienteLabel = esGasto ? t.proveedor : t.cliente
 
   return `
@@ -207,7 +208,7 @@ function htmlClasico(f: FacturaPDF): string {
           <p style="margin:0">${empresa} · ${direccion} · ${t.nif} ${nifEmpresa}</p>
           <p style="margin:4px 0 0 0">${t.documento_generado_por}</p>
         </div>
-        ${f.qrUrl ? `<div>${htmlQR(f.qrUrl)}</div>` : ''}
+        ${f.qrUrl ? `<div>${htmlQR(f.qrUrl, f.idioma)}</div>` : ''}
       </div>
     </div>
   `
@@ -222,7 +223,7 @@ function htmlModerno(f: FacturaPDF): string {
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
   const importeDescuento = calcularImporteDescuento(f.baseImponible, f.descuentoPorcentaje ?? 0)
-  const locale = f.idioma === 'en' ? 'en-GB' : 'es-ES'
+  const locale = f.idioma === 'en' ? 'en-GB' : f.idioma === 'ca' ? 'ca-ES' : 'es-ES'
   const clienteLabel = esGasto ? t.proveedor : t.cliente
 
   return `
@@ -289,7 +290,7 @@ function htmlModerno(f: FacturaPDF): string {
             <p style="margin:0">${empresa} · ${direccion} · ${t.nif} ${nifEmpresa}</p>
             <p style="margin:4px 0 0 0">${t.documento_generado_por}</p>
           </div>
-          ${f.qrUrl ? `<div>${htmlQR(f.qrUrl)}</div>` : ''}
+          ${f.qrUrl ? `<div>${htmlQR(f.qrUrl, f.idioma)}</div>` : ''}
         </div>
       </div>
     </div>
@@ -305,7 +306,7 @@ function htmlMinimalista(f: FacturaPDF): string {
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
   const importeDescuento = calcularImporteDescuento(f.baseImponible, f.descuentoPorcentaje ?? 0)
-  const locale = f.idioma === 'en' ? 'en-GB' : 'es-ES'
+  const locale = f.idioma === 'en' ? 'en-GB' : f.idioma === 'ca' ? 'ca-ES' : 'es-ES'
   const clienteLabel = esGasto ? t.proveedor : t.cliente
 
   return `
@@ -368,7 +369,7 @@ function htmlMinimalista(f: FacturaPDF): string {
         <div style="font-size:9px;color:#ccc;letter-spacing:1px">
           <p style="margin:0">${empresa.toUpperCase()} · ${nifEmpresa}</p>
         </div>
-        ${f.qrUrl ? `<div>${htmlQR(f.qrUrl)}</div>` : ''}
+        ${f.qrUrl ? `<div>${htmlQR(f.qrUrl, f.idioma)}</div>` : ''}
       </div>
     </div>
   `

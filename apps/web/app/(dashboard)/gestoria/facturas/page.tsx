@@ -25,6 +25,7 @@ import { useLanguage } from '@/contexts/language-context'
 import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { esSoloLectura } from '@/lib/resolve-perfil-activo'
+import { guardarEnCache, obtenerDeCache } from '@/lib/cache-offline'
 
 interface Factura {
   id: string
@@ -93,6 +94,16 @@ export default function FacturasPage() {
     setLoading(true)
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) { setLoading(false); return }
+
+    const cacheKey = `facturas_${user.id}${empresaActiva?.id ? `_${empresaActiva.id}` : ''}`
+    const cached = obtenerDeCache<Factura[]>(cacheKey)
+
+    if (!navigator.onLine && cached) {
+      setFacturas(cached)
+      setLoading(false)
+      return
+    }
+
     let query = getSupabase()
       .from('facturas')
       .select('*')
@@ -103,7 +114,10 @@ export default function FacturasPage() {
       query = query.eq('empresaId', empresaActiva.id)
     }
     const { data, error } = await query
-    if (!error && data) setFacturas(data as Factura[])
+    if (!error && data) {
+      setFacturas(data as Factura[])
+      guardarEnCache(cacheKey, data as Factura[])
+    }
     setLoading(false)
   }, [getSupabase, empresaActiva?.id])
 

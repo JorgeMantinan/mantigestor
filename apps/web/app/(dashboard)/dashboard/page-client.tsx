@@ -25,6 +25,7 @@ import { ChartComparativa } from '@/components/dashboard/chart-comparativa'
 import { useWidgetConfig } from '@/components/dashboard/widget-config'
 import { SparkLine } from '@/components/ui/sparkline'
 import dynamic from 'next/dynamic'
+import { guardarEnCache, obtenerDeCache } from '@/lib/cache-offline'
 
 const ChartCategorias = dynamic(() => import('@/components/dashboard/chart-categorias').then(m => m.ChartCategorias), {
   loading: () => <div className="h-[300px] animate-pulse bg-muted rounded" />,
@@ -166,6 +167,19 @@ export default function DashboardPage() {
           mostrarNombre = persona?.nombre ?? persona?.email ?? undefined
         }
 
+        const cacheKey = `dashboard_${perfilId}_${selectedYear}`
+        const cached = obtenerDeCache<{ facturas: Factura[]; nominas: Nomina[]; propiedades: Propiedad[]; gastosAlquiler: GastoAlquiler[] }>(cacheKey)
+
+        if (!navigator.onLine && cached) {
+          setFacturas(cached.facturas)
+          setNominas(cached.nominas)
+          setPropiedades(cached.propiedades)
+          setGastosAlquiler(cached.gastosAlquiler)
+          setLoading(false)
+          setLastUpdated(new Date())
+          return
+        }
+
         // Queries en paralelo (incluye gastos de alquiler via nested select)
         const [perfilRes, facturasRes, nominasRes, propsRes] = await Promise.all([
           supabase.from('perfiles').select('nombre, nif').eq('id', perfilId).single(),
@@ -180,11 +194,15 @@ export default function DashboardPage() {
         if (perfilRes.data?.nif) setPerfilNif(perfilRes.data.nif)
         else if (mostrarNombre) setNombre(mostrarNombre)
 
-        if (facturasRes.data) setFacturas(facturasRes.data as Factura[])
-        if (nominasRes.data) setNominas(nominasRes.data as Nomina[])
+        const newFacturas = (facturasRes.data as Factura[]) ?? []
+        const newNominas = (nominasRes.data as Nomina[]) ?? []
+        const newPropiedades = (propsRes.data as unknown as Propiedad[]) ?? []
+
+        if (facturasRes.data) setFacturas(newFacturas)
+        if (nominasRes.data) setNominas(newNominas)
 
         if (propsRes.data) {
-          setPropiedades(propsRes.data as unknown as Propiedad[])
+          setPropiedades(newPropiedades)
           const allGastos = (propsRes.data as unknown as Array<{ gastos_alquiler: GastoAlquiler[] }>)
             .flatMap(p => p.gastos_alquiler ?? [])
             .filter(g => {
@@ -192,6 +210,7 @@ export default function DashboardPage() {
               return fecha >= `${selectedYear}-01-01` && fecha < `${selectedYear + 1}-01-01`
             })
           setGastosAlquiler(allGastos)
+          guardarEnCache(cacheKey, { facturas: newFacturas, nominas: newNominas, propiedades: newPropiedades, gastosAlquiler: allGastos })
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Error al cargar datos')
