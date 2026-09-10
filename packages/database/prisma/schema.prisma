@@ -22,8 +22,19 @@ model Perfil {
   firmaBase64     String? // firma digital en base64 JSON: {imagen, nombre, fecha, cargo}
   empresas        String? // JSON array de empresas: [{id,nombre,nif,direccion,activa}]
   idiomaFactura   String?  @default("es") // 'es' | 'en' — idioma de las facturas PDF
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  // Datos personales para Declaración de la Renta (Modelo 100)
+  situacionCivil          String?  // 'soltero' | 'casado' | 'divorciado' | 'viudo'
+  fechaNacimiento         DateTime?
+  numeroHijos             Int      @default(0)
+  hijosEdades             String?  // JSON array de edades: [5, 12]
+  tieneDiscapacidad       Boolean  @default(false)
+  porcentajeDiscapacidad  Int      @default(0) // 0, 33, 65+
+  familiaNumerosa         Boolean  @default(false)
+  planPensiones           Int      @default(0) // céntimos
+  segurosDependencia      Int      @default(0) // céntimos
+  donaciones              Int      @default(0) // céntimos
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   facturas                   Factura[]
   documentos                 Documento[]
