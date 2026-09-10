@@ -1752,6 +1752,8 @@ export const en: DeepTraducciones = {
     guardarError: 'Error saving data',
     exportarPdf: 'Export PDF',
     exportarCsv2: 'Export CSV',
+    exportarRentaWeb: 'Export for Renta Web',
+    rentaWebInstrucciones: 'Import this file in AEAT Renta Web (Import data)',
   },
   // Conversions
   conversiones: {

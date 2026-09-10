@@ -1751,6 +1751,8 @@ export const es = {
     guardarError: 'Error al guardar los datos',
     exportarPdf: 'Exportar PDF',
     exportarCsv2: 'Exportar CSV',
+    exportarRentaWeb: 'Exportar para Renta Web',
+    rentaWebInstrucciones: 'Importa este archivo en Renta Web de la AEAT (Importar datos)',
   },
   // Conversiones
   conversiones: {

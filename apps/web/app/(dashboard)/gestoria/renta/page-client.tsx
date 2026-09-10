@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Landmark, Download, ExternalLink, Save, FileDown } from 'lucide-react'
+import { Landmark, Download, ExternalLink, Save, FileDown, Upload } from 'lucide-react'
 import { generar100Automatico } from '@/lib/fiscal/auto-100'
 import type { Resultado100Automatico } from '@/lib/fiscal/auto-100'
 import { descargarCsv } from '@/lib/descargar-csv'
+import { generarRentaWebExport, descargarRentaWeb } from '@/lib/fiscal/exportar-renta-web'
 import { useLanguage } from '@/contexts/language-context'
 
 export default function RentaPage() {
@@ -393,7 +394,19 @@ export default function RentaPage() {
                     {t('renta.agenciaTributaria')}
                   </a>
                 </Button>
+                <Button variant="outline" className="flex-1"
+                  onClick={() => {
+                    if (!resultado) return
+                    const data = generarRentaWebExport(resultado)
+                    descargarRentaWeb(data)
+                  }}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  {t('renta.exportarRentaWeb')}
+                </Button>
               </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {t('renta.rentaWebInstrucciones')}
+              </p>
             </CardContent>
           </Card>
         </>
