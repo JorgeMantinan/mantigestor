@@ -15,15 +15,31 @@ export async function generar349Automatico(
 ): Promise<Resultado349Automatico | null> {
   const supabase = createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from('perfiles')
+    .select('userId')
+    .eq('id', perfilId)
+    .single()
+
+  if (perfilError || !perfil || perfil.userId !== user.id) return null
+
   const desde = `${anyo}-01-01`
   const hasta = `${anyo + 1}-01-01`
 
-  const { data: facturas } = await supabase
+  const { data: facturas, error: facturasError } = await supabase
     .from('facturas')
     .select('emisorReceptor, nifContraparte, baseImponible, tipo')
     .eq('perfilId', perfilId)
     .gte('fechaEmision', desde)
     .lt('fechaEmision', hasta)
+
+  if (facturasError) {
+    console.error('Error fetching facturas for modelo 349:', facturasError)
+    return null
+  }
 
   if (!facturas || facturas.length === 0) return null
 

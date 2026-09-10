@@ -96,24 +96,24 @@ export async function fetchDatosReales(taxYear: number): Promise<DatosReales> {
     const { data: gastos } = await supabase
       .from('gastos_alquiler').select('importe').in('propiedadId', ids)
       .gte('fecha', desde).lt('fecha', hasta)
-    if (gastos) gastosAlquiler = gastos.reduce((s, g) => s + (g.importe ?? 0), 0)
+    if (gastos) gastosAlquiler = gastos.reduce((s, g) => s + (g.importe ?? 0), 0) / 100
   }
 
   const facturasArr = (facturasRes.data ?? []) as unknown as Array<{
-    tipo: string; importe: number; deducible: boolean | null;
+    tipo: string; deducible: boolean | null;
     baseImponible: number; iva: number; emisorReceptor: string; nifContraparte: string | null
   }>
 
   const facturasIngreso = facturasArr.filter(f => f.tipo === 'ingreso')
   const facturasGasto = facturasArr.filter(f => f.tipo === 'gasto')
 
-  const ingresosFacturas = facturasIngreso.reduce((s, f) => s + f.importe, 0)
-  const gastosFacturas = facturasGasto.filter(f => f.deducible).reduce((s, f) => s + f.importe, 0)
+  const ingresosFacturas = facturasIngreso.reduce((s, f) => s + f.baseImponible / 100, 0)
+  const gastosFacturas = facturasGasto.filter(f => f.deducible !== false).reduce((s, f) => s + f.baseImponible / 100, 0)
   const actividadesNetas = Math.max(0, ingresosFacturas - gastosFacturas)
 
-  const trabajoNeto = nominasEmpRes.data ? nominasEmpRes.data.reduce((s, n) => s + n.neto, 0) : 0
+  const trabajoNeto = nominasEmpRes.data ? nominasEmpRes.data.reduce((s, n) => s + n.neto, 0) / 100 : 0
   const retencionesNomina = nominasEmpRes.data
-    ? nominasEmpRes.data.reduce((s, n) => s + Math.round(n.salarioBruto * (n.irpf / 100)), 0) : 0
+    ? nominasEmpRes.data.reduce((s, n) => s + Math.round(n.salarioBruto * (n.irpf / 100)), 0) / 100 : 0
 
   const baseGeneral = trabajoNeto + actividadesNetas
 
@@ -122,13 +122,13 @@ export async function fetchDatosReales(taxYear: number): Promise<DatosReales> {
   const base4 = facturasIngreso.filter(f => f.iva === 4).reduce((s, f) => s + f.baseImponible, 0) / 100
   const deduccionesIva = facturasGasto.reduce((s, f) => s + Math.round(f.baseImponible * f.iva / 100), 0) / 100
 
-  const gastosDeducibles = facturasGasto.filter(f => f.deducible)
+  const gastosDeducibles = facturasGasto.filter(f => f.deducible !== false)
   const baseSop21 = gastosDeducibles.filter(f => f.iva === 21).reduce((s, f) => s + f.baseImponible, 0) / 100
   const baseSop10 = gastosDeducibles.filter(f => f.iva === 10).reduce((s, f) => s + f.baseImponible, 0) / 100
   const baseSop4 = gastosDeducibles.filter(f => f.iva === 4).reduce((s, f) => s + f.baseImponible, 0) / 100
 
   const base130Ingresos = facturasIngreso.reduce((s, f) => s + f.baseImponible, 0) / 100
-  const base130Gastos = gastosFacturas / 100
+  const base130Gastos = gastosFacturas
 
   const operacionesIntracomunitarias = computeIntracomunitarias(facturasIngreso, facturasGasto)
 

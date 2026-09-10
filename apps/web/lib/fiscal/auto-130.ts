@@ -32,6 +32,17 @@ export async function generar130Automatico(
 ): Promise<Resultado130Automatico | null> {
   const supabase = createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from('perfiles')
+    .select('userId')
+    .eq('id', perfilId)
+    .single()
+
+  if (perfilError || !perfil || perfil.userId !== user.id) return null
+
   const inicioMes = (trimestre - 1) * 3 + 1
   const finMes = inicioMes + 2
 
@@ -53,6 +64,15 @@ export async function generar130Automatico(
       .eq('rol', 'empleado')
       .eq('anyo', anyo),
   ])
+
+  if (facturasRes.error) {
+    console.error('Error fetching facturas for modelo 130:', facturasRes.error)
+    return null
+  }
+  if (nominasRes.error) {
+    console.error('Error fetching nominas for modelo 130:', nominasRes.error)
+    return null
+  }
 
   const facturas = (facturasRes.data ?? []) as unknown as Factura[]
   const nominas = (nominasRes.data ?? []) as unknown as Nomina[]

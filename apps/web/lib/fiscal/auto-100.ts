@@ -75,33 +75,53 @@ export async function generar100Automatico(
 ): Promise<Resultado100Automatico | null> {
   const supabase = createClient()
 
-  // 1. Get profile data
-  const { data: perfil } = await supabase
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  // 1. Get profile data + verify ownership
+  const { data: perfil, error: perfilError } = await supabase
     .from('perfiles')
     .select('*')
     .eq('id', perfilId)
     .single()
 
+  if (perfilError || !perfil || (perfil as unknown as { userId: string }).userId !== user.id) return null
+
   // 2. Get all invoices for the year
-  const { data: facturas } = await supabase
+  const { data: facturas, error: facturasError } = await supabase
     .from('facturas')
     .select('*')
     .eq('perfilId', perfilId)
     .gte('fechaEmision', `${anyo}-01-01`)
     .lte('fechaEmision', `${anyo}-12-31`)
 
+  if (facturasError) {
+    console.error('Error fetching facturas for modelo 100:', facturasError)
+    return null
+  }
+
   // 3. Get payroll data
-  const { data: nominas } = await supabase
+  const { data: nominas, error: nominasError } = await supabase
     .from('nominas')
     .select('*')
     .eq('perfilId', perfilId)
     .eq('anyo', anyo)
 
+  if (nominasError) {
+    console.error('Error fetching nominas for modelo 100:', nominasError)
+    return null
+  }
+
   // 4. Get rental income/expenses
-  const { data: propiedades } = await supabase
+  const { data: propiedades, error: propiedadesError } = await supabase
     .from('propiedades_alquiler')
     .select('*, gastos_alquiler(*)')
-    .eq('perfilId', perfilId) as { data: PropiedadAlquiler[] | null }
+    .eq('perfilId', perfilId) as { data: PropiedadAlquiler[] | null; error: unknown }
+
+  if (propiedadesError) {
+    console.error('Error fetching propiedades for modelo 100:', propiedadesError)
+    return null
+  }
 
   const p = perfil as unknown as Perfil | null
 

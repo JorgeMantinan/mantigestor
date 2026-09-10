@@ -29,10 +29,26 @@ export async function generar180Automatico(
 ): Promise<Resultado180Automatico | null> {
   const supabase = createClient()
 
-  const { data: propiedades } = await supabase
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from('perfiles')
+    .select('userId')
+    .eq('id', perfilId)
+    .single()
+
+  if (perfilError || !perfil || perfil.userId !== user.id) return null
+
+  const { data: propiedades, error: propiedadesError } = await supabase
     .from('propiedades_alquiler')
     .select('*, gastos_alquiler(*)')
-    .eq('perfilId', perfilId) as { data: PropiedadAlquiler[] | null }
+    .eq('perfilId', perfilId) as { data: PropiedadAlquiler[] | null; error: unknown }
+
+  if (propiedadesError) {
+    console.error('Error fetching propiedades for modelo 180:', propiedadesError)
+    return null
+  }
 
   if (!propiedades || propiedades.length === 0) return null
 

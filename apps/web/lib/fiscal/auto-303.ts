@@ -36,6 +36,17 @@ export async function generar303Automatico(
 ): Promise<Resultado303Automatico | null> {
   const supabase = createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from('perfiles')
+    .select('userId')
+    .eq('id', perfilId)
+    .single()
+
+  if (perfilError || !perfil || perfil.userId !== user.id) return null
+
   const inicioMes = (trimestre - 1) * 3 + 1
   const finMes = inicioMes + 2
 
@@ -43,12 +54,17 @@ export async function generar303Automatico(
   const ultimoDiaFinMes = new Date(anyo, finMes, 0).getDate()
   const fechaFin = `${anyo}-${String(finMes).padStart(2, '0')}-${String(ultimoDiaFinMes).padStart(2, '0')}`
 
-  const { data: facturas } = await supabase
+  const { data: facturas, error: facturasError } = await supabase
     .from('facturas')
     .select('*')
     .eq('perfilId', perfilId)
     .gte('fechaEmision', fechaInicio)
     .lte('fechaEmision', fechaFin)
+
+  if (facturasError) {
+    console.error('Error fetching facturas for modelo 303:', facturasError)
+    return null
+  }
 
   if (!facturas || facturas.length === 0) return null
 

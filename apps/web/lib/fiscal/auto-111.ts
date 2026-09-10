@@ -28,6 +28,17 @@ export async function generar111Automatico(
 ): Promise<Resultado111Automatico | null> {
   const supabase = createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from('perfiles')
+    .select('userId')
+    .eq('id', perfilId)
+    .single()
+
+  if (perfilError || !perfil || perfil.userId !== user.id) return null
+
   const inicioMes = (trimestre - 1) * 3 + 1
   const finMes = inicioMes + 2
 
@@ -50,6 +61,15 @@ export async function generar111Automatico(
       .gte('fechaEmision', fechaInicio)
       .lte('fechaEmision', fechaFin),
   ])
+
+  if (nominasJefeRes.error) {
+    console.error('Error fetching nominas for modelo 111:', nominasJefeRes.error)
+    return null
+  }
+  if (facturasRes.error) {
+    console.error('Error fetching facturas for modelo 111:', facturasRes.error)
+    return null
+  }
 
   const nominasJefe = (nominasJefeRes.data ?? []) as unknown as NominaJefe[]
 

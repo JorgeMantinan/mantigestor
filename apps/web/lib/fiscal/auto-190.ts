@@ -31,6 +31,17 @@ export async function generar190Automatico(
 ): Promise<Resultado190Automatico | null> {
   const supabase = createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from('perfiles')
+    .select('userId')
+    .eq('id', perfilId)
+    .single()
+
+  if (perfilError || !perfil || perfil.userId !== user.id) return null
+
   const desde = `${anyo}-01-01`
   const hasta = `${anyo + 1}-01-01`
 
@@ -48,6 +59,15 @@ export async function generar190Automatico(
       .gte('fechaEmision', desde)
       .lt('fechaEmision', hasta),
   ])
+
+  if (nominasRes.error) {
+    console.error('Error fetching nominas for modelo 190:', nominasRes.error)
+    return null
+  }
+  if (facturasRes.error) {
+    console.error('Error fetching facturas for modelo 190:', facturasRes.error)
+    return null
+  }
 
   const nominas = (nominasRes.data ?? []) as unknown as Nomina[]
   const facturas = (facturasRes.data ?? []) as unknown as Factura[]
