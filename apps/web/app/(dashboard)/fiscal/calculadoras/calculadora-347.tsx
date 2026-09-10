@@ -1,16 +1,20 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Database, Loader2 } from 'lucide-react'
 import { eur, parseEuros } from './types'
 import { calcularModelo347 } from '@mantigestor/utils'
 import type { OperacionTercero } from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_347 } from '@/lib/fiscal/guia-fiscal'
 import { BotonPDF } from '@/components/boton-pdf'
+import { generar347Automatico } from '@/lib/fiscal/auto-347'
+import { createClient } from '@/lib/supabase/client'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 export function CalculadoraModelo347() {
   const [operaciones, setOperaciones] = useState<OperacionTercero[]>([])
@@ -19,6 +23,34 @@ export function CalculadoraModelo347() {
   const [importeCompra, setImporteCompra] = useState('')
   const [importeVenta, setImporteVenta] = useState('')
   const [cantidadesPendientes, setCantidadesPendientes] = useState('')
+  const [cargando, setCargando] = useState(false)
+  const { perfilActivoId } = usePersonaActiva()
+
+  const cargarDatosReales = useCallback(async () => {
+    setCargando(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      let perfilId = perfilActivoId || user.id
+      if (perfilActivoId) {
+        const { data: perfil } = await supabase.from('perfiles').select('id').eq('id', perfilActivoId).single()
+        if (perfil) perfilId = perfil.id
+      } else {
+        const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
+        if (perfil) perfilId = perfil.id
+      }
+
+      const resultado = await generar347Automatico(perfilId, new Date().getFullYear())
+      if (!resultado) return
+      setOperaciones(resultado.operaciones)
+    } catch {
+      // silently fail
+    } finally {
+      setCargando(false)
+    }
+  }, [perfilActivoId])
 
   const resultado = useMemo(() => calcularModelo347({ operaciones }), [operaciones])
 
@@ -53,10 +85,28 @@ export function CalculadoraModelo347() {
       <BotonPDF elementId="pdf-modelo-347" filename="modelo-347" />
       <Card>
       <CardHeader>
-        <CardTitle>Modelo 347 — Operaciones con terceros</CardTitle>
-        <CardDescription>
-          Declaración informativa obligatoria si las operaciones con un tercero superan los 3.005,06€
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Modelo 347 — Operaciones con terceros</CardTitle>
+            <CardDescription>
+              Declaración informativa obligatoria si las operaciones con un tercero superan los 3.005,06€
+            </CardDescription>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => void cargarDatosReales()}
+            disabled={cargando}
+          >
+            {cargando ? (
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" aria-hidden="true" />
+            ) : (
+              <Database className="mr-1 h-3 w-3" aria-hidden="true" />
+            )}
+            {cargando ? 'Cargando...' : 'Cargar datos'}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">

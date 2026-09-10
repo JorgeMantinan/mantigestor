@@ -43,7 +43,7 @@ export function calcularModelo390(
   trimestres: Array<ResultadoModelo303>,
 ): ResultadoModelo390 {
   const baseImponibleRepercutidaAnual = trimestres.reduce(
-    (s, r) => s + r.baseImponibleRepercutida + r.baseImponibleRepercutida10,
+    (s, r) => s + r.baseImponibleRepercutida + r.baseImponibleRepercutida10 + r.baseImponibleRepercutida4,
     0,
   )
   const totalCuotaRepercutida = trimestres.reduce((s, r) => s + r.totalCuotaRepercutida, 0)
@@ -62,7 +62,7 @@ export function calcularModelo390(
     if (!r) continue
     porTrimestre.push({
       trimestre: (i + 1) as 1 | 2 | 3 | 4,
-      baseRepercutida: r.baseImponibleRepercutida + r.baseImponibleRepercutida10,
+      baseRepercutida: r.baseImponibleRepercutida + r.baseImponibleRepercutida10 + r.baseImponibleRepercutida4,
       cuotaRepercutida: r.totalCuotaRepercutida,
       baseSoportada: r.baseImponibleSoportada,
       cuotaSoportada: r.totalCuotaSoportada,

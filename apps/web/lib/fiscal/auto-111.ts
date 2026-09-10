@@ -32,7 +32,8 @@ export async function generar111Automatico(
   const finMes = inicioMes + 2
 
   const fechaInicio = `${anyo}-${String(inicioMes).padStart(2, '0')}-01`
-  const fechaFin = `${anyo}-${String(finMes).padStart(2, '0')}-31`
+  const ultimoDiaFinMes = new Date(anyo, finMes, 0).getDate()
+  const fechaFin = `${anyo}-${String(finMes).padStart(2, '0')}-${String(ultimoDiaFinMes).padStart(2, '0')}`
 
   const [nominasJefeRes, facturasRes] = await Promise.all([
     supabase

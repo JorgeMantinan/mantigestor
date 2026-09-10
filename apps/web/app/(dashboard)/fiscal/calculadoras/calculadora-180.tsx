@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Download, Plus, Trash2 } from 'lucide-react'
+import { Download, Plus, Trash2, Database, Loader2 } from 'lucide-react'
 import { calcularModelo180, type RendimientoArrendamiento180 } from '@mantigestor/utils'
 import { BotonPDF } from '@/components/boton-pdf'
+import { generar180Automatico } from '@/lib/fiscal/auto-180'
+import { createClient } from '@/lib/supabase/client'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 const formatMoney = (cents: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
@@ -18,6 +21,8 @@ interface Props {
 
 export function Calculadora180({ taxYear }: Props) {
   const [arrendamientos, setArrendamientos] = useState<RendimientoArrendamiento180[]>([])
+  const [cargando, setCargando] = useState(false)
+  const { perfilActivoId } = usePersonaActiva()
 
   // New entry form
   const [nuevaDireccion, setNuevaDireccion] = useState('')
@@ -25,6 +30,32 @@ export function Calculadora180({ taxYear }: Props) {
   const [nuevoNombre, setNuevoNombre] = useState('')
   const [nuevasRentas, setNuevasRentas] = useState('')
   const [nuevoTipoRetencion, setNuevoTipoRetencion] = useState('19')
+
+  const cargarDatosReales = useCallback(async () => {
+    setCargando(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      let perfilId = perfilActivoId || user.id
+      if (perfilActivoId) {
+        const { data: perfil } = await supabase.from('perfiles').select('id').eq('id', perfilActivoId).single()
+        if (perfil) perfilId = perfil.id
+      } else {
+        const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
+        if (perfil) perfilId = perfil.id
+      }
+
+      const resultado = await generar180Automatico(perfilId, taxYear)
+      if (!resultado) return
+      setArrendamientos(resultado.arrendamientos)
+    } catch {
+      // silently fail
+    } finally {
+      setCargando(false)
+    }
+  }, [taxYear, perfilActivoId])
 
   const agregar = () => {
     if (!nuevaDireccion || !nuevasRentas) return
@@ -93,12 +124,28 @@ export function Calculadora180({ taxYear }: Props) {
               Resumen anual de retenciones por arrendamiento de inmuebles urbanos. Presentación: enero.
             </CardDescription>
           </div>
-          {arrendamientos.length > 0 && (
-            <Button type="button" size="sm" variant="outline" onClick={exportarCsv}>
-              <Download className="mr-1 h-3 w-3" aria-hidden="true" />
-              CSV
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void cargarDatosReales()}
+              disabled={cargando}
+            >
+              {cargando ? (
+                <Loader2 className="mr-1 h-3 w-3 animate-spin" aria-hidden="true" />
+              ) : (
+                <Database className="mr-1 h-3 w-3" aria-hidden="true" />
+              )}
+              {cargando ? 'Cargando...' : 'Cargar datos'}
             </Button>
-          )}
+            {arrendamientos.length > 0 && (
+              <Button type="button" size="sm" variant="outline" onClick={exportarCsv}>
+                <Download className="mr-1 h-3 w-3" aria-hidden="true" />
+                CSV
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

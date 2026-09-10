@@ -1,15 +1,18 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Calculator, Plus, Trash2, Home } from 'lucide-react'
+import { Calculator, Plus, Trash2, Home, Database, Loader2 } from 'lucide-react'
 import { calcularModelo115 } from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
 import { BotonPDF } from '@/components/boton-pdf'
 import { eur } from './types'
+import { generar115Automatico } from '@/lib/fiscal/auto-115'
+import { createClient } from '@/lib/supabase/client'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 const eurosACentimos = (v: string): number => Math.round((parseFloat(v) || 0) * 100)
 
@@ -25,6 +28,39 @@ const FILA_VACIA: FilaInmueble = { direccion: '', nifArrendatario: '', baseImpon
 export function CalculadoraModelo115() {
   const [inmuebles, setInmuebles] = useState<FilaInmueble[]>([{ ...FILA_VACIA }])
   const [trimestre, setTrimestre] = useState<1 | 2 | 3 | 4>(1)
+  const [cargando, setCargando] = useState(false)
+  const { perfilActivoId } = usePersonaActiva()
+
+  const cargarDatosReales = useCallback(async () => {
+    setCargando(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      let perfilId = perfilActivoId || user.id
+      if (perfilActivoId) {
+        const { data: perfil } = await supabase.from('perfiles').select('id').eq('id', perfilActivoId).single()
+        if (perfil) perfilId = perfil.id
+      } else {
+        const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
+        if (perfil) perfilId = perfil.id
+      }
+
+      const resultado = await generar115Automatico(perfilId, trimestre, new Date().getFullYear())
+      if (!resultado) return
+      setInmuebles(resultado.inmuebles.map(inm => ({
+        direccion: inm.direccion,
+        nifArrendatario: inm.nifArrendatario,
+        baseImponible: String(inm.baseImponible / 100),
+        retencionPct: String(inm.retencionPct),
+      })))
+    } catch {
+      // silently fail
+    } finally {
+      setCargando(false)
+    }
+  }, [trimestre, perfilActivoId])
 
   const actualizar = (idx: number, campo: keyof FilaInmueble, valor: string) => {
     setInmuebles(prev => prev.map((a, i) => i === idx ? { ...a, [campo]: valor } : a))
@@ -57,14 +93,30 @@ export function CalculadoraModelo115() {
       <BotonPDF elementId="pdf-modelo-115" filename="modelo-115" />
       <Card>
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <Home className="h-5 w-5 text-primary" aria-hidden="true" />
-          <div>
-            <CardTitle>Modelo 115 — Retenciones arrendamientos</CardTitle>
-            <CardDescription>
-              Retenciones sobre alquileres de inmuebles urbanos. Presentación trimestral.
-            </CardDescription>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Home className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div>
+              <CardTitle>Modelo 115 — Retenciones arrendamientos</CardTitle>
+              <CardDescription>
+                Retenciones sobre alquileres de inmuebles urbanos. Presentación trimestral.
+              </CardDescription>
+            </div>
           </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => void cargarDatosReales()}
+            disabled={cargando}
+          >
+            {cargando ? (
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" aria-hidden="true" />
+            ) : (
+              <Database className="mr-1 h-3 w-3" aria-hidden="true" />
+            )}
+            {cargando ? 'Cargando...' : 'Cargar datos'}
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

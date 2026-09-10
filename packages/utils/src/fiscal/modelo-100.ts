@@ -21,12 +21,12 @@ export interface MinimoPersonalFamiliar {
   discapacidadContribuyente: number // 3.000€ o 6.000€
 }
 
-export const MINIMO_CONTRIBUYENTE = 555_00 // 5.550€
-export const MINIMO_ASCENDIENTE_65 = 115_00 // 1.150€
-export const MINIMO_DESCENDIENTE_MENOR_3 = 280_00 // 2.800€
-export const MINIMO_DESCENDIENTE_3_65 = 280_00 // 2.800€
-export const MINIMO_DISCAPACIDAD_GRAVE = 300_00 // 3.000°
-export const MINIMO_DISCAPACIDAD_GRAVE_GRAVE = 600_00 // 6.000°
+export const MINIMO_CONTRIBUYENTE = 555_000 // 5.550€
+export const MINIMO_ASCENDIENTE_65 = 115_000 // 1.150€
+export const MINIMO_DESCENDIENTE_MENOR_3 = 280_000 // 2.800€
+export const MINIMO_DESCENDIENTE_3_65 = 280_000 // 2.800€
+export const MINIMO_DISCAPACIDAD_GRAVE = 300_000 // 3.000€
+export const MINIMO_DISCAPACIDAD_GRAVE_GRAVE = 600_000 // 6.000€
 
 export function calcularMinimoPersonalFamiliar(params: {
   numAscendientes65?: number

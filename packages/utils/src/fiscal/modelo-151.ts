@@ -80,6 +80,16 @@ export function calcularModelo151(datos: DatosModelo151): ResultadoModelo151 {
         observaciones,
       }
     }
+
+    default: {
+      return {
+        tipo: datos.tipo,
+        descripcion: 'Tipo no reconocido',
+        plazo: 'Consultar',
+        obligatorio: false,
+        observaciones: ['Tipo de operación no reconocido'],
+      }
+    }
   }
 }
 

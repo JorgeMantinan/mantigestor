@@ -126,7 +126,7 @@ export async function generar100Automatico(
     .filter(f => f.tipo === 'ingreso')
     .reduce((sum, f) => sum + f.baseImponible, 0)
   const gastosActividades = facturasArr
-    .filter(f => f.tipo === 'gasto')
+    .filter(f => f.tipo === 'gasto' && (f as unknown as { deducible?: boolean }).deducible !== false)
     .reduce((sum, f) => sum + f.baseImponible, 0)
 
   const rendimientosActividades = Math.max(0, ingresosActividades - gastosActividades)
@@ -147,8 +147,9 @@ export async function generar100Automatico(
   const reduccionTrabajo = reduccionRendimientosTrabajoCents(rendimientosTrabajo)
 
   // 10. Calculate minimum personal y familiar
+  const fechaFinAnyo = new Date(anyo, 11, 31) // 31 de diciembre del año fiscal
   const edad = p?.fechaNacimiento
-    ? Math.floor((Date.now() - new Date(p.fechaNacimiento).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+    ? Math.floor((fechaFinAnyo.getTime() - new Date(p.fechaNacimiento).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : 0
 
   const hijosEdades: number[] = (() => {
@@ -160,12 +161,12 @@ export async function generar100Automatico(
   })()
 
   // Mínimo personal y familiar (simplified — uses modelo-100 constants)
-  const MINIMO_CONTRIBUYENTE = 555_00 // 5.550€
-  const MINIMO_ASCENDIENTE_65 = 115_00
-  const MINIMO_DESCENDIENTE_MENOR_3 = 280_00
-  const MINIMO_DESCENDIENTE_3_65 = 280_00
-  const MINIMO_DISCAPACIDAD_GRAVE = 300_00
-  const MINIMO_DISCAPACIDAD_GRAVE_GRAVE = 600_00
+  const MINIMO_CONTRIBUYENTE = 555_000 // 5.550€
+  const MINIMO_ASCENDIENTE_65 = 115_000
+  const MINIMO_DESCENDIENTE_MENOR_3 = 280_000
+  const MINIMO_DESCENDIENTE_3_65 = 280_000
+  const MINIMO_DISCAPACIDAD_GRAVE = 300_000
+  const MINIMO_DISCAPACIDAD_GRAVE_GRAVE = 600_000
 
   let minimoPersonal = MINIMO_CONTRIBUYENTE
   if (edad >= 65) minimoPersonal += MINIMO_ASCENDIENTE_65
@@ -191,7 +192,7 @@ export async function generar100Automatico(
   const datos: DatosModelo100 = {
     baseImponibleGeneral,
     baseImponibleAhorro: 0,
-    reduccionTrabajo: Math.min(reduccionTrabajo, baseImponibleGeneral),
+    reduccionTrabajo: Math.min(reduccionTrabajo + reduccionBase, baseImponibleGeneral),
     reduccionAhorro: 0,
     minimoPersonalFamiliar,
     deduccionesAutonomicas: 0,

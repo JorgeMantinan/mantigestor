@@ -147,10 +147,7 @@ export function Calculadora111({ taxYear }: Props) {
   }
 
   const resultado = calcularModelo111(
-    rendimientos.filter(r => {
-      // Filter by trimestre
-      return true // all rendimientos are included (we don't track month per entry, so all apply)
-    }),
+    rendimientos,
     pagosAnteriores
   )
 

@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Download, Plus, Trash2, Loader2 } from 'lucide-react'
+import { Download, Plus, Trash2, Loader2, Database } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularModelo190, type RendimientoRetencion190 } from '@mantigestor/utils'
 import { BotonPDF } from '@/components/boton-pdf'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 const TIPOS = [
   { value: 'trabajo', label: 'Trabajo (asalariado)' },
@@ -28,6 +29,7 @@ export function Calculadora190({ taxYear }: Props) {
   const [rendimientos, setRendimientos] = useState<RendimientoRetencion190[]>([])
   const [loading, setLoading] = useState(false)
   const [cargandoNominas, setCargandoNominas] = useState(false)
+  const { perfilActivoId } = usePersonaActiva()
 
   // New entry form
   const [nuevoTipo, setNuevoTipo] = useState<RendimientoRetencion190['tipo']>('trabajo')
@@ -46,10 +48,19 @@ export function Calculadora190({ taxYear }: Props) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
+      let perfilId = perfilActivoId || user.id
+      if (perfilActivoId) {
+        const { data: perfil } = await supabase.from('perfiles').select('id').eq('id', perfilActivoId).single()
+        if (perfil) perfilId = perfil.id
+      } else {
+        const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
+        if (perfil) perfilId = perfil.id
+      }
+
       const { data: nominasEmp } = await supabase
         .from('nominas')
         .select('empleada, salarioBruto, irpf')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilId)
         .eq('rol', 'empleado')
         .eq('anyo', taxYear)
 
@@ -80,7 +91,7 @@ export function Calculadora190({ taxYear }: Props) {
       // silently fail
     }
     setCargandoNominas(false)
-  }, [getSupabase, taxYear])
+  }, [getSupabase, taxYear, perfilActivoId])
 
   const agregar = () => {
     if (!nuevaDescripcion || !nuevoBruto) return

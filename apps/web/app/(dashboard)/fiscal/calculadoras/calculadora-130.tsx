@@ -11,6 +11,7 @@ import { GUIA_MODELO_130 } from '@/lib/fiscal/guia-fiscal'
 import { BotonPDF } from '@/components/boton-pdf'
 import { generar130Automatico } from '@/lib/fiscal/auto-130'
 import { createClient } from '@/lib/supabase/client'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 const fEuropeo = (n: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n)
@@ -31,6 +32,7 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
   const [trim3, setTrim3] = useState('')
   const [trim4, setTrim4] = useState('')
   const [cargando, setCargando] = useState(false)
+  const { perfilActivoId } = usePersonaActiva()
 
   const cargarDatosReales = useCallback(async () => {
     setCargando(true)
@@ -38,7 +40,25 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const resultado = await generar130Automatico(user.id, 1, taxYear)
+
+      let perfilId = perfilActivoId || user.id
+      if (perfilActivoId) {
+        const { data: perfil } = await supabase
+          .from('perfiles')
+          .select('id')
+          .eq('id', perfilActivoId)
+          .single()
+        if (perfil) perfilId = perfil.id
+      } else {
+        const { data: perfil } = await supabase
+          .from('perfiles')
+          .select('id')
+          .eq('userId', user.id)
+          .single()
+        if (perfil) perfilId = perfil.id
+      }
+
+      const resultado = await generar130Automatico(perfilId, 1, taxYear)
       if (!resultado) return
       setIngresos(String(resultado.ingresos))
       setGastos(String(resultado.gastos))
@@ -48,7 +68,7 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
     } finally {
       setCargando(false)
     }
-  }, [taxYear])
+  }, [taxYear, perfilActivoId])
 
   const resultado = useMemo(
     () =>
