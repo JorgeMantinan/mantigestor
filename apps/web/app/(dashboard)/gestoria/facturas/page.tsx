@@ -136,11 +136,16 @@ export default function FacturasPage() {
   }, [mostrarFiltroTag])
 
   const eliminar = async (id: string) => {
-    const factura = facturas.find(f => f.id === id)
-    await getSupabase().from('facturas').delete().eq('id', id)
-    await logAccion('eliminar', 'factura', id, `Factura ${factura?.numero ?? ''} eliminada`)
-    setFacturas(prev => prev.filter(f => f.id !== id))
-    toast.success('Factura eliminada')
+    try {
+      const factura = facturas.find(f => f.id === id)
+      const { error } = await getSupabase().from('facturas').delete().eq('id', id)
+      if (error) throw error
+      await logAccion('eliminar', 'factura', id, `Factura ${factura?.numero ?? ''} eliminada`)
+      setFacturas(prev => prev.filter(f => f.id !== id))
+      toast.success('Factura eliminada')
+    } catch {
+      toast.error('Error al eliminar la factura')
+    }
   }
 
   const formatMoney = (cents: number, moneda?: string) =>
@@ -174,12 +179,17 @@ export default function FacturasPage() {
   }
 
   const eliminarSeleccionadas = async () => {
-    const ids = Array.from(seleccionadas)
-    await getSupabase().from('facturas').delete().in('id', ids)
-    await logAccion('eliminar', 'factura', ids.join(','), `${ids.length} facturas eliminadas`)
-    setFacturas(prev => prev.filter(f => !seleccionadas.has(f.id)))
-    setSeleccionadas(new Set())
-    toast.success(`${ids.length} factura${ids.length !== 1 ? 's' : ''} eliminada${ids.length !== 1 ? 's' : ''}`)
+    try {
+      const ids = Array.from(seleccionadas)
+      const { error } = await getSupabase().from('facturas').delete().in('id', ids)
+      if (error) throw error
+      await logAccion('eliminar', 'factura', ids.join(','), `${ids.length} facturas eliminadas`)
+      setFacturas(prev => prev.filter(f => !seleccionadas.has(f.id)))
+      setSeleccionadas(new Set())
+      toast.success(`${ids.length} factura${ids.length !== 1 ? 's' : ''} eliminada${ids.length !== 1 ? 's' : ''}`)
+    } catch {
+      toast.error('Error al eliminar las facturas')
+    }
   }
 
   const cambiarEstadoSeleccionadas = async (nuevoEstado: string) => {
@@ -316,7 +326,7 @@ export default function FacturasPage() {
     })
 
     return result
-  }, [facturas, filtro, busqueda, fechaDesde, fechaHasta, ordenCampo, ordenDir, filtroTag])
+  }, [facturas, filtro, filtroEstado, busqueda, fechaDesde, fechaHasta, ordenCampo, ordenDir, filtroTag])
 
   const totalPages = Math.ceil(visibles.length / PAGE_SIZE)
   const paginadas = visibles.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)

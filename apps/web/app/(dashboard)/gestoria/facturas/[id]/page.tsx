@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import { enviarFacturaPorEmail } from '@/lib/factura-email'
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition'
@@ -115,7 +116,6 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         setCategoriaGasto((data as Factura).categoriaGasto ?? null)
         setNotas((data as Factura).notas ?? '')
         setNotasPrivadas((data as Factura).notasPrivadas ?? '')
-        setNotasPrivadas((data as Factura).notasPrivadas ?? '')
         setTagsSeleccionados(parsearTags((data as Factura).tags))
         setMonedaEdit((data as Factura).moneda ?? 'EUR')
         setTipoCambioEdit((data as Factura).tipoCambio ?? 1)
@@ -182,65 +182,78 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
     if (!factura) return
     setSaving(true)
 
-    const form = new FormData(e.currentTarget)
-    const baseImponible = parseFloat(form.get('baseImponible') as string) * 100
-    const iva = parseInt(form.get('iva') as string, 10)
-    const descuento = calcularDescuento(baseImponible, descuentoPorcentajeEdit)
-    const importeIva = Math.round(baseImponible * (iva / 100))
-    const total = baseImponible + importeIva - descuento
+    try {
+      const form = new FormData(e.currentTarget)
+      const baseImponible = parseFloat(form.get('baseImponible') as string) * 100
+      const iva = parseInt(form.get('iva') as string, 10)
+      const descuento = calcularDescuento(baseImponible, descuentoPorcentajeEdit)
+      const importeIva = Math.round(baseImponible * (iva / 100))
+      const total = baseImponible + importeIva - descuento
 
-    const { error } = await getSupabase().from('facturas').update({
-      numero: form.get('numero') as string,
-      tipo: form.get('tipo') as string,
-      emisorReceptor: form.get('emisorReceptor') as string,
-      nifContraparte: form.get('nifContraparte') as string,
-      fechaEmision: form.get('fechaEmision') as string,
-      fechaVencimiento: form.get('fechaVencimiento') as string || null,
-      baseImponible,
-      iva,
-      total,
-      categoriaGasto: form.get('tipo') === 'gasto' ? (form.get('categoriaGasto') as string || null) : null,
-      notas: notas || null,
-      tags: serializarTags(tagsSeleccionados) || null,
-      moneda: monedaEdit,
-      tipoCambio: tipoCambioEdit,
-      descuentoPorcentaje: descuentoPorcentajeEdit,
-    }).eq('id', factura.id)
-
-    if (!error) {
-      const antes = {
-        numero: factura.numero,
-        tipo: factura.tipo,
-        emisorReceptor: factura.emisorReceptor,
-        nifContraparte: factura.nifContraparte,
-        fechaEmision: factura.fechaEmision,
-        baseImponible: factura.baseImponible,
-        iva: factura.iva,
-        total: factura.total,
-        estado: factura.estado,
-      }
-      const despues = {
+      const { error } = await getSupabase().from('facturas').update({
         numero: form.get('numero') as string,
         tipo: form.get('tipo') as string,
         emisorReceptor: form.get('emisorReceptor') as string,
         nifContraparte: form.get('nifContraparte') as string,
         fechaEmision: form.get('fechaEmision') as string,
+        fechaVencimiento: form.get('fechaVencimiento') as string || null,
         baseImponible,
         iva,
         total,
+        categoriaGasto: form.get('tipo') === 'gasto' ? (form.get('categoriaGasto') as string || null) : null,
+        notas: notas || null,
+        notasPrivadas: notasPrivadas || null,
+        tags: serializarTags(tagsSeleccionados) || null,
+        moneda: monedaEdit,
+        tipoCambio: tipoCambioEdit,
+        descuentoPorcentaje: descuentoPorcentajeEdit,
+      }).eq('id', factura.id)
+
+      if (!error) {
+        const antes = {
+          numero: factura.numero,
+          tipo: factura.tipo,
+          emisorReceptor: factura.emisorReceptor,
+          nifContraparte: factura.nifContraparte,
+          fechaEmision: factura.fechaEmision,
+          baseImponible: factura.baseImponible,
+          iva: factura.iva,
+          total: factura.total,
+          estado: factura.estado,
+        }
+        const despues = {
+          numero: form.get('numero') as string,
+          tipo: form.get('tipo') as string,
+          emisorReceptor: form.get('emisorReceptor') as string,
+          nifContraparte: form.get('nifContraparte') as string,
+          fechaEmision: form.get('fechaEmision') as string,
+          baseImponible,
+          iva,
+          total,
+        }
+        await logAccion('editar', 'factura', factura.id, `Factura ${factura.numero} editada`, { antes, despues })
+        setFactura({ ...factura, ...Object.fromEntries(form), moneda: monedaEdit, tipoCambio: tipoCambioEdit, descuentoPorcentaje: descuentoPorcentajeEdit } as unknown as Factura)
+        setEditing(false)
+      } else {
+        toast.error('Error al guardar la factura')
       }
-      await logAccion('editar', 'factura', factura.id, `Factura ${factura.numero} editada`, { antes, despues })
-      setFactura({ ...factura, ...Object.fromEntries(form), moneda: monedaEdit, tipoCambio: tipoCambioEdit, descuentoPorcentaje: descuentoPorcentajeEdit } as unknown as Factura)
-      setEditing(false)
+    } catch {
+      toast.error('Error al guardar la factura')
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   const handleDelete = async () => {
     if (!factura) return
-    await getSupabase().from('facturas').delete().eq('id', factura.id)
-    await logAccion('eliminar', 'factura', factura.id, `Factura ${factura.numero} eliminada`)
-    router.push('/gestoria/facturas')
+    try {
+      const { error } = await getSupabase().from('facturas').delete().eq('id', factura.id)
+      if (error) throw error
+      await logAccion('eliminar', 'factura', factura.id, `Factura ${factura.numero} eliminada`)
+      router.push('/gestoria/facturas')
+    } catch {
+      toast.error('Error al eliminar la factura')
+    }
   }
 
   const handleCrearRectificativa = async () => {
@@ -577,23 +590,40 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                     {factura.estado}
                   </span>
                   {factura.estado !== 'pagada' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-xs"
-                      onClick={async () => {
-                        const estadoAnterior = factura.estado
-                        const { error } = await getSupabase().from('facturas').update({
-                          estado: 'pagada',
-                        }).eq('id', factura.id)
-                        if (!error) {
-                          await logAccion('cambio_estado', 'factura', factura.id, `Factura ${factura.numero}: ${estadoAnterior} → pagada`, { antes: { estado: estadoAnterior }, despues: { estado: 'pagada' } })
-                          setFactura({ ...factura, estado: 'pagada' })
-                        }
-                      }}
-                    >
-                      {t('facturaDetalle.marcarPagada')}
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs"
+                        >
+                          {t('facturaDetalle.marcarPagada')}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Marcar como pagada?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            La factura {factura.numero} se marcará como pagada. Esta acción se puede deshacer manualmente.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={async () => {
+                            const estadoAnterior = factura.estado
+                            const { error } = await getSupabase().from('facturas').update({
+                              estado: 'pagada',
+                            }).eq('id', factura.id)
+                            if (!error) {
+                              await logAccion('cambio_estado', 'factura', factura.id, `Factura ${factura.numero}: ${estadoAnterior} → pagada`, { antes: { estado: estadoAnterior }, despues: { estado: 'pagada' } })
+                              setFactura({ ...factura, estado: 'pagada' })
+                            } else {
+                              toast.error('Error al cambiar el estado')
+                            }
+                          }}>Confirmar</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                 </dd>
               </div>

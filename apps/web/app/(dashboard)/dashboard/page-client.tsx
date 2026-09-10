@@ -231,10 +231,11 @@ export default function DashboardPage() {
       }
     }
     fetchData()
-  }, [getSupabase, perfilActivoId, personas, selectedYear])
+  }, [getSupabase, perfilActivoId, selectedYear])
 
   useEffect(() => {
     const interval = setInterval(() => {
+      if (document.hidden) return
       const fetchData = async () => {
         try {
           const supabase = getSupabase()
