@@ -83,7 +83,7 @@ export function calcularModelo206(datos: DatosModelo206): ResultadoModelo206 {
   let acumuladoPagosCents = 0
 
   for (let t = 1 as Trimestre206; t <= 4; t++) {
-    const pctTrimestre = tipoPorcentaje
+    const pctTrimestre = porcentajesTrimestre[t]
     const cuotaIntegraCents = Math.round(baseImponible * (pctTrimestre / 100))
 
     // El pago fraccionado del trimestre es la cuota íntegra proporcional

@@ -179,8 +179,9 @@ export function calcularModelo100(datos: DatosModelo100): ResultadoModelo100 {
 
   const totalCuota = cuotaIntegra + cuotaAhorro
 
-  // Deducción DA 61ª
-  const da61a = deduccionDA61a(cuotaIntegra, datos.baseImponibleGeneral)
+  // Deducción DA 61ª — se excluyen dividendos (rentas del ahorro) de la base para esta deducción
+  const baseDA61a = Math.max(0, datos.baseImponibleGeneral - datos.dividendosIRPF)
+  const da61a = deduccionDA61a(cuotaIntegra, baseDA61a)
   const deducciones = da61a + datos.deduccionesAutonomicas
 
   const cuotaLiquida = Math.max(0, totalCuota - deducciones)

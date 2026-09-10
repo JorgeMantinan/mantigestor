@@ -12,6 +12,8 @@ export interface ResultadoModelo303 {
   cuotaRepercutida: number
   baseImponibleRepercutida10: number
   cuotaRepercutida10: number
+  baseImponibleRepercutida4: number
+  cuotaRepercutida4: number
   totalCuotaRepercutida: number
   baseImponibleSoportada: number
   totalCuotaSoportada: number
@@ -156,6 +158,8 @@ export function calcularAutocobro303(
     cuotaRepercutida: cuotaIvaRepercutida21,
     baseImponibleRepercutida10: base10,
     cuotaRepercutida10: cuotaIvaRepercutida10,
+    baseImponibleRepercutida4: base4,
+    cuotaRepercutida4: cuotaIvaRepercutida4,
     totalCuotaRepercutida: totalIvaRepercutido,
     baseImponibleSoportada: baseSop21 + baseSop10 + baseSop4,
     totalCuotaSoportada: totalIvaSoportado,
@@ -190,7 +194,8 @@ export function calcularAutocobro303(
 export function calcularModelo303(
   facturas: FacturaFiscalMinima[],
   trimestre: 1 | 2 | 3 | 4,
-  compensacionPendiente: number = 0
+  compensacionPendiente: number = 0,
+  base4PorCiento: number = 0
 ): ResultadoModelo303 {
   const pendiente = Math.min(0, compensacionPendiente)
 
@@ -199,11 +204,14 @@ export function calcularModelo303(
 
   const ingresos21 = ingresos.filter(f => f.iva === 21)
   const ingresos10 = ingresos.filter(f => f.iva === 10)
+  const ingresos4 = ingresos.filter(f => f.iva === 4)
 
   const baseRepercutida = ingresos21.reduce((acc, f) => acc + f.importe, 0)
   const cuotaRepercutida = ingresos21.reduce((acc, f) => acc + f.importeIva, 0)
   const baseRepercutida10 = ingresos10.reduce((acc, f) => acc + f.importe, 0)
   const cuotaRepercutida10 = ingresos10.reduce((acc, f) => acc + f.importeIva, 0)
+  const baseRepercutida4 = ingresos4.reduce((acc, f) => acc + f.importe, 0)
+  const cuotaRepercutida4 = base4PorCiento > 0 ? Math.round(base4PorCiento * 0.04) : ingresos4.reduce((acc, f) => acc + f.importeIva, 0)
   const totalCuotaRepercutida = ingresos.reduce((acc, f) => acc + f.importeIva, 0)
 
   const baseSoportada = gastos.reduce((acc, f) => acc + f.importe, 0)
@@ -236,6 +244,8 @@ export function calcularModelo303(
     cuotaRepercutida,
     baseImponibleRepercutida10: baseRepercutida10,
     cuotaRepercutida10,
+    baseImponibleRepercutida4: baseRepercutida4,
+    cuotaRepercutida4,
     totalCuotaRepercutida,
     baseImponibleSoportada: baseSoportada,
     totalCuotaSoportada,

@@ -1,13 +1,16 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Calculator, TrendingUp } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Calculator, TrendingUp, Database } from 'lucide-react'
 import { calcularModelo130, pagosFraccionados130 } from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_130 } from '@/lib/fiscal/guia-fiscal'
 import { BotonPDF } from '@/components/boton-pdf'
+import { generar130Automatico } from '@/lib/fiscal/auto-130'
+import { createClient } from '@/lib/supabase/client'
 
 const fEuropeo = (n: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(n)
@@ -27,6 +30,25 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
   const [trim2, setTrim2] = useState('')
   const [trim3, setTrim3] = useState('')
   const [trim4, setTrim4] = useState('')
+  const [cargando, setCargando] = useState(false)
+
+  const cargarDatosReales = useCallback(async () => {
+    setCargando(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const resultado = await generar130Automatico(user.id, 1, taxYear)
+      if (!resultado) return
+      setIngresos(String(resultado.ingresos))
+      setGastos(String(resultado.gastos))
+      setRetenciones(String(resultado.retenciones))
+    } catch {
+      // silently fail
+    } finally {
+      setCargando(false)
+    }
+  }, [taxYear])
 
   const resultado = useMemo(
     () =>
@@ -51,14 +73,26 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
       <BotonPDF elementId="pdf-modelo-130" filename="modelo-130" />
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Calculator className="h-5 w-5 text-primary" aria-hidden="true" />
-            <div>
-              <CardTitle>Modelo 130 — Pago fraccionado IRPF ({taxYear})</CardTitle>
-              <CardDescription>
-                Pago fraccionado trimestral de autónomos en estimación directa: 20% sobre el rendimiento neto acumulado anual.
-              </CardDescription>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-primary" aria-hidden="true" />
+              <div>
+                <CardTitle>Modelo 130 — Pago fraccionado IRPF ({taxYear})</CardTitle>
+                <CardDescription>
+                  Pago fraccionado trimestral de autónomos en estimación directa: 20% sobre el rendimiento neto acumulado anual.
+                </CardDescription>
+              </div>
             </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void cargarDatosReales()}
+              disabled={cargando}
+            >
+              <Database className="mr-1 h-3 w-3" aria-hidden="true" />
+              {cargando ? 'Cargando...' : 'Cargar datos'}
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">

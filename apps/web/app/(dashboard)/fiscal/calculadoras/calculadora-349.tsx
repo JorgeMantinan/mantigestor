@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +11,9 @@ import { GUIA_MODELO_349 } from '@/lib/fiscal/guia-fiscal'
 import { calcularModelo349 } from '@mantigestor/utils'
 import type { OperacionIntracomunitaria } from '@mantigestor/utils'
 import { BotonPDF } from '@/components/boton-pdf'
+import { generar349Automatico } from '@/lib/fiscal/auto-349'
+import { createClient } from '@/lib/supabase/client'
+import { Database } from 'lucide-react'
 
 const PAISES_UE = [
   'Alemania', 'Austria', 'Bélgica', 'Bulgaria', 'Croacia',
@@ -37,6 +40,23 @@ export function CalculadoraModelo349({ datosIniciales }: { datosIniciales?: { op
   const [tipo, setTipo] = useState<OperacionIntracomunitaria['tipo']>('entrega')
   const [baseImponible, setBaseImponible] = useState('')
   const [periodo, setPeriodo] = useState<'trimestral' | 'mensual'>('trimestral')
+  const [cargando, setCargando] = useState(false)
+
+  const cargarDatosReales = useCallback(async () => {
+    setCargando(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const resultado = await generar349Automatico(user.id, new Date().getFullYear())
+      if (!resultado) return
+      setOperaciones(resultado.operaciones)
+    } catch {
+      // silently fail
+    } finally {
+      setCargando(false)
+    }
+  }, [])
 
   const resultado = useMemo(() => calcularModelo349({ operaciones, periodo }), [operaciones, periodo])
 
@@ -71,10 +91,24 @@ export function CalculadoraModelo349({ datosIniciales }: { datosIniciales?: { op
       <BotonPDF elementId="pdf-modelo-349" filename="modelo-349" />
       <Card>
       <CardHeader>
-        <CardTitle>Modelo 349 — Operaciones intracomunitarias UE</CardTitle>
-        <CardDescription>
-          Declaración informativa de operaciones con empresarios/profesionales de otros estados miembros
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Modelo 349 — Operaciones intracomunitarias UE</CardTitle>
+            <CardDescription>
+              Declaración informativa de operaciones con empresarios/profesionales de otros estados miembros
+            </CardDescription>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => void cargarDatosReales()}
+            disabled={cargando}
+          >
+            <Database className="mr-1 h-3 w-3" aria-hidden="true" />
+            {cargando ? 'Cargando...' : 'Cargar datos'}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="max-w-xs space-y-2">

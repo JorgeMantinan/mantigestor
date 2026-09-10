@@ -22,6 +22,7 @@ export function CalculadoraModelo200() {
   const [deducciones, setDeducciones] = useState('')
   const [pagosFrac, setPagosFrac] = useState('')
   const [retenciones, setRetenciones] = useState('')
+  const [esNuevaCreacion, setEsNuevaCreacion] = useState(false)
 
   const resultado = useMemo(() => {
     const base = parseEuros(resultadoContable)
@@ -38,6 +39,7 @@ export function CalculadoraModelo200() {
       ejercicio: new Date().getFullYear(),
       fechaInicio: '',
       fechaFin: '',
+      esNuevaCreacion,
       ingresosExplotacion: ing,
       otrosIngresos: 0,
       gastosExplotacion: gastosE ?? 0,
@@ -60,9 +62,9 @@ export function CalculadoraModelo200() {
     }
 
     return calcularModelo200(datos)
-  }, [tipoEntidad, ingresos, gastosExplot, gastosFinanc, resultadoContable, ajustes, basesNeg, deducciones, pagosFrac, retenciones])
+  }, [tipoEntidad, ingresos, gastosExplot, gastosFinanc, resultadoContable, ajustes, basesNeg, deducciones, pagosFrac, retenciones, esNuevaCreacion])
 
-  const tipo = tipoImpositivo(tipoEntidad, false, parseEuros(ingresos) ?? 0)
+  const tipo = tipoImpositivo(tipoEntidad, esNuevaCreacion, parseEuros(ingresos) ?? 0)
 
   return (
     <div id="pdf-modelo-200" className="space-y-3">
@@ -79,6 +81,17 @@ export function CalculadoraModelo200() {
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
             {TIPOS_ENTIDAD.map(t => <option key={t.valor} value={t.valor}>{t.label}</option>)}
           </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="esNuevaCreacion"
+            checked={esNuevaCreacion}
+            onChange={e => setEsNuevaCreacion(e.target.checked)}
+            className="h-4 w-4"
+          />
+          <Label htmlFor="esNuevaCreacion" className="text-sm">Entidad de nueva creación (tipo reducido 15%)</Label>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

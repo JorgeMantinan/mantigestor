@@ -21,6 +21,7 @@ export interface DatosModelo200 {
   ejercicio: number
   fechaInicio: string
   fechaFin: string
+  esNuevaCreacion: boolean
 
   // Resultados económicos
   ingresosExplotacion: number      // Cifra de negocios
@@ -81,7 +82,7 @@ export function calcularModelo200(datos: DatosModelo200): ResultadoModelo200 {
   const observaciones: string[] = []
 
   // Calcular tipo impositivo
-  const esNuevaCreacion = false // El usuario debería indicarlo
+  const esNuevaCreacion = datos.esNuevaCreacion
   const facturacion = datos.ingresosExplotacion
   const tipo = tipoImpositivo(datos.tipoEntidad, esNuevaCreacion, facturacion)
 

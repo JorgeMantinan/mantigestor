@@ -61,7 +61,7 @@ export function calcularModelo110(datos: DatosModelo110): ResultadoModelo110 {
   for (const fila of datos.filas) {
     const importe = Math.max(0, fila.importe)
     const tipoRet = Math.max(0, fila.tipoRetencion)
-    const retencion = importe * (tipoRet / 100)
+    const retencion = Math.round(importe * (tipoRet / 100) * 100) / 100
     baseTotal += importe
     retencionTotal += retencion
     detalle.push({ tipo: fila.tipo, base: importe, retencion })
