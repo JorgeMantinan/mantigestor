@@ -232,7 +232,19 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
           total,
         }
         await logAccion('editar', 'factura', factura.id, `Factura ${factura.numero} editada`, { antes, despues })
-        setFactura({ ...factura, ...Object.fromEntries(form), moneda: monedaEdit, tipoCambio: tipoCambioEdit, descuentoPorcentaje: descuentoPorcentajeEdit } as unknown as Factura)
+        setFactura({ ...factura,
+          numero: form.get('numero') as string,
+          tipo: form.get('tipo') as string,
+          emisorReceptor: form.get('emisorReceptor') as string,
+          nifContraparte: form.get('nifContraparte') as string,
+          fechaEmision: form.get('fechaEmision') as string,
+          baseImponible,
+          iva,
+          total,
+          moneda: monedaEdit,
+          tipoCambio: tipoCambioEdit,
+          descuentoPorcentaje: descuentoPorcentajeEdit,
+        } as unknown as Factura)
         setEditing(false)
       } else {
         toast.error('Error al guardar la factura')

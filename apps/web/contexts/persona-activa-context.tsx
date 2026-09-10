@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -30,6 +31,7 @@ const PersonaActivaContext = createContext<PersonaActivaState>({
 
 export function PersonaActivaProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
+  const router = useRouter()
   const [perfilActivoId, setPerfilActivoState] = useState<string | null>(() => {
     if (typeof window !== 'undefined') {
       const match = document.cookie.match(/perfilActivoId=([^;]+)/)
@@ -80,8 +82,8 @@ export function PersonaActivaProvider({ children }: { children: ReactNode }) {
       document.cookie = 'perfilActivoId=; path=/; max-age=0'
     }
     setPerfilActivoState(perfilId)
-    window.location.reload()
-  }, [])
+    router.refresh()
+  }, [router])
 
   const esPropio = perfilActivoId === null
 

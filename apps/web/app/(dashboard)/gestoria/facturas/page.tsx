@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertCircle, CheckCircle, Clock, XCircle, FileText } from 'lucide-react'
+import { Plus, Receipt, ArrowUpRight, Trash2, Repeat, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, AlertCircle, CheckCircle, Clock, XCircle, FileText, Filter } from 'lucide-react'
 import { BotonPDF } from '@/components/boton-pdf'
 import { toast, Toaster } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -63,6 +63,7 @@ export default function FacturasPage() {
   const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set())
   const [filtroTag, setFiltroTag] = useState<string[]>([])
   const [mostrarFiltroTag, setMostrarFiltroTag] = useState(false)
+  const [mostrarFiltrosMovil, setMostrarFiltrosMovil] = useState(false)
   const filtroTagRef = useRef<HTMLDivElement>(null)
   const { t } = useLanguage()
   const { empresaActiva } = useEmpresaActiva()
@@ -115,7 +116,12 @@ export default function FacturasPage() {
       query = query.eq('empresaId', empresaActiva.id)
     }
     const { data, error } = await query
-    if (!error && data) {
+    if (error) {
+      toast.error('Error al cargar las facturas')
+      setLoading(false)
+      return
+    }
+    if (data) {
       setFacturas(data as Factura[])
       guardarEnCache(cacheKey, data as Factura[])
     }
@@ -366,124 +372,143 @@ export default function FacturasPage() {
       </div>
 
       {/* Búsqueda + filtros */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-          <Input
-            ref={searchRef}
-            placeholder={t('facturas.buscarPlaceholder')}
-            value={busqueda}
-            onChange={e => { setBusqueda(e.target.value); setPage(0) }}
-            className="pl-9"
-            aria-label={t('facturas.buscarLabel')}
-            data-search-input
-          />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <Kbd>/</Kbd>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Input
+              ref={searchRef}
+              placeholder={t('facturas.buscarPlaceholder')}
+              value={busqueda}
+              onChange={e => { setBusqueda(e.target.value); setPage(0) }}
+              className="pl-9"
+              aria-label={t('facturas.buscarLabel')}
+              data-search-input
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Kbd>/</Kbd>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="sm:hidden"
+            onClick={() => setMostrarFiltrosMovil(!mostrarFiltrosMovil)}>
+            <Filter className="mr-1 h-4 w-4" /> {mostrarFiltrosMovil ? 'Ocultar filtros' : 'Más filtros'}
+            {(filtro !== 'todas' || filtroEstado !== 'todos' || fechaDesde || fechaHasta || filtroTag.length > 0) && (
+              <span className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                {(filtro !== 'todas' ? 1 : 0) + (filtroEstado !== 'todos' ? 1 : 0) + (fechaDesde ? 1 : 0) + (fechaHasta ? 1 : 0) + (filtroTag.length > 0 ? 1 : 0)}
+              </span>
+            )}
+          </Button>
+        </div>
+        <div className={`flex flex-col gap-3 sm:flex-row sm:items-center ${!mostrarFiltrosMovil ? 'hidden sm:flex' : 'flex'}`}>
+          <div className="flex items-center gap-2">
+            <Input type="date" value={fechaDesde} onChange={e => { setFechaDesde(e.target.value); setPage(0) }}
+              className="w-[150px]" placeholder="Desde" aria-label="Fecha desde" />
+            <span className="text-muted-foreground text-xs">—</span>
+            <Input type="date" value={fechaHasta} onChange={e => { setFechaHasta(e.target.value); setPage(0) }}
+              className="w-[150px]" placeholder="Hasta" aria-label="Fecha hasta" />
+          </div>
+          <div className="flex gap-2">
+            {(['todas', 'ingreso', 'gasto'] as const).map(f => (
+              <Button key={f} variant={filtro === f ? 'secondary' : 'outline'} size="sm"
+                onClick={() => { setFiltro(f); setPage(0) }}>
+                {f === 'todas' ? t('facturas.todas') : f === 'ingreso' ? t('facturas.ingresos') : t('facturas.gastos')}
+              </Button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            {(['todos', 'pendiente', 'pagada', 'vencida'] as const).map(e => (
+              <Button key={e} variant={filtroEstado === e ? 'secondary' : 'outline'} size="sm"
+                onClick={() => { setFiltroEstado(e); setPage(0) }}>
+                {e === 'todos' ? 'Todos' : e.charAt(0).toUpperCase() + e.slice(1)}
+              </Button>
+            ))}
+          </div>
+          <div className="relative" ref={filtroTagRef}>
+            <Button variant={filtroTag.length > 0 ? 'secondary' : 'outline'} size="sm"
+              onClick={() => setMostrarFiltroTag(!mostrarFiltroTag)}>
+              <span className="mr-1 h-3 w-3 rounded-full bg-purple-500 inline-block" />
+              Etiquetas{filtroTag.length > 0 ? ` (${filtroTag.length})` : ''}
+            </Button>
+            {mostrarFiltroTag && (
+              <div className="absolute z-50 mt-1 right-0 w-56 rounded-md border bg-popover p-2 shadow-md" role="menu">
+                <div className="max-h-60 overflow-y-auto space-y-1">
+                  {TAGS_PREDEFINIDOS.map(tag => {
+                    const tagInputId = `tag-filter-${tag.id}`
+                    return (
+                      <label key={tag.id} htmlFor={tagInputId} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent" role="menuitem">
+                        <input
+                          id={tagInputId}
+                          type="checkbox"
+                          className="rounded border-input"
+                          checked={filtroTag.includes(tag.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFiltroTag(prev => [...prev, tag.id])
+                            } else {
+                              setFiltroTag(prev => prev.filter(t => t !== tag.id))
+                            }
+                            setPage(0)
+                          }}
+                        />
+                        <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: tag.color }} />
+                        {tag.nombre}
+                      </label>
+                    )
+                  })}
+                </div>
+                {filtroTag.length > 0 && (
+                  <div className="mt-2 border-t pt-2">
+                    <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => { setFiltroTag([]); setPage(0) }}>
+                      {t('facturas.limpiarFiltros')}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex-1" />
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" disabled={visibles.length === 0}
+              onClick={() => exportarExcelConResumenFacturas(visibles, `facturas-${new Date().toISOString().slice(0, 10)}`)}>
+              <Download className="mr-1 h-4 w-4" /> {t('facturas.exportarExcel')}
+            </Button>
+            <Button variant="outline" size="sm" disabled={visibles.length === 0}
+              onClick={() => void exportarTodoZIP({ facturas: visibles as unknown as Record<string, unknown>[], documentos: [], nominas: [], perfil: null, propiedadesAlquiler: [], auditLog: [], notificaciones: [] })}>
+              <Download className="mr-1 h-4 w-4" /> {t('facturas.exportarZip')}
+            </Button>
+            <Button variant="outline" size="sm" disabled={visibles.length === 0}
+              onClick={() => descargarCSV(exportarContaplus(visibles), `facturas-contaplus-${new Date().toISOString().slice(0, 10)}.csv`)}>
+              <Download className="mr-1 h-4 w-4" /> ContaPlus
+            </Button>
+            <Button variant="outline" size="sm" disabled={visibles.length === 0}
+              onClick={() => descargarCSV(exportarSage(visibles), `facturas-sage-${new Date().toISOString().slice(0, 10)}.csv`)}>
+              <Download className="mr-1 h-4 w-4" /> Sage
+            </Button>
+            <Button variant="outline" size="sm" disabled={visibles.length === 0}
+              onClick={async () => {
+                const { generarReporteGastosPDF } = await import('@/lib/reporte-gastos-pdf')
+                const totalBase = visibles.reduce((s, v) => s + v.baseImponible, 0)
+                const totalIva = visibles.reduce((s, v) => s + Math.round(v.baseImponible * v.iva / 100), 0)
+                const total = visibles.reduce((s, v) => s + v.total, 0)
+                await generarReporteGastosPDF({
+                  titulo: 'Listado de facturas',
+                  periodo: `${fechaDesde || 'Inicio'} — ${fechaHasta || 'Fin'}`,
+                  lineas: visibles.map(v => ({
+                    fecha: v.fechaEmision,
+                    numero: v.numero,
+                    contraparte: v.emisorReceptor,
+                    baseImponible: v.baseImponible,
+                    iva: Math.round(v.baseImponible * v.iva / 100),
+                    total: v.total,
+                    categoria: v.categoriaGasto ?? 'otros',
+                  })),
+                  totalBase, totalIva, total,
+                })
+              }}>
+              <FileText className="mr-1 h-4 w-4" /> {t('facturas.informePdf')}
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Input type="date" value={fechaDesde} onChange={e => { setFechaDesde(e.target.value); setPage(0) }}
-            className="w-[150px]" placeholder="Desde" />
-          <span className="text-muted-foreground text-xs">—</span>
-          <Input type="date" value={fechaHasta} onChange={e => { setFechaHasta(e.target.value); setPage(0) }}
-            className="w-[150px]" placeholder="Hasta" />
-        </div>
-        <div className="flex gap-2">
-          {(['todas', 'ingreso', 'gasto'] as const).map(f => (
-            <Button key={f} variant={filtro === f ? 'secondary' : 'outline'} size="sm"
-              onClick={() => { setFiltro(f); setPage(0) }}>
-              {f === 'todas' ? t('facturas.todas') : f === 'ingreso' ? t('facturas.ingresos') : t('facturas.gastos')}
-            </Button>
-          ))}
-        </div>
-        <div className="flex gap-2">
-          {(['todos', 'pendiente', 'pagada', 'vencida'] as const).map(e => (
-            <Button key={e} variant={filtroEstado === e ? 'secondary' : 'outline'} size="sm"
-              onClick={() => { setFiltroEstado(e); setPage(0) }}>
-              {e === 'todos' ? 'Todos' : e.charAt(0).toUpperCase() + e.slice(1)}
-            </Button>
-          ))}
-        </div>
-        <div className="relative" ref={filtroTagRef}>
-          <Button variant={filtroTag.length > 0 ? 'secondary' : 'outline'} size="sm"
-            onClick={() => setMostrarFiltroTag(!mostrarFiltroTag)}>
-            <span className="mr-1 h-3 w-3 rounded-full bg-purple-500 inline-block" />
-            Etiquetas{filtroTag.length > 0 ? ` (${filtroTag.length})` : ''}
-          </Button>
-          {mostrarFiltroTag && (
-            <div className="absolute z-50 mt-1 right-0 w-56 rounded-md border bg-popover p-2 shadow-md">
-              <div className="max-h-60 overflow-y-auto space-y-1">
-                {TAGS_PREDEFINIDOS.map(tag => (
-                  <label key={tag.id} className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent">
-                    <input
-                      type="checkbox"
-                      className="rounded border-input"
-                      checked={filtroTag.includes(tag.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFiltroTag(prev => [...prev, tag.id])
-                        } else {
-                          setFiltroTag(prev => prev.filter(t => t !== tag.id))
-                        }
-                        setPage(0)
-                      }}
-                    />
-                    <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: tag.color }} />
-                    {tag.nombre}
-                  </label>
-                ))}
-              </div>
-              {filtroTag.length > 0 && (
-                <div className="mt-2 border-t pt-2">
-                  <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => { setFiltroTag([]); setPage(0) }}>
-                    {t('facturas.limpiarFiltros')}
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-        <div className="flex-1" />
-        <Button variant="outline" size="sm" disabled={visibles.length === 0}
-          onClick={() => exportarExcelConResumenFacturas(visibles, `facturas-${new Date().toISOString().slice(0, 10)}`)}>
-          <Download className="mr-1 h-4 w-4" /> {t('facturas.exportarExcel')}
-        </Button>
-        <Button variant="outline" size="sm" disabled={visibles.length === 0}
-          onClick={() => void exportarTodoZIP({ facturas: visibles as unknown as Record<string, unknown>[], documentos: [], nominas: [], perfil: null, propiedadesAlquiler: [], auditLog: [], notificaciones: [] })}>
-          <Download className="mr-1 h-4 w-4" /> {t('facturas.exportarZip')}
-        </Button>
-        <Button variant="outline" size="sm" disabled={visibles.length === 0}
-          onClick={() => descargarCSV(exportarContaplus(visibles), `facturas-contaplus-${new Date().toISOString().slice(0, 10)}.csv`)}>
-          <Download className="mr-1 h-4 w-4" /> ContaPlus
-        </Button>
-        <Button variant="outline" size="sm" disabled={visibles.length === 0}
-          onClick={() => descargarCSV(exportarSage(visibles), `facturas-sage-${new Date().toISOString().slice(0, 10)}.csv`)}>
-          <Download className="mr-1 h-4 w-4" /> Sage
-        </Button>
-        <Button variant="outline" size="sm" disabled={visibles.length === 0}
-          onClick={async () => {
-            const { generarReporteGastosPDF } = await import('@/lib/reporte-gastos-pdf')
-            const totalBase = visibles.reduce((s, v) => s + v.baseImponible, 0)
-            const totalIva = visibles.reduce((s, v) => s + Math.round(v.baseImponible * v.iva / 100), 0)
-            const total = visibles.reduce((s, v) => s + v.total, 0)
-            await generarReporteGastosPDF({
-              titulo: 'Listado de facturas',
-              periodo: `${fechaDesde || 'Inicio'} — ${fechaHasta || 'Fin'}`,
-              lineas: visibles.map(v => ({
-                fecha: v.fechaEmision,
-                numero: v.numero,
-                contraparte: v.emisorReceptor,
-                baseImponible: v.baseImponible,
-                iva: Math.round(v.baseImponible * v.iva / 100),
-                total: v.total,
-                categoria: v.categoriaGasto ?? 'otros',
-              })),
-              totalBase, totalIva, total,
-            })
-          }}>
-          <FileText className="mr-1 h-4 w-4" /> {t('facturas.informePdf')}
-        </Button>
       </div>
 
       {duplicados.length > 0 && (
@@ -528,12 +553,18 @@ export default function FacturasPage() {
           <CardContent className="flex flex-col items-center gap-4 py-12">
             <Receipt className="h-12 w-12 text-muted-foreground" />
             <div className="text-center">
-              <p className="font-medium">{busqueda ? t('facturas.resultadoBusqueda') : t('facturas.sinFacturas')}</p>
+              <p className="font-medium">
+                {facturas.length === 0
+                  ? t('facturas.sinFacturas')
+                  : t('facturas.resultadoBusqueda')}
+              </p>
               <p className="text-sm text-muted-foreground">
-                {busqueda ? t('facturas.resultadoBusqueda') : t('facturas.primeraFactura')}
+                {facturas.length === 0
+                  ? t('facturas.primeraFactura')
+                  : 'No se encontraron facturas con los filtros aplicados.'}
               </p>
             </div>
-            {!busqueda && !soloLectura && (
+            {facturas.length === 0 && !soloLectura && (
               <Link href="/gestoria/facturas/nueva">
                 <Button><Plus className="mr-2 h-4 w-4" /> {t('facturas.crearFactura')}</Button>
               </Link>
@@ -615,13 +646,16 @@ export default function FacturasPage() {
                 <thead>
                   <tr className="border-b bg-muted/50">
                     <th className="px-4 py-3 w-10">
-                      <input
-                        type="checkbox"
-                        className="rounded border-input"
-                        checked={visibles.length > 0 && seleccionadas.size === visibles.length}
-                        onChange={toggleSeleccionAll}
-                        aria-label="Seleccionar todas"
-                      />
+                      <label htmlFor="select-all-facturas">
+                        <input
+                          id="select-all-facturas"
+                          type="checkbox"
+                          className="rounded border-input"
+                          checked={visibles.length > 0 && seleccionadas.size === visibles.length}
+                          onChange={toggleSeleccionAll}
+                          aria-label="Seleccionar todas"
+                        />
+                      </label>
                     </th>
                     <th className="px-4 py-3 text-left font-medium cursor-pointer select-none" onClick={() => toggleSort('numero')}>
                       Nº <SortIcon campo="numero" />
@@ -647,13 +681,16 @@ export default function FacturasPage() {
                   {paginadas.map(f => (
                     <tr key={f.id} className="border-b last:border-0 hover:bg-muted/30">
                       <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          className="rounded border-input"
-                          checked={seleccionadas.has(f.id)}
-                          onChange={() => toggleSeleccion(f.id)}
-                          aria-label={`Seleccionar factura ${f.numero}`}
-                        />
+                        <label htmlFor={`select-${f.id}`}>
+                          <input
+                            id={`select-${f.id}`}
+                            type="checkbox"
+                            className="rounded border-input"
+                            checked={seleccionadas.has(f.id)}
+                            onChange={() => toggleSeleccion(f.id)}
+                            aria-label={`Seleccionar factura ${f.numero}`}
+                          />
+                        </label>
                       </td>
                       <td className="px-4 py-3 font-medium">{f.numero}</td>
                       <td className="px-4 py-3 capitalize">

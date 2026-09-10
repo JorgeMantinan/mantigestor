@@ -70,6 +70,8 @@ export default function NuevaFacturaPage() {
   const [guardandoPlantilla, setGuardandoPlantilla] = useState(false)
   const [nombrePlantilla, setNombrePlantilla] = useState('')
   const [mostrarFormPlantilla, setMostrarFormPlantilla] = useState(false)
+  const [baseImponibleValor, setBaseImponibleValor] = useState(0)
+  const [ivaValor, setIvaValor] = useState(21)
 
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
@@ -85,8 +87,8 @@ export default function NuevaFacturaPage() {
           if (facturas) {
             const nums = facturas.map(f => f.numero).filter(Boolean)
             const siguiente = generarSiguienteNumeroFactura(nums)
-            const input = document.getElementById('numero') as HTMLInputElement | null
-            if (input) input.value = siguiente
+            const numeroInput = formRef.current?.elements.namedItem('numero')
+            if (numeroInput instanceof HTMLInputElement) numeroInput.value = siguiente
           }
         })
         obtenerNotasPieDefecto(data.user.id).then(setNotasPie)
@@ -419,14 +421,7 @@ export default function NuevaFacturaPage() {
                   <Label>{t('facturaNueva.totalEur')}</Label>
                   <Input
                     disabled
-                    value={(() => {
-                      const baseInput = document.getElementById('baseImponible') as HTMLInputElement | null
-                      const ivaSelect = document.getElementById('iva') as HTMLSelectElement | null
-                      const base = parseFloat(baseInput?.value || '0')
-                      const iva = parseInt(ivaSelect?.value || '0', 10)
-                      const totalLocal = base + base * (iva / 100)
-                      return formatoMoneda(totalLocal * tipoCambio, 'EUR')
-                    })()}
+                    value={formatoMoneda((baseImponibleValor + baseImponibleValor * (ivaValor / 100)) * tipoCambio, 'EUR')}
                   />
                 </div>
               </div>
@@ -457,7 +452,16 @@ export default function NuevaFacturaPage() {
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="baseImponible">{t('facturaNueva.baseImponible')} ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
-                <Input id="baseImponible" name="baseImponible" type="number" step="0.01" required placeholder="100.00" />
+                <Input
+                    id="baseImponible"
+                    name="baseImponible"
+                    type="number"
+                    step="0.01"
+                    required
+                    placeholder="100.00"
+                    value={baseImponibleValor || ''}
+                    onChange={(e) => setBaseImponibleValor(parseFloat(e.target.value) || 0)}
+                  />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="iva">{t('facturaNueva.ivaPorcentaje')}</Label>
@@ -465,6 +469,8 @@ export default function NuevaFacturaPage() {
                   id="iva"
                   name="iva"
                   required
+                  value={ivaValor}
+                  onChange={(e) => setIvaValor(parseInt(e.target.value, 10))}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   {TIPOS_IVA.map((t) => (
@@ -501,9 +507,7 @@ export default function NuevaFacturaPage() {
                   <Input
                     disabled
                     value={(() => {
-                      const baseInput = document.getElementById('baseImponible') as HTMLInputElement | null
-                      const base = parseFloat(baseInput?.value || '0')
-                      const descuento = calcularDescuento(base, descuentoPorcentaje)
+                      const descuento = calcularDescuento(baseImponibleValor, descuentoPorcentaje)
                       return `-${formatoMoneda(descuento / 100, moneda)}`
                     })()}
                   />
