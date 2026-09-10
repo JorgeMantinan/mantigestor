@@ -24,6 +24,7 @@ import { SelectorMoneda } from '@/components/selector-moneda'
 import { obtenerNotasPieDefecto } from '@/lib/notas-pie-factura'
 import { logAccion } from '@/lib/audit-log'
 import { calcularDescuento } from '@/lib/descuento-factura'
+import { savePendingInvoice, type PendingInvoice } from '@/lib/offline-storage'
 import { useLanguage } from '@/contexts/language-context'
 import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -72,6 +73,8 @@ export default function NuevaFacturaPage() {
   const [mostrarFormPlantilla, setMostrarFormPlantilla] = useState(false)
   const [baseImponibleValor, setBaseImponibleValor] = useState(0)
   const [ivaValor, setIvaValor] = useState(21)
+
+  const [guardandoOffline, setGuardandoOffline] = useState(false)
 
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
@@ -232,6 +235,54 @@ export default function NuevaFacturaPage() {
   function handleParsearVoz() {
     void parsearVoz(speech.transcripcion, setError)
     speech.limpiar()
+  }
+
+  const handleGuardarOffline = async () => {
+    if (!formRef.current) return
+    setGuardandoOffline(true)
+    const form = new FormData(formRef.current)
+    const { data: { user } } = await getSupabase().auth.getUser()
+    if (!user) {
+      setError(t('facturaNueva.errorSesion'))
+      setGuardandoOffline(false)
+      return
+    }
+    const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
+    if (!perfil) {
+      setError(t('facturaNueva.errorSesion'))
+      setGuardandoOffline(false)
+      return
+    }
+    const baseImponible = parseFloat(form.get('baseImponible') as string) * 100
+    const iva = parseInt(form.get('iva') as string, 10)
+    const importeIva = Math.round(baseImponible * (iva / 100))
+    const descuento = calcularDescuento(baseImponible, descuentoPorcentaje)
+    const total = baseImponible + importeIva - descuento
+    const pending: PendingInvoice = {
+      id: crypto.randomUUID(),
+      numero: form.get('numero') as string,
+      tipo: form.get('tipo') as string,
+      emisorReceptor: form.get('emisorReceptor') as string,
+      nifContraparte: form.get('nifContraparte') as string || '',
+      fechaEmision: form.get('fechaEmision') as string,
+      fechaVencimiento: form.get('fechaVencimiento') as string || null,
+      baseImponible,
+      iva,
+      total,
+      estado: 'pendiente',
+      categoriaGasto: form.get('tipo') === 'gasto' ? categoriaGasto : null,
+      notas: notasPie.filter(Boolean).join('\n') || null,
+      pdfUrl: pdfUrl || null,
+      moneda,
+      tipoCambio,
+      descuentoPorcentaje,
+      empresaId: empresaActiva?.id ?? null,
+      perfilId: perfil.id,
+      createdAt: new Date().toISOString(),
+    }
+    savePendingInvoice(pending)
+    setGuardandoOffline(false)
+    router.push('/gestoria/facturas')
   }
 
   async function handleMonedaChange(nuevaMoneda: string) {
@@ -562,6 +613,9 @@ export default function NuevaFacturaPage() {
                   {t('facturaNueva.cancelar')}
                 </Button>
               </Link>
+              <Button type="button" variant="secondary" onClick={handleGuardarOffline} disabled={guardandoOffline || loading} className="flex-1">
+                {guardandoOffline ? 'Guardando...' : 'Guardar offline'}
+              </Button>
               <Button type="submit" disabled={loading} className="flex-1">
                 {loading ? t('facturaNueva.guardando') : t('facturaNueva.crearFactura')}
               </Button>
