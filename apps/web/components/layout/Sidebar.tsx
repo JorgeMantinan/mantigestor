@@ -36,6 +36,8 @@ import {
   Briefcase,
   HelpCircle,
   AlertTriangle,
+  Camera,
+  ClipboardList,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -140,6 +142,10 @@ export function Sidebar() {
         { label: t('nav.googleCalendar'), href: '/herramientas/google-calendar', icon: Calendar },
         { label: t('nav.automatizaciones'), href: '/herramientas/automatizaciones', icon: Zap },
         { label: t('nav.recordatorios'), href: '/herramientas/recordatorios', icon: ListChecks },
+        { label: 'Mi primer trimestre', href: '/herramientas/primer-trimestre', icon: ClipboardList },
+        { label: '¿Me compensa ser autónomo?', href: '/herramientas/compensa-autonomo', icon: Calculator },
+        { label: 'Análisis de régimen', href: '/herramientas/analisis-regimen', icon: RefreshCw },
+        { label: 'Escanear ticket', href: '/herramientas/escanear-ticket', icon: Camera },
         { label: t('nav.notificaciones'), href: '/ajustes/notificaciones', icon: Bell },
         { label: t('nav.apiDocs'), href: '/api-docs', icon: BookOpen },
         { label: t('nav.ajustes'), href: '/ajustes', icon: Settings },
