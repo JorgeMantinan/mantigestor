@@ -38,6 +38,7 @@ import {
   AlertTriangle,
   Camera,
   ClipboardList,
+  KeyRound,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -130,6 +131,13 @@ export function Sidebar() {
       ],
     },
 
+    {
+      group: 'Hacienda',
+      items: [
+        { label: 'Presentar modelos', href: '/herramientas/hacienda', icon: Landmark },
+        { label: 'Certificados digitales', href: '/herramientas/hacienda/certificados', icon: KeyRound },
+      ],
+    },
     {
       group: t('nav.herramientas'),
       items: [
