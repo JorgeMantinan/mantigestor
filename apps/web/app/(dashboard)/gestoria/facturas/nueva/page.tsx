@@ -124,8 +124,9 @@ export default function NuevaFacturaPage() {
     const iva = parseInt(getVal('iva') || '21', 10)
     const emisorReceptor = getVal('emisorReceptor')
     const nifContraparte = getVal('nifContraparte') || null
+    const plantillaId = crypto.randomUUID()
     const { error } = await getSupabase().from('plantillas_factura').insert({
-      id: crypto.randomUUID(),
+      id: plantillaId,
       perfilId: userId,
       nombre: nombrePlantilla.trim(),
       tipo: tipoSeleccionado,
@@ -138,7 +139,7 @@ export default function NuevaFacturaPage() {
     })
     if (!error) {
       setPlantillas(prev => [...prev, {
-        id: crypto.randomUUID(),
+        id: plantillaId,
         nombre: nombrePlantilla.trim(),
         tipo: tipoSeleccionado,
         emisorReceptor,
@@ -302,89 +303,88 @@ export default function NuevaFacturaPage() {
     setLoading(true)
     setError('')
 
-    const form = new FormData(e.currentTarget)
-    const numero = (form.get('numero') as string)?.trim()
-    const emisorReceptor = (form.get('emisorReceptor') as string)?.trim()
-    const baseImponible = parseFloat(form.get('baseImponible') as string) * 100
-    const iva = parseInt(form.get('iva') as string, 10)
+    try {
+      const form = new FormData(e.currentTarget)
+      const numero = (form.get('numero') as string)?.trim()
+      const emisorReceptor = (form.get('emisorReceptor') as string)?.trim()
+      const baseImponible = parseFloat(form.get('baseImponible') as string) * 100
+      const iva = parseInt(form.get('iva') as string, 10)
 
-    if (!numero) {
-      setError(t('facturaNueva.errorNumeroObligatorio'))
+      if (!numero) {
+        setError(t('facturaNueva.errorNumeroObligatorio'))
+        return
+      }
+
+      if (!emisorReceptor) {
+        setError(t('facturaNueva.errorNombreObligatorio'))
+        return
+      }
+
+      if (isNaN(baseImponible) || baseImponible <= 0) {
+        setError(t('facturaNueva.errorBaseInvalida'))
+        return
+      }
+
+      if (![0, 4, 10, 21].includes(iva)) {
+        setError(t('facturaNueva.errorIvaInvalido'))
+        return
+      }
+
+      const importeIva = Math.round(baseImponible * (iva / 100))
+      const descuento = calcularDescuento(baseImponible, descuentoPorcentaje)
+      const total = baseImponible + importeIva - descuento
+
+      const { data: { user } } = await getSupabase().auth.getUser()
+      if (!user) {
+        setError(t('facturaNueva.errorSesion'))
+        return
+      }
+
+      const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
+      if (!perfil) {
+        setError(t('facturaNueva.errorSesion'))
+        return
+      }
+
+      const nuevaFacturaId = crypto.randomUUID()
+
+      const { error: insertError } = await getSupabase().from('facturas').insert({
+        id: nuevaFacturaId,
+        perfilId: perfil.id,
+        numero: form.get('numero') as string,
+        tipo: form.get('tipo') as string,
+        emisorReceptor: form.get('emisorReceptor') as string,
+        nifContraparte: form.get('nifContraparte') as string,
+        fechaEmision: form.get('fechaEmision') as string,
+        fechaVencimiento: form.get('fechaVencimiento') as string || null,
+        baseImponible,
+        iva,
+        total,
+        estado: 'pendiente',
+        categoriaGasto: form.get('tipo') === 'gasto' ? categoriaGasto : null,
+        notas: notasPie.filter(Boolean).join('\n') || null,
+        pdfUrl: pdfUrl || null,
+        moneda,
+        tipoCambio,
+        descuentoPorcentaje,
+        empresaId: empresaActiva?.id ?? null,
+      })
+
+      if (insertError) {
+        setError(insertError.message)
+        return
+      }
+
+      if (ocrUsado) {
+        await logAccion('crear', 'factura', nuevaFacturaId, `Factura creada con OCR`, { tipo: 'ocr' })
+      }
+
+      router.push('/gestoria/facturas')
+    } catch {
+      setError('Error inesperado al guardar la factura')
+    } finally {
       setLoading(false)
-      return
     }
-
-    if (!emisorReceptor) {
-      setError(t('facturaNueva.errorNombreObligatorio'))
-      setLoading(false)
-      return
-    }
-
-    if (isNaN(baseImponible) || baseImponible <= 0) {
-      setError(t('facturaNueva.errorBaseInvalida'))
-      setLoading(false)
-      return
-    }
-
-    if (![0, 4, 10, 21].includes(iva)) {
-      setError(t('facturaNueva.errorIvaInvalido'))
-      setLoading(false)
-      return
-    }
-
-    const importeIva = Math.round(baseImponible * (iva / 100))
-    const descuento = calcularDescuento(baseImponible, descuentoPorcentaje)
-    const total = baseImponible + importeIva - descuento
-
-    const { data: { user } } = await getSupabase().auth.getUser()
-    if (!user) {
-      setError(t('facturaNueva.errorSesion'))
-      setLoading(false)
-      return
-    }
-
-    const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
-    if (!perfil) {
-      setError(t('facturaNueva.errorSesion'))
-      setLoading(false)
-      return
-    }
-
-    const nuevaFacturaId = crypto.randomUUID()
-
-    const { error: insertError } = await getSupabase().from('facturas').insert({
-      id: nuevaFacturaId,
-      perfilId: perfil.id,
-      numero: form.get('numero') as string,
-      tipo: form.get('tipo') as string,
-      emisorReceptor: form.get('emisorReceptor') as string,
-      nifContraparte: form.get('nifContraparte') as string,
-      fechaEmision: form.get('fechaEmision') as string,
-      fechaVencimiento: form.get('fechaVencimiento') as string || null,
-      baseImponible,
-      iva,
-      total,
-      estado: 'pendiente',
-      categoriaGasto: form.get('tipo') === 'gasto' ? categoriaGasto : null,
-      notas: notasPie.filter(Boolean).join('\n') || null,
-      pdfUrl: pdfUrl || null,
-      moneda,
-      tipoCambio,
-      descuentoPorcentaje,
-      empresaId: empresaActiva?.id ?? null,
-    })
-
-    if (insertError) {
-      setError(insertError.message)
-      setLoading(false)
-      return
-    }
-
-    if (ocrUsado) {
-      await logAccion('crear', 'factura', nuevaFacturaId, `Factura creada con OCR`, { tipo: 'ocr' })
-    }
-
-    router.push('/gestoria/facturas')
   }
 
   return (
@@ -492,7 +492,7 @@ export default function NuevaFacturaPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="fechaEmision">{t('facturaNueva.fechaEmision')}</Label>
-                <Input id="fechaEmision" name="fechaEmision" type="date" required />
+                <Input id="fechaEmision" name="fechaEmision" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="fechaVencimiento">{t('facturaNueva.fechaVencimiento')}</Label>
@@ -533,7 +533,7 @@ export default function NuevaFacturaPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="importeTotal">{t('facturaNueva.total')} ({MOEDAS.find(m => m.code === moneda)?.symbol ?? '€'})</Label>
-                <Input id="importeTotal" disabled placeholder={t('facturaNueva.seCalculaAuto')} />
+                <Input id="importeTotal" disabled value={formatoMoneda((baseImponibleValor + baseImponibleValor * (ivaValor / 100) - calcularDescuento(baseImponibleValor, descuentoPorcentaje)) * tipoCambio / 100, moneda)} />
               </div>
             </div>
 

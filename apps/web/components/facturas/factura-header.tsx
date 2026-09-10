@@ -19,6 +19,7 @@ interface FacturaHeaderProps {
   onXmlDownload: () => void
   onEditToggle: () => void
   onDelete: () => void
+  guardandoEliminacion?: boolean
   vistaPreviaDatos: {
     numero: string
     emisorReceptor: string
@@ -48,6 +49,7 @@ export function FacturaHeader({
   onXmlDownload,
   onEditToggle,
   onDelete,
+  guardandoEliminacion,
   vistaPreviaDatos,
 }: FacturaHeaderProps) {
   const { t } = useLanguage()
@@ -95,7 +97,7 @@ export function FacturaHeader({
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm">
+            <Button variant="destructive" size="sm" disabled={guardandoEliminacion}>
               <Trash2 className="mr-2 h-4 w-4" />
               {t('facturaDetalle.eliminar')}
             </Button>

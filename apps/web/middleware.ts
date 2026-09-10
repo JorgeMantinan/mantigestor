@@ -98,7 +98,8 @@ export async function middleware(req: NextRequest) {
 
   if (userId && (RUTAS_SOLO_PRO.some(r => ruta.startsWith(r)) || RUTAS_BASIC_PLUS.some(r => ruta.startsWith(r)))) {
     try {
-      const queryUrl = `${supabaseUrl}/rest/v1/suscripciones?perfilId=eq.${userId}&estado=in.(active,trialing)&order=currentPeriodStart.desc&limit=1`
+      const perfilId = perfilActivoId ?? userId
+      const queryUrl = `${supabaseUrl}/rest/v1/suscripciones?perfilId=eq.${perfilId}&estado=in.(active,trialing)&order=currentPeriodStart.desc&limit=1`
       const qres = await fetch(queryUrl, {
         headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` },
       })

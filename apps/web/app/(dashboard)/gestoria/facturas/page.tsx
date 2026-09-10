@@ -94,39 +94,44 @@ export default function FacturasPage() {
 
   const fetchFacturas = useCallback(async () => {
     setLoading(true)
-    const { data: { user } } = await getSupabase().auth.getUser()
-    if (!user) { setLoading(false); return }
+    try {
+      const { data: { user } } = await getSupabase().auth.getUser()
+      if (!user) { setLoading(false); return }
 
-    const cacheKey = `facturas_${user.id}${empresaActiva?.id ? `_${empresaActiva.id}` : ''}`
-    const cached = obtenerDeCache<Factura[]>(cacheKey)
+      const perfilId = perfilActivoId ?? user.id
+      const cacheKey = `facturas_${perfilId}${empresaActiva?.id ? `_${empresaActiva.id}` : ''}`
+      const cached = obtenerDeCache<Factura[]>(cacheKey)
 
-    if (!navigator.onLine && cached) {
-      setFacturas(cached)
-      setLoading(false)
-      return
-    }
+      if (!navigator.onLine && cached) {
+        setFacturas(cached)
+        setLoading(false)
+        return
+      }
 
-    let query = getSupabase()
-      .from('facturas')
-      .select('*')
-      .eq('perfilId', user.id)
-      .order('fechaEmision', { ascending: false })
-      .range(0, 499)
-    if (empresaActiva?.id) {
-      query = query.eq('empresaId', empresaActiva.id)
-    }
-    const { data, error } = await query
-    if (error) {
+      let query = getSupabase()
+        .from('facturas')
+        .select('*')
+        .eq('perfilId', perfilId)
+        .order('fechaEmision', { ascending: false })
+        .range(0, 499)
+      if (empresaActiva?.id) {
+        query = query.eq('empresaId', empresaActiva.id)
+      }
+      const { data, error } = await query
+      if (error) {
+        toast.error('Error al cargar las facturas')
+        return
+      }
+      if (data) {
+        setFacturas(data as Factura[])
+        guardarEnCache(cacheKey, data as Factura[])
+      }
+    } catch {
       toast.error('Error al cargar las facturas')
+    } finally {
       setLoading(false)
-      return
     }
-    if (data) {
-      setFacturas(data as Factura[])
-      guardarEnCache(cacheKey, data as Factura[])
-    }
-    setLoading(false)
-  }, [getSupabase, empresaActiva?.id])
+  }, [getSupabase, empresaActiva?.id, perfilActivoId])
 
   useEffect(() => { fetchFacturas() }, [fetchFacturas])
 
@@ -198,18 +203,29 @@ export default function FacturasPage() {
     }
   }
 
+  const [cambiandoEstado, setCambiandoEstado] = useState(false)
+
   const cambiarEstadoSeleccionadas = async (nuevoEstado: string) => {
-    const ids = Array.from(seleccionadas)
-    const facturasSeleccionadas = facturas.filter(f => seleccionadas.has(f.id))
-    const estadosAnteriores = facturasSeleccionadas.map(f => f.estado)
-    await getSupabase().from('facturas').update({ estado: nuevoEstado }).in('id', ids)
-    await logAccion('cambio_estado', 'factura', ids.join(','), `${ids.length} facturas → ${nuevoEstado}`, {
-      antes: { estados: estadosAnteriores },
-      despues: { estado: nuevoEstado },
-    })
-    setFacturas(prev => prev.map(f => seleccionadas.has(f.id) ? { ...f, estado: nuevoEstado } : f))
-    setSeleccionadas(new Set())
-    toast.success(`${ids.length} factura${ids.length !== 1 ? 's' : ''} marcada${ids.length !== 1 ? 's' : ''} como ${nuevoEstado}`)
+    if (cambiandoEstado) return
+    setCambiandoEstado(true)
+    try {
+      const ids = Array.from(seleccionadas)
+      const facturasSeleccionadas = facturas.filter(f => seleccionadas.has(f.id))
+      const estadosAnteriores = facturasSeleccionadas.map(f => f.estado)
+      const { error } = await getSupabase().from('facturas').update({ estado: nuevoEstado }).in('id', ids)
+      if (error) throw error
+      await logAccion('cambio_estado', 'factura', ids.join(','), `${ids.length} facturas → ${nuevoEstado}`, {
+        antes: { estados: estadosAnteriores },
+        despues: { estado: nuevoEstado },
+      })
+      setFacturas(prev => prev.map(f => seleccionadas.has(f.id) ? { ...f, estado: nuevoEstado } : f))
+      setSeleccionadas(new Set())
+      toast.success(`${ids.length} factura${ids.length !== 1 ? 's' : ''} marcada${ids.length !== 1 ? 's' : ''} como ${nuevoEstado}`)
+    } catch {
+      toast.error('Error al cambiar el estado de las facturas')
+    } finally {
+      setCambiandoEstado(false)
+    }
   }
 
   const exportarSeleccionadas = () => {
@@ -585,14 +601,14 @@ export default function FacturasPage() {
               {!soloLectura && (
                 <div className="flex items-center gap-1 border-r pr-2">
                   <span className="text-xs text-muted-estado">Estado:</span>
-                  <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('pendiente')}>
-                    <Clock className="mr-1 h-3 w-3" /> Pendiente
+                  <Button variant="outline" size="sm" disabled={cambiandoEstado} onClick={() => void cambiarEstadoSeleccionadas('pendiente')}>
+                    <Clock className="mr-1 h-3 w-3" /> {cambiandoEstado ? '...' : 'Pendiente'}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('pagada')}>
-                    <CheckCircle className="mr-1 h-3 w-3" /> Pagada
+                  <Button variant="outline" size="sm" disabled={cambiandoEstado} onClick={() => void cambiarEstadoSeleccionadas('pagada')}>
+                    <CheckCircle className="mr-1 h-3 w-3" /> {cambiandoEstado ? '...' : 'Pagada'}
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => void cambiarEstadoSeleccionadas('vencida')}>
-                    <XCircle className="mr-1 h-3 w-3" /> Vencida
+                  <Button variant="outline" size="sm" disabled={cambiandoEstado} onClick={() => void cambiarEstadoSeleccionadas('vencida')}>
+                    <XCircle className="mr-1 h-3 w-3" /> {cambiandoEstado ? '...' : 'Vencida'}
                   </Button>
                 </div>
               )}

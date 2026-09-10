@@ -94,6 +94,8 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [pagoNotas, setPagoNotas] = useState('')
   const [guardandoPago, setGuardandoPago] = useState(false)
   const [pagosParciales, setPagosParciales] = useState<PagoParcial[]>([])
+  const [guardandoEstado, setGuardandoEstado] = useState(false)
+  const [guardandoEliminacion, setGuardandoEliminacion] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const tagsDropdownRef = useRef<HTMLDivElement>(null)
   const speech = useSpeechRecognition()
@@ -104,7 +106,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   useEffect(() => {
     const fetchFactura = async () => {
       const { data: { user } } = await getSupabase().auth.getUser()
-      if (!user) return
+      if (!user) { setLoading(false); return }
       const { data } = await getSupabase()
         .from('facturas')
         .select('*')
@@ -258,6 +260,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
 
   const handleDelete = async () => {
     if (!factura) return
+    setGuardandoEliminacion(true)
     try {
       const { error } = await getSupabase().from('facturas').delete().eq('id', factura.id)
       if (error) throw error
@@ -265,6 +268,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       router.push('/gestoria/facturas')
     } catch {
       toast.error('Error al eliminar la factura')
+      setGuardandoEliminacion(false)
     }
   }
 
@@ -482,6 +486,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         }}
         onEditToggle={() => setEditing(!editing)}
         onDelete={() => void handleDelete()}
+        guardandoEliminacion={guardandoEliminacion}
         vistaPreviaDatos={{
           numero: factura.numero,
           emisorReceptor: factura.emisorReceptor,
@@ -622,17 +627,24 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
                           <AlertDialogAction onClick={async () => {
-                            const estadoAnterior = factura.estado
-                            const { error } = await getSupabase().from('facturas').update({
-                              estado: 'pagada',
-                            }).eq('id', factura.id)
-                            if (!error) {
-                              await logAccion('cambio_estado', 'factura', factura.id, `Factura ${factura.numero}: ${estadoAnterior} → pagada`, { antes: { estado: estadoAnterior }, despues: { estado: 'pagada' } })
-                              setFactura({ ...factura, estado: 'pagada' })
-                            } else {
+                            setGuardandoEstado(true)
+                            try {
+                              const estadoAnterior = factura.estado
+                              const { error } = await getSupabase().from('facturas').update({
+                                estado: 'pagada',
+                              }).eq('id', factura.id)
+                              if (!error) {
+                                await logAccion('cambio_estado', 'factura', factura.id, `Factura ${factura.numero}: ${estadoAnterior} → pagada`, { antes: { estado: estadoAnterior }, despues: { estado: 'pagada' } })
+                                setFactura({ ...factura, estado: 'pagada' })
+                              } else {
+                                toast.error('Error al cambiar el estado')
+                              }
+                            } catch {
                               toast.error('Error al cambiar el estado')
+                            } finally {
+                              setGuardandoEstado(false)
                             }
-                          }}>Confirmar</AlertDialogAction>
+                          }} disabled={guardandoEstado}>Confirmar</AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>

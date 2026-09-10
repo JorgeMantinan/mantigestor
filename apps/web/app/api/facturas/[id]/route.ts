@@ -126,7 +126,9 @@ export async function PUT(
     if (rest.baseImponible != null || rest.iva != null) {
       const base = rest.baseImponible ?? existente.baseImponible
       const iva = rest.iva ?? existente.iva
-      updateData.total = base + Math.round(base * iva / 100)
+      const descuento = existente.descuentoPorcentaje ?? 0
+      const importeDescuento = Math.round(base * descuento / 100)
+      updateData.total = base + Math.round(base * iva / 100) - importeDescuento
     }
 
     const { data, error } = await supabase
