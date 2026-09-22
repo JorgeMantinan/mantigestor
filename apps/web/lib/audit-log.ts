@@ -9,24 +9,28 @@ export async function logAccion(
   entidad: Entidad,
   entidadId: string | null,
   detalle?: string,
-  meta?: Record<string, unknown>
+  meta?: Record<string, unknown>,
+  perfilIdExplicit?: string
 ) {
   try {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
 
-    const { data: perfil } = await supabase
-      .from('perfiles')
-      .select('id')
-      .eq('userId', user.id)
-      .single()
-
-    if (!perfil) return
+    let perfilId = perfilIdExplicit
+    if (!perfilId) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      if (!perfil) return
+      perfilId = perfil.id
+    }
 
     await supabase.from('audit_log').insert({
       id: crypto.randomUUID(),
-      perfilId: perfil.id,
+      perfilId,
       accion,
       entidad,
       entidadId,

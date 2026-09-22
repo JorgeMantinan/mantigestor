@@ -46,6 +46,7 @@ interface Props {
   editingId: string | null
   gastoPropiedadId: string | null
   guardando: boolean
+  soloLectura?: boolean
   onEdit: (id: string, e: React.FormEvent<HTMLFormElement>) => void
   onDelete: (id: string) => void
   onAddGasto: (propiedadId: string, e: React.FormEvent<HTMLFormElement>) => void
@@ -59,6 +60,7 @@ export const PropertyCard = memo(function PropertyCard({
   editingId,
   gastoPropiedadId,
   guardando,
+  soloLectura = false,
   onEdit,
   onDelete,
   onAddGasto,
@@ -82,26 +84,30 @@ export const PropertyCard = memo(function PropertyCard({
             </div>
           </div>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => setEditingId(editingId === p.id ? null : p.id)} aria-label={t('propertyCard.editarPropiedad')}>
-              <Pencil className="h-4 w-4" aria-hidden="true" />
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label={t('propertyCard.eliminarPropiedad')}>
-                  <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
+            {!soloLectura && (
+              <>
+                <Button variant="ghost" size="icon" onClick={() => setEditingId(editingId === p.id ? null : p.id)} aria-label={t('propertyCard.editarPropiedad')}>
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
                 </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('propertyCard.eliminarPropiedadTitle')}</AlertDialogTitle>
-                  <AlertDialogDescription>{t('propertyCard.eliminarPropiedadDesc')}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('propertyCard.cancelar')}</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => onDelete(p.id)}>{t('propertyCard.eliminarPropiedad').split(' ')[0]}</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label={t('propertyCard.eliminarPropiedad')}>
+                      <Trash2 className="h-4 w-4 text-destructive" aria-hidden="true" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('propertyCard.eliminarPropiedadTitle')}</AlertDialogTitle>
+                      <AlertDialogDescription>{t('propertyCard.eliminarPropiedadDesc')}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('propertyCard.cancelar')}</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => onDelete(p.id)}>{t('propertyCard.eliminarPropiedad').split(' ')[0]}</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -187,10 +193,12 @@ export const PropertyCard = memo(function PropertyCard({
         <div>
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-medium">{t('propertyCard.gastos')}</p>
-            <Button variant="outline" size="sm" onClick={() => setGastoPropiedadId(gastoPropiedadId === p.id ? null : p.id)}>
-              <Plus className="mr-1 h-3 w-3" />
-              {t('propertyCard.anadirGasto')}
-            </Button>
+            {!soloLectura && (
+              <Button variant="outline" size="sm" onClick={() => setGastoPropiedadId(gastoPropiedadId === p.id ? null : p.id)}>
+                <Plus className="mr-1 h-3 w-3" />
+                {t('propertyCard.anadirGasto')}
+              </Button>
+            )}
           </div>
 
           {gastoPropiedadId === p.id && (
@@ -234,23 +242,25 @@ export const PropertyCard = memo(function PropertyCard({
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-red-600">-{(g.importe / 100).toFixed(2)} €</span>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" aria-label={t('propertyCard.eliminarGasto')}>
-                            <Trash2 className="h-3 w-3 text-destructive" aria-hidden="true" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>{t('propertyCard.eliminarGastoTitle')}</AlertDialogTitle>
-                            <AlertDialogDescription>{t('propertyCard.eliminarGastoDesc')}</AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>{t('propertyCard.cancelar')}</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => onDeleteGasto(p.id, g.id)}>{t('propertyCard.eliminarPropiedad').split(' ')[0]}</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      {!soloLectura && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" aria-label={t('propertyCard.eliminarGasto')}>
+                              <Trash2 className="h-3 w-3 text-destructive" aria-hidden="true" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{t('propertyCard.eliminarGastoTitle')}</AlertDialogTitle>
+                              <AlertDialogDescription>{t('propertyCard.eliminarGastoDesc')}</AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{t('propertyCard.cancelar')}</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => onDeleteGasto(p.id, g.id)}>{t('propertyCard.eliminarPropiedad').split(' ')[0]}</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   </div>
                 )

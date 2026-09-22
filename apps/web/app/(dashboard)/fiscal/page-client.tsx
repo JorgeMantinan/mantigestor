@@ -66,6 +66,7 @@ import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { GUIAS_PERFIL } from '@/lib/fiscal/guias-perfil'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useLanguage } from '@/contexts/language-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { leerCache, guardarCache } from '@/lib/fiscal/cache'
 import { leerPerfil, guardarPerfilBd, type PerfilFiscal } from '@/lib/fiscal/perfil'
 import { fetchDatosReales, type DatosReales } from '@/lib/fiscal/datos-reales'
@@ -73,6 +74,7 @@ import { SECCIONES_CALCULADORAS, SECCIONES_MODELOS, SECCIONES_UTILIDADES, COMUNI
 
 function PaginaFiscalInner() {
   const { t } = useLanguage()
+  const { perfilActivoId } = usePersonaActiva()
   const [seccion, setSeccion] = useState<SeccionKey>('irpf')
   const [comunidad, setComunidad] = useState('Madrid (Comunidad de)')
   const [taxYear, setTaxYear] = useState(2025)
@@ -94,10 +96,11 @@ function PaginaFiscalInner() {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
+        const perfilId = perfilActivoId ?? user.id
         const { data: sub } = await supabase
           .from('suscripciones')
           .select('tier, estado')
-          .eq('perfilId', user.id)
+          .eq('perfilId', perfilId)
           .in('estado', ['active', 'trialing'])
           .order('currentPeriodStart', { ascending: false })
           .limit(1)
@@ -107,7 +110,7 @@ function PaginaFiscalInner() {
         // sin sesión o sin sub: se mantiene false
       }
     })()
-  }, [])
+  }, [perfilActivoId])
 
   // Deep-link: permite abrir una calculadora concreta vía ?seccion=modeloXXX
   const searchParams = useSearchParams()

@@ -3,11 +3,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { guardarOffline, obtenerOffline } from '@/lib/offline-db'
 import { useAuth } from '@/hooks/useAuth'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 export function useOffline() {
   const [isOffline, setIsOffline] = useState(false)
   const [cachedData, setCachedData] = useState<unknown[]>([])
   const { user } = useAuth()
+  const { perfilActivoId } = usePersonaActiva()
+  const activePerfilId = perfilActivoId ?? user?.id
 
   useEffect(() => {
     setIsOffline(!navigator.onLine)
@@ -22,26 +25,26 @@ export function useOffline() {
   }, [])
 
   useEffect(() => {
-    if (user?.id) {
-      const cached = obtenerOffline<unknown[]>(`facturas_${user.id}`)
+    if (activePerfilId) {
+      const cached = obtenerOffline<unknown[]>(`facturas_${activePerfilId}`)
       if (cached) setCachedData(cached)
     }
-  }, [user?.id])
+  }, [activePerfilId])
 
   useEffect(() => {
-    if (!user?.id) return
+    if (!activePerfilId) return
     if (navigator.onLine) {
-      fetch(`/api/fiscal/facturas?perfilId=${user.id}`)
+      fetch(`/api/fiscal/facturas?perfilId=${activePerfilId}`)
         .then((r) => r.json())
         .then((data) => {
           if (Array.isArray(data)) {
             setCachedData(data)
-            guardarOffline(`facturas_${user.id}`, data)
+            guardarOffline(`facturas_${activePerfilId}`, data)
           }
         })
         .catch(() => {})
     }
-  }, [user?.id])
+  }, [activePerfilId])
 
   const saveForOffline = useCallback(
     (clave: string, datos: unknown) => {

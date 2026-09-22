@@ -74,13 +74,17 @@ export default function NominasPage() {
       if (!user) return
       setUserId(user.id)
 
-      const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
-      if (!perfil) return
+      let perfilId = perfilActivoId
+      if (!perfilId) {
+        const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
+        if (!perfil) return
+        perfilId = perfil.id
+      }
 
       let query = supabase
         .from('nominas')
         .select('*')
-        .eq('perfilId', perfil.id)
+        .eq('perfilId', perfilId)
         .eq('anyo', anyoFiltro)
         .order('mes', { ascending: false })
       if (empresaActiva?.id) {
@@ -92,7 +96,7 @@ export default function NominasPage() {
       if (data) setNominas(data as Nomina[])
     }
     init()
-  }, [getSupabase, anyoFiltro, empresaActiva?.id])
+  }, [getSupabase, anyoFiltro, empresaActiva?.id, perfilActivoId])
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -102,8 +106,12 @@ export default function NominasPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setGuardando(false); return }
 
-    const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
-    if (!perfil) { setGuardando(false); return }
+    let perfilId = perfilActivoId
+    if (!perfilId) {
+      const { data: perfil } = await supabase.from('perfiles').select('id').eq('userId', user.id).single()
+      if (!perfil) { setGuardando(false); return }
+      perfilId = perfil.id
+    }
 
     const salarioBruto = parseFloat(form.get('salarioBruto') as string) * 100
     const irpf = parseFloat(form.get('irpf') as string)
@@ -114,7 +122,7 @@ export default function NominasPage() {
 
     const { error } = await supabase.from('nominas').insert({
       id: crypto.randomUUID(),
-      perfilId: perfil.id,
+      perfilId,
       empleada: form.get('empleada') as string,
       mes: parseInt(form.get('mes') as string, 10),
       anyo: parseInt(form.get('anyo') as string, 10),

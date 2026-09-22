@@ -5,6 +5,7 @@ import { FiscalRemindersProvider } from '@/components/layout/FiscalRemindersProv
 import { DashboardShortcuts } from '@/components/layout/DashboardShortcuts'
 import { PersonaActivaProvider } from '@/contexts/persona-activa-context'
 import { EmpresaActivaProvider } from '@/contexts/empresa-activa-context'
+import { GestionandoBanner } from '@/components/layout/gestionando-banner'
 import dynamic from 'next/dynamic'
 
 const CommandPalette = dynamic(() => import('@/components/command-palette').then(m => m.CommandPalette), { ssr: false })
@@ -28,6 +29,7 @@ export default function DashboardLayout({
           <Sidebar />
           <div className="flex flex-1 flex-col overflow-hidden">
             <Header />
+            <GestionandoBanner />
             <main className="flex-1 overflow-y-auto p-6 pb-20 lg:pb-0">
               <FiscalRemindersProvider>{children}</FiscalRemindersProvider>
             </main>

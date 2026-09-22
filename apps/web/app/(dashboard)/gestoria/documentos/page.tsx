@@ -13,6 +13,8 @@ import { toast } from 'sonner'
 import { OcrBatchResults, type ResultadoOcrLote } from '@/components/ocr-batch-results'
 import { useLanguage } from '@/contexts/language-context'
 import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
+import { esSoloLectura } from '@/lib/resolve-perfil-activo'
 
 interface Documento {
   id: string
@@ -60,6 +62,9 @@ export default function DocumentosPage() {
   const [dialogAbierto, setDialogAbierto] = useState(false)
   const getSupabase = useCallback(() => createClient(), [])
   const { empresaActiva } = useEmpresaActiva()
+  const { perfilActivoId, personas, esPropio } = usePersonaActiva()
+  const personaActiva = personas.find(p => p.perfilId === perfilActivoId)
+  const soloLectura = !esPropio && personaActiva && esSoloLectura(personaActiva.rol)
 
   const tipoLabel = useCallback((tipo: string) => {
     const key = `documentosTipo.${tipo}` as 'documentosTipo.factura'
@@ -71,10 +76,17 @@ export default function DocumentosPage() {
       const { data: { user } } = await getSupabase().auth.getUser()
       if (!user) { setCargando(false); return }
 
+      let perfilId = perfilActivoId
+      if (!perfilId) {
+        const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
+        if (!perfil) { setCargando(false); return }
+        perfilId = perfil.id
+      }
+
       let query = getSupabase()
         .from('documentos')
         .select('*')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilId)
         .order('subidoEn', { ascending: false })
       if (empresaActiva?.id) {
         query = query.eq('empresaId', empresaActiva.id)
@@ -86,7 +98,7 @@ export default function DocumentosPage() {
       setCargando(false)
     }
     cargar()
-  }, [getSupabase, empresaActiva?.id])
+  }, [getSupabase, empresaActiva?.id, perfilActivoId])
 
   const eliminar = async (doc: Documento) => {
     await getSupabase().from('documentos').delete().eq('id', doc.id)
@@ -192,7 +204,7 @@ export default function DocumentosPage() {
           <span className="text-sm text-muted-foreground">
             {seleccionados.size > 0 ? `${seleccionados.size} ${t('documentos.seleccionados')}` : t('documentos.seleccionarTodos')}
           </span>
-          {haySeleccion && (
+          {haySeleccion && !soloLectura && (
             <Button
               size="sm"
               onClick={() => void procesarLote()}
@@ -253,9 +265,11 @@ export default function DocumentosPage() {
                         <ExternalLink className="h-3 w-3" />
                       </Button>
                     </a>
-                    <Button variant="ghost" size="sm" onClick={() => void eliminar(doc)}>
-                      <Trash2 className="h-3 w-3 text-destructive" />
-                    </Button>
+                    {!soloLectura && (
+                      <Button variant="ghost" size="sm" onClick={() => void eliminar(doc)}>
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>

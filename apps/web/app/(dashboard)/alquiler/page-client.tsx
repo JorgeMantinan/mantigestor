@@ -16,6 +16,8 @@ import { descargarExcel } from '@/lib/descargar-excel'
 import { logAccion } from '@/lib/audit-log'
 import { useLanguage } from '@/contexts/language-context'
 import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
+import { esSoloLectura } from '@/lib/resolve-perfil-activo'
 
 type OrdenCampo = 'direccion' | 'ingresos' | 'gastos' | 'balance'
 type OrdenDir = 'asc' | 'desc'
@@ -55,10 +57,13 @@ export default function AlquilerPage() {
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
   const { empresaActiva } = useEmpresaActiva()
+  const { perfilActivoId, personas, esPropio } = usePersonaActiva()
+  const personaActiva = personas.find(p => p.perfilId === perfilActivoId)
+  const soloLectura = !esPropio && personaActiva && esSoloLectura(personaActiva.rol)
 
   useKeyboardShortcuts({
     onSearch: () => searchRef.current?.focus(),
-    onNew: () => setShowForm(true),
+    onNew: () => !soloLectura && setShowForm(true),
     onEscape: () => setShowForm(false),
   })
 
@@ -322,6 +327,11 @@ export default function AlquilerPage() {
         <div>
           <h1 className="text-3xl font-heading font-bold tracking-tight">{t('alquiler.titulo')}</h1>
           <p className="text-muted-foreground">{t('alquiler.subtitulo')}</p>
+          {soloLectura && (
+            <span className="inline-block mt-1 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+              Solo lectura
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled={visibles.length === 0}
@@ -337,10 +347,12 @@ export default function AlquilerPage() {
             }}>
             <Download className="mr-1 h-4 w-4" /> {t('alquiler.exportarExcel')}
           </Button>
-          <Button onClick={() => setShowForm(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t('alquiler.anyadirPropiedad')}
-          </Button>
+          {!soloLectura && (
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t('alquiler.anyadirPropiedad')}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -431,6 +443,7 @@ export default function AlquilerPage() {
             editingId={editingId}
             gastoPropiedadId={gastoPropiedadId}
             guardando={guardando}
+            soloLectura={!!soloLectura}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onAddGasto={handleAddGasto}

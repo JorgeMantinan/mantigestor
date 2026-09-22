@@ -44,6 +44,7 @@ import { useState, useEffect } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { useLanguage } from '@/contexts/language-context'
 import { Badge } from '@/components/ui/badge'
+import { ModuloIndicador } from '@/components/layout/modulo-indicador'
 import { getCalendarioFiscal } from '@mantigestor/utils'
 
 function PlazosFiscalesWidget({ collapsed }: { collapsed: boolean }) {
@@ -91,7 +92,9 @@ export function Sidebar() {
   const { esPropio } = usePersonaActiva()
   const { t } = useLanguage()
 
-  const menuItems = [
+  type MenuItem = { label: string; href: string; icon: typeof LayoutDashboard; indicador?: string }
+
+  const menuItems: { group: string; items: MenuItem[] }[] = [
     {
       group: t('nav.gestoria'),
       items: [
@@ -107,11 +110,11 @@ export function Sidebar() {
         { label: t('nav.informeAsesoria'), href: '/gestoria/reporte-asesoria', icon: FileSpreadsheet },
         { label: t('nav.importarExtracto'), href: '/gestoria/importar-extracto', icon: Upload },
         { label: t('nav.fiscal'), href: '/fiscal', icon: Calculator },
-        { label: t('nav.alquiler'), href: '/alquiler', icon: Home },
-        { label: t('nav.nominas'), href: '/nominas', icon: Users },
+        { label: t('nav.alquiler'), href: '/alquiler', icon: Home, indicador: 'propiedad' },
+        { label: t('nav.nominas'), href: '/nominas', icon: Users, indicador: 'nomina' },
         { label: t('nav.cobros'), href: '/gestoria/cobros', icon: Landmark },
         { label: t('nav.kanbanCobros') ?? 'Kanban Cobros', href: '/gestoria/cobros/kanban', icon: LayoutGrid },
-        { label: t('nav.documentos'), href: '/gestoria/documentos', icon: FileText },
+        { label: t('nav.documentos'), href: '/gestoria/documentos', icon: FileText, indicador: 'documento' },
         { label: t('nav.informes'), href: '/gestoria/informes', icon: FileSpreadsheet },
         { label: t('nav.conciliacion'), href: '/gestoria/conciliacion', icon: RefreshCw },
         { label: t('nav.presupuestos'), href: '/gestoria/presupuestos', icon: PiggyBank },
@@ -236,7 +239,7 @@ export function Sidebar() {
                         variant={isActive ? 'secondary' : 'ghost'}
                         size={collapsed ? 'icon' : 'default'}
                         className={cn(
-                          'justify-start',
+                          'justify-start relative',
                           collapsed ? 'h-10 w-10 mx-auto' : 'px-3'
                         )}
                         asChild
@@ -244,6 +247,9 @@ export function Sidebar() {
                         <Link href={item.href}>
                           <item.icon className={cn('h-4 w-4', !collapsed && 'mr-3')} />
                           {!collapsed && item.label}
+                          {item.indicador && (
+                            <ModuloIndicador entidad={item.indicador} />
+                          )}
                         </Link>
                       </Button>
                     )
@@ -281,7 +287,7 @@ export function Sidebar() {
         <div className="flex items-center justify-around py-2">
           {[
             { label: t('nav.panel'), href: '/dashboard', icon: LayoutDashboard },
-            { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
+        { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt, indicador: 'factura' },
             { label: t('nav.fiscal'), href: '/fiscal', icon: Calculator },
             { label: t('nav.nominas'), href: '/nominas', icon: FileText },
             { label: t('nav.alquiler'), href: '/alquiler', icon: Home },
