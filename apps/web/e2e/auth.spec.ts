@@ -18,4 +18,27 @@ test.describe('Auth flow', () => {
     const url = page.url()
     expect(url).toContain('redirect=%2Fdashboard')
   })
+
+  test('visiting /fiscal redirects to login', async ({ page }) => {
+    await page.goto('/fiscal')
+    await expect(page).toHaveURL(/\/login/)
+  })
+
+  test('visiting /gestoria/facturas redirects to login', async ({ page }) => {
+    await page.goto('/gestoria/facturas')
+    await expect(page).toHaveURL(/\/login/)
+  })
+
+  test('register page is accessible', async ({ page }) => {
+    await page.goto('/register')
+    await expect(page.getByText('Crear cuenta').first()).toBeVisible({ timeout: 10000 })
+  })
+
+  test('login form has email validation', async ({ page }) => {
+    await page.goto('/login')
+    await page.getByLabel('Email').fill('invalid-email')
+    await page.getByRole('button', { name: /iniciar sesión/i }).click()
+    // Should show error or stay on login
+    await expect(page).toHaveURL(/\/login/)
+  })
 })

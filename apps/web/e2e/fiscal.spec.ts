@@ -167,4 +167,60 @@ test.describe('Hub fiscal', () => {
     await page.getByRole('button', { name: 'Resumen anual' }).click()
     await expect(page.getByText(/Resumen fiscal .*· ejercicio \d{4}/i)).toBeVisible({ timeout: 20000 })
   })
+
+  test('calculadora 303 IVA trimestral', async ({ page }) => {
+    await iniciarSesion(page)
+    await page.goto('/fiscal')
+    await page.getByRole('button', { name: 'IVA' }).first().click()
+    await expect(page.getByText(/IVA \d{4}/i)).toBeVisible({ timeout: 20000 })
+
+    await page.getByRole('button', { name: 'Modelo 303' }).click()
+    await expect(page.getByText(/303/i)).toBeVisible({ timeout: 20000 })
+  })
+
+  test('calculadora 100 IRPF anual', async ({ page }) => {
+    await iniciarSesion(page)
+    await page.goto('/fiscal')
+    await page.getByRole('button', { name: 'Modelo 100' }).click()
+    await expect(page.getByText(/100/i)).toBeVisible({ timeout: 20000 })
+  })
+
+  test('calculadora 130 IRPF trimestral', async ({ page }) => {
+    await iniciarSesion(page)
+    await page.goto('/fiscal')
+    await page.getByRole('button', { name: 'Modelo 130' }).click()
+    await expect(page.getByText(/130/i)).toBeVisible({ timeout: 20000 })
+  })
+
+  test('calculadora 111 retenciones', async ({ page }) => {
+    await iniciarSesion(page)
+    await page.goto('/fiscal')
+    await page.getByRole('button', { name: 'Modelo 111' }).click()
+    await expect(page.getByText(/111/i)).toBeVisible({ timeout: 20000 })
+  })
+
+  test('deep-link abre calculadora directamente', async ({ page }) => {
+    await iniciarSesion(page)
+    await page.goto('/fiscal?seccion=modelo303')
+    await expect(page.getByText(/303/i)).toBeVisible({ timeout: 20000 })
+  })
+
+  test('cambio de ejercicio fiscal actualiza datos', async ({ page }) => {
+    await iniciarSesion(page)
+    await page.goto('/fiscal')
+    await page.getByRole('button', { name: /^IRPF$/ }).click()
+    await expect(page.getByText(/IRPF \d{4}/i)).toBeVisible({ timeout: 20000 })
+
+    const ejercicio = page.locator('#ejercicio-fiscal')
+    if (await ejercicio.isVisible()) {
+      const opciones = await ejercicio.locator('option').allTextContents()
+      if (opciones.length > 1) {
+        const otroAno = opciones.find(o => o !== opciones[0])
+        if (otroAno) {
+          await ejercicio.selectOption(otroAno)
+          await expect(page.getByText(new RegExp(`IRPF ${otroAno}`))).toBeVisible({ timeout: 20000 })
+        }
+      }
+    }
+  })
 })

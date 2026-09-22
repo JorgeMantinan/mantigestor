@@ -1,9 +1,10 @@
+const { withSentryConfig } = require('@sentry/nextjs')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  optimizePackageImports: ['lucide-react', 'recharts'],
   images: {
     remotePatterns: [
       {
@@ -16,6 +17,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '50mb',
     },
+    optimizePackageImports: ['lucide-react', 'recharts', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tooltip', '@radix-ui/react-avatar', '@radix-ui/react-separator', '@radix-ui/react-label', '@radix-ui/react-slot'],
   },
   async headers() {
     return [
@@ -39,4 +41,8 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+module.exports = withSentryConfig(nextConfig, {
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+})
