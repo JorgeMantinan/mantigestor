@@ -1,1 +1,6 @@
 $ tsc --noEmit
+src/fiscal/__tests__/modelo-200.test.ts(5,3): error TS2322: Type '{ tipoEntidad: "SL" | "SA" | "cooperativa" | "comanditaria" | "otra"; cif: string; denominacion: string; ejercicio: number; fechaInicio: string; fechaFin: string; esNuevaCreacion?: boolean | undefined; ... 18 more ...; resultadoAPagar: number; }' is not assignable to type 'DatosModelo200'.
+  Types of property 'esNuevaCreacion' are incompatible.
+    Type 'boolean | undefined' is not assignable to type 'boolean'.
+      Type 'undefined' is not assignable to type 'boolean'.
+[ELIFECYCLE] Command failed with exit code 2.

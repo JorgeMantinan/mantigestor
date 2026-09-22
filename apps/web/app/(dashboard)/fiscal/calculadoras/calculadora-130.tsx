@@ -42,7 +42,7 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      let perfilId = perfilActivoId || user.id
+      let perfilId: string | null = null
       if (perfilActivoId) {
         const { data: perfil } = await supabase
           .from('perfiles')
@@ -58,6 +58,7 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
           .single()
         if (perfil) perfilId = perfil.id
       }
+      if (!perfilId) return
 
       const resultado = await generar130Automatico(perfilId, trimestre, taxYear)
       if (!resultado) return

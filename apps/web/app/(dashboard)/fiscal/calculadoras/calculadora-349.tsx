@@ -48,7 +48,13 @@ export function CalculadoraModelo349({ datosIniciales }: { datosIniciales?: { op
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const resultado = await generar349Automatico(user.id, new Date().getFullYear())
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      if (!perfil) return
+      const resultado = await generar349Automatico(perfil.id, new Date().getFullYear())
       if (!resultado) return
       setOperaciones(resultado.operaciones)
     } catch {

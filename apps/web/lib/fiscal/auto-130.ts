@@ -61,7 +61,9 @@ export async function generar130Automatico(
       .select('salarioBruto, irpf, neto')
       .eq('perfilId', perfilId)
       .eq('rol', 'empleado')
-      .eq('anyo', anyo),
+      .eq('anyo', anyo)
+      .gte('mes', inicioMes)
+      .lte('mes', finMes),
   ])
 
   if (facturasRes.error) {
@@ -84,22 +86,22 @@ export async function generar130Automatico(
     .filter(f => f.tipo === 'gasto')
     .reduce((sum, f) => sum + f.baseImponible, 0)
 
-  const retenciones = nominas.reduce(
+  const retencionesCents = nominas.reduce(
     (sum, n) => sum + Math.round(n.salarioBruto * (n.irpf / 100)),
     0
   )
 
   const rendimientoNeto = Math.max(0, ingresos - gastos)
-  const cuotaIntegra = Math.round(rendimientoNeto * 0.20)
+  const cuotaIntegraCents = Math.round(rendimientoNeto * 0.20)
 
   if (facturas.length === 0 && nominas.length === 0) return null
 
   return {
     ingresos: ingresos / 100,
     gastos: gastos / 100,
-    rendimientoNeto,
-    retenciones,
-    cuotaIntegra,
+    rendimientoNeto: rendimientoNeto / 100,
+    retenciones: retencionesCents / 100,
+    cuotaIntegra: cuotaIntegraCents / 100,
     totalFacturas: facturas.length,
   }
 }

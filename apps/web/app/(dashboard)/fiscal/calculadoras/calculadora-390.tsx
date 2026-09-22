@@ -11,7 +11,7 @@ import { GUIA_MODELO_390 } from '@/lib/fiscal/guia-fiscal'
 
 interface FacturaFila {
   tipo: 'ingreso' | 'gasto'
-  importe: number
+  baseImponible: number
   importeIva: number
   iva: number
   deducible: boolean | null
@@ -64,10 +64,16 @@ export function Calculadora390({ taxYear }: Props) {
         porTrimestre[tri]?.push(f)
       }
 
-      const res = resultadosIvaAnuales(porTrimestre)
+      const res = resultadosIvaAnuales(porTrimestre.map(tri => tri.map(f => ({
+        tipo: f.tipo,
+        importe: f.baseImponible / 100,
+        importeIva: f.importeIva,
+        iva: f.iva,
+        deducible: f.deducible,
+      }))))
       setResultados(res)
-      setTotalIngresos(arr.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + f.importe, 0))
-      setTotalGastos(arr.filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.importe, 0))
+      setTotalIngresos(arr.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + f.baseImponible / 100, 0))
+      setTotalGastos(arr.filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.baseImponible / 100, 0))
       setNumFacturas(arr.length)
     } catch {
       // silently fail

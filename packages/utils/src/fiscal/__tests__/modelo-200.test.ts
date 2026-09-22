@@ -4,6 +4,7 @@ import { calcularModelo200, tipoImpositivo, type DatosModelo200 } from '../model
 function datos(overrides: Partial<DatosModelo200> = {}): DatosModelo200 {
   return {
     tipoEntidad: 'SL',
+    esNuevaCreacion: false,
     cif: 'B12345678',
     denominacion: 'Empresa Test',
     ejercicio: 2025,

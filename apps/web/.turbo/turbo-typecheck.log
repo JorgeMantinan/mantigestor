@@ -1,10 +1,1 @@
 $ tsc --noEmit
-lib/plantillas-email.ts(34,12): error TS1005: ',' expected.
-lib/plantillas-email.ts(34,14): error TS1002: Unterminated string literal.
-lib/plantillas-email.ts(35,3): error TS1005: ',' expected.
-lib/plantillas-email.ts(35,19): error TS1005: ',' expected.
-lib/plantillas-email.ts(35,21): error TS1002: Unterminated string literal.
-lib/plantillas-email.ts(36,3): error TS1005: ',' expected.
-lib/plantillas-email.ts(36,8): error TS1005: ',' expected.
-lib/plantillas-email.ts(36,10): error TS1002: Unterminated string literal.
-[ELIFECYCLE] Command failed with exit code 2.
