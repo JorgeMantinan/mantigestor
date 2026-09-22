@@ -10,6 +10,7 @@ const ChatMessageSchema = z.object({
     role: z.string(),
     content: z.string(),
   })).optional(),
+  contexto: z.enum(['facturas', 'fiscal', 'nominas', 'alquiler', 'general']).optional(),
 })
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
       return badRequest(parsed.error.flatten().fieldErrors)
     }
 
-    const { mensaje } = parsed.data
+    const { mensaje, contexto } = parsed.data
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -95,8 +96,16 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    const contextoPrompt = contexto && contexto !== 'general'
+      ? `\n\nEl usuario está navegando actualmente por la sección "${contexto.toUpperCase()}" del dashboard de MantiGestor. Contextualiza tus respuestas a esta sección:
+- facturas: facturación, estados, pagos, crear/editar facturas, vencimientos
+- fiscal: modelos fiscales (303, 130, 111, 100, RETA), plazos, deducciones
+- nominas: nóminas, retenciones IRPF, Seguridad Social, empleados del hogar
+- alquiler: alquiler de viviendas, gastos deducibles, declarar ingresos por alquiler`
+      : ''
+
     const messages = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: SYSTEM_PROMPT + contextoPrompt },
       ...(historialDB ?? []).map(m => ({
         role: m.rol as 'user' | 'assistant',
         content: m.contenido,
@@ -135,7 +144,7 @@ export async function POST(req: NextRequest) {
       contenido: respuesta,
     })
 
-    return Response.json({ respuesta })
+    return Response.json({ respuesta, contexto })
   } catch (error) {
     return serverError(error)
   }

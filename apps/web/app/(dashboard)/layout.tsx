@@ -6,6 +6,7 @@ import { DashboardShortcuts } from '@/components/layout/DashboardShortcuts'
 import { PersonaActivaProvider } from '@/contexts/persona-activa-context'
 import { EmpresaActivaProvider } from '@/contexts/empresa-activa-context'
 import { GestionandoBanner } from '@/components/layout/gestionando-banner'
+import { ContextualChat } from '@/components/ai/contextual-chat'
 import dynamic from 'next/dynamic'
 
 const CommandPalette = dynamic(() => import('@/components/command-palette').then(m => m.CommandPalette), { ssr: false })
@@ -35,6 +36,7 @@ export default function DashboardLayout({
             </main>
           </div>
           <DashboardShortcuts />
+          <ContextualChat />
           <CommandPalette />
           <HelpDialog />
           <MilestoneProvider />
