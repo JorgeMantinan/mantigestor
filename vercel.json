@@ -27,6 +27,18 @@
     {
       "path": "/api/cron/recordatorios-cobro",
       "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/alertas-inteligentes",
+      "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/generar-modelos-trimestrales",
+      "schedule": "0 6 1 1,4,7,10 *"
+    },
+    {
+      "path": "/api/cron/backup-semanal",
+      "schedule": "0 2 * * 0"
     }
   ]
 }
