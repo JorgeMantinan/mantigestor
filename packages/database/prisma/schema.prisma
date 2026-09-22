@@ -126,6 +126,7 @@ model Factura {
   notas               String? // notas internas sobre la factura
   notasPrivadas       String? // notas privadas del gestor (no visibles al cliente)
   tags                String? // etiquetas separadas por coma: marketing,software,custom
+  deducible           Boolean? @default(true) // false si el gasto no es deducible fiscalmente
   pdfUrl              String?
   tokenCliente        String? // token compartido para portal de cliente (mismo token = mismo cliente)
   moneda              String    @default("EUR") // código ISO 4217: EUR, USD, GBP, etc.
@@ -232,6 +233,7 @@ model PropiedadAlquiler {
   direccion             String
   ingresos              Int       @default(0)
   inquilinoNombre       String?
+  inquilinoNif          String?
   inquilinoEmail        String?
   inquilinoTelefono     String?
   fechaInicioContrato   DateTime?

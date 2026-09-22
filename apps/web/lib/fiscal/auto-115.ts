@@ -5,6 +5,7 @@ interface PropiedadAlquiler {
   direccion: string
   ingresos: number
   inquilinoNombre: string | null
+  inquilinoNif: string | null
   gastos_alquiler: Array<{ importe: number }>
 }
 
@@ -57,7 +58,7 @@ export async function generar115Automatico(
     const rentaTrim = Math.max(0, (p.ingresos ?? 0) - gastosTrim)
     return {
       direccion: p.direccion,
-      nifArrendatario: '', // TODO: add inquilinoNif field to PropiedadAlquiler schema
+      nifArrendatario: p.inquilinoNif ?? '',
       baseImponible: rentaTrim,
       retencionPct: RETENCION_PCT,
     }

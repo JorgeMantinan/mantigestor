@@ -28,6 +28,7 @@ interface Factura {
   baseImponible: number
   iva: number
   fechaEmision: string
+  deducible?: boolean | null
 }
 
 interface Nomina {
@@ -146,7 +147,7 @@ export async function generar100Automatico(
     .filter(f => f.tipo === 'ingreso')
     .reduce((sum, f) => sum + f.baseImponible, 0)
   const gastosActividades = facturasArr
-    .filter(f => f.tipo === 'gasto')
+    .filter(f => f.deducible !== false)
     .reduce((sum, f) => sum + f.baseImponible, 0)
 
   const rendimientosActividades = Math.max(0, ingresosActividades - gastosActividades)

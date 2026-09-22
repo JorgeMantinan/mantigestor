@@ -8,6 +8,7 @@ interface Factura {
   total: number
   fechaEmision: string
   emisorReceptor: string
+  deducible?: boolean | null
 }
 
 export interface Resultado303Automatico {
@@ -70,7 +71,7 @@ export async function generar303Automatico(
   const typedFacturas = facturas as unknown as Factura[]
 
   const ingresos = typedFacturas.filter(f => f.tipo === 'ingreso')
-  const gastos = typedFacturas.filter(f => f.tipo === 'gasto')
+  const gastos = typedFacturas.filter(f => f.deducible !== false)
 
   const base21 = ingresos.filter(f => f.iva === 21).reduce((sum, f) => sum + f.baseImponible, 0)
   const base10 = ingresos.filter(f => f.iva === 10).reduce((sum, f) => sum + f.baseImponible, 0)

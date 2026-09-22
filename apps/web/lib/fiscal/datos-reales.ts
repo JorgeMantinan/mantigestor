@@ -15,6 +15,7 @@ interface FacturaInput {
   nifContraparte: string | null
   baseImponible: number
   tipo: string
+  deducible?: boolean | null
 }
 
 export function computeIntracomunitarias(ingresos: FacturaInput[], gastos: FacturaInput[]) {
@@ -101,11 +102,11 @@ export async function fetchDatosReales(taxYear: number): Promise<DatosReales> {
 
   const facturasArr = (facturasRes.data ?? []) as unknown as Array<{
     tipo: string;
-    baseImponible: number; iva: number; emisorReceptor: string; nifContraparte: string | null
+    baseImponible: number; iva: number; emisorReceptor: string; nifContraparte: string | null; deducible?: boolean | null
   }>
 
   const facturasIngreso = facturasArr.filter(f => f.tipo === 'ingreso')
-  const facturasGasto = facturasArr.filter(f => f.tipo === 'gasto')
+  const facturasGasto = facturasArr.filter(f => f.deducible !== false)
 
   const ingresosFacturas = facturasIngreso.reduce((s, f) => s + f.baseImponible / 100, 0)
   const gastosFacturas = facturasGasto.reduce((s, f) => s + f.baseImponible / 100, 0)

@@ -5,6 +5,7 @@ interface PropiedadAlquiler {
   direccion: string
   ingresos: number
   inquilinoNombre: string | null
+  inquilinoNif: string | null
   gastos_alquiler: Array<{ importe: number }>
 }
 
@@ -60,7 +61,7 @@ export async function generar180Automatico(
     const retencionCents = Math.round(rentasAnuales * (RETENCION_PCT / 100))
     return {
       direccion: p.direccion,
-      nifInquilino: p.inquilinoNombre ?? '',
+      nifInquilino: p.inquilinoNif ?? '',
       nombreInquilino: p.inquilinoNombre ?? '',
       rentasPercibidasCents: rentasAnuales,
       tipoRetencionPct: RETENCION_PCT,
