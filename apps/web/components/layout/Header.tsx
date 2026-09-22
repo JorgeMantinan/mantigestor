@@ -20,6 +20,7 @@ import { EmpresaSelector } from './empresa-selector'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { LogOut, User, Settings, CreditCard } from 'lucide-react'
 import Link from 'next/link'
+import { SearchTrigger } from '@/components/search/search-trigger'
 
 export function Header() {
   const { user } = useAuth()
@@ -36,6 +37,7 @@ export function Header() {
       <div className="flex-1" />
 
       <div className="flex items-center gap-2">
+        {user && <SearchTrigger />}
         {user && <LanguageSwitcher />}
         {user && <EmpresaSelector />}
         {user && <PersonaSelector />}

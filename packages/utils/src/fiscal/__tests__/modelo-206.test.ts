@@ -25,7 +25,7 @@ describe('calcularModelo206 — pagos fraccionados sociedades', () => {
     expect(r.cuotaIntegraTotalCents).toBe(240_000)
   })
 
-  it('genera 4 trimestres con cuota proporcional', () => {
+  it('genera 4 trimestres con cuota proporcional (Q1/Q2=18%, Q3/Q4=17%)', () => {
     const r = calcularModelo206({
       baseImponibleCents: 1_000_000,
       tipoGravamenPct: 18,
@@ -33,10 +33,14 @@ describe('calcularModelo206 — pagos fraccionados sociedades', () => {
       compensacionesPendientesCents: 0,
     })
     expect(r.trimestres).toHaveLength(4)
-    r.trimestres.forEach((t) => {
-      expect(t.cuotaIntegraCents).toBe(180_000)
-      expect(t.tipoPct).toBe(18)
-    })
+    expect(r.trimestres[0].cuotaIntegraCents).toBe(180_000)
+    expect(r.trimestres[0].tipoPct).toBe(18)
+    expect(r.trimestres[1].cuotaIntegraCents).toBe(180_000)
+    expect(r.trimestres[1].tipoPct).toBe(18)
+    expect(r.trimestres[2].cuotaIntegraCents).toBe(170_000)
+    expect(r.trimestres[2].tipoPct).toBe(17)
+    expect(r.trimestres[3].cuotaIntegraCents).toBe(170_000)
+    expect(r.trimestres[3].tipoPct).toBe(17)
   })
 
   it('resta pagos anteriores del total a pagar', () => {
