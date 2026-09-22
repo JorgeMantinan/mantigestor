@@ -6,10 +6,8 @@ interface Factura {
   tipo: string
   baseImponible: number
   iva: number
-  importeIva: number
   total: number
   fechaEmision: string
-  deducible: boolean | null
 }
 
 export interface Resultado390Automatico {
@@ -63,7 +61,7 @@ export async function generar390Automatico(
       importe: f.baseImponible,
       iva: f.iva,
       importeIva: f.iva > 0 ? Math.round(f.baseImponible * f.iva / 100) : 0,
-      deducible: f.deducible,
+      deducible: f.tipo === 'gasto' ? true : undefined,
     })
   }
 

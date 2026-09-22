@@ -146,7 +146,7 @@ export async function generar100Automatico(
     .filter(f => f.tipo === 'ingreso')
     .reduce((sum, f) => sum + f.baseImponible, 0)
   const gastosActividades = facturasArr
-    .filter(f => f.tipo === 'gasto' && (f as unknown as { deducible?: boolean }).deducible !== false)
+    .filter(f => f.tipo === 'gasto')
     .reduce((sum, f) => sum + f.baseImponible, 0)
 
   const rendimientosActividades = Math.max(0, ingresosActividades - gastosActividades)
@@ -189,8 +189,8 @@ export async function generar100Automatico(
   const MINIMO_DISCAPACIDAD_GRAVE_GRAVE = 600_000
 
   let minimoPersonal = MINIMO_CONTRIBUYENTE
-  if (edad >= 65) minimoPersonal += MINIMO_ASCENDIENTE_65
   if (edad >= 75) minimoPersonal += MINIMO_ASCENDIENTE_65
+  else if (edad >= 65) minimoPersonal += MINIMO_ASCENDIENTE_65
 
   let minimoFamiliar = 0
   for (const edadHijo of hijosEdades) {

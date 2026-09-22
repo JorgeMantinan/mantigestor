@@ -100,7 +100,7 @@ export async function fetchDatosReales(taxYear: number): Promise<DatosReales> {
   }
 
   const facturasArr = (facturasRes.data ?? []) as unknown as Array<{
-    tipo: string; deducible: boolean | null;
+    tipo: string;
     baseImponible: number; iva: number; emisorReceptor: string; nifContraparte: string | null
   }>
 
@@ -108,7 +108,7 @@ export async function fetchDatosReales(taxYear: number): Promise<DatosReales> {
   const facturasGasto = facturasArr.filter(f => f.tipo === 'gasto')
 
   const ingresosFacturas = facturasIngreso.reduce((s, f) => s + f.baseImponible / 100, 0)
-  const gastosFacturas = facturasGasto.filter(f => f.deducible !== false).reduce((s, f) => s + f.baseImponible / 100, 0)
+  const gastosFacturas = facturasGasto.reduce((s, f) => s + f.baseImponible / 100, 0)
   const actividadesNetas = Math.max(0, ingresosFacturas - gastosFacturas)
 
   const trabajoNeto = nominasEmpRes.data ? nominasEmpRes.data.reduce((s, n) => s + n.neto, 0) / 100 : 0
@@ -122,7 +122,7 @@ export async function fetchDatosReales(taxYear: number): Promise<DatosReales> {
   const base4 = facturasIngreso.filter(f => f.iva === 4).reduce((s, f) => s + f.baseImponible, 0) / 100
   const deduccionesIva = facturasGasto.reduce((s, f) => s + Math.round(f.baseImponible * f.iva / 100), 0) / 100
 
-  const gastosDeducibles = facturasGasto.filter(f => f.deducible !== false)
+  const gastosDeducibles = facturasGasto
   const baseSop21 = gastosDeducibles.filter(f => f.iva === 21).reduce((s, f) => s + f.baseImponible, 0) / 100
   const baseSop10 = gastosDeducibles.filter(f => f.iva === 10).reduce((s, f) => s + f.baseImponible, 0) / 100
   const baseSop4 = gastosDeducibles.filter(f => f.iva === 4).reduce((s, f) => s + f.baseImponible, 0) / 100

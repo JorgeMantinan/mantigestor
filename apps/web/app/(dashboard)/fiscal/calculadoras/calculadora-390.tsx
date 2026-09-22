@@ -39,12 +39,20 @@ export function Calculadora390({ taxYear }: Props) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      if (!perfil) return
+      const perfilId = perfil.id
+
       const desde = `${taxYear}-01-01`
       const hasta = `${taxYear + 1}-01-01`
       const { data: facturas } = await supabase
         .from('facturas')
         .select('*')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilId)
         .gte('fechaEmision', desde)
         .lt('fechaEmision', hasta)
 

@@ -55,7 +55,7 @@ export async function generar111Automatico(
       .eq('anyo', anyo),
     supabase
       .from('facturas')
-      .select('emisorReceptor, baseImponible, mes')
+      .select('emisorReceptor, baseImponible, fechaEmision')
       .eq('perfilId', perfilId)
       .eq('tipo', 'gasto')
       .gte('fechaEmision', fechaInicio)
@@ -95,15 +95,11 @@ export async function generar111Automatico(
   const facturas = (facturasRes.data ?? []) as unknown as Array<{
     emisorReceptor: string
     baseImponible: number
-    mes?: number
+    fechaEmision: string
   }>
 
   const porProfesional = new Map<string, number>()
   for (const f of facturas) {
-    if (f.mes != null) {
-      const trimestreFactura = Math.min(4, Math.ceil(f.mes / 3)) as 1 | 2 | 3 | 4
-      if (trimestreFactura !== trimestre) continue
-    }
     porProfesional.set(f.emisorReceptor, (porProfesional.get(f.emisorReceptor) ?? 0) + f.baseImponible)
   }
 

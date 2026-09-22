@@ -32,6 +32,7 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
   const [trim3, setTrim3] = useState('')
   const [trim4, setTrim4] = useState('')
   const [cargando, setCargando] = useState(false)
+  const [trimestre, setTrimestre] = useState<1 | 2 | 3 | 4>(1)
   const { perfilActivoId } = usePersonaActiva()
 
   const cargarDatosReales = useCallback(async () => {
@@ -58,7 +59,7 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
         if (perfil) perfilId = perfil.id
       }
 
-      const resultado = await generar130Automatico(perfilId, 1, taxYear)
+      const resultado = await generar130Automatico(perfilId, trimestre, taxYear)
       if (!resultado) return
       setIngresos(String(resultado.ingresos))
       setGastos(String(resultado.gastos))
@@ -68,7 +69,7 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
     } finally {
       setCargando(false)
     }
-  }, [taxYear, perfilActivoId])
+  }, [taxYear, perfilActivoId, trimestre])
 
   const resultado = useMemo(
     () =>
@@ -116,6 +117,21 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Trimestre selector */}
+          <div className="flex gap-2">
+            {([1, 2, 3, 4] as const).map(t => (
+              <Button
+                key={t}
+                type="button"
+                size="sm"
+                variant={trimestre === t ? 'secondary' : 'outline'}
+                onClick={() => setTrimestre(t)}
+              >
+                {t}º Trim
+              </Button>
+            ))}
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-2">
               <LabelConAyuda htmlFor="s130-ingresos" ayuda={GUIA_MODELO_130.ingresos}>Ingresos acumulados del año (€)</LabelConAyuda>

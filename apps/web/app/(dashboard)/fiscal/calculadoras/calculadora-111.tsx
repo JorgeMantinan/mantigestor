@@ -45,6 +45,14 @@ export function Calculadora111({ taxYear }: Props) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      if (!perfil) return
+      const perfilId = perfil.id
+
       const desde = `${taxYear}-01-01`
       const hasta = `${taxYear + 1}-01-01`
 
@@ -52,15 +60,15 @@ export function Calculadora111({ taxYear }: Props) {
       const { data: nominasJefe } = await supabase
         .from('nominas')
         .select('empleada, salarioBruto, irpf, mes')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilId)
         .eq('rol', 'jefe')
         .eq('anyo', taxYear)
 
       // Fetch facturas gasto con retención (profesionales)
       const { data: facturas } = await supabase
         .from('facturas')
-        .select('emisorReceptor, baseImponible, iva, mes, total')
-        .eq('perfilId', user.id)
+        .select('emisorReceptor, baseImponible, iva, total')
+        .eq('perfilId', perfilId)
         .eq('tipo', 'gasto')
         .gte('fechaEmision', desde)
         .lt('fechaEmision', hasta)
@@ -94,12 +102,7 @@ export function Calculadora111({ taxYear }: Props) {
       // Add facturas gasto as professional retainings (15% retention)
       if (facturas) {
         const porProfesional = new Map<string, { bruto: number }>()
-        for (const f of facturas as unknown as Array<{ emisorReceptor: string; baseImponible: number; iva: number; mes?: number; total: number }>) {
-          const mes = (f as Record<string, unknown>).mes as number | undefined
-          if (mes != null) {
-            const trimestreFactura = Math.min(4, Math.ceil(mes / 3)) as 1 | 2 | 3 | 4
-            if (trimestreFactura !== trimestre) continue
-          }
+        for (const f of facturas as unknown as Array<{ emisorReceptor: string; baseImponible: number; iva: number; total: number }>) {
           const existing = porProfesional.get(f.emisorReceptor) ?? { bruto: 0 }
           existing.bruto += f.baseImponible
           porProfesional.set(f.emisorReceptor, existing)

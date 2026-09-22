@@ -7,7 +7,6 @@ interface Factura {
   iva: number
   total: number
   fechaEmision: string
-  deducible: boolean | null
 }
 
 interface Nomina {
@@ -82,7 +81,7 @@ export async function generar130Automatico(
     .reduce((sum, f) => sum + f.baseImponible, 0)
 
   const gastos = facturas
-    .filter(f => f.tipo === 'gasto' && (f.deducible === true || f.deducible === null))
+    .filter(f => f.tipo === 'gasto')
     .reduce((sum, f) => sum + f.baseImponible, 0)
 
   const retenciones = nominas.reduce(
@@ -96,8 +95,8 @@ export async function generar130Automatico(
   if (facturas.length === 0 && nominas.length === 0) return null
 
   return {
-    ingresos,
-    gastos,
+    ingresos: ingresos / 100,
+    gastos: gastos / 100,
     rendimientoNeto,
     retenciones,
     cuotaIntegra,

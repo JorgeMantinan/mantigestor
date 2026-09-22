@@ -12,7 +12,6 @@ interface Factura {
   emisorReceptor: string
   baseImponible: number
   tipo: string
-  mes?: number
 }
 
 export interface Resultado190Automatico {
@@ -53,7 +52,7 @@ export async function generar190Automatico(
       .eq('anyo', anyo),
     supabase
       .from('facturas')
-      .select('emisorReceptor, baseImponible, tipo, mes')
+      .select('emisorReceptor, baseImponible, tipo')
       .eq('perfilId', perfilId)
       .eq('tipo', 'gasto')
       .gte('fechaEmision', desde)
