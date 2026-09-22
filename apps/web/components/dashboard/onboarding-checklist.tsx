@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Circle, Plus, Calculator, FileText, Receipt } from 'lucide-react'
+import { CheckCircle2, Circle, Plus, Calculator, FileText, Receipt, X } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
+import { useState, useEffect } from 'react'
 
 interface Paso {
   completado: boolean
@@ -21,6 +22,18 @@ interface Props {
 
 export function OnboardingChecklist({ tienePerfil, tieneFacturas, tieneCalculadoras }: Props) {
   const { t } = useLanguage()
+  const [dismissed, setDismissed] = useState(false)
+
+  useEffect(() => {
+    const val = localStorage.getItem('onboarding_dismissed')
+    if (val === 'true') setDismissed(true)
+  }, [])
+
+  const dismiss = () => {
+    setDismissed(true)
+    localStorage.setItem('onboarding_dismissed', 'true')
+  }
+
   const pasos: Paso[] = [
     {
       completado: tienePerfil,
@@ -44,14 +57,23 @@ export function OnboardingChecklist({ tienePerfil, tieneFacturas, tieneCalculado
 
   const completados = pasos.filter(p => p.completado).length
 
-  if (completados === pasos.length) return null
+  if (dismissed || completados === pasos.length) return null
 
   return (
     <Card className="border-primary/30 bg-primary/5">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{t('onboarding.primerosPasos')}</CardTitle>
-          <span className="text-xs text-muted-foreground">{completados}/{pasos.length}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{completados}/{pasos.length}</span>
+            <button
+              onClick={dismiss}
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              aria-label="Cerrar"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
         <div className="h-1.5 w-full rounded-full bg-muted">
           <div

@@ -16,7 +16,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem('idioma') as Idioma | null
-    if (saved === 'es' || saved === 'en') setIdiomaState(saved)
+    if (saved === 'es' || saved === 'en' || saved === 'ca' || saved === 'gl' || saved === 'eu') setIdiomaState(saved)
   }, [])
 
   const setIdioma = useCallback((nuevo: Idioma) => {
