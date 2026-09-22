@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
-import { Search, Users, ArrowUpRight, TrendingUp, TrendingDown, Clock, AlertCircle } from 'lucide-react'
+import { Search, Users, ArrowUpRight, TrendingUp, TrendingDown, Clock, AlertCircle, BarChart3, AlertTriangle as AlertTriangleIcon, FileText as FileTextIcon } from 'lucide-react'
 import { formatoMoneda } from '@/lib/divisas'
 
 interface ClienteResumen {
@@ -99,9 +99,31 @@ export default function AsesorPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-heading font-bold tracking-tight">Vista Consolidada — Asesor</h1>
-        <p className="text-muted-foreground">Resumen de todos los clientes que gestionas</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-heading font-bold tracking-tight">Vista Consolidada — Asesor</h1>
+          <p className="text-muted-foreground">Resumen de todos los clientes que gestionas</p>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/asesor/dashboard-consolidado">
+            <Button variant="outline" size="sm">
+              <BarChart3 className="h-4 w-4 mr-1" aria-hidden="true" />
+              Dashboard consolidado
+            </Button>
+          </Link>
+          <Link href="/asesor/alertas">
+            <Button variant="outline" size="sm">
+              <AlertTriangleIcon className="h-4 w-4 mr-1" aria-hidden="true" />
+              Alertas
+            </Button>
+          </Link>
+          <Link href="/asesor/informes">
+            <Button variant="outline" size="sm">
+              <FileTextIcon className="h-4 w-4 mr-1" aria-hidden="true" />
+              Informes
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {clientesGestionados.length === 0 ? (

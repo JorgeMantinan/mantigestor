@@ -171,7 +171,12 @@ export function Sidebar() {
   if (tieneClientes) {
     const herramientasGroup = menuItems.find(g => g.group === t('nav.herramientas'))
     if (herramientasGroup) {
-      herramientasGroup.items.push({ label: 'Asesor (Vista Consolidada)', href: '/asesor', icon: Briefcase })
+      herramientasGroup.items.push(
+        { label: 'Asesor (Vista Consolidada)', href: '/asesor', icon: Briefcase },
+        { label: 'Dashboard Consolidado', href: '/asesor/dashboard-consolidado', icon: LayoutDashboard },
+        { label: 'Alertas Asesoría', href: '/asesor/alertas', icon: AlertTriangle },
+        { label: 'Informes de Cliente', href: '/asesor/informes', icon: FileText },
+      )
     }
   }
 
