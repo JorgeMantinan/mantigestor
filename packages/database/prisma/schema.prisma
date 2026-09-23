@@ -20,8 +20,9 @@ model Perfil {
   notasPie        String? // notas pie de factura por defecto (una por línea)
   logoBase64      String? // logo de empresa en base64 data URL para facturas (max 500KB)
   firmaBase64     String? // firma digital en base64 JSON: {imagen, nombre, fecha, cargo}
-  empresas        String? // JSON array de empresas: [{id,nombre,nif,direccion,activa}]
-  idiomaFactura   String?  @default("es") // 'es' | 'en' — idioma de las facturas PDF
+  empresas          String? // JSON array de empresas: [{id,nombre,nif,direccion,activa}]
+  idiomaFactura     String?  @default("es") // 'es' | 'en' — idioma de las facturas PDF
+  monedaPorDefecto  String?  @default("EUR") // moneda por defecto del perfil
   // Datos personales para Declaración de la Renta (Modelo 100)
   situacionCivil          String?  // 'soltero' | 'casado' | 'divorciado' | 'viudo'
   fechaNacimiento         DateTime?
@@ -52,6 +53,19 @@ model Perfil {
   plantillasFactura          PlantillaFactura[]
 
   @@map("perfiles")
+}
+
+model InvitacionPendiente {
+  id                  String    @id
+  email               String
+  nombre              String?
+  nif                 String?
+  invitadoPorUserId   String
+  invitadoPorEmail    String
+  aceptada            Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+
+  @@map("invitaciones_pendientes")
 }
 
 model PlantillaFactura {
