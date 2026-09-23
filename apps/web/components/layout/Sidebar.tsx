@@ -97,6 +97,7 @@ function buildMenuItems(
   const principal: MenuItem[] = [
     { label: t('nav.panel'), href: '/dashboard', icon: LayoutDashboard },
     { label: t('nav.facturas'), href: '/gestoria/facturas', icon: Receipt },
+    { label: 'Proformas', href: '/gestoria/proformas', icon: FileText },
     { label: t('nav.nominas'), href: '/nominas', icon: Users, indicador: 'nomina' },
     { label: t('nav.alquiler'), href: '/alquiler', icon: Home, indicador: 'propiedad' },
     { label: t('nav.documentos'), href: '/gestoria/documentos', icon: FolderOpen, indicador: 'documento' },
@@ -116,6 +117,7 @@ function buildMenuItems(
     { label: t('nav.ia'), href: '/ai', icon: PiggyBank },
     { label: t('nav.conversiones'), href: '/conversiones', icon: FileSpreadsheet },
     { label: 'Escanear ticket', href: '/herramientas/escanear-ticket', icon: Camera },
+    { label: 'Importar datos', href: '/herramientas/importar-datos', icon: Upload },
     { label: t('nav.importarExtracto'), href: '/gestoria/importar-extracto', icon: Upload },
     { label: t('nav.simuladorRetenciones'), href: '/herramientas/simulador-retenciones', icon: Calculator },
     { label: t('nav.temporizador'), href: '/herramientas/temporizador', icon: Clock },

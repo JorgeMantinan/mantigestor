@@ -199,12 +199,19 @@ export default function LoginPage() {
           </form>
         </CardContent>
         <CardFooter className="justify-center">
-          <p className="text-sm text-muted-foreground">
-            ¿No tienes cuenta?{' '}
-            <Link href="/register" className="font-medium text-primary hover:underline">
-              Registrarse
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-sm text-muted-foreground">
+              ¿No tienes cuenta?{' '}
+              <Link href="/register" className="font-medium text-primary hover:underline">
+                Registrarse
+              </Link>
+            </p>
+            <Link href="/demo">
+              <Button variant="outline" size="sm">
+                Probar demo sin cuenta
+              </Button>
             </Link>
-          </p>
+          </div>
         </CardFooter>
       </Card>
     </div>

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { createServerClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -137,6 +138,76 @@ const FAQS = [
   },
 ]
 
+export const metadata: Metadata = {
+  title: {
+    absolute: 'MantiGestor - Gestión inteligente para autónomos con IA',
+  },
+  description:
+    'Software con IA para autónomos en España: facturas escaneadas con IA, IVA e IRPF automáticos, nóminas, alquileres y más de 30 modelos fiscales. Plan Básico gratis y prueba PRO de 30 días.',
+  keywords: [
+    'software autónomos España',
+    'programa facturación autónomos',
+    'gestión IVA IRPF online',
+    'modelo 303 autónomos',
+    'nóminas y retenciones',
+    'gestoría online con IA',
+    'control facturas gastos',
+    'MantiGestor',
+  ],
+  openGraph: {
+    title: 'MantiGestor - Gestión inteligente para autónomos con IA',
+    description:
+      'Fotografía facturas, controla tu IVA e IRPF y prepara la declaración de la renta. Todo en un solo lugar, con inteligencia artificial.',
+    siteName: 'MantiGestor',
+    locale: 'es_ES',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'MantiGestor - Gestión inteligente para autónomos con IA',
+    description:
+      'Facturas con IA, IVA e IRPF automáticos y más de 30 modelos fiscales para autónomos en España.',
+  },
+  alternates: { canonical: '/' },
+  robots: { index: true, follow: true },
+}
+
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'MantiGestor',
+  applicationCategory: 'BusinessApplication',
+  applicationSubCategory: 'Gestión fiscal y contable para autónomos',
+  operatingSystem: 'Web',
+  inLanguage: 'es-ES',
+  description:
+    'MantiGestor es un software con inteligencia artificial para autónomos españoles: facturas, IVA, IRPF, modelos fiscales, nóminas, alquileres y documentos en un solo lugar.',
+  featureList: [
+    'Facturas con escaneo por IA',
+    'Control de IVA e IRPF',
+    'Más de 30 modelos fiscales',
+    'Nóminas y retenciones',
+    'Gestión de alquileres',
+    'Backup de documentos',
+  ],
+  offers: [
+    {
+      '@type': 'Offer',
+      name: 'Básico',
+      price: '0',
+      priceCurrency: 'EUR',
+      description: 'Plan gratuito para autónomos que empiezan',
+    },
+    {
+      '@type': 'Offer',
+      name: 'PRO',
+      price: '15',
+      priceCurrency: 'EUR',
+      description: 'Plan PRO con 30 días de prueba incluida',
+    },
+  ],
+}
+
 export default async function LandingPage() {
   const supabase = createServerClient()
   const {
@@ -145,6 +216,10 @@ export default async function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+      />
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
@@ -162,6 +237,9 @@ export default async function LandingPage() {
               </Link>
             ) : (
               <>
+                <Link href="/demo">
+                  <Button variant="ghost">Probar demo</Button>
+                </Link>
                 <Link href="/login">
                   <Button variant="ghost">Iniciar sesión</Button>
                 </Link>
@@ -207,6 +285,11 @@ export default async function LandingPage() {
                     <Link href="/register">
                       <Button size="lg" className="text-base px-8">
                         Empieza gratis
+                      </Button>
+                    </Link>
+                    <Link href="/demo">
+                      <Button variant="outline" size="lg" className="text-base px-8">
+                        Probar demo
                       </Button>
                     </Link>
                     <Link href="/precios">

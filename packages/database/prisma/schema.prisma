@@ -144,6 +144,26 @@ model Factura {
   @@map("facturas")
 }
 
+model Proforma {
+  id             String   @id
+  perfilId       String
+  numero         String
+  clienteNombre  String
+  clienteNif     String?
+  fecha          DateTime
+  validezDias    Int      @default(30)
+  concepto       String
+  baseImponible  Int
+  iva            Int
+  total          Int
+  estado         String   @default("borrador")
+  notas          String?
+  createdAt      DateTime @default(now())
+
+  @@index([perfilId])
+  @@map("proformas")
+}
+
 model Nomina {
   id              String   @id @default(cuid())
   perfilId        String
