@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import crypto from 'crypto'
 
 // GET: obtener info del invitador (sin auth requirement)
+// Usa service_role porque la invitación puede consultarse sin sesión
 export async function GET(req: NextRequest) {
   try {
     const { success } = await rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
@@ -19,19 +21,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 })
     }
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get: (name: string) => req.cookies.get(name)?.value,
-          set: () => {},
-          remove: () => {},
-        },
-      }
-    )
+    const admin = createAdminClient()
 
-    const { data: invitacion } = await supabase
+    const { data: invitacion } = await admin
       .from('invitaciones_pendientes')
       .select('invitadoPorUserId, aceptada')
       .eq('id', invitacionId)
@@ -42,7 +34,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invitación no encontrada' }, { status: 404 })
     }
 
-    const { data: invitadorPerfil } = await supabase
+    const { data: invitadorPerfil } = await admin
       .from('perfiles')
       .select('email, nombre')
       .eq('userId', invitacion.invitadoPorUserId)

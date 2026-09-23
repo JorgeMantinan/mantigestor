@@ -66,10 +66,10 @@ describe('pagosFraccionados130', () => {
   it('acumula beneficios y resta pagos anteriores', () => {
     const res = pagosFraccionados130([50_000, 30_000, 20_000, 10_000])
     expect(res).toHaveLength(4)
-    expect(res[0].beneficioAcumulado).toBe(50_000)
-    expect(res[1].beneficioAcumulado).toBe(80_000)
-    expect(res[2].beneficioAcumulado).toBe(100_000)
-    expect(res[3].beneficioAcumulado).toBe(110_000)
+    expect(res[0]!.beneficioAcumulado).toBe(50_000)
+    expect(res[1]!.beneficioAcumulado).toBe(80_000)
+    expect(res[2]!.beneficioAcumulado).toBe(100_000)
+    expect(res[3]!.beneficioAcumulado).toBe(110_000)
   })
 
   it('cuota acumulada no puede ser negativa', () => {

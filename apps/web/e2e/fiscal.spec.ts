@@ -121,7 +121,7 @@ test.describe('Hub fiscal', () => {
   test('wizard de perfil y secciones visibles con sesión', async ({ page }) => {
     await iniciarSesion(page)
     await page.goto('/fiscal')
-    await expect(page.getByRole('dialog', { name: 'Elige tu perfil fiscal' })).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('dialog', { name: '¿Cuál es tu situación fiscal?' })).toBeVisible({ timeout: 15000 })
 
     await page.getByRole('button', { name: 'Autónomo / freelance' }).click()
     await expect(page.getByText('Perfil: Autónomo')).toBeVisible()
@@ -130,7 +130,7 @@ test.describe('Hub fiscal', () => {
     await expect(page.getByRole('button', { name: 'Autónomos (RETA)' })).toHaveClass(/secondary/)
 
     // Selector de comunidad solo en secciones IRPF/mínimos; cambiamos a IRPF
-    await page.getByRole('button', { name: 'IRPF' }).click()
+    await page.getByRole('button', { name: /^IRPF$/ }).first().click()
     const comunidad = page.locator('#comunidad-fiscal')
     await expect(comunidad).toBeVisible()
     await comunidad.selectOption({ label: 'Navarra (Comunidad Foral de)' })
@@ -164,6 +164,7 @@ test.describe('Hub fiscal', () => {
   test('resumen anual imprimible', async ({ page }) => {
     await iniciarSesion(page)
     await page.goto('/fiscal')
+    await page.getByRole('button', { name: 'Utilidades' }).click()
     await page.getByRole('button', { name: 'Resumen anual' }).click()
     await expect(page.getByText(/Resumen fiscal .*· ejercicio \d{4}/i)).toBeVisible({ timeout: 20000 })
   })
@@ -175,34 +176,34 @@ test.describe('Hub fiscal', () => {
     await expect(page.getByText(/IVA \d{4}/i)).toBeVisible({ timeout: 20000 })
 
     await page.getByRole('button', { name: 'Modelo 303' }).click()
-    await expect(page.getByText(/303/i)).toBeVisible({ timeout: 20000 })
+    await expect(page.getByRole('heading', { name: /Modelo 303/ })).toBeVisible({ timeout: 20000 })
   })
 
   test('calculadora 100 IRPF anual', async ({ page }) => {
     await iniciarSesion(page)
     await page.goto('/fiscal')
     await page.getByRole('button', { name: 'Modelo 100' }).click()
-    await expect(page.getByText(/100/i)).toBeVisible({ timeout: 20000 })
+    await expect(page.getByRole('heading', { name: /Modelo 100/ })).toBeVisible({ timeout: 20000 })
   })
 
   test('calculadora 130 IRPF trimestral', async ({ page }) => {
     await iniciarSesion(page)
     await page.goto('/fiscal')
     await page.getByRole('button', { name: 'Modelo 130' }).click()
-    await expect(page.getByText(/130/i)).toBeVisible({ timeout: 20000 })
+    await expect(page.getByRole('heading', { name: /Modelo 130/ })).toBeVisible({ timeout: 20000 })
   })
 
   test('calculadora 111 retenciones', async ({ page }) => {
     await iniciarSesion(page)
     await page.goto('/fiscal')
     await page.getByRole('button', { name: 'Modelo 111' }).click()
-    await expect(page.getByText(/111/i)).toBeVisible({ timeout: 20000 })
+    await expect(page.getByRole('heading', { name: /Modelo 111/ })).toBeVisible({ timeout: 20000 })
   })
 
   test('deep-link abre calculadora directamente', async ({ page }) => {
     await iniciarSesion(page)
     await page.goto('/fiscal?seccion=modelo303')
-    await expect(page.getByText(/303/i)).toBeVisible({ timeout: 20000 })
+    await expect(page.getByRole('heading', { name: /Modelo 303/ })).toBeVisible({ timeout: 20000 })
   })
 
   test('cambio de ejercicio fiscal actualiza datos', async ({ page }) => {

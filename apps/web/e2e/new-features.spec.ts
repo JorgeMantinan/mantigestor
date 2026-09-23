@@ -25,7 +25,7 @@ test.describe('Multi-empresa dashboard', () => {
     await page.goto('/dashboard/multi-empresa')
     const url = page.url()
     if (!url.includes('/login')) {
-      await expect(page.getByRole('link')).toHaveCount(expect.any(Number))
+      await expect(page.getByRole('link').first()).toBeVisible()
     }
   })
 })

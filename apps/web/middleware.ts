@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const RUTAS_PUBLICAS = ['/', '/login', '/register', '/precios', '/sobre-nosotros', '/auth/callback', '/forgot-password', '/reset-password', '/demo']
+const RUTAS_PUBLICAS = ['/', '/login', '/register', '/precios', '/sobre-nosotros', '/auth/callback', '/forgot-password', '/reset-password', '/demo', '/api/tipos-cambio']
 const RUTAS_SOLO_PRO = ['/ai']
 const RUTAS_BASIC_PLUS = ['/gestoria/trimestres', '/gestoria/renta', '/alquiler', '/nominas']
+
+interface CacheEntry {
+  tier?: string
+  expiraEn: number
+}
+const suscripcionCache = new Map<string, CacheEntry>()
+const SUSCRIPCION_TTL_MS = 60_000
 
 function decodeJWTPayload(token: string): Record<string, unknown> | null {
   try {
@@ -99,13 +106,30 @@ export async function middleware(req: NextRequest) {
   if (userId && (RUTAS_SOLO_PRO.some(r => ruta.startsWith(r)) || RUTAS_BASIC_PLUS.some(r => ruta.startsWith(r)))) {
     try {
       const perfilId = perfilActivoId ?? userId
-      const queryUrl = `${supabaseUrl}/rest/v1/suscripciones?perfilId=eq.${perfilId}&estado=in.(active,trialing)&order=currentPeriodStart.desc&limit=1`
-      const qres = await fetch(queryUrl, {
-        headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` },
-      })
-      const data: { tier?: string }[] = qres.ok ? await qres.json() : []
-      const esPro = data[0]?.tier === 'PRO'
-      const esBasic = data[0]?.tier === 'BASIC' || data.length === 0
+      const now = Date.now()
+      let tier: string | undefined
+      let pagoActivo = false
+
+      const cacheKey = `${userId}:${perfilId}`
+      const cached = suscripcionCache.get(cacheKey)
+      if (cached && cached.expiraEn > now) {
+        tier = 'BASIC'
+        if (cached.tier) {
+          tier = cached.tier
+        }
+      } else {
+        const queryUrl = `${supabaseUrl}/rest/v1/suscripciones?perfilId=eq.${perfilId}&estado=in.(active,trialing)&order=currentPeriodStart.desc&limit=1`
+        const qres = await fetch(queryUrl, {
+          headers: { apikey: supabaseKey, Authorization: `Bearer ${token}` },
+        })
+        const data: { tier?: string }[] = qres.ok ? await qres.json() : []
+        tier = data[0]?.tier
+        pagoActivo = data.length > 0
+        suscripcionCache.set(cacheKey, { tier, expiraEn: now + SUSCRIPCION_TTL_MS })
+      }
+
+      const esPro = tier === 'PRO'
+      const esBasic = tier === 'BASIC' || !pagoActivo
       const esBasicPlus = esBasic || esPro
 
       if (RUTAS_SOLO_PRO.some(r => ruta.startsWith(r)) && !esPro) {

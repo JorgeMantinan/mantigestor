@@ -11,6 +11,7 @@ export function MilestoneDialog() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
+    if (process.env.NEXT_PUBLIC_SHOW_MILESTONE !== '1') return
     const seen = localStorage.getItem(STORAGE_KEY)
     if (!seen) {
       const timer = setTimeout(() => setOpen(true), 2000)

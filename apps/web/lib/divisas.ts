@@ -48,13 +48,10 @@ export async function obtenerTasaCambio(
   if (desde === hasta) return 1
 
   try {
-    const res = await fetch(
-      `https://api.frankfurter.dev/v1/latest?base=${desde}&symbols=${hasta}`,
-      { next: { revalidate: 3600 } }
-    )
-    if (!res.ok) throw new Error(`Frankfurter API error: ${res.status}`)
-    const data = await res.json()
-    if (data.rates && typeof data.rates[hasta] === 'number') {
+    const res = await fetch(`/api/tipos-cambio?base=${desde}&simbolos=${hasta}`)
+    if (!res.ok) throw new Error(`API tipos-cambio error: ${res.status}`)
+    const data: { rates?: Record<string, number> } = await res.json()
+    if (typeof data.rates?.[hasta] === 'number') {
       return data.rates[hasta]
     }
     throw new Error('Rate not found in response')

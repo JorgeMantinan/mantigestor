@@ -22,7 +22,6 @@ export function CollapsibleSection({
         onClick={() => setAbierto(prev => !prev)}
         className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium hover:bg-muted/50 transition-colors"
         aria-expanded={abierto}
-        aria-label="Toggle section"
       >
         {titulo}
         <ChevronDown
