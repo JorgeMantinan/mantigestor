@@ -223,3 +223,4 @@ GRANT ALL ON public.documentos TO service_role;
 GRANT ALL ON public.facturas TO service_role;
 GRANT ALL ON public.propiedades_alquiler TO service_role;
 GRANT ALL ON public.gastos_alquiler TO service_role;
+GRANT ALL ON public."encuestas_satisfaccion" TO service_role;

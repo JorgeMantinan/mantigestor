@@ -51,6 +51,7 @@ model Perfil {
   conciliacionLogs           ConciliacionLog[]
   chatHistorial              ChatHistorial[]
   plantillasFactura          PlantillaFactura[]
+  encuestasSatisfaccion      EncuestaSatisfaccion[]
 
   @@map("perfiles")
 }
@@ -926,6 +927,20 @@ model ConciliacionLog {
   @@index([perfilId])
   @@index([facturaId])
   @@map("conciliacion_logs")
+}
+
+model EncuestaSatisfaccion {
+  id            String    @id @default(cuid())
+  perfilId      String
+  perfil        Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  clienteNombre String
+  clienteEmail  String?
+  puntuacion    Int
+  comentario    String?
+  creadoEn      DateTime  @default(now())
+
+  @@index([perfilId])
+  @@map("encuestas_satisfaccion")
 }
 
 model ChatHistorial {

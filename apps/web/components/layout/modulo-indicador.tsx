@@ -36,7 +36,7 @@ export function ModuloIndicador({ entidad }: ModuloIndicadorProps) {
           .select('id')
           .eq('perfilId', perfilId)
           .eq('entidad', entidad)
-          .order('createdAt', { ascending: false })
+          .order('creadoEn', { ascending: false })
           .limit(1)
           .maybeSingle()
 
@@ -47,7 +47,7 @@ export function ModuloIndicador({ entidad }: ModuloIndicadorProps) {
             .select('id', { count: 'exact', head: true })
             .eq('perfilId', perfilId)
             .eq('entidad', entidad)
-            .gte('createdAt', hace24h)
+            .gte('creadoEn', hace24h)
           setModificado((count ?? 0) > 0)
         }
       } catch {
