@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
-import { extractInvoiceData, type OcrResult } from '@/lib/ocr'
+import { extractInvoiceData, esUrlStorageSegura, type OcrResult } from '@/lib/ocr'
 
 interface ArchivoBatch {
   url: string
@@ -54,6 +54,10 @@ export async function POST(req: NextRequest) {
     async function procesarArchivo(archivo: ArchivoBatch): Promise<ResultadoBatch> {
       if (!archivo.url || !archivo.nombre) {
         return { nombre: archivo.nombre ?? '(sin nombre)', resultado: null, error: 'URL o nombre inválido' }
+      }
+
+      if (!esUrlStorageSegura(archivo.url)) {
+        return { nombre: archivo.nombre, resultado: null, error: 'URL de documento no permitida' }
       }
 
       const { data: existente } = await supabase

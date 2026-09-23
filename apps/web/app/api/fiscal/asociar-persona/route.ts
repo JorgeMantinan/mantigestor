@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { createServerClient } from '@supabase/ssr'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import crypto from 'crypto'
 import { z } from 'zod'
@@ -52,8 +53,8 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    // Verificar si ya existe una asociación activa
-    const { data: perfilExistente } = await supabase
+    // Verificar si ya existe perfil para ese email → service_role (RLS bloquea perfiles ajenos)
+    const { data: perfilExistente } = await createAdminClient()
       .from('perfiles')
       .select('id')
       .eq('email', email)

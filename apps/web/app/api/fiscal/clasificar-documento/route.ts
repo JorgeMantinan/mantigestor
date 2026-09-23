@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { esUrlStorageSegura } from '@/lib/ocr'
 
 interface ClasificacionResultado {
   tipo: 'nomina' | 'factura' | 'alquiler' | 'extracto_banco' | 'otro'
@@ -119,6 +120,9 @@ export async function POST(req: NextRequest) {
     const { pdfUrl } = await req.json()
     if (!pdfUrl || typeof pdfUrl !== 'string') {
       return badRequest('pdfUrl requerido')
+    }
+    if (!esUrlStorageSegura(pdfUrl)) {
+      return badRequest('URL de documento no permitida')
     }
 
     const resultado = await clasificarDocumento(pdfUrl)

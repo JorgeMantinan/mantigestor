@@ -3,12 +3,16 @@ import Anthropic from '@anthropic-ai/sdk'
 import type { OcrResult } from '@/lib/ocr'
 import { getAuthenticatedUser } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { sugerirModelos } from '@mantigestor/utils'
 
 /**
  * POST /api/ocr-image
  * Body: { image: string (base64 data URL), mediaType: string }
  * Returns: OcrResult from image (receipt, factura, ticket)
  */
+
+const TIPOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const TAMANO_MAXIMO_BYTES = 5 * 1024 * 1024
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,20 +28,39 @@ export async function POST(request: NextRequest) {
 
     const { image, mediaType } = await request.json()
 
-    if (!image) {
+    if (!image || typeof image !== 'string') {
       return NextResponse.json({ error: 'No se proporcionó imagen' }, { status: 400 })
+    }
+
+    const mimeRaw: unknown = mediaType ?? (image.match(/data:(.*?);/)?.[1] ?? 'image/jpeg')
+    const mime = typeof mimeRaw === 'string' && (TIPOS_PERMITIDOS as readonly string[]).includes(mimeRaw)
+      ? mimeRaw as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif'
+      : null
+    if (!mime) {
+      return NextResponse.json(
+        { error: 'Formato no soportado. Usa JPG, PNG, WebP o GIF' },
+        { status: 400 }
+      )
+    }
+
+    const partes = image.split(',')
+    const base64Data = partes.length > 1 ? partes[1] : image
+    if (!base64Data) {
+      return NextResponse.json({ error: 'Imagen inválida' }, { status: 400 })
+    }
+    if (base64Data.length > TAMANO_MAXIMO_BYTES * (4 / 3)) {
+      return NextResponse.json(
+        { error: 'La imagen supera el tamaño máximo de 5MB' },
+        { status: 413 }
+      )
     }
 
     const apiKey = process.env.ANTHROPIC_API_KEY
     if (!apiKey) {
-      return NextResponse.json({ error: 'API key de Anthropic no configurada' }, { status: 500 })
+      return NextResponse.json({ error: 'API key de Anthropic no configurada' }, { status: 503 })
     }
 
     const anthropic = new Anthropic({ apiKey })
-
-    // Strip data URL prefix if present
-    const base64Data = image.includes(',') ? image.split(',')[1] : image
-    const mime = mediaType || (image.match(/data:(.*?);/)?.[1] ?? 'image/jpeg')
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-20250514',
@@ -57,25 +80,26 @@ export async function POST(request: NextRequest) {
             {
               type: 'text',
               text: `Extrae los datos de esta imagen (factura, recibo o ticket) en español.
-Devuelve SOLO un objeto JSON válido sin explicaciones adicionales, con estos campos:
+Devuelve SOLO un objeto JSON válido sin explicaciones adicionales, con estos campos.
+Ejemplo (los importes van en EUROS, sin multiplicar):
 {
-  "numero": "número de factura o recibo",
-  "emisorReceptor": "nombre del emisor o receptor según el contexto",
-  "nifContraparte": "NIF/CIF de la otra parte",
-  "fechaEmision": "fecha en formato YYYY-MM-DD",
-  "baseImponible": 123.45,
+  "numero": "F-2024-001",
+  "emisorReceptor": "Suministros Express S.L.",
+  "nifContraparte": "B12345678",
+  "fechaEmision": "2024-06-15",
+  "baseImponible": 100.00,
   "iva": 21,
-  "total": 149.37,
-  "tipo": "ingreso" si es una factura emitida, "gasto" si es recibida,
-  "categoriaGasto": "suministros" | "alquiler" | "nómina" | "seguridad-social" | "marketing" | "seguros" | "profesionales" | "material" | "transporte" | "comunicaciones" | "formación" | "otros" | null,
-  "modelosSugeridos": [
-    {"modelo": "303", "razon": "IVA repercutido en liquidación trimestral"},
-    {"modelo": "130", "razon": "Ingreso en pagos fraccionados IRPF"}
-  ]
+  "total": 121.00,
+  "tipo": "gasto",
+  "categoriaGasto": "suministros",
+  "modelosSugeridos": [{"modelo": "303", "razon": "IVA soportado en liquidación trimestral"}]
 }
-
-Para categoriaGasto, si es gasto, clasifícalo según el concepto.
-Para modelosSugeridos, incluye SOLO los modelos AEAT realmente afectados.
+Reglas:
+- "tipo": "ingreso" si es una factura emitida, "gasto" si es recibida
+- "iva": porcentaje (21, 10, 4 o 0), NO el importe
+- "baseImponible" y "total": importes en euros (100.00, no 10000)
+- categoriaGasto: "suministros" | "alquiler" | "nómina" | "seguridad-social" | "marketing" | "seguros" | "profesionales" | "material" | "transporte" | "comunicaciones" | "formación" | "otros" | null (si es gasto, clasifícalo según el concepto)
+- modelosSugeridos: SOLO los modelos AEAT realmente afectados; si no puedes determinarlos, array []
 Si no encuentras un valor, pon null.`,
             },
           ],
@@ -94,17 +118,27 @@ Si no encuentras un valor, pon null.`,
 
     const data = JSON.parse(jsonMatch[0])
 
+    // OcrResult en EUROS: los formularios hacen parseFloat(valor)*100 al guardar
+    const modelos = Array.isArray(data.modelosSugeridos) && data.modelosSugeridos.length > 0
+      ? data.modelosSugeridos
+      : sugerirModelos({
+          tipo: data.tipo,
+          iva: data.iva,
+          baseImponible: data.baseImponible,
+          nifContraparte: data.nifContraparte,
+        }).map(m => ({ modelo: m.modelo, razon: m.razon }))
+
     const result: OcrResult = {
       numero: data.numero || null,
       emisorReceptor: data.emisorReceptor || null,
       nifContraparte: data.nifContraparte || null,
       fechaEmision: data.fechaEmision || null,
-      baseImponible: typeof data.baseImponible === 'number' ? Math.round(data.baseImponible * 100) : null,
+      baseImponible: typeof data.baseImponible === 'number' ? data.baseImponible : null,
       iva: typeof data.iva === 'number' ? data.iva : null,
-      total: typeof data.total === 'number' ? Math.round(data.total * 100) : null,
-      tipo: data.tipo || null,
+      total: typeof data.total === 'number' ? data.total : null,
+      tipo: data.tipo === 'ingreso' || data.tipo === 'gasto' ? data.tipo : null,
       categoriaGasto: data.categoriaGasto || null,
-      modelosSugeridos: Array.isArray(data.modelosSugeridos) ? data.modelosSugeridos : [],
+      modelosSugeridos: modelos,
     }
 
     return NextResponse.json(result)

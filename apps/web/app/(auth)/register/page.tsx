@@ -134,15 +134,17 @@ function RegisterForm() {
             rol: 'propietario',
           })
 
-        // Crear asociación gestor → perfil (quien invitó)
-        await getSupabase()
-          .from('perfil_asociado')
-          .insert({
-            id: crypto.randomUUID(),
-            ownerUserId: invitacionPendiente.invitadoPorUserId,
-            perfilId: nuevoUserId,
-            rol: 'gestor',
-          })
+        // Crear asociación gestor → perfil (quien invitó).
+        // RPC SECURITY DEFINER: RLS exige auth.uid = ownerUserId, imposible
+        // desde el cliente del usuario invitado.
+        const { error: gestorError } = await getSupabase().rpc('crear_asociacion_segura', {
+          p_owner_user_id: invitacionPendiente.invitadoPorUserId,
+          p_perfil_id: nuevoUserId,
+          p_rol: 'gestor',
+        })
+        if (gestorError) {
+          console.error('Error creating gestor association:', gestorError)
+        }
 
         // Marcar invitación como aceptada
         await getSupabase()

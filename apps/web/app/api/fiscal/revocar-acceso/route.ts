@@ -44,16 +44,22 @@ export async function POST(req: NextRequest) {
       return badRequest(new Error('No puedes revocar acceso de un perfil que no es tuyo.'))
     }
 
-    // Delete the association where the gestor was managing this profile
-    const { error } = await supabase
+    // Delete the association where the gestor was managing this profile.
+    // RLS permite al dueño del perfil borrar filas apuntando a su perfil.
+    const { data: borradas, error } = await supabase
       .from('perfil_asociado')
       .delete()
       .eq('ownerUserId', gestorUserId)
       .eq('perfilId', perfilId)
+      .select('id')
 
     if (error) {
       console.error('Error revoking access:', error)
       return serverError(new Error('No se pudo revocar el acceso'))
+    }
+
+    if (!borradas || borradas.length === 0) {
+      return badRequest(new Error('No se encontró la asociación a revocar.'))
     }
 
     return NextResponse.json({ ok: true })

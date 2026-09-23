@@ -16,6 +16,12 @@ vi.mock('@supabase/ssr', () => ({
   })),
 }))
 
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => ({
+    from: vi.fn((table: string) => fromHandler(table)),
+  })),
+}))
+
 vi.mock('@/lib/api-helpers', () => ({
   getAuthenticatedUser: vi.fn(),
   unauthorized: vi.fn(() => jsonResponse({ error: 'No autorizado' }, 401)),

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,37 +35,36 @@ function formatEuro(v: number): string {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(v)
 }
 
-// Simulated OCR extraction (in production, this would call Anthropic Claude API)
-function extraerDatosOCR(imagenBase64: string): Promise<TicketData> {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      // Simulated OCR results - in real app, send to Claude API
-      const resultados: TicketData[] = [
-        {
-          fecha: new Date().toISOString().slice(0, 10),
-          concepto: 'Suministros oficina',
-          baseImponible: 82.64,
-          iva: 17.36,
-          ivaPorcentaje: 21,
-          total: 100.00,
-          proveedor: 'Suministros Express S.L.',
-        },
-        {
-          fecha: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
-          concepto: 'Material informático',
-          baseImponible: 41.32,
-          iva: 8.68,
-          ivaPorcentaje: 21,
-          total: 50.00,
-          proveedor: 'TechStore Madrid',
-        },
-      ]
-      resolve(resultados[Math.floor(Math.random() * resultados.length)]!)
-    }, 2000)
+async function extraerDatosOCR(imagenBase64: string): Promise<TicketData> {
+  const res = await fetch('/api/ocr-image', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: imagenBase64 }),
   })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error || 'Error al procesar la imagen')
+  }
+  const data = await res.json()
+  const base = typeof data.baseImponible === 'number' ? data.baseImponible : 0
+  const ivaPorcentaje = typeof data.iva === 'number' && [0, 4, 10, 21].includes(data.iva) ? data.iva : 21
+  const total = typeof data.total === 'number' && data.total > 0
+    ? data.total
+    : Math.round((base * (1 + ivaPorcentaje / 100)) * 100) / 100
+  const iva = Math.round((total - base) * 100) / 100
+  return {
+    fecha: data.fechaEmision || new Date().toISOString().slice(0, 10),
+    concepto: data.emisorReceptor || data.numero || 'Ticket',
+    baseImponible: base,
+    iva,
+    ivaPorcentaje,
+    total,
+    proveedor: data.emisorReceptor || '',
+  }
 }
 
 export default function EscanearTicketPage() {
+  const router = useRouter()
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [modo, setModo] = useState<'idle' | 'camera' | 'capturing' | 'preview' | 'result'>('idle')
@@ -123,6 +124,17 @@ export default function EscanearTicketPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    if (file.size > 5 * 1024 * 1024) {
+      setError('La imagen supera el tamaño máximo de 5MB')
+      e.target.value = ''
+      return
+    }
+    if (file.type && !['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      setError('Formato no soportado. Usa JPG, PNG, WebP o GIF')
+      e.target.value = ''
+      return
+    }
+
     setError(null)
     setModo('capturing')
 
@@ -146,13 +158,50 @@ export default function EscanearTicketPage() {
   const guardarFactura = async () => {
     if (!datos) return
     setGuardando(true)
+    setError(null)
 
-    // Simulated save - in real app, create factura recibida via API
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('No hay sesión iniciada')
 
-    setGuardando(false)
-    setGuardado(true)
-    setModo('result')
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      if (!perfil) throw new Error('No se encontró tu perfil')
+
+      const baseImponible = Math.round(datos.baseImponible * 100)
+      const total = Math.round(datos.total * 100)
+      const { error: insertError } = await supabase.from('facturas').insert({
+        id: crypto.randomUUID(),
+        perfilId: perfil.id,
+        numero: `TICKET-${Date.now()}`,
+        tipo: 'gasto',
+        emisorReceptor: datos.proveedor || datos.concepto,
+        nifContraparte: '',
+        fechaEmision: datos.fecha,
+        fechaVencimiento: null,
+        baseImponible,
+        iva: datos.ivaPorcentaje,
+        total,
+        estado: 'pendiente',
+        categoriaGasto: 'otros',
+        notas: datos.concepto,
+        moneda: 'EUR',
+        tipoCambio: 1,
+        descuentoPorcentaje: 0,
+      })
+      if (insertError) throw new Error(insertError.message)
+
+      setGuardado(true)
+      setModo('result')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error al guardar la factura')
+    } finally {
+      setGuardando(false)
+    }
   }
 
   const reiniciar = () => {
@@ -436,10 +485,16 @@ export default function EscanearTicketPage() {
                   {datos.proveedor} · {formatEuro(datos.total)}
                 </p>
               </div>
-              <Button onClick={reiniciar}>
-                <Camera className="mr-2 h-4 w-4" />
-                Escanear otro ticket
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={reiniciar}>
+                  <Camera className="mr-2 h-4 w-4" />
+                  Escanear otro ticket
+                </Button>
+                <Button variant="outline" onClick={() => router.push('/gestoria/facturas')}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Ver facturas
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -18,7 +18,26 @@ export interface OcrResult {
   modelosSugeridos: ModeloSugeridoOcr[]
 }
 
+/**
+ * Solo se permiten URLs del storage de Supabase del propio proyecto (anti-SSRF).
+ */
+export function esUrlStorageSegura(url: string): boolean {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!base) return false
+  try {
+    const u = new URL(url)
+    const b = new URL(base)
+    return u.origin === b.origin && u.pathname.startsWith('/storage/v1/object/')
+  } catch {
+    return false
+  }
+}
+
 export async function extractInvoiceData(pdfUrl: string): Promise<OcrResult> {
+  if (!esUrlStorageSegura(pdfUrl)) {
+    throw new Error('URL de documento no permitida')
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
     throw new Error('ANTHROPIC_API_KEY no configurada')

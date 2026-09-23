@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Download, Loader2 } from 'lucide-react'
 import { generarPDF } from '@/lib/pdf'
+import { toast } from 'sonner'
 
 interface BotonPDFProps {
   elementId: string
@@ -32,13 +33,20 @@ export function BotonPDF({
       await generarPDF(element, filename, { orientacion })
     } catch (err) {
       console.error('Error generando PDF:', err)
+      toast.error('No se pudo generar el PDF. Inténtalo de nuevo.')
     } finally {
       setGenerando(false)
     }
   }
 
   return (
-    <Button variant={variant} size={size} onClick={handleExport} disabled={generando}>
+    <Button
+      variant={variant}
+      size={size}
+      onClick={handleExport}
+      disabled={generando}
+      data-pdf-exclude="true"
+    >
       {generando ? (
         <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
       ) : (

@@ -12,6 +12,7 @@ import { MOEDAS, formatoMoneda, obtenerTasaCambio } from '@/lib/divisas'
 import { useLanguage } from '@/contexts/language-context'
 
 interface FacturaFormProps {
+  formRef?: React.RefObject<HTMLFormElement | null>
   factura: {
     id: string
     numero: string
@@ -56,6 +57,7 @@ interface FacturaFormProps {
 }
 
 export function FacturaForm({
+  formRef: formRefProp,
   factura,
   categoriaGasto,
   onCategoriaGastoChange,
@@ -84,10 +86,11 @@ export function FacturaForm({
   saving,
 }: FacturaFormProps) {
   const { t } = useLanguage()
-  const formRef = useRef<HTMLFormElement>(null)
+  const internalFormRef = useRef<HTMLFormElement>(null)
+  const formRef = formRefProp ?? internalFormRef
 
   return (
-    <form ref={formRef} onSubmit={onSave} className="space-y-4">
+    <form ref={formRef as React.RefObject<HTMLFormElement>} onSubmit={onSave} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="tipo">{t('facturaDetalle.tipo')}</Label>

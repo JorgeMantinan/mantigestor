@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/client'
 
 const VENCIMIENTO_KEY = 'push_vencimiento_last_check'
 
@@ -23,11 +23,7 @@ export function useVencimientosPush(userId: string | null) {
       try {
         if (Notification.permission !== 'granted') return
 
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-        if (!supabaseUrl || !supabaseKey) return
-
-        const supabase = createClient(supabaseUrl, supabaseKey)
+        const supabase = createClient()
 
         const hoy = new Date()
         const en3Dias = new Date(hoy)

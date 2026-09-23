@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
-import { extractInvoiceData } from '@/lib/ocr'
+import { extractInvoiceData, esUrlStorageSegura } from '@/lib/ocr'
 import { z } from 'zod'
 
 const OcrBodySchema = z.object({
@@ -25,6 +25,10 @@ export async function POST(req: NextRequest) {
     }
 
     const { pdfUrl } = parsed.data
+
+    if (!esUrlStorageSegura(pdfUrl)) {
+      return badRequest('URL de documento no permitida')
+    }
 
     if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json({ error: 'API de IA no configurada' }, { status: 503 })

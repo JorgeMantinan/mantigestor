@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export function generateReferralCode(userId: string): string {
   const hash = userId.split('').reduce((acc, char) => {
@@ -70,7 +71,8 @@ export async function createReferral(
     throw new Error('Ya has invitado a este email')
   }
 
-  const { data: perfilInvitado } = await supabase
+  // Búsqueda por email en otros usuarios → service_role (RLS no permite leer perfiles ajenos)
+  const { data: perfilInvitado } = await createAdminClient()
     .from('perfiles')
     .select('id')
     .eq('email', emailInvitado)

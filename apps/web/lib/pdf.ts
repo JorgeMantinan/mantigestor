@@ -21,6 +21,12 @@ export async function generarPDF(
     useCORS: true,
     logging: false,
     backgroundColor: '#ffffff',
+    onclone: (clonedDoc) => {
+      // Forzar modo claro en el clon (sin flash visible en pantalla)
+      clonedDoc.documentElement.classList.remove('dark')
+      // Excluir elementos marcados (botones, toasts, etc.)
+      clonedDoc.querySelectorAll('[data-pdf-exclude]').forEach(el => el.remove())
+    },
   })
 
   const imgData = canvas.toDataURL('image/png')

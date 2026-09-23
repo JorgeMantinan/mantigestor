@@ -34,24 +34,34 @@ export async function GET(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { perfilId } = await resolvePerfilActivo(req)
+    const { perfilId, esPropio } = await resolvePerfilActivo(req)
 
     const supabase = supabaseDeReq(req)
     let fila: Record<string, unknown> | null = null
-    const porUserId = await supabase
-      .from('perfiles')
-      .select('comunidadFiscal, perfilFiscal, empresas')
-      .eq('userId', user.id)
-      .maybeSingle()
-    fila = porUserId.data
-    if (!fila) {
-      // compatibilidad con filas antiguas creadas con id = userId
-      const porId = await supabase
+    if (!esPropio) {
+      // Gestionando perfil ajeno: leer la fila del perfil activo (RLS da acceso de gestor)
+      const porIdGestionado = await supabase
         .from('perfiles')
         .select('comunidadFiscal, perfilFiscal, empresas')
-        .eq('id', user.id)
+        .eq('id', perfilId)
         .maybeSingle()
-      fila = porId.data
+      fila = porIdGestionado.data
+    } else {
+      const porUserId = await supabase
+        .from('perfiles')
+        .select('comunidadFiscal, perfilFiscal, empresas')
+        .eq('userId', user.id)
+        .maybeSingle()
+      fila = porUserId.data
+      if (!fila) {
+        // compatibilidad con filas antiguas creadas con id = userId
+        const porId = await supabase
+          .from('perfiles')
+          .select('comunidadFiscal, perfilFiscal, empresas')
+          .eq('id', user.id)
+          .maybeSingle()
+        fila = porId.data
+      }
     }
 
     return Response.json({
@@ -83,18 +93,30 @@ export async function PUT(req: NextRequest) {
     const parsed = PerfilFiscalSchema.safeParse(body)
     if (!parsed.success) return badRequest('Datos de perfil fiscal inválidos')
 
-    const { perfilId } = await resolvePerfilActivo(req)
+    const { perfilId, esPropio } = await resolvePerfilActivo(req)
 
     const supabase = supabaseDeReq(req)
-    // Comprobar si existe la fila del usuario para decidir insert vs update (id distinto según el origen)
-    const existentePorUserId = await supabase
-      .from('perfiles')
-      .select('id')
-      .eq('userId', user.id)
-      .maybeSingle()
-    const existente = existentePorUserId.data ?? (
-      await supabase.from('perfiles').select('id').eq('id', user.id).maybeSingle()
-    ).data
+    // Comprobar si existe la fila (insert vs update). En modo gestor se
+    // escribe sobre la fila del perfil activo, no sobre la propia.
+    let existente: { id: string } | null = null
+    if (!esPropio) {
+      const porIdGestionado = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('id', perfilId)
+        .maybeSingle()
+      existente = porIdGestionado.data
+      if (!existente) return badRequest('El perfil gestionado no existe')
+    } else {
+      const existentePorUserId = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .maybeSingle()
+      existente = existentePorUserId.data ?? (
+        await supabase.from('perfiles').select('id').eq('id', user.id).maybeSingle()
+      ).data
+    }
 
     if (existente) {
       const { error } = await supabase
@@ -102,7 +124,7 @@ export async function PUT(req: NextRequest) {
         .update({ ...parsed.data, updatedAt: new Date().toISOString() })
         .eq('id', String(existente.id))
       if (error) throw new Error('No se pudo guardar el perfil fiscal')
-    } else {
+    } else if (esPropio) {
       // Convención RLS de la tabla perfiles: la fila del usuario lleva id = userId
       const ahora = new Date().toISOString()
       const { error } = await supabase

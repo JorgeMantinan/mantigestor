@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useCallback, useEffect, useRef, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,9 +43,20 @@ interface PlantillaFactura {
 }
 
 const TIPOS_IVA = [21, 10, 4, 0] as const
+const TIPOS_IMAGEN_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const TAMANO_MAXIMO_IMAGEN = 5 * 1024 * 1024
 
 export default function NuevaFacturaPage() {
+  return (
+    <Suspense fallback={null}>
+      <NuevaFacturaContenido />
+    </Suspense>
+  )
+}
+
+function NuevaFacturaContenido() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { t } = useLanguage()
   const { empresaActiva } = useEmpresaActiva()
   const { perfilActivoId, personas, esPropio } = usePersonaActiva()
@@ -78,7 +89,19 @@ export default function NuevaFacturaPage() {
 
   const formRef = useRef<HTMLFormElement>(null)
   const speech = useSpeechRecognition()
-  const { parseandoVoz, parsearVoz } = useParsearVoz({ formRef })
+
+  const aplicarResultadoOcr = useCallback((data: OcrResult) => {
+    setModelosSugeridos(data.modelosSugeridos ?? [])
+    if (data.categoriaGasto) setCategoriaGasto(data.categoriaGasto)
+    const campos = rellenarFormularioDesdeOcr(formRef, data)
+    if (campos.tipo === 'ingreso' || campos.tipo === 'gasto') setTipoSeleccionado(campos.tipo)
+    if (campos.baseImponible !== null && !isNaN(campos.baseImponible)) setBaseImponibleValor(campos.baseImponible)
+    if (campos.iva !== null && TIPOS_IVA.includes(campos.iva as (typeof TIPOS_IVA)[number])) setIvaValor(campos.iva)
+    setOcrUsado(true)
+    setValidacionOcr(validarFactura(data))
+  }, [])
+
+  const { parseandoVoz, parsearVoz } = useParsearVoz({ formRef, onParsed: aplicarResultadoOcr })
 
   const getSupabase = useCallback(() => createClient(), [])
 
@@ -110,6 +133,33 @@ export default function NuevaFacturaPage() {
         if (data) setPlantillas(data as PlantillaFactura[])
       })
   }, [getSupabase, userId])
+
+  // Pre-relleno desde OCR en lote (?numero=...&emisorReceptor=...)
+  useEffect(() => {
+    if (!searchParams.get('numero') && !searchParams.get('emisorReceptor')) return
+    const get = (k: string) => searchParams.get(k)
+    const setField = (name: string, value: string) => {
+      const el = formRef.current?.elements.namedItem(name)
+      if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) el.value = value
+    }
+    const tipo = get('tipo')
+    if (tipo === 'ingreso' || tipo === 'gasto') setTipoSeleccionado(tipo)
+    const cat = get('categoriaGasto')
+    if (cat) setCategoriaGasto(cat)
+    const base = get('baseImponible')
+    if (base) setBaseImponibleValor(parseFloat(base) || 0)
+    const iva = get('iva')
+    if (iva) {
+      const v = parseInt(iva, 10)
+      if (TIPOS_IVA.includes(v as (typeof TIPOS_IVA)[number])) setIvaValor(v)
+    }
+    if (get('numero')) setField('numero', get('numero')!)
+    if (get('emisorReceptor')) setField('emisorReceptor', get('emisorReceptor')!)
+    if (get('nifContraparte')) setField('nifContraparte', get('nifContraparte')!)
+    if (get('fechaEmision')) setField('fechaEmision', get('fechaEmision')!)
+    setOcrUsado(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
 
   async function guardarPlantilla() {
     if (!userId || !nombrePlantilla.trim() || !formRef.current) return
@@ -158,17 +208,16 @@ export default function NuevaFacturaPage() {
   function cargarPlantilla(p: PlantillaFactura) {
     setTipoSeleccionado(p.tipo)
     if (p.categoriaGasto) setCategoriaGasto(p.categoriaGasto)
+    setBaseImponibleValor(p.baseImponible / 100)
+    if (TIPOS_IVA.includes(p.iva as (typeof TIPOS_IVA)[number])) setIvaValor(p.iva)
     const setField = (name: string, value: string) => {
       const el = formRef.current?.elements.namedItem(name)
       if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement) {
         el.value = value
       }
     }
-    setField('tipo', p.tipo)
     setField('emisorReceptor', p.emisorReceptor)
     setField('nifContraparte', p.nifContraparte ?? '')
-    setField('baseImponible', String(p.baseImponible / 100))
-    setField('iva', String(p.iva))
   }
 
   async function escanearFactura() {
@@ -187,20 +236,27 @@ export default function NuevaFacturaPage() {
         return
       }
       const data: OcrResult = await res.json()
-      setModelosSugeridos(data.modelosSugeridos ?? [])
-      if (data.categoriaGasto) setCategoriaGasto(data.categoriaGasto)
-      rellenarFormularioDesdeOcr(formRef, data)
-      setOcrUsado(true)
-      setValidacionOcr(validarFactura(data))
+      aplicarResultadoOcr(data)
     } catch {
       setError(t('facturaNueva.errorOcrServicio'))
+    } finally {
+      setEscanendo(false)
     }
-    setEscanendo(false)
   }
 
   async function escanearImagen(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
+    if (file.size > TAMANO_MAXIMO_IMAGEN) {
+      setError('La imagen supera el tamaño máximo de 5MB')
+      event.target.value = ''
+      return
+    }
+    if (file.type && !TIPOS_IMAGEN_PERMITIDOS.includes(file.type)) {
+      setError('Formato no soportado. Usa JPG, PNG, WebP o GIF')
+      event.target.value = ''
+      return
+    }
     setEscaneandoImagen(true)
     setError('')
     try {
@@ -221,16 +277,13 @@ export default function NuevaFacturaPage() {
         return
       }
       const data: OcrResult = await res.json()
-      setModelosSugeridos(data.modelosSugeridos ?? [])
-      if (data.categoriaGasto) setCategoriaGasto(data.categoriaGasto)
-      rellenarFormularioDesdeOcr(formRef, data)
-      setOcrUsado(true)
-      setValidacionOcr(validarFactura(data))
+      aplicarResultadoOcr(data)
     } catch {
       setError(t('facturaNueva.errorOcrServicio'))
+    } finally {
+      setEscaneandoImagen(false)
+      event.target.value = ''
     }
-    setEscaneandoImagen(false)
-    event.target.value = ''
   }
 
   function handleParsearVoz() {
@@ -685,8 +738,23 @@ export default function NuevaFacturaPage() {
         <ValidacionOcr
           resultado={validacionOcr}
           onCorregir={(campo, sugerencia) => {
+            if (!sugerencia) return
+            if (campo === 'tipo') {
+              if (sugerencia === 'ingreso' || sugerencia === 'gasto') setTipoSeleccionado(sugerencia)
+              return
+            }
+            if (campo === 'baseImponible') {
+              const v = parseFloat(sugerencia)
+              if (!isNaN(v)) setBaseImponibleValor(v)
+              return
+            }
+            if (campo === 'iva') {
+              const v = parseInt(sugerencia, 10)
+              if (TIPOS_IVA.includes(v as (typeof TIPOS_IVA)[number])) setIvaValor(v)
+              return
+            }
             const input = formRef.current?.elements.namedItem(campo) as HTMLInputElement | null
-            if (input && sugerencia) {
+            if (input) {
               input.value = sugerencia
               input.focus()
             }

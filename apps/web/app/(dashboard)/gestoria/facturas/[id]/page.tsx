@@ -517,6 +517,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
         <CardContent>
           {editing ? (
             <FacturaForm
+              formRef={formRef}
               factura={factura}
               categoriaGasto={categoriaGasto}
               onCategoriaGastoChange={setCategoriaGasto}

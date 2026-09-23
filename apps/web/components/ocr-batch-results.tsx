@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -95,7 +95,8 @@ export function OcrBatchResults({ resultados }: OcrBatchResultsProps) {
               const tieneAdvertencias = validacion && validacion.advertencias.length > 0
 
               return (
-                <tr key={i} className="border-b last:border-0">
+                <Fragment key={i}>
+                <tr className="border-b">
                   <td className="px-3 py-2 font-medium truncate max-w-[200px]" title={r.nombre}>
                     {r.nombre}
                   </td>
@@ -154,35 +155,36 @@ export function OcrBatchResults({ resultados }: OcrBatchResultsProps) {
                       <td className="px-3 py-2 text-center">-</td>
                     </>
                   )}
-                  {r.resultado && expandido === i && (
-                    <tr>
-                      <td colSpan={7} className="px-3 py-2 bg-muted/30">
-                        <ValidacionOcr resultado={validacion!} compact={false} onCorregir={(campo, sugerencia) => {
-                          if (!r.resultado || !sugerencia) return
-                          const mapping: Record<string, keyof OcrData> = {
-                            numero: 'numero',
-                            emisorReceptor: 'emisorReceptor',
-                            nifContraparte: 'nifContraparte',
-                            fechaEmision: 'fechaEmision',
-                            baseImponible: 'baseImponible',
-                            iva: 'iva',
-                            total: 'total',
-                            tipo: 'tipo',
-                          }
-                          const key = mapping[campo]
-                          if (key) {
-                            const resultado = r.resultado as unknown as Record<string, string | number | boolean | null | undefined>
-                            resultado[key] = key === 'baseImponible' || key === 'iva' || key === 'total'
-                              ? Number(sugerencia)
-                              : sugerencia
-                          }
-                          setExpandido(null)
-                          setExpandido(i)
-                        }} />
-                      </td>
-                    </tr>
-                  )}
                 </tr>
+                {r.resultado && expandido === i && (
+                  <tr className="border-b last:border-0">
+                    <td colSpan={7} className="px-3 py-2 bg-muted/30">
+                      <ValidacionOcr resultado={validacion!} compact={false} onCorregir={(campo, sugerencia) => {
+                        if (!r.resultado || !sugerencia) return
+                        const mapping: Record<string, keyof OcrData> = {
+                          numero: 'numero',
+                          emisorReceptor: 'emisorReceptor',
+                          nifContraparte: 'nifContraparte',
+                          fechaEmision: 'fechaEmision',
+                          baseImponible: 'baseImponible',
+                          iva: 'iva',
+                          total: 'total',
+                          tipo: 'tipo',
+                        }
+                        const key = mapping[campo]
+                        if (key) {
+                          const resultado = r.resultado as unknown as Record<string, string | number | boolean | null | undefined>
+                          resultado[key] = key === 'baseImponible' || key === 'iva' || key === 'total'
+                            ? Number(sugerencia)
+                            : sugerencia
+                        }
+                        setExpandido(null)
+                        setExpandido(i)
+                      }} />
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               )
             })}
           </tbody>
