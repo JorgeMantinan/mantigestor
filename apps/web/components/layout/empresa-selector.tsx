@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 export function EmpresaSelector() {
-  const { empresaActiva, empresas, cargando, seleccionarEmpresa, crearEmpresa } = useEmpresaActiva()
+  const { empresaActiva, empresas, seleccionarEmpresa, crearEmpresa } = useEmpresaActiva()
   const { t } = useLanguage()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [nuevaNombre, setNuevaNombre] = useState('')
@@ -33,8 +33,6 @@ export function EmpresaSelector() {
   const [nuevaDireccion, setNuevaDireccion] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
-
-  if (cargando) return null
 
   const handleCrear = async () => {
     setGuardando(true)

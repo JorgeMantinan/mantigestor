@@ -162,18 +162,26 @@ export function HeaderAlertasIVA() {
     })
   }, [facturas])
 
-  if (cargando || alertas.length === 0) return null
+  if (cargando || alertas.length === 0) {
+    return (
+      <Button variant="ghost" className="relative h-8 w-8" disabled aria-label="Alertas IVA">
+        <Receipt className="h-5 w-5 opacity-50" aria-hidden="true" />
+      </Button>
+    )
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8" aria-label={`Alertas IVA${alertas.length > 0 ? ` (${alertas.length})` : ''}`}>
+        <Button
+          variant="ghost"
+          className="relative h-8 w-8"
+          aria-label={`Alertas IVA (${alertas.length})`}
+        >
           <Receipt className="h-5 w-5" aria-hidden="true" />
-          {alertas.length > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
-              {alertas.length > 9 ? '9+' : alertas.length}
-            </span>
-          )}
+          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
+            {alertas.length > 9 ? '9+' : alertas.length}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[320px] max-h-[400px] overflow-y-auto" align="end" forceMount>

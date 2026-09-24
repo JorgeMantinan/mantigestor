@@ -26,7 +26,7 @@ import { Label } from '@/components/ui/label'
 import { useLanguage } from '@/contexts/language-context'
 
 export function PersonaSelector() {
-  const { perfilActivoId, personas, cargando, setPerfilActivo, esPropio } = usePersonaActiva()
+  const { perfilActivoId, personas, setPerfilActivo, esPropio } = usePersonaActiva()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [nuevoEmail, setNuevoEmail] = useState('')
   const [nuevoNombre, setNuevoNombre] = useState('')
@@ -36,8 +36,6 @@ export function PersonaSelector() {
   const [invitationLink, setInvitationLink] = useState('')
   const [invitationSent, setInvitationSent] = useState(false)
   const { t } = useLanguage()
-
-  if (cargando) return null
 
   const personaActiva = personas.find(p => p.perfilId === perfilActivoId)
 

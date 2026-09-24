@@ -355,61 +355,63 @@ export default function DashboardPage() {
       {/* Saludo + acciones rápidas */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-bold tracking-tight">
+          <h1 className="text-2xl font-heading font-bold tracking-tight sm:text-3xl">
             {saludo}{nombre ? `, ${nombre}` : ''}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:text-base">
             {t('dashboard.subtitulo')}
             {!esPropio && ` · ${t('dashboard.gestionandoOtraPersona')}`}
             {lastUpdated && ` · ${t('dashboard.ultimaActualizacion')}: ${lastUpdated.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" className="h-8 w-8"
-            onClick={() => setSelectedYear(y => y - 1)} aria-label={t('dashboard.anoAnterior')}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm font-medium min-w-[4rem] text-center">{selectedYear}</span>
-          <Button variant="outline" size="icon" className="h-8 w-8"
-            onClick={() => setSelectedYear(y => y + 1)} aria-label={t('dashboard.anoSiguiente')}
-            disabled={selectedYear >= new Date().getFullYear()}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            className="h-8 rounded border border-input bg-background px-2 text-xs"
-            aria-label={t('dashboard.filtrarMes')}
-          >
-            <option value={0}>{t('dashboard.todosLosMeses')}</option>
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                {new Date(2024, i).toLocaleDateString('es-ES', { month: 'long' })}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/gestoria/facturas/nueva">
-            <Button size="sm">
-              <Plus className="mr-1.5 h-4 w-4" /> {t('dashboard.nuevaFactura')} <Kbd className="ml-2">Ctrl+N</Kbd>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0"
+              onClick={() => setSelectedYear(y => y - 1)} aria-label={t('dashboard.anoAnterior')}>
+              <ChevronLeft className="h-4 w-4" />
             </Button>
-          </Link>
-          <Link href="/dashboard/cashflow">
-            <Button variant="outline" size="sm">
-              <Wallet className="mr-1.5 h-4 w-4" /> Flujo de caja
+            <span className="text-sm font-medium min-w-[4rem] text-center">{selectedYear}</span>
+            <Button variant="outline" size="icon" className="h-8 w-8 shrink-0"
+              onClick={() => setSelectedYear(y => y + 1)} aria-label={t('dashboard.anoSiguiente')}
+              disabled={selectedYear >= new Date().getFullYear()}>
+              <ChevronRight className="h-4 w-4" />
             </Button>
-          </Link>
-          <Link href="/fiscal">
-            <Button variant="outline" size="sm">
-              <Calculator className="mr-1.5 h-4 w-4" /> {t('dashboard.calculadoras')}
-            </Button>
-          </Link>
-          <Link href="/gestoria/facturas">
-            <Button variant="outline" size="sm">
-              <FileText className="mr-1.5 h-4 w-4" /> {t('facturas.titulo')} <Kbd className="ml-2">/</Kbd>
-            </Button>
-          </Link>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              className="h-8 rounded border border-input bg-background px-2 text-xs"
+              aria-label={t('dashboard.filtrarMes')}
+            >
+              <option value={0}>{t('dashboard.todosLosMeses')}</option>
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {new Date(2024, i).toLocaleDateString('es-ES', { month: 'long' })}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/gestoria/facturas/nueva">
+              <Button size="sm">
+                <Plus className="mr-1.5 h-4 w-4" /> {t('dashboard.nuevaFactura')} <Kbd className="ml-2 hidden sm:inline-flex">Ctrl+N</Kbd>
+              </Button>
+            </Link>
+            <Link href="/dashboard/cashflow">
+              <Button variant="outline" size="sm">
+                <Wallet className="mr-1.5 h-4 w-4" /> Flujo de caja
+              </Button>
+            </Link>
+            <Link href="/fiscal">
+              <Button variant="outline" size="sm">
+                <Calculator className="mr-1.5 h-4 w-4" /> {t('dashboard.calculadoras')}
+              </Button>
+            </Link>
+            <Link href="/gestoria/facturas">
+              <Button variant="outline" size="sm">
+                <FileText className="mr-1.5 h-4 w-4" /> {t('facturas.titulo')} <Kbd className="ml-2 hidden sm:inline-flex">/</Kbd>
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
