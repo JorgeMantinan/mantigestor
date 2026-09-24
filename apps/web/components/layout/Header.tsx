@@ -33,10 +33,8 @@ export function Header() {
   }
 
   return (
-    <header className="flex h-14 items-center gap-2 border-b bg-background px-4 sm:gap-4 sm:px-6">
-      <div className="min-w-9 flex-1 sm:min-w-0" />
-
-      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+    <header className="flex h-14 items-center gap-2 border-b bg-background px-14 sm:gap-4 sm:px-6">
+      <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5 sm:gap-2">
         {user && <SearchTrigger />}
         {user && <LanguageSwitcher />}
         {user && <EmpresaSelector />}
@@ -46,7 +44,7 @@ export function Header() {
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Button variant="ghost" className="relative h-8 w-8 shrink-0 rounded-full text-muted-foreground">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback>
                     {user.email?.charAt(0).toUpperCase() ?? 'U'}

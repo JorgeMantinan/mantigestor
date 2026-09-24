@@ -26,10 +26,9 @@ export function SearchTrigger({ collapsed = false }: { collapsed?: boolean }) {
     <>
       <Button
         variant="outline"
-        size={collapsed ? 'icon' : 'default'}
         className={cn(
-          'text-muted-foreground hover:text-foreground',
-          collapsed ? 'h-10 w-10 mx-auto' : 'justify-start gap-2 px-2 sm:px-3 sm:w-full'
+          'h-8 w-8 shrink-0 p-0 text-muted-foreground hover:text-foreground sm:h-9 sm:w-auto sm:px-3 sm:py-2',
+          collapsed && 'h-10 w-10 mx-auto'
         )}
         onClick={handleOpen}
         aria-label="Búsqueda global (Ctrl+K)"
@@ -38,7 +37,7 @@ export function SearchTrigger({ collapsed = false }: { collapsed?: boolean }) {
         {!collapsed && (
           <>
             <span className="hidden flex-1 text-left text-sm sm:inline">Buscar...</span>
-            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 lg:flex">
               <span className="text-xs">Ctrl</span>
               <span className="text-xs">K</span>
             </kbd>

@@ -25,12 +25,12 @@ export function LanguageSwitcher() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+        className="flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
         aria-label="Cambiar idioma"
         aria-expanded={open}
       >
         <Globe className="h-4 w-4" aria-hidden="true" />
-        <span className="text-xs font-medium">{LABELS[idioma]}</span>
+        <span className="hidden text-xs font-medium sm:inline">{LABELS[idioma]}</span>
       </button>
       {open && (
         <div className="absolute right-0 top-full z-50 mt-1 w-36 rounded-md border bg-popover p-1 shadow-md">

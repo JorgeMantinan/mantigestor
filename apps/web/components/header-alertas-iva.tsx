@@ -164,8 +164,8 @@ export function HeaderAlertasIVA() {
 
   if (cargando || alertas.length === 0) {
     return (
-      <Button variant="ghost" className="relative h-8 w-8" disabled aria-label="Alertas IVA">
-        <Receipt className="h-5 w-5 opacity-50" aria-hidden="true" />
+      <Button variant="ghost" className="relative h-8 w-8 shrink-0 text-muted-foreground" disabled aria-label="Alertas IVA">
+        <Receipt className="h-5 w-5" aria-hidden="true" />
       </Button>
     )
   }
@@ -175,7 +175,7 @@ export function HeaderAlertasIVA() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative h-8 w-8"
+          className="relative h-8 w-8 shrink-0"
           aria-label={`Alertas IVA (${alertas.length})`}
         >
           <Receipt className="h-5 w-5" aria-hidden="true" />

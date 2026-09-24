@@ -84,12 +84,12 @@ export function PersonaSelector() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-2 text-xs">
-            <Users className="h-3.5 w-3.5" />
-            <span className="hidden max-w-[12ch] truncate sm:inline">
+          <Button variant="ghost" className="h-8 shrink-0 gap-2 px-2 text-xs text-muted-foreground sm:px-3" aria-label={esPropio ? t('personaSelector.miPerfil') : (personaActiva?.nombre ?? personaActiva?.email ?? t('personaSelector.otraPersona'))}>
+            <Users className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="hidden max-w-[12ch] truncate lg:inline">
               {esPropio ? t('personaSelector.miPerfil') : (personaActiva?.nombre ?? personaActiva?.email ?? t('personaSelector.otraPersona'))}
             </span>
-            {!esPropio && <Badge variant="secondary" className="ml-1 hidden text-[10px] px-1 sm:inline-flex">{t('personaSelector.gestor')}</Badge>}
+            {!esPropio && <Badge variant="secondary" className="ml-1 hidden text-[10px] px-1 lg:inline-flex">{t('personaSelector.gestor')}</Badge>}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">

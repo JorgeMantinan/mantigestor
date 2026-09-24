@@ -58,9 +58,9 @@ export function EmpresaSelector() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-2 text-xs">
-            <Building2 className="h-3.5 w-3.5" />
-            <span className="hidden max-w-[14ch] truncate sm:inline">
+          <Button variant="ghost" className="h-8 shrink-0 gap-2 px-2 text-xs text-muted-foreground sm:px-3" aria-label={empresaActiva?.nombre ?? t('empresa.miEmpresa')}>
+            <Building2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="hidden max-w-[14ch] truncate lg:inline">
               {empresaActiva?.nombre ?? t('empresa.miEmpresa')}
             </span>
           </Button>
