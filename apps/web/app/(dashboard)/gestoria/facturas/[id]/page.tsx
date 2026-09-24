@@ -25,6 +25,7 @@ import { parsearTags, serializarTags, obtenerColorTag, obtenerNombreTag } from '
 import { obtenerPlantillas, renderPlantilla } from '@/lib/plantillas-email'
 import { calcularDescuento, formatoDescuento } from '@/lib/descuento-factura'
 import { useLanguage } from '@/contexts/language-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { crearRectificativa, obtenerRectificativas, calcularImporteMaximo, esNotaCredito, esNotaDebito, type RectificativaData, type TipoRectificativa } from '@/lib/rectificativa'
 import { obtenerPagos, calcularSaldoPendiente, registrarPago, METODOS_PAGO, type PagoParcial } from '@/lib/pago-parcial'
 import { FacturaHeader } from '@/components/facturas/factura-header'
@@ -56,6 +57,7 @@ interface Factura {
 export default function FacturaDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { t } = useLanguage()
+  const { perfilActivoId } = usePersonaActiva()
   const [factura, setFactura] = useState<Factura | null>(null)
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -107,11 +109,12 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
     const fetchFactura = async () => {
       const { data: { user } } = await getSupabase().auth.getUser()
       if (!user) { setLoading(false); return }
+      const perfilId = perfilActivoId ?? user.id
       const { data } = await getSupabase()
         .from('facturas')
         .select('*')
         .eq('id', params.id)
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilId)
         .single()
       if (data) {
         setFactura(data as Factura)
@@ -127,13 +130,13 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       const { data: perfilData } = await getSupabase()
         .from('perfiles')
         .select('nombre, email, empresa_nombre, empresa_nif, empresa_direccion, logoBase64, firmaBase64, idiomaFactura')
-        .eq('userId', user.id)
+        .eq('id', perfilId)
         .single()
       if (perfilData) setPerfil(perfilData)
       setLoading(false)
     }
     fetchFactura()
-  }, [params.id, getSupabase])
+  }, [params.id, getSupabase, perfilActivoId])
 
   useEffect(() => {
     if (!factura) return
@@ -159,14 +162,14 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       const { data: { user } } = await getSupabase().auth.getUser()
       if (!user) return
       setCargandoRectificativas(true)
-      const result = await obtenerRectificativas(user.id, factura.numero)
+      const result = await obtenerRectificativas(perfilActivoId ?? user.id, factura.numero)
       if (result.ok && result.data) {
         setRectificativas(result.data)
       }
       setCargandoRectificativas(false)
     }
     fetchRectificativas()
-  }, [factura, getSupabase])
+  }, [factura, getSupabase, perfilActivoId])
 
   useEffect(() => {
     if (!mostrarTagsDropdown) return

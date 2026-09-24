@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/contexts/language-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { BarChart3, Download, Printer } from 'lucide-react'
@@ -44,6 +45,7 @@ function indiceTrimestre(fechaEmision: string): number {
 
 export default function TrimestresPage() {
   const { t } = useLanguage()
+  const { perfilActivoId } = usePersonaActiva()
   const anhoActual = new Date().getFullYear()
   const [anho, setAnho] = useState(anhoActual)
   const [selectedTrimestre, setSelectedTrimestre] = useState(
@@ -67,7 +69,7 @@ export default function TrimestresPage() {
       const { data: facturas, error: errFacturas } = await getSupabase()
         .from('facturas')
         .select('*')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilActivoId ?? user.id)
         .gte('fechaEmision', desde)
         .lt('fechaEmision', hasta)
 
@@ -93,7 +95,7 @@ export default function TrimestresPage() {
       const { data: nominasEmp } = await getSupabase()
         .from('nominas')
         .select('salarioBruto, irpf, mes')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilActivoId ?? user.id)
         .eq('rol', 'empleado')
         .eq('anyo', anho)
 
@@ -121,7 +123,7 @@ export default function TrimestresPage() {
     } finally {
       setLoading(false)
     }
-  }, [anho, getSupabase])
+  }, [anho, getSupabase, perfilActivoId])
 
   useEffect(() => {
     void calcular()

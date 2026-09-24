@@ -9,6 +9,7 @@ import { ArrowUpRight, Landmark, Clock, AlertTriangle, CheckCircle, TrendingUp }
 import { toast, Toaster } from 'sonner'
 import { formatoMoneda } from '@/lib/divisas'
 import { logAccion } from '@/lib/audit-log'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 interface Factura {
   id: string
@@ -122,6 +123,7 @@ function textoBadge(fechaVencimiento: string | null, estado: string): string {
 }
 
 export default function KanbanCobrosPage() {
+  const { perfilActivoId } = usePersonaActiva()
   const [facturas, setFacturas] = useState<Factura[]>([])
   const [loading, setLoading] = useState(true)
   const [dragId, setDragId] = useState<string | null>(null)
@@ -135,12 +137,12 @@ export default function KanbanCobrosPage() {
     const { data, error } = await supabase
       .from('facturas')
       .select('*')
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilActivoId ?? user.id)
       .eq('tipo', 'ingreso')
       .order('fechaEmision', { ascending: false })
     if (!error && data) setFacturas(data as Factura[])
     setLoading(false)
-  }, [])
+  }, [perfilActivoId])
 
   useEffect(() => { fetchFacturas() }, [fetchFacturas])
 

@@ -18,13 +18,14 @@ interface Props {
   rolDefecto: 'jefe' | 'empleado'
   anyoFiltro: number
   userId: string | null
+  perfilId?: string
   guardando: boolean
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   onCancel: () => void
   onUploadComplete: (url: string) => void
 }
 
-export function NominaForm({ rolDefecto, anyoFiltro, userId, guardando, onSubmit, onCancel, onUploadComplete }: Props) {
+export function NominaForm({ rolDefecto, anyoFiltro, userId, perfilId, guardando, onSubmit, onCancel, onUploadComplete }: Props) {
   const [calcularAuto, setCalcularAuto] = useState(false)
   const [preview, setPreview] = useState<ReturnType<typeof calcularNomina> | null>(null)
   const { t } = useLanguage()
@@ -162,8 +163,9 @@ export function NominaForm({ rolDefecto, anyoFiltro, userId, guardando, onSubmit
 
           <FileUpload
             bucket="documentos"
-            path={userId ?? ''}
+            path={perfilId ?? userId ?? ''}
             tipo="nomina"
+            perfilId={perfilId ?? undefined}
             accept=".pdf"
             buttonText={t('nominaForm.subirPdf')}
             onUploadComplete={onUploadComplete}

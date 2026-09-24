@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 interface Notificacion {
   id: string
@@ -15,6 +16,7 @@ export function useNotifications() {
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([])
   const [noLeidas, setNoLeidas] = useState(0)
   const [cargando, setCargando] = useState(true)
+  const { perfilActivoId } = usePersonaActiva()
 
   const fetchNotificaciones = useCallback(async () => {
     const supabase = createClient()
@@ -24,13 +26,17 @@ export function useNotifications() {
       return
     }
 
-    const { data: perfil } = await supabase
-      .from('perfiles')
-      .select('id')
-      .eq('userId', user.id)
-      .single()
+    let perfilId = perfilActivoId
+    if (!perfilId) {
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      perfilId = perfil?.id ?? null
+    }
 
-    if (!perfil) {
+    if (!perfilId) {
       setCargando(false)
       return
     }
@@ -38,7 +44,7 @@ export function useNotifications() {
     const { data } = await supabase
       .from('notificaciones')
       .select('*')
-      .eq('perfilId', perfil.id)
+      .eq('perfilId', perfilId)
       .order('creadoEn', { ascending: false })
 
     if (data) {
@@ -46,7 +52,7 @@ export function useNotifications() {
       setNoLeidas(data.filter((n) => !n.leido).length)
     }
     setCargando(false)
-  }, [])
+  }, [perfilActivoId])
 
   useEffect(() => {
     fetchNotificaciones()
@@ -66,23 +72,27 @@ export function useNotifications() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const { data: perfil } = await supabase
-      .from('perfiles')
-      .select('id')
-      .eq('userId', user.id)
-      .single()
+    let perfilId = perfilActivoId
+    if (!perfilId) {
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single()
+      perfilId = perfil?.id ?? null
+    }
 
-    if (!perfil) return
+    if (!perfilId) return
 
     await supabase
       .from('notificaciones')
       .update({ leido: true })
-      .eq('perfilId', perfil.id)
+      .eq('perfilId', perfilId)
       .eq('leido', false)
 
     setNotificaciones((prev) => prev.map((n) => ({ ...n, leido: true })))
     setNoLeidas(0)
-  }, [])
+  }, [perfilActivoId])
 
   return { notificaciones, noLeidas, cargando, markAsRead, markAllAsRead }
 }

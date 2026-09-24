@@ -74,7 +74,7 @@ export default function AlquilerPage() {
     let query = getSupabase()
       .from('propiedades_alquiler')
       .select('*, gastos_alquiler(*)')
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilActivoId ?? user.id)
       .order('createdAt', { ascending: false })
     if (empresaActiva?.id) {
       query = query.eq('empresaId', empresaActiva.id)
@@ -101,7 +101,7 @@ export default function AlquilerPage() {
       })),
     })))
     setCargando(false)
-  }, [getSupabase, empresaActiva?.id])
+  }, [getSupabase, empresaActiva?.id, perfilActivoId])
 
   useEffect(() => { cargar() }, [cargar])
 
@@ -157,12 +157,9 @@ export default function AlquilerPage() {
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) { setGuardando(false); return }
 
-    const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
-    if (!perfil) { setGuardando(false); return }
-
     const { data, error } = await getSupabase().from('propiedades_alquiler').insert({
       id: crypto.randomUUID(),
-      perfilId: perfil.id,
+      perfilId: perfilActivoId ?? user.id,
       direccion: (form.get('direccion') as string)?.trim(),
       ingresos: Math.round(parseFloat(form.get('ingresos') as string || '0') * 100),
       inquilinoNombre: (form.get('inquilinoNombre') as string)?.trim() || null,

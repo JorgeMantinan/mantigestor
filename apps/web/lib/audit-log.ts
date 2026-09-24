@@ -16,6 +16,10 @@ export async function logAccion(
     const supabase = createClient()
 
     let perfilId = perfilIdExplicit
+    if (!perfilId && typeof document !== 'undefined') {
+      const match = document.cookie.match(/perfilActivoId=([^;]+)/)
+      if (match?.[1]) perfilId = match[1]
+    }
     if (!perfilId) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return

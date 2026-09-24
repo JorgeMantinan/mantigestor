@@ -12,6 +12,7 @@ interface FileUploadProps {
   bucket: string
   path: string
   tipo: string
+  perfilId?: string
   accept?: string
   maxSizeMB?: number
   onUploadComplete?: (url: string, nombre: string) => void
@@ -33,6 +34,7 @@ export function FileUpload({
   bucket,
   path,
   tipo,
+  perfilId,
   accept = '.pdf,.doc,.docx,.txt,.md,.jpg,.png',
   maxSizeMB = 50,
   onUploadComplete,
@@ -145,13 +147,14 @@ export function FileUpload({
 
       const { data: userData } = await supabase.auth.getUser()
       const userId = userData?.user?.id
+      const perfilDestino = perfilId ?? userId
 
-      if (userId) {
+      if (perfilDestino) {
         const { error: dbError } = await supabase
           .from('documentos')
           .insert({
             id: crypto.randomUUID(),
-            perfilId: userId,
+            perfilId: perfilDestino,
             tipo,
             nombre: file.name,
             tamanoBytes: file.size,

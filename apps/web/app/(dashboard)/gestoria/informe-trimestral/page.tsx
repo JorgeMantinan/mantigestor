@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { FileText, Download, TrendingUp, TrendingDown, Calculator } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useLanguage } from '@/contexts/language-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 interface Factura {
   fechaEmision: string
@@ -35,6 +36,7 @@ export default function InformeTrimestralPage() {
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
+  const { perfilActivoId } = usePersonaActiva()
 
   useEffect(() => {
     const cargar = async () => {
@@ -44,14 +46,14 @@ export default function InformeTrimestralPage() {
       const { data } = await getSupabase()
         .from('facturas')
         .select('fechaEmision, tipo, baseImponible, iva, total, estado, categoriaGasto')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilActivoId ?? user.id)
         .gte('fechaEmision', `${anyo}-01-01`)
         .lt('fechaEmision', `${anyo + 1}-01-01`)
       if (data) setFacturas(data as Factura[])
       setCargando(false)
     }
     cargar()
-  }, [getSupabase, anyo])
+  }, [getSupabase, anyo, perfilActivoId])
 
   const calcularTrimestre = (q: number): ResumenTrimestre => {
     const inicio = new Date(anyo, q * 3, 1)

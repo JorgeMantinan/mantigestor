@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -65,6 +66,7 @@ async function extraerDatosOCR(imagenBase64: string): Promise<TicketData> {
 
 export default function EscanearTicketPage() {
   const router = useRouter()
+  const { perfilActivoId } = usePersonaActiva()
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [modo, setModo] = useState<'idle' | 'camera' | 'capturing' | 'preview' | 'result'>('idle')
@@ -165,18 +167,11 @@ export default function EscanearTicketPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No hay sesión iniciada')
 
-      const { data: perfil } = await supabase
-        .from('perfiles')
-        .select('id')
-        .eq('userId', user.id)
-        .single()
-      if (!perfil) throw new Error('No se encontró tu perfil')
-
       const baseImponible = Math.round(datos.baseImponible * 100)
       const total = Math.round(datos.total * 100)
       const { error: insertError } = await supabase.from('facturas').insert({
         id: crypto.randomUUID(),
-        perfilId: perfil.id,
+        perfilId: perfilActivoId ?? user.id,
         numero: `TICKET-${Date.now()}`,
         tipo: 'gasto',
         emisorReceptor: datos.proveedor || datos.concepto,

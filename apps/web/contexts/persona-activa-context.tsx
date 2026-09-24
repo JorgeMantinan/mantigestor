@@ -32,15 +32,15 @@ const PersonaActivaContext = createContext<PersonaActivaState>({
 export function PersonaActivaProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const router = useRouter()
-  const [perfilActivoId, setPerfilActivoState] = useState<string | null>(() => {
-    if (typeof window !== 'undefined') {
-      const match = document.cookie.match(/perfilActivoId=([^;]+)/)
-      return match?.[1] ?? null
-    }
-    return null
-  })
+  const [perfilActivoId, setPerfilActivoState] = useState<string | null>(null)
   const [personas, setPersonas] = useState<PersonaAsociada[]>([])
   const [cargando, setCargando] = useState(true)
+
+  // Leer cookie de persona activa tras la hidratación (evita mismatch SSR/cliente)
+  useEffect(() => {
+    const match = document.cookie.match(/perfilActivoId=([^;]+)/)
+    setPerfilActivoState(match?.[1] ?? null)
+  }, [])
 
   // Cargar personas asociadas
   useEffect(() => {

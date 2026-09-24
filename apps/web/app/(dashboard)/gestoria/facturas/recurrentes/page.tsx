@@ -19,9 +19,11 @@ import { useLanguage } from '@/contexts/language-context'
 import { PlantillaCard } from '@/components/facturas/plantilla-card'
 import { PlantillaFormDialog, type PlantillaFormData } from '@/components/facturas/plantilla-form-dialog'
 import { type FacturaRecurrente, type PerfilEmpresa, type Attachment, parseAttachments, serializarNotasConAttachments, serializarNotasData, type NotasData, parseTriggerConfig } from '@/components/facturas/types-recurrentes'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 export default function FacturasRecurrentesPage() {
   const { t } = useLanguage()
+  const { perfilActivoId } = usePersonaActiva()
   const [plantillas, setPlantillas] = useState<FacturaRecurrente[]>([])
   const [loading, setLoading] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -76,17 +78,18 @@ export default function FacturasRecurrentesPage() {
   const fetchPlantillas = useCallback(async () => {
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) { setLoading(false); return }
+    const perfilBuscado = perfilActivoId ?? user.id
 
     const [plantillasRes, perfilRes] = await Promise.all([
       getSupabase()
         .from('facturas_recurrentes')
         .select('*')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilBuscado)
         .order('createdAt', { ascending: false }),
       getSupabase()
         .from('perfiles')
         .select('nombre, empresa_nombre, empresa_nif, empresa_direccion, notasPie, logoBase64, firmaBase64, idiomaFactura')
-        .eq('userId', user.id)
+        .eq('id', perfilBuscado)
         .single(),
     ])
 
@@ -97,7 +100,7 @@ export default function FacturasRecurrentesPage() {
     setPlantillas(ordered)
     if (perfilRes.data) setPerfil(perfilRes.data as PerfilEmpresa)
     setLoading(false)
-  }, [getSupabase])
+  }, [getSupabase, perfilActivoId])
 
   useEffect(() => { fetchPlantillas() }, [fetchPlantillas])
 
@@ -180,12 +183,9 @@ export default function FacturasRecurrentesPage() {
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) return
 
-    const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
-    if (!perfil) return
-
     const { error } = await getSupabase().from('facturas').insert({
       id: crypto.randomUUID(),
-      perfilId: perfil.id,
+      perfilId: perfilActivoId ?? user.id,
       numero,
       tipo: plantilla.tipo,
       emisorReceptor: plantilla.emisorReceptor,
@@ -320,12 +320,10 @@ export default function FacturasRecurrentesPage() {
     try {
       const { data: { user } } = await getSupabase().auth.getUser()
       if (!user) return
-      const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
-      if (!perfil) return
       const { data } = await getSupabase()
         .from('facturas')
         .select('id, numero, emisorReceptor, fechaEmision, total, estado')
-        .eq('perfilId', perfil.id as string)
+        .eq('perfilId', perfilActivoId ?? user.id)
         .like('numero', `${p.numero}-%`)
         .order('fechaEmision', { ascending: false })
       setHistorialFacturas((data as Array<{ id: string; numero: string; emisorReceptor: string; fechaEmision: string; total: number; estado: string }>) ?? [])
@@ -352,10 +350,7 @@ export default function FacturasRecurrentesPage() {
     const { data: { user } } = await getSupabase().auth.getUser()
     if (!user) return
 
-    const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
-    if (!perfil) return
-
-    const perfilId = perfil.id as string
+    const perfilId = perfilActivoId ?? user.id
 
     if (!acquireLock(perfilId)) {
       setBatchResult({ generadas: 0, omitidas: 0 })

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { History, Trash2, Edit, Plus, ArrowRightLeft } from 'lucide-react'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 interface AuditEntry {
   id: string
@@ -34,6 +35,7 @@ export default function AuditLogPage() {
   const [cargando, setCargando] = useState(true)
   const [filtro, setFiltro] = useState('todos')
   const getSupabase = useCallback(() => createClient(), [])
+  const { perfilActivoId } = usePersonaActiva()
 
   useEffect(() => {
     const cargar = async () => {
@@ -42,14 +44,14 @@ export default function AuditLogPage() {
       const { data } = await getSupabase()
         .from('audit_log')
         .select('*')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilActivoId ?? user.id)
         .order('creadoEn', { ascending: false })
         .limit(200)
       if (data) setEntradas(data as AuditEntry[])
       setCargando(false)
     }
     cargar()
-  }, [getSupabase])
+  }, [getSupabase, perfilActivoId])
 
   const filtradas = filtro === 'todos' ? entradas : entradas.filter(e => e.accion === filtro)
   const tipos = [...new Set(entradas.map(e => e.accion))]

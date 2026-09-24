@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Sparkles, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 interface DocumentoClasificado {
   tipo: 'nomina' | 'factura' | 'alquiler' | 'extracto_banco' | 'otro'
@@ -41,6 +42,7 @@ export function PanelDocumentosFiscales({ esPro, onAplicarDatos }: PanelDocument
   const [clasicados, setClasificados] = useState<DocumentoClasificado[]>([])
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { perfilActivoId } = usePersonaActiva()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -75,7 +77,7 @@ export function PanelDocumentosFiscales({ esPro, onAplicarDatos }: PanelDocument
         // Save document record
         await supabase.from('documentos').insert({
           id: crypto.randomUUID(),
-          perfilId: userData.user.id,
+          perfilId: perfilActivoId ?? userData.user.id,
           tipo: 'fiscal',
           nombre: archivo.name,
           tamanoBytes: archivo.size,

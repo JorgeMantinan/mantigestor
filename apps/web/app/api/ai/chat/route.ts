@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { z } from 'zod'
 
 const ChatMessageSchema = z.object({
@@ -63,13 +64,9 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    const { data: perfil } = await supabase
-      .from('perfiles')
-      .select('id')
-      .eq('userId', user.id)
-      .single()
+    const { perfilId } = await resolvePerfilActivo(req)
 
-    if (!perfil) {
+    if (!perfilId) {
       return NextResponse.json(
         { error: 'Perfil no encontrado' },
         { status: 404 }
@@ -78,7 +75,7 @@ export async function POST(req: NextRequest) {
 
     await supabase.from('chat_historial').insert({
       id: crypto.randomUUID(),
-      perfilId: perfil.id,
+      perfilId,
       rol: 'user',
       contenido: mensaje,
     })
@@ -86,7 +83,7 @@ export async function POST(req: NextRequest) {
     const { data: historialDB } = await supabase
       .from('chat_historial')
       .select('rol, contenido')
-      .eq('perfilId', perfil.id)
+      .eq('perfilId', perfilId)
       .order('creadoEn', { ascending: true })
       .limit(20)
 
@@ -139,7 +136,7 @@ export async function POST(req: NextRequest) {
 
     await supabase.from('chat_historial').insert({
       id: crypto.randomUUID(),
-      perfilId: perfil.id,
+      perfilId,
       rol: 'assistant',
       contenido: respuesta,
     })

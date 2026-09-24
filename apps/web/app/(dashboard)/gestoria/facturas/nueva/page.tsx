@@ -106,10 +106,12 @@ function NuevaFacturaContenido() {
   const getSupabase = useCallback(() => createClient(), [])
 
   useEffect(() => {
+    const perfilId = perfilActivoId
     getSupabase().auth.getUser().then(({ data }) => {
       if (data.user?.id) {
         setUserId(data.user.id)
-        getSupabase().from('facturas').select('numero').eq('perfilId', data.user.id).then(({ data: facturas }) => {
+        const perfilBuscado = perfilId ?? data.user.id
+        getSupabase().from('facturas').select('numero').eq('perfilId', perfilBuscado).then(({ data: facturas }) => {
           if (facturas) {
             const nums = facturas.map(f => f.numero).filter(Boolean)
             const siguiente = generarSiguienteNumeroFactura(nums)
@@ -117,22 +119,22 @@ function NuevaFacturaContenido() {
             if (numeroInput instanceof HTMLInputElement) numeroInput.value = siguiente
           }
         })
-        obtenerNotasPieDefecto(data.user.id).then(setNotasPie)
+        obtenerNotasPieDefecto(perfilBuscado).then(setNotasPie)
       }
     })
-  }, [getSupabase])
+  }, [getSupabase, perfilActivoId])
 
   useEffect(() => {
     if (!userId) return
     getSupabase()
       .from('plantillas_factura')
       .select('*')
-      .eq('perfilId', userId)
+      .eq('perfilId', perfilActivoId ?? userId)
       .order('nombre')
       .then(({ data }) => {
         if (data) setPlantillas(data as PlantillaFactura[])
       })
-  }, [getSupabase, userId])
+  }, [getSupabase, userId, perfilActivoId])
 
   // Pre-relleno desde OCR en lote (?numero=...&emisorReceptor=...)
   useEffect(() => {
@@ -177,7 +179,7 @@ function NuevaFacturaContenido() {
     const plantillaId = crypto.randomUUID()
     const { error } = await getSupabase().from('plantillas_factura').insert({
       id: plantillaId,
-      perfilId: userId,
+      perfilId: perfilActivoId ?? userId,
       nombre: nombrePlantilla.trim(),
       tipo: tipoSeleccionado,
       emisorReceptor,
@@ -301,12 +303,7 @@ function NuevaFacturaContenido() {
       setGuardandoOffline(false)
       return
     }
-    const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
-    if (!perfil) {
-      setError(t('facturaNueva.errorSesion'))
-      setGuardandoOffline(false)
-      return
-    }
+    const perfilId = perfilActivoId ?? user.id
     const baseImponible = parseFloat(form.get('baseImponible') as string) * 100
     const iva = parseInt(form.get('iva') as string, 10)
     const importeIva = Math.round(baseImponible * (iva / 100))
@@ -331,7 +328,7 @@ function NuevaFacturaContenido() {
       tipoCambio,
       descuentoPorcentaje,
       empresaId: empresaActiva?.id ?? null,
-      perfilId: perfil.id,
+      perfilId,
       createdAt: new Date().toISOString(),
     }
     savePendingInvoice(pending)
@@ -393,17 +390,12 @@ function NuevaFacturaContenido() {
         return
       }
 
-      const { data: perfil } = await getSupabase().from('perfiles').select('id').eq('userId', user.id).single()
-      if (!perfil) {
-        setError(t('facturaNueva.errorSesion'))
-        return
-      }
-
+      const perfilId = perfilActivoId ?? user.id
       const nuevaFacturaId = crypto.randomUUID()
 
       const { error: insertError } = await getSupabase().from('facturas').insert({
         id: nuevaFacturaId,
-        perfilId: perfil.id,
+        perfilId,
         numero: form.get('numero') as string,
         tipo: form.get('tipo') as string,
         emisorReceptor: form.get('emisorReceptor') as string,
@@ -701,8 +693,9 @@ function NuevaFacturaContenido() {
         <CardContent className="space-y-4">
           <FileUpload
             bucket="documentos"
-            path={userId ?? ''}
+            path={perfilActivoId ?? userId ?? ''}
             tipo="factura"
+            perfilId={perfilActivoId ?? userId ?? undefined}
             accept=".pdf"
             buttonText={t('facturaNueva.subirFacturaPdf')}
             onUploadComplete={(url) => setPdfUrl(url)}

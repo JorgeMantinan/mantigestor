@@ -42,7 +42,7 @@ import {
   Search,
   HandCoins,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { useLanguage } from '@/contexts/language-context'
 import { Badge } from '@/components/ui/badge'
@@ -55,7 +55,7 @@ function PlazosFiscalesWidget({ collapsed }: { collapsed: boolean }) {
   const [plazos, setPlazos] = useState<{ fecha: Date; nombre: string }[]>([])
   const { t } = useLanguage()
 
-  if (typeof window !== 'undefined' && plazos.length === 0) {
+  useEffect(() => {
     const hoy = new Date()
     const calendario = getCalendarioFiscal(hoy.getFullYear())
     const proximos = calendario
@@ -64,7 +64,7 @@ function PlazosFiscalesWidget({ collapsed }: { collapsed: boolean }) {
       .slice(0, 3)
       .map(p => ({ fecha: p.fechaLimite, nombre: p.descripcion }))
     if (proximos.length > 0) setPlazos(proximos)
-  }
+  }, [])
 
   if (collapsed || plazos.length === 0) return null
 

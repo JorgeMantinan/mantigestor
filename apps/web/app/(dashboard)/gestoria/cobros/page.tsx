@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { toast, Toaster } from 'sonner'
 import { formatoMoneda } from '@/lib/divisas'
 import { logAccion } from '@/lib/audit-log'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { Landmark, Clock, CheckCircle, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Factura {
@@ -25,6 +26,7 @@ interface Factura {
 }
 
 export default function CobrosPage() {
+  const { perfilActivoId } = usePersonaActiva()
   const [facturas, setFacturas] = useState<Factura[]>([])
   const [loading, setLoading] = useState(true)
   const [fechaDesde, setFechaDesde] = useState('')
@@ -40,12 +42,12 @@ export default function CobrosPage() {
     const { data, error } = await supabase
       .from('facturas')
       .select('*')
-      .eq('perfilId', user.id)
+      .eq('perfilId', perfilActivoId ?? user.id)
       .eq('tipo', 'ingreso')
       .order('fechaEmision', { ascending: false })
     if (!error && data) setFacturas(data as Factura[])
     setLoading(false)
-  }, [])
+  }, [perfilActivoId])
 
   useEffect(() => { fetchFacturas() }, [fetchFacturas])
 

@@ -362,6 +362,7 @@ export default function NominasPage() {
             rolDefecto={rolDefecto}
             anyoFiltro={anyoFiltro}
             userId={userId}
+            perfilId={perfilActivoId ?? userId ?? undefined}
             guardando={guardando}
             onSubmit={handleAdd}
             onCancel={() => setShowForm(false)}

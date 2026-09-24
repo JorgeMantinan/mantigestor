@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { TrendingUp, TrendingDown, ArrowRight, Minus } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useLanguage } from '@/contexts/language-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 interface Factura {
   fechaEmision: string
@@ -61,6 +62,7 @@ export default function ComparativaTrimestralPage() {
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
+  const { perfilActivoId } = usePersonaActiva()
 
   useEffect(() => {
     const cargar = async () => {
@@ -71,14 +73,14 @@ export default function ComparativaTrimestralPage() {
       const { data } = await getSupabase()
         .from('facturas')
         .select('fechaEmision, tipo, baseImponible, iva, total')
-        .eq('perfilId', user.id)
+        .eq('perfilId', perfilActivoId ?? user.id)
         .gte('fechaEmision', `${anyoAnterior}-01-01`)
         .lt('fechaEmision', `${anyoActual + 1}-01-01`)
       if (data) setFacturas(data as Factura[])
       setCargando(false)
     }
     cargar()
-  }, [getSupabase, anyoActual])
+  }, [getSupabase, anyoActual, perfilActivoId])
 
   const resumenActual = calcularResumen(facturas, anyoActual, trimestre)
   const resumenAnterior = calcularResumen(facturas, anyoActual - 1, trimestre)

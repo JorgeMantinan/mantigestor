@@ -25,6 +25,7 @@ import { logAccion } from '@/lib/audit-log'
 import { generarPDFDeHTML } from '@/lib/pdf'
 import { BotonPDF } from '@/components/boton-pdf'
 import { useLanguage } from '@/contexts/language-context'
+import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 type OrdenCampo = 'fechaEmision' | 'emisorReceptor' | 'total' | 'numero'
 type OrdenDireccion = 'asc' | 'desc'
@@ -36,6 +37,7 @@ function formatMoney(cents: number): string {
 
 export default function ProformasPage() {
   const { t } = useLanguage()
+  const { perfilActivoId } = usePersonaActiva()
   const [proformas, setProformas] = useState<Proforma[]>([])
   const [loading, setLoading] = useState(true)
   const [filtroEstado, setFiltroEstado] = useState<'todos' | ProformaEstado>('todos')
@@ -53,13 +55,13 @@ export default function ProformasPage() {
     try {
       const { data: { user } } = await getSupabase().auth.getUser()
       if (!user) { setLoading(false); return }
-      const data = await listarProformas(user.id)
+      const data = await listarProformas(perfilActivoId ?? user.id)
       setProformas(data)
     } catch {
       toast.error(t('facturaProforma.errorCargar'))
     }
     setLoading(false)
-  }, [getSupabase])
+  }, [getSupabase, perfilActivoId])
 
   useEffect(() => { fetchProformas() }, [fetchProformas])
 
