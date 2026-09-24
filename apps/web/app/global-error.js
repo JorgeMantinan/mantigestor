@@ -1,6 +1,7 @@
 'use client'
 
 import * as Sentry from '@sentry/nextjs'
+import { isChunkLoadError, tryChunkReload } from '@/lib/chunk-error'
 
 function reportError(error) {
   const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN
@@ -11,6 +12,31 @@ function reportError(error) {
 
 export default function GlobalError({ error, reset }) {
   reportError(error)
+
+  const esErrorChunk = isChunkLoadError(error)
+
+  if (esErrorChunk) {
+    tryChunkReload()
+    return (
+      <html lang="es">
+        <body style={{ margin: 0, background: '#fafafa' }}>
+          <div
+            style={{
+              minHeight: '100vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'system-ui, sans-serif',
+              color: '#71717a',
+            }}
+          >
+            Actualizando la aplicación…
+          </div>
+        </body>
+      </html>
+    )
+  }
+
   return (
     <html lang="es">
       <body style={{ margin: 0, background: '#fafafa' }}>

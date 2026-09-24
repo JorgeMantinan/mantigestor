@@ -1945,6 +1945,7 @@ export const en: DeepTraducciones = {
   error: {
     algoSalioMal: 'Something went wrong',
     intentarDeNuevo: 'Try again',
+    actualizandoApp: 'Updating the application…',
   },
 
   // Tax calendar widget

@@ -1944,6 +1944,7 @@ export const eu = {
   error: {
     algoSalioMal: 'Algo salió mal',
     intentarDeNuevo: 'Intentar de nuevo',
+    actualizandoApp: 'Aplikazioa eguneratzen…',
   },
 
   // Calendario fiscal widget

@@ -1944,6 +1944,7 @@ export const gl = {
   error: {
     algoSalioMal: 'Algo salió mal',
     intentarDeNuevo: 'Intentar de nuevo',
+    actualizandoApp: 'Actualizando a aplicación…',
   },
 
   // Calendario fiscal widget

@@ -1,9 +1,5 @@
-const CACHE_NAME = 'mantigestor-v4'
+const CACHE_NAME = 'mantigestor-v5'
 const SHELL_ASSETS = [
-  '/',
-  '/dashboard',
-  '/gestoria/facturas',
-  '/fiscal',
   '/favicon.svg',
   '/icon.svg',
 ]
@@ -43,7 +39,22 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  if (request.destination === 'image' || request.destination === 'font' || request.destination === 'style' || request.destination === 'script') {
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => caches.match(request))
+    )
+    return
+  }
+
+  if (request.destination === 'image' || request.destination === 'font') {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached
@@ -59,18 +70,31 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  if (request.destination === 'style' || request.destination === 'script') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => caches.match(request))
+    )
+    return
+  }
+
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetchPromise = fetch(request).then((response) => {
+    fetch(request)
+      .then((response) => {
         if (response.ok) {
           const clone = response.clone()
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
         }
         return response
-      }).catch(() => cached)
-
-      return cached || fetchPromise
-    })
+      })
+      .catch((err) => caches.match(request).then((cached) => cached || Promise.reject(err)))
   )
 })
 
