@@ -50,9 +50,9 @@ export function NotificationDropdown() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 shrink-0 p-0 text-muted-foreground" aria-label={`${t('notificationDropdown.notificaciones')}${noLeidas > 0 ? ` (${noLeidas}${t('notificationDropdown.sinLeer')})` : ''}`}>
           {noLeidas > 0 ? (
-            <BellRing className="h-5 w-5 text-yellow-500" aria-hidden="true" />
+            <BellRing className="h-5 w-5 shrink-0" size={20} aria-hidden="true" />
           ) : (
-            <Bell className="h-5 w-5" aria-hidden="true" />
+            <Bell className="h-5 w-5 shrink-0" size={20} aria-hidden="true" />
           )}
           {noLeidas > 0 && (
             <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
@@ -61,7 +61,7 @@ export function NotificationDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-[320px] max-h-[400px] overflow-y-auto" align="end" forceMount>
+      <DropdownMenuContent className="w-[320px] max-h-[400px] overflow-y-auto" align="end">
         {cargando ? (
           <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
             {t('notificationDropdown.cargando')}
