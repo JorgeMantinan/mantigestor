@@ -1061,6 +1061,8 @@ export const ca = {
     seCalculaAuto: 'Se calcula automáticamente',
     descuentoPorcentaje: 'Descuento (%)',
     importeDescuento: 'Importe descuento',
+    notas: 'Notes',
+    notasPlaceholder: 'Notes opcionals sobre aquesta factura...',
     cancelar: 'Cancel·lar',
     guardando: 'Desant...',
     crearFactura: 'Crear factura',
@@ -2278,7 +2280,9 @@ export const ca = {
   // Offline Indicator
   offlineIndicator: {
     modoOffline: 'Modo offline',
-    conexionRestaurada: 'Conexión restaurada',
+    sincronizando: 'Sincronitzant...',
+    conexionRestaurada: 'Connexió restaurada',
+    pendientes: 'pendents',
   },
 
   // Email Preview

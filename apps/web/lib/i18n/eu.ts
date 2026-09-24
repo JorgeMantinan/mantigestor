@@ -1061,6 +1061,8 @@ export const eu = {
     seCalculaAuto: 'Se calcula automáticamente',
     descuentoPorcentaje: 'Descuento (%)',
     importeDescuento: 'Importe descuento',
+    notas: 'Oharrak',
+    notasPlaceholder: 'Aukerako oharrak faktura honi buruz...',
     cancelar: 'Cancel·lar',
     guardando: 'Desant...',
     crearFactura: 'Crear factura',
@@ -2278,7 +2280,9 @@ export const eu = {
   // Offline Indicator
   offlineIndicator: {
     modoOffline: 'Modo offline',
-    conexionRestaurada: 'Conexión restaurada',
+    sincronizando: 'Sinkronizatzen...',
+    conexionRestaurada: 'Konexioa berrezarrita',
+    pendientes: 'pendente',
   },
 
   // Email Preview

@@ -1070,6 +1070,8 @@ export const en: DeepTraducciones = {
     seCalculaAuto: 'Calculated automatically',
     descuentoPorcentaje: 'Discount (%)',
     importeDescuento: 'Discount amount',
+    notas: 'Notes',
+    notasPlaceholder: 'Optional notes about this invoice...',
     cancelar: 'Cancel',
     guardando: 'Saving...',
     crearFactura: 'Create invoice',
@@ -2279,7 +2281,9 @@ export const en: DeepTraducciones = {
   // Offline Indicator
   offlineIndicator: {
     modoOffline: 'Offline mode',
+    sincronizando: 'Syncing...',
     conexionRestaurada: 'Connection restored',
+    pendientes: 'pending',
   },
 
   // Email Preview

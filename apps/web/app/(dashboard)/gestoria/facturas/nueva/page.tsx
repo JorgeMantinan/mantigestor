@@ -125,6 +125,14 @@ function NuevaFacturaContenido() {
   }, [getSupabase, perfilActivoId])
 
   useEffect(() => {
+    if (notasPie.length === 0) return
+    const el = formRef.current?.elements.namedItem('notas')
+    if (el instanceof HTMLTextAreaElement && !el.value) {
+      el.value = notasPie.filter(Boolean).join('\n')
+    }
+  }, [notasPie])
+
+  useEffect(() => {
     if (!userId) return
     getSupabase()
       .from('plantillas_factura')
@@ -322,7 +330,7 @@ function NuevaFacturaContenido() {
       total,
       estado: 'pendiente',
       categoriaGasto: form.get('tipo') === 'gasto' ? categoriaGasto : null,
-      notas: notasPie.filter(Boolean).join('\n') || null,
+      notas: ((form.get('notas') as string)?.trim() || notasPie.filter(Boolean).join('\n')) || null,
       pdfUrl: pdfUrl || null,
       moneda,
       tipoCambio,
@@ -407,7 +415,7 @@ function NuevaFacturaContenido() {
         total,
         estado: 'pendiente',
         categoriaGasto: form.get('tipo') === 'gasto' ? categoriaGasto : null,
-        notas: notasPie.filter(Boolean).join('\n') || null,
+        notas: ((form.get('notas') as string)?.trim() || notasPie.filter(Boolean).join('\n')) || null,
         pdfUrl: pdfUrl || null,
         moneda,
         tipoCambio,
@@ -609,6 +617,18 @@ function NuevaFacturaContenido() {
                   />
                 </div>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notas">{t('facturaNueva.notas')}</Label>
+              <textarea
+                id="notas"
+                name="notas"
+                rows={3}
+                defaultValue={notasPie.filter(Boolean).join('\n')}
+                placeholder={t('facturaNueva.notasPlaceholder')}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              />
             </div>
 
             {error && (

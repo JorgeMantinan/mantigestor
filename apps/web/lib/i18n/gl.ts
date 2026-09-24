@@ -1061,6 +1061,8 @@ export const gl = {
     seCalculaAuto: 'Se calcula automáticamente',
     descuentoPorcentaje: 'Descuento (%)',
     importeDescuento: 'Importe descuento',
+    notas: 'Notas',
+    notasPlaceholder: 'Notas opcionais sobre esta factura...',
     cancelar: 'Cancel·lar',
     guardando: 'Desant...',
     crearFactura: 'Crear factura',
@@ -2278,7 +2280,9 @@ export const gl = {
   // Offline Indicator
   offlineIndicator: {
     modoOffline: 'Modo offline',
+    sincronizando: 'Sincronizando...',
     conexionRestaurada: 'Conexión restaurada',
+    pendientes: 'pendentes',
   },
 
   // Email Preview
