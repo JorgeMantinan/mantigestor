@@ -88,6 +88,7 @@ export const eu = {
     apiDocs: 'API Docs',
     colapsar: 'Colapsar',
     gestionandoOtraPersona: 'Gestionando a otra persona',
+    proximosPlazos: 'Hurrengo epealak',
   },
 
   // Auth

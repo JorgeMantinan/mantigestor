@@ -116,7 +116,7 @@ export function ContextualChat() {
     return (
       <Button
         onClick={() => setAbierto(true)}
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
+        className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full shadow-lg lg:bottom-6 lg:right-6"
         size="icon"
         aria-label="Abrir chat contextual"
       >
@@ -128,8 +128,8 @@ export function ContextualChat() {
   return (
     <div
       className={cn(
-        'fixed bottom-6 right-6 z-50 flex flex-col rounded-lg border bg-background shadow-xl transition-all duration-300',
-        minimizado ? 'h-14 w-72' : 'h-[480px] w-80'
+        'fixed bottom-20 right-4 z-50 flex flex-col rounded-lg border bg-background shadow-xl transition-all duration-300 lg:bottom-6 lg:right-6',
+        minimizado ? 'h-14 w-72' : 'h-[480px] w-[calc(100vw-2rem)] max-w-80 sm:w-80'
       )}
     >
       {/* Header */}

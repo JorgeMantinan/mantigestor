@@ -72,7 +72,7 @@ function PlazosFiscalesWidget({ collapsed }: { collapsed: boolean }) {
     <div className="border-t p-4">
       <h4 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
         <AlertTriangle className="h-3 w-3" aria-hidden="true" />
-        {t('nav.proximosPlazos') ?? 'Próximos plazos'}
+        {t('nav.proximosPlazos')}
       </h4>
       <div className="space-y-1">
         {plazos.map(p => (
@@ -252,6 +252,7 @@ export function Sidebar() {
       </aside>
 
       {/* Mobile bottom nav */}
+      {!mobileOpen && (
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background lg:hidden" aria-label="Navegación móvil">
         <div className="flex items-center justify-around py-2">
           {[
@@ -266,7 +267,7 @@ export function Sidebar() {
             return (
               <Link key={item.href} href={item.href}
                 className={cn(
-                  'flex flex-col items-center gap-1 px-3 py-1 text-xs',
+                  'flex flex-col items-center gap-1 px-1 py-1 text-[10px] sm:px-3 sm:text-xs',
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 )}>
                 <item.icon className="h-5 w-5" aria-hidden="true" />
@@ -276,6 +277,7 @@ export function Sidebar() {
           })}
         </div>
       </nav>
+      )}
     </>
   )
 }

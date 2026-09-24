@@ -88,8 +88,10 @@ export function PersonaSelector() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="gap-2 text-xs">
             <Users className="h-3.5 w-3.5" />
-            {esPropio ? t('personaSelector.miPerfil') : (personaActiva?.nombre ?? personaActiva?.email ?? t('personaSelector.otraPersona'))}
-            {!esPropio && <Badge variant="secondary" className="ml-1 text-[10px] px-1">{t('personaSelector.gestor')}</Badge>}
+            <span className="hidden max-w-[12ch] truncate sm:inline">
+              {esPropio ? t('personaSelector.miPerfil') : (personaActiva?.nombre ?? personaActiva?.email ?? t('personaSelector.otraPersona'))}
+            </span>
+            {!esPropio && <Badge variant="secondary" className="ml-1 hidden text-[10px] px-1 sm:inline-flex">{t('personaSelector.gestor')}</Badge>}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">

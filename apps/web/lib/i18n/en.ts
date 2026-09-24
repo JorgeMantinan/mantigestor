@@ -90,6 +90,7 @@ export const en: DeepTraducciones = {
     apiDocs: 'API Docs',
     colapsar: 'Collapse',
     gestionandoOtraPersona: 'Managing another person',
+    proximosPlazos: 'Upcoming deadlines',
   },
 
   // Auth
@@ -1030,7 +1031,7 @@ export const en: DeepTraducciones = {
     segSocial: 'S.Social',
     bruto: 'Gross',
     neto: 'Net',
-    jefe: 'Boss',
+    jefe: 'Employer',
     empleado: 'Employee',
     borrar: 'Delete',
     eliminarNominaTitle: 'Delete payroll?',
@@ -1629,7 +1630,7 @@ export const en: DeepTraducciones = {
     ivaADevolver: 'to refund',
     ivaACompensar: 'to offset',
     ivaAIngresar: 'to pay',
-    resultadoIvaLabel: 'VAT result (Form 300)',
+    resultadoIvaLabel: 'VAT result (Form 303)',
     resultadoIvaACompensar: ' · will be deducted in following quarters',
     resultadoIvaADevolver: ' · Q4 does not allow offset balance',
     pagoFraccionadoIrpf: 'IRPF fractional payment to pay this quarter',
@@ -1684,7 +1685,7 @@ export const en: DeepTraducciones = {
   // Renta (Annual IRPF)
   renta: {
     titulo: 'Income Tax Return',
-    subtitulo: 'Annual IRPF summary (Modelo 100) — includes invoices, payroll withholdings and rental expenses',
+    subtitulo: 'Annual IRPF summary (Form 100) — includes invoices, payroll withholdings and rental expenses',
     calcular: 'Calculate',
     calculando: 'Calculating...',
     ingresos: 'Income',
@@ -2050,7 +2051,7 @@ export const en: DeepTraducciones = {
     topGastos: 'Top expenses',
     prediccionGastos: 'Expense forecast',
     ratioDeCobro: 'Collection ratio',
-    benchmarkingIa: 'IA benchmarking',
+    benchmarkingIa: 'AI benchmarking',
     alertasInteligentes: 'Smart alerts',
     exportacionRapida: 'Quick export',
     scoreFiscal: 'Tax score',
@@ -2110,7 +2111,7 @@ export const en: DeepTraducciones = {
 
   // Widget benchmarking
   widgetBenchmarking: {
-    titulo: 'IA benchmarking',
+    titulo: 'AI benchmarking',
     saludable: 'Healthy',
     mejorable: 'Needs improvement',
     critico: 'Critical',

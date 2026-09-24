@@ -62,7 +62,9 @@ export function EmpresaSelector() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="gap-2 text-xs">
             <Building2 className="h-3.5 w-3.5" />
-            {empresaActiva?.nombre ?? t('empresa.miEmpresa')}
+            <span className="hidden max-w-[14ch] truncate sm:inline">
+              {empresaActiva?.nombre ?? t('empresa.miEmpresa')}
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">

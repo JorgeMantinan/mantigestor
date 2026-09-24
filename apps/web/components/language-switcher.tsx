@@ -4,9 +4,9 @@ import { useLanguage } from '@/contexts/language-context'
 import { Globe } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 
-const LABELS: Record<string, string> = { es: 'ES', en: 'EN', ca: 'CA', gl: 'GL', eu: 'EU' }
-const NAMES: Record<string, string> = { es: 'Español', en: 'English', ca: 'Català', gl: 'Galego', eu: 'Euskara' }
-const ORDER: string[] = ['es', 'en', 'ca', 'gl', 'eu']
+const LABELS: Record<string, string> = { es: 'ES', en: 'EN' }
+const NAMES: Record<string, string> = { es: 'Español', en: 'English' }
+const ORDER: string[] = ['es', 'en']
 
 export function LanguageSwitcher() {
   const { idioma, setIdioma } = useLanguage()
@@ -37,7 +37,7 @@ export function LanguageSwitcher() {
           {ORDER.map((code) => (
             <button
               key={code}
-              onClick={() => { setIdioma(code as 'es' | 'en' | 'ca' | 'gl' | 'eu'); setOpen(false) }}
+              onClick={() => { setIdioma(code as 'es' | 'en'); setOpen(false) }}
               className={`flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors ${
                 idioma === code ? 'bg-accent text-accent-foreground font-medium' : 'hover:bg-accent/50'
               }`}

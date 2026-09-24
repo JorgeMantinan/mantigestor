@@ -86,7 +86,7 @@ function htmlPagosParciales(pagos: PagoParcial[], total: number, idioma?: Idioma
   const pagado = pagos.reduce((s, p) => s + p.importe, 0)
   const pendiente = calcularSaldoPendiente(total, JSON.stringify(pagos))
   const porcentaje = Math.min(100, (pagado / total) * 100)
-  const locale = idioma === 'en' ? 'en-GB' : idioma === 'ca' ? 'ca-ES' : 'es-ES'
+  const locale = idioma === 'en' ? 'en-GB' : 'es-ES'
 
   return `
     <div style="margin-bottom:24px;border:1px solid #e5e7eb;border-radius:8px;padding:16px">
@@ -170,7 +170,7 @@ function htmlClasico(f: FacturaPDF): string {
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
   const importeDescuento = calcularImporteDescuento(f.baseImponible, f.descuentoPorcentaje ?? 0)
-  const locale = f.idioma === 'en' ? 'en-GB' : f.idioma === 'ca' ? 'ca-ES' : 'es-ES'
+  const locale = f.idioma === 'en' ? 'en-GB' : 'es-ES'
   const clienteLabel = esGasto ? t.proveedor : t.cliente
 
   return `
@@ -253,7 +253,7 @@ function htmlModerno(f: FacturaPDF): string {
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
   const importeDescuento = calcularImporteDescuento(f.baseImponible, f.descuentoPorcentaje ?? 0)
-  const locale = f.idioma === 'en' ? 'en-GB' : f.idioma === 'ca' ? 'ca-ES' : 'es-ES'
+  const locale = f.idioma === 'en' ? 'en-GB' : 'es-ES'
   const clienteLabel = esGasto ? t.proveedor : t.cliente
 
   return `
@@ -336,7 +336,7 @@ function htmlMinimalista(f: FacturaPDF): string {
   const direccion = f.empresaDireccion || 'Calle Ejemplo 123, Madrid'
   const nifEmpresa = f.empresaNif || 'B00000000'
   const importeDescuento = calcularImporteDescuento(f.baseImponible, f.descuentoPorcentaje ?? 0)
-  const locale = f.idioma === 'en' ? 'en-GB' : f.idioma === 'ca' ? 'ca-ES' : 'es-ES'
+  const locale = f.idioma === 'en' ? 'en-GB' : 'es-ES'
   const clienteLabel = esGasto ? t.proveedor : t.cliente
 
   return `

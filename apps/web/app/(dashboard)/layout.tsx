@@ -30,7 +30,7 @@ export default function DashboardLayout({
           <div className="flex flex-1 flex-col overflow-hidden">
             <Header />
             <GestionandoBanner />
-            <main className="flex-1 overflow-y-auto p-6 pb-20 lg:pb-0">
+            <main className="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 lg:pb-0">
               <FiscalRemindersProvider>{children}</FiscalRemindersProvider>
             </main>
           </div>

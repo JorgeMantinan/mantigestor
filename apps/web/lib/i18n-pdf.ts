@@ -1,4 +1,4 @@
-export type IdiomaPDF = 'es' | 'en' | 'ca'
+export type IdiomaPDF = 'es' | 'en'
 
 interface TextosPDF {
   factura_emitida: string
@@ -132,53 +132,9 @@ const TEXTOS_EN: TextosPDF = {
   gasto_de: 'Expense —',
 }
 
-const TEXTOS_CA: TextosPDF = {
-  factura_emitida: 'FACTURA EMESA',
-  factura_recibida: 'FACTURA REBUDA',
-  numero: 'Núm.',
-  fecha: 'Data',
-  vencimiento: 'Venciment',
-  cliente: 'Client',
-  proveedor: 'Proveïdor',
-  nif: 'NIF',
-  concepto: 'Concepte',
-  base_imponible: 'Base',
-  iva: 'IVA',
-  total: 'Total',
-  total_a_pagar: 'Total a pagar',
-  notas: 'Notes:',
-  notas_placeholder: 'Notes',
-  descuento: 'Descompte',
-  descuento_placeholder: 'Descompte',
-  pagado: 'Pagat',
-  pendiente: 'Pendent',
-  estado_pago: 'Estat de pagament',
-  fecha_pago: 'Data',
-  importe: 'Import',
-  metodo: 'Mètode',
-  nota: 'Nota',
-  documento_generado_por: 'Document generat per MantiGestor',
-  scan_para_ver: 'Escanejar per veure factura',
-  nota_credito: 'NOTA DE CRÈDIT',
-  nota_debito: 'NOTA DE DÈBIT',
-  emitida: 'Emesa',
-  recibida: 'Rebuda',
-  pagada: 'Pagada',
-  pendiente_estado: 'Pendent',
-  vencida: 'Vençuda',
-  tipo_nota_credito: 'Nota de crèdit',
-  tipo_nota_debito: 'Nota de dèbit',
-  tipo_proforma: 'Proforma',
-  servicio: 'Servei',
-  gasto: 'Despesa',
-  servicio_de: 'Servei —',
-  gasto_de: 'Despesa —',
-}
-
 const TEXTOS: Record<IdiomaPDF, TextosPDF> = {
   es: TEXTOS_ES,
   en: TEXTOS_EN,
-  ca: TEXTOS_CA,
 }
 
 export function obtenerTextosPDF(idioma?: IdiomaPDF): TextosPDF {

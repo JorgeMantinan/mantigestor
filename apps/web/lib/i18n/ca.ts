@@ -88,6 +88,7 @@ export const ca = {
     apiDocs: 'API Docs',
     colapsar: 'Colapsar',
     gestionandoOtraPersona: 'Gestionando a otra persona',
+    proximosPlazos: 'Propers terminis',
   },
 
   // Auth
