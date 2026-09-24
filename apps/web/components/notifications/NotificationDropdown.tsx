@@ -48,7 +48,7 @@ export function NotificationDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 shrink-0 text-muted-foreground" aria-label={`${t('notificationDropdown.notificaciones')}${noLeidas > 0 ? ` (${noLeidas}${t('notificationDropdown.sinLeer')})` : ''}`}>
+        <Button variant="ghost" className="relative h-8 w-8 shrink-0 p-0 text-muted-foreground" aria-label={`${t('notificationDropdown.notificaciones')}${noLeidas > 0 ? ` (${noLeidas}${t('notificationDropdown.sinLeer')})` : ''}`}>
           {noLeidas > 0 ? (
             <BellRing className="h-5 w-5 text-yellow-500" aria-hidden="true" />
           ) : (
