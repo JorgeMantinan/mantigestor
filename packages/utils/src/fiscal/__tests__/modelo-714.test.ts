@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import { calcularModelo714, type BienPatrimonio, COMUNIDADES_AUTONOMAS } from '../modelo-714'
 
 function bien(overrides: Partial<BienPatrimonio>): BienPatrimonio {
@@ -80,5 +80,58 @@ describe('calcularModelo714 — Impuesto sobre el Patrimonio', () => {
     expect(COMUNIDADES_AUTONOMAS).toContain('Cataluña')
     expect(COMUNIDADES_AUTONOMAS).toContain('Comunidad Valenciana')
     expect([...COMUNIDADES_AUTONOMAS]).toEqual([...COMUNIDADES_AUTONOMAS].sort())
+  })
+})
+
+describe('calcularModelo714 — deducciones y bonificaciones (estatales + autonómicas)', () => {
+  it('incluye siempre las dos estatales: impuestos en el extranjero (art. 32) y Ceuta/Melilla (art. 33)', () => {
+    const r = calcularModelo714({
+      bienes: [bien({ valor: 90_000_000 })],
+      comunidadAutonoma: 'Castilla-La Mancha',
+    })
+    const estatales = r.deducciones.filter(d => d.ambito === 'estatal')
+    expect(estatales).toHaveLength(2)
+    expect(r.deducciones.some(d => d.titulo.includes('extranjero'))).toBe(true)
+    expect(r.deducciones.some(d => d.titulo.includes('Ceuta y Melilla'))).toBe(true)
+  })
+
+  it('Galicia suma sus 6 deducciones específicas más la nota del ITSGF', () => {
+    const r = calcularModelo714({
+      bienes: [bien({ valor: 90_000_000 })],
+      comunidadAutonoma: 'Galicia',
+    })
+    const autonomicas = r.deducciones.filter(d => d.ambito === 'autonomico')
+    expect(autonomicas).toHaveLength(7)
+    expect(r.deducciones.some(d => d.titulo.includes('agrarias'))).toBe(true)
+    expect(r.deducciones.some(d => d.titulo.toLowerCase().includes('centros históricos'))).toBe(true)
+    expect(r.porcentajeBonificacion).toBe(0.5)
+  })
+
+  it('Cataluña incluye la bonificación de propiedades forestales (95 %)', () => {
+    const r = calcularModelo714({
+      bienes: [bien({ valor: 90_000_000 })],
+      comunidadAutonoma: 'Cataluña',
+    })
+    const forestal = r.deducciones.find(d => d.titulo.includes('forestales'))
+    expect(forestal).toBeDefined()
+    expect(forestal?.cuantia).toContain('95')
+  })
+
+  it('Madrid incluye el régimen transitorio del ITSGF y la bonificación del 100 %', () => {
+    const r = calcularModelo714({
+      bienes: [bien({ valor: 90_000_000 })],
+      comunidadAutonoma: 'Madrid',
+    })
+    expect(r.porcentajeBonificacion).toBe(1)
+    expect(r.deducciones.some(d => d.titulo.includes('ITSGF'))).toBe(true)
+  })
+
+  it('Ceuta y Melilla constan en el catálogo con la bonificación estatal del art. 33', () => {
+    const r = calcularModelo714({
+      bienes: [bien({ valor: 90_000_000 })],
+      comunidadAutonoma: 'Ceuta',
+    })
+    expect(r.porcentajeBonificacion).toBe(0)
+    expect(r.bonificacionAplicable).toContain('art. 33')
   })
 })

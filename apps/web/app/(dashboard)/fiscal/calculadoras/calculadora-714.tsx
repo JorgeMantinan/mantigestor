@@ -133,6 +133,33 @@ export function CalculadoraModelo714() {
               </dd>
             </div>
           )}
+          <div className="rounded-lg border p-3 sm:col-span-2">
+            <dt className="text-xs text-muted-foreground">
+              Deducciones y bonificaciones aplicables (estatales + autonómicas)
+            </dt>
+            <dd className="space-y-2 pt-1">
+              {resultado.deducciones.map(d => (
+                <div key={d.titulo} className="rounded bg-muted/40 p-2 text-sm">
+                  <p className="font-medium">
+                    <span
+                      className={`mr-2 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
+                        d.ambito === 'estatal' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {d.ambito === 'estatal' ? 'Estatal' : 'Autonómica'}
+                    </span>
+                    {d.titulo}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Cuantía:</strong> {d.cuantia}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    <strong>Requisitos:</strong> {d.requisitos}
+                  </p>
+                </div>
+              ))}
+            </dd>
+          </div>
           <div className={`rounded-lg border p-3 sm:col-span-2 ${resultado.obligatorio ? 'border-red-500/50 bg-red-500/5' : 'border-green-500/50 bg-green-500/5'}`}>
             <dt className="text-xs text-muted-foreground">Resultado</dt>
             <dd className={`font-bold ${resultado.obligatorio ? 'text-red-600' : 'text-green-600'}`}>
