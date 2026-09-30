@@ -1,40 +1,78 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { Loader2, Receipt, Landmark, Home, Users, Sparkles, ArrowRight, Database } from 'lucide-react'
-import { guardarPerfilDemo } from '@/lib/demo-data'
+import {
+  Loader2,
+  Receipt,
+  Landmark,
+  Home,
+  Users,
+  Sparkles,
+  ArrowRight,
+  Database,
+  FileCheck,
+} from 'lucide-react'
+import { CASOS_DEMO } from '@/lib/demo/casos'
+import { DEMO_EMAIL, DEMO_PASSWORD } from '@/lib/demo-data'
 
-const SECCIONES = [
-  {
-    icon: Receipt,
-    titulo: '10 facturas emitidas',
-    descripcion: 'Pendientes y cobradas con IVA del 21% y 10%, listas para ver el modelo 303.',
-  },
-  {
-    icon: Landmark,
-    titulo: '5 gastos deducibles',
-    descripcion: 'Alquiler de local, material, formación, telefonía y seguros categorizados.',
-  },
-  {
-    icon: Home,
-    titulo: '2 propiedades en alquiler',
-    descripcion: 'Con inquilinos, ingresos mensuales y fechas de contrato.',
-  },
-  {
-    icon: Users,
-    titulo: '3 nóminas',
-    descripcion: 'Empleadas con cálculo automático de retenciones IRPF y seguridad social.',
-  },
-]
+const ETIQUETAS_PERFIL_FISCAL: Record<string, string> = {
+  autonomo: 'Autónomo',
+  sociedad: 'Sociedad',
+  empleado: 'Empleado',
+  alquilador: 'Alquilador',
+}
 
 export default function DemoInicio() {
   const [creando, setCreando] = useState(false)
+  const [casoClave, setCasoClave] = useState(CASOS_DEMO[0]?.clave ?? 'lucia-diseno')
   const router = useRouter()
+
+  const getSupabase = useCallback(() => createClient(), [])
+
+  const caso = CASOS_DEMO.find(c => c.clave === casoClave) ?? CASOS_DEMO[0]
+  if (!caso) return null
+
+  const emitidas = caso.facturas.filter(f => f.tipo === 'ingreso').length
+  const gastos = caso.facturas.filter(f => f.tipo === 'gasto').length
+
+  const secciones = [
+    {
+      icon: Receipt,
+      titulo: `${emitidas} facturas emitidas`,
+      descripcion: 'Cobros con sus bases imponibles e IVA, listos para el modelo 303.',
+      visible: emitidas > 0,
+    },
+    {
+      icon: Landmark,
+      titulo: `${gastos} gastos deducibles`,
+      descripcion: 'Compras, alquileres, suministros y seguros categorizados.',
+      visible: gastos > 0,
+    },
+    {
+      icon: Home,
+      titulo: `${caso.propiedades.length} propiedades en alquiler`,
+      descripcion: 'Con inquilinos, rentas y fechas de contrato.',
+      visible: caso.propiedades.length > 0,
+    },
+    {
+      icon: Users,
+      titulo: `${caso.nominas.length} nóminas`,
+      descripcion: 'Retenciones de IRPF y seguridad social calculadas automáticamente.',
+      visible: caso.nominas.length > 0,
+    },
+    {
+      icon: FileCheck,
+      titulo: 'Modelos fiscales generados',
+      descripcion: 'Los modelos 303, 111 y 130 de 2026 quedan calculados y guardados.',
+      visible: true,
+    },
+  ].filter(s => s.visible)
 
   const crearDemo = async () => {
     setCreando(true)
@@ -42,6 +80,7 @@ export default function DemoInicio() {
       const res = await fetch('/api/demo/crear', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caso: casoClave }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => null)
@@ -49,11 +88,16 @@ export default function DemoInicio() {
         return
       }
       const data = await res.json()
-      if (data.perfilId) {
-        guardarPerfilDemo(data.perfilId)
-        toast.success('Datos de ejemplo creados, explorando MantiGestor...')
-        router.push('/dashboard')
+      const { error: authError } = await getSupabase().auth.signInWithPassword({
+        email: data.email ?? DEMO_EMAIL,
+        password: data.password ?? DEMO_PASSWORD,
+      })
+      if (authError) {
+        toast.error(`No se pudo iniciar la sesión de demostración: ${authError.message}`)
+        return
       }
+      toast.success(`Datos de ${data.usuario ?? caso.nombre} creados, explorando MantiGestor...`)
+      router.push('/dashboard')
     } catch {
       toast.error('Error de conexión al crear la demo')
     } finally {
@@ -71,9 +115,9 @@ export default function DemoInicio() {
           Explora MantiGestor con datos de ejemplo
         </h1>
         <p className="max-w-xl text-muted-foreground">
-          Te creamos una sesión con los datos de <strong>Lucía Fernández</strong>, una autónoma de
-          diseño gráfico. Sin registro, sin tarjeta. Navega por facturas, modelos fiscales, nóminas y
-          alquileres para ver cómo funciona todo.
+          Elige un perfil de demostración y te creamos una sesión con sus datos
+          ({caso.nombre}, {caso.actividad.toLowerCase()}). Sin registro, sin tarjeta. Navega por
+          facturas, modelos fiscales, nóminas y alquileres para ver cómo funciona todo.
         </p>
         <Button size="lg" className="text-base px-8" onClick={() => void crearDemo()} disabled={creando}>
           {creando ? (
@@ -94,18 +138,41 @@ export default function DemoInicio() {
         </p>
       </div>
 
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold">Elige tu perfil de demostración</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {CASOS_DEMO.map(c => (
+            <button
+              key={c.clave}
+              type="button"
+              onClick={() => setCasoClave(c.clave)}
+              className={`rounded-lg border p-4 text-left transition-colors ${
+                c.clave === casoClave
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                  : 'hover:border-primary/40'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold">{c.nombre}</p>
+                <Badge variant="outline">{ETIQUETAS_PERFIL_FISCAL[c.perfilFiscal] ?? c.perfilFiscal}</Badge>
+              </div>
+              <p className="mt-0.5 text-xs font-medium text-muted-foreground">{c.actividad}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{c.descripcion}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary" aria-hidden="true" />
-            Esto es lo que verás
+            Esto es lo que verás con {caso.nombre}
           </CardTitle>
-          <CardDescription>
-            Datos ficticios de una autónoma trabajando en España.
-          </CardDescription>
+          <CardDescription>{caso.descripcion}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          {SECCIONES.map(s => (
+          {secciones.map(s => (
             <div key={s.titulo} className="flex gap-3 rounded-lg border p-4">
               <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <s.icon className="h-5 w-5" aria-hidden="true" />

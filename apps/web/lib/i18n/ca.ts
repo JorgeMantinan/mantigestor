@@ -1664,7 +1664,17 @@ export const ca = {
     csvPagoFraccionadoAcumulado: 'Pago fraccionado IRPF acumulado hasta el trimestre (modelo 130)',
     csvPagoFraccionadoIngresar: 'Pago fraccionado a ingresar este trimestre (modelo 130)',
     csvRetencionesTrimestre: 'Retenciones IRPF nóminas (trimestre)',
-    csvRetencionesAcumulado: 'Retenciones IRPF nóminas (acumulado año)',
+    csvRetencionesAcumulado: 'Retencions IRPF nòmines (acumulat any)',
+    modelosGeneradosTitulo: 'Models generats',
+    modelosGeneradosDesc: 'Models 303, 111 i 130 calculats i desats a partir de les factures i nòmines d\u2019aquest període',
+    modelosBotonGenerar: 'Generar i desar',
+    modelosGenerando: 'Generant...',
+    modelosVacio: 'Encara no hi ha models desats per a aquest període',
+    modelosRegenerados: 'Models regenerats amb les últimes dades',
+    modelosSinCambios: 'Sense canvis: les dades del període no s\u2019han modificat',
+    modelosError: 'Error en generar els models',
+    modelosActualizado: 'Actualitzat',
+    modelosImporte: 'Import',
   },
 
   // Widget Alertas IVA

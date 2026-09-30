@@ -179,6 +179,25 @@ model Proforma {
   @@map("proformas")
 }
 
+model ModeloGenerado {
+  id           String   @id
+  perfilId     String
+  modelo       String // '303' | '111' | '130' (trimestrales); reservado para anuales
+  titulo       String   @default("")
+  periodicidad String   @default("trimestral") // trimestral | anual | mensual
+  trimestre    Int      @default(0) // 1-4; 0 = anual
+  anyo         Int
+  fingerprint  String // huella estable de los datos de entrada
+  totalCents   Int      @default(0) // importe principal en céntimos
+  datos        Json // resumen numérico del cálculo (céntimos)
+  estado       String   @default("borrador") // borrador | listo | presentado
+  generadoEn   DateTime @default(now())
+
+  @@unique([perfilId, modelo, anyo, trimestre])
+  @@index([perfilId, anyo])
+  @@map("modelos_generados")
+}
+
 model Nomina {
   id              String   @id @default(cuid())
   perfilId        String

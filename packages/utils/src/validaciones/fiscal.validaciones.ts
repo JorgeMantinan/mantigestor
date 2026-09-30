@@ -20,3 +20,19 @@ export const ConsultaRetaSchema = z.object({
 })
 
 export type ConsultaRetaInput = z.infer<typeof ConsultaRetaSchema>
+
+/** Periodo para generar/listar modelos fiscales almacenados (303, 111, 130) */
+export const ModelosPeriodoSchema = z.object({
+  anyo: z
+    .number({ invalid_type_error: 'El año debe ser un número' })
+    .int('El año debe ser un número entero')
+    .min(2020, 'Año demasiado antiguo')
+    .max(2035, 'Año fuera de rango'),
+  trimestre: z
+    .number({ invalid_type_error: 'El trimestre debe ser un número' })
+    .int('El trimestre debe ser un número entero')
+    .min(1, 'El trimestre debe estar entre 1 y 4')
+    .max(4, 'El trimestre debe estar entre 1 y 4'),
+})
+
+export type ModelosPeriodoInput = z.infer<typeof ModelosPeriodoSchema>

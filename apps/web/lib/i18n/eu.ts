@@ -1664,7 +1664,17 @@ export const eu = {
     csvPagoFraccionadoAcumulado: 'Pago fraccionado IRPF acumulado hasta el trimestre (modelo 130)',
     csvPagoFraccionadoIngresar: 'Pago fraccionado a ingresar este trimestre (modelo 130)',
     csvRetencionesTrimestre: 'Retenciones IRPF nóminas (trimestre)',
-    csvRetencionesAcumulado: 'Retenciones IRPF nóminas (acumulado año)',
+    csvRetencionesAcumulado: 'Atxikipenak nominak (urteko metaketa)',
+    modelosGeneradosTitulo: 'Sortutako ereduak',
+    modelosGeneradosDesc: '303, 111 eta 130 ereduak kalkulatu eta gorde aurrekontu eta nominen arabera (aldia)',
+    modelosBotonGenerar: 'Sortu eta gorde',
+    modelosGenerando: 'Sortzen...',
+    modelosVacio: 'Ez dago eredua gordeta epe honetarako',
+    modelosRegenerados: 'Ereduak datu berrirekin berrsortu',
+    modelosSinCambios: 'Aldaketarik ez: epeko datuak ez dira aldatu',
+    modelosError: 'Errorea ereduak sortzean',
+    modelosActualizado: 'Eguneratuta',
+    modelosImporte: 'Zenbatekoa',
   },
 
   // Widget Alertas IVA

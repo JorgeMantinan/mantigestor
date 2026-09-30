@@ -1,15 +1,19 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
+import { regenerarModelosPeriodo } from '@/lib/fiscal/modelos-generados'
+import type { Trimestre } from '@/lib/fiscal/generador-modelos'
 
 /**
  * Cron job: /api/cron/generar-modelos-trimestrales
  *
  * Se ejecuta el 1 de enero, abril, julio y octubre a las 06:00 UTC.
- * Auto-generate 303, 111, 130 drafts for all active users.
- * Send email notification: "Tus modelos trimestrales están listos".
+ * Recalcula y almacena los modelos 303, 111 y 130 del trimestre CERRADO
+ * (borra los anteriores y guarda los nuevos) para todos los perfiles,
+ * y envía la notificación "Tus modelos trimestrales están listos".
  *
- * Seguridad: comprobar CRON_SECRET en header x-cron-secret.
+ * Seguridad: acepta `Authorization: Bearer <CRON_SECRET>` (Vercel Cron)
+ * o el header `x-cron-secret`.
  */
 
 interface Perfil {
@@ -25,21 +29,36 @@ const TRIMESTRE_LABELS: Record<number, string> = {
   4: 'Q4 (Oct-Dic)',
 }
 
-function getTrimestreActual(): { trimestre: number; year: number; label: string } {
-  const now = new Date()
-  const month = now.getMonth() + 1
-  const year = now.getFullYear()
-  const trimestre = month <= 3 ? 1 : month <= 6 ? 2 : month <= 9 ? 3 : 4
-  return { trimestre, year, label: TRIMESTRE_LABELS[trimestre] ?? `T${trimestre}` }
+/** Trimestre y año CERRADOS respecto a la fecha actual (se ejecuta el día 1 del trimestre siguiente) */
+function getTrimestreCerrado(fecha: Date = new Date()): { trimestre: Trimestre; year: number; label: string } {
+  const mes = fecha.getMonth() + 1
+  const year = fecha.getFullYear()
+  // Enero → T4 del año anterior; abril → T1; julio → T2; octubre → T3
+  const trimestreActual = (mes <= 3 ? 1 : mes <= 6 ? 2 : mes <= 9 ? 3 : 4) as Trimestre
+  if (trimestreActual === 1) {
+    return { trimestre: 4, year: year - 1, label: TRIMESTRE_LABELS[4] ?? 'Q4 (Oct-Dic)' }
+  }
+  return {
+    trimestre: (trimestreActual - 1) as Trimestre,
+    year,
+    label: TRIMESTRE_LABELS[trimestreActual - 1] ?? `T${trimestreActual - 1}`,
+  }
+}
+
+function autorizado(req: NextRequest): boolean {
+  const secret = process.env.CRON_SECRET
+  if (!secret) return false
+  const bearer = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+  const header = req.headers.get('x-cron-secret')
+  return bearer === secret || header === secret
 }
 
 export async function GET(req: NextRequest) {
-  const cronSecret = req.headers.get('x-cron-secret')
-  if (cronSecret !== process.env.CRON_SECRET) {
+  if (!autorizado(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { trimestre, year, label } = getTrimestreActual()
+  const { trimestre, year, label } = getTrimestreCerrado()
   const supabase = createAdminClient()
 
   const { data: perfiles } = await supabase
@@ -55,21 +74,28 @@ export async function GET(req: NextRequest) {
 
   for (const perfil of perfiles as Perfil[]) {
     try {
-      const modelos = ['303', '111', '130']
+      const { modelos, regenerado } = await regenerarModelosPeriodo(
+        supabase,
+        perfil.id,
+        year,
+        trimestre
+      )
 
-      for (const modelo of modelos) {
-        const modeloId = `draft-${modelo}-${year}-T${trimestre}-${crypto.randomUUID().slice(0, 8)}`
+      if (modelos.length === 0) continue
 
-        await supabase.from('notificaciones').insert({
-          id: crypto.randomUUID(),
-          perfilId: perfil.id,
-          tipo: 'modelo_trimestral_ready',
-          contenido: `Modelo ${modelo} ${label} ${year} listo para revisar`,
-          creadoEn: new Date().toISOString(),
-        })
+      if (regenerado) {
+        for (const modelo of modelos) {
+          await supabase.from('notificaciones').insert({
+            id: crypto.randomUUID(),
+            perfilId: perfil.id,
+            tipo: 'modelo_trimestral_ready',
+            contenido: `Modelo ${modelo.modelo} ${label} ${year} listo para revisar`,
+            creadoEn: new Date().toISOString(),
+          })
+        }
       }
 
-      if (resend && perfil.email) {
+      if (resend && perfil.email && regenerado) {
         await resend.emails.send({
           from: 'MantiGestor <noreply@mantigestor.com>',
           to: perfil.email,

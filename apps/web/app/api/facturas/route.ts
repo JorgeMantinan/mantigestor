@@ -5,6 +5,7 @@ import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/l
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { registrarAccion } from '@/lib/audit-log'
+import { regenerarModelosDeFecha } from '@/lib/fiscal/modelos-generados'
 
 export async function GET(req: NextRequest) {
   try {
@@ -111,6 +112,9 @@ export async function POST(req: NextRequest) {
       tipo: data.tipo,
       emisorReceptor: data.emisorReceptor,
     })
+
+    // Regenerar los modelos fiscales del periodo afectado por la nueva factura
+    await regenerarModelosDeFecha(supabase, perfilId, String(data.fechaEmision))
 
     return Response.json({ data }, { status: 201 })
   } catch (error) {

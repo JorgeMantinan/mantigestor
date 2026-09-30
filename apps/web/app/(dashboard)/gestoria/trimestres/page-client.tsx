@@ -7,9 +7,10 @@ import { useLanguage } from '@/contexts/language-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { BarChart3, Download, Printer } from 'lucide-react'
+import { BarChart3, Download, FileCheck, Printer } from 'lucide-react'
 import { resultadosIvaAnuales, pagosFraccionados130 } from '@mantigestor/utils'
 import type { ResultadoModelo303, PagoFraccionadoTrimestre } from '@mantigestor/utils'
+import type { ModeloGeneradoFila } from '@/lib/fiscal/modelos-generados'
 
 const trimestres = [
   { label: 'Q1 (Ene-Mar)', value: 1 },
@@ -54,6 +55,9 @@ export default function TrimestresPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [resultado, setResultado] = useState<ResumenAnual | null>(null)
+  const [modelosGenerados, setModelosGenerados] = useState<ModeloGeneradoFila[]>([])
+  const [generandoModelos, setGenerandoModelos] = useState(false)
+  const [mensajeModelos, setMensajeModelos] = useState<string | null>(null)
   const getSupabase = useCallback(() => createClient(), [])
 
   const calcular = useCallback(async () => {
@@ -124,6 +128,42 @@ export default function TrimestresPage() {
       setLoading(false)
     }
   }, [anho, getSupabase, perfilActivoId])
+
+  const cargarModelos = useCallback(async () => {
+    try {
+      const params = new URLSearchParams({ anyo: String(anho), trimestre: String(selectedTrimestre) })
+      const res = await fetch(`/api/fiscal/modelos?${params.toString()}`)
+      if (!res.ok) throw new Error('Error')
+      const data = (await res.json()) as { modelos?: ModeloGeneradoFila[] }
+      setModelosGenerados(data.modelos ?? [])
+    } catch {
+      setModelosGenerados([])
+    }
+  }, [anho, selectedTrimestre])
+
+  const generarModelos = useCallback(async () => {
+    setGenerandoModelos(true)
+    setMensajeModelos(null)
+    try {
+      const res = await fetch('/api/fiscal/modelos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ anyo: anho, trimestre: selectedTrimestre }),
+      })
+      if (!res.ok) throw new Error('Error')
+      const data = (await res.json()) as { modelos?: ModeloGeneradoFila[]; regenerado?: boolean }
+      setModelosGenerados(data.modelos ?? [])
+      setMensajeModelos(data.regenerado ? t('trimestres.modelosRegenerados') : t('trimestres.modelosSinCambios'))
+    } catch {
+      setMensajeModelos(t('trimestres.modelosError'))
+    } finally {
+      setGenerandoModelos(false)
+    }
+  }, [anho, selectedTrimestre, t])
+
+  useEffect(() => {
+    void cargarModelos()
+  }, [cargarModelos])
 
   useEffect(() => {
     void calcular()
@@ -318,6 +358,44 @@ export default function TrimestresPage() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="print:hidden">
+            <CardHeader className="pb-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <CardTitle className="text-base">{t('trimestres.modelosGeneradosTitulo')}</CardTitle>
+                  <CardDescription>{t('trimestres.modelosGeneradosDesc')}</CardDescription>
+                </div>
+                <Button size="sm" onClick={() => void generarModelos()} disabled={generandoModelos}>
+                  <FileCheck className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {generandoModelos ? t('trimestres.modelosGenerando') : t('trimestres.modelosBotonGenerar')}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {mensajeModelos && (
+                <p className="text-xs text-muted-foreground">{mensajeModelos}</p>
+              )}
+              {modelosGenerados.length === 0 && !mensajeModelos && (
+                <p className="text-sm text-muted-foreground">{t('trimestres.modelosVacio')}</p>
+              )}
+              {modelosGenerados.map(m => (
+                <div key={m.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                  <div>
+                    <p className="text-sm font-medium">
+                      Modelo {m.modelo} — {m.titulo}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t('trimestres.modelosActualizado')}: {new Date(m.generadoEn).toLocaleDateString('es-ES')} · {m.estado}
+                    </p>
+                  </div>
+                  <span className="whitespace-nowrap text-sm font-semibold" title={t('trimestres.modelosImporte')}>
+                    {formatMoney(m.totalCents)}
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
           <div className="flex flex-wrap gap-2 print:hidden">
             <Button variant="outline" onClick={exportarCsv}>

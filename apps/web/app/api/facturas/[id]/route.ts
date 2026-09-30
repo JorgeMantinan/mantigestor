@@ -5,6 +5,7 @@ import { getAuthenticatedUser, unauthorized, notFound, badRequest, serverError }
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { registrarAccion } from '@/lib/audit-log'
+import { regenerarModelosDeFecha } from '@/lib/fiscal/modelos-generados'
 
 export async function GET(
   req: NextRequest,
@@ -144,6 +145,11 @@ export async function PUT(
       camposModificados: Object.keys(updateData),
     })
 
+    // Regenerar modelos: periodo anterior (si cambió la fecha) y periodo nuevo
+    await regenerarModelosDeFecha(supabase, perfilId, String(existente.fechaEmision))
+    const fechaFinal = fechaEmision ? fechaEmision.toISOString() : String(existente.fechaEmision)
+    await regenerarModelosDeFecha(supabase, perfilId, fechaFinal)
+
     return Response.json({ data })
   } catch (error) {
     return serverError(error)
@@ -182,13 +188,18 @@ export async function DELETE(
     const { data: eliminada, error } = await supabase.from('facturas').delete()
       .eq('id', params.id)
       .eq('perfilId', perfilId)
-      .select('id')
+      .select('id, fechaEmision')
     if (error) throw error
     if (!eliminada || eliminada.length === 0) return notFound('Factura no encontrada')
 
     await registrarAccion(req, perfilId, 'factura', params.id, 'eliminar', {
       facturaId: params.id,
     })
+
+    // Regenerar los modelos fiscales del periodo de la factura eliminada
+    if (eliminada[0]?.fechaEmision) {
+      await regenerarModelosDeFecha(supabase, perfilId, String(eliminada[0].fechaEmision))
+    }
 
     return Response.json({ data: null })
   } catch (error) {

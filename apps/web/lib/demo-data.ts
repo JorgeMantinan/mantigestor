@@ -1,11 +1,8 @@
-export const DEMO_PERFIL_ID = 'demo-lucia-fernandez'
-export const DEMO_USER_ID = 'demo-user-lucia-fernandez'
 export const DEMO_EMAIL = 'demo@mantigestor.local'
+export const DEMO_PASSWORD = 'demo-mantigestor-2026'
 export const DEMO_NIF = '12345678Z'
 
 export interface DemoPerfil {
-  id: string
-  userId: string
   email: string
   nombre: string
   nif: string
@@ -13,8 +10,6 @@ export interface DemoPerfil {
 }
 
 export const DEMO_PERFIL: DemoPerfil = {
-  id: DEMO_PERFIL_ID,
-  userId: DEMO_USER_ID,
   email: DEMO_EMAIL,
   nombre: 'Lucía Fernández',
   nif: DEMO_NIF,
@@ -83,33 +78,3 @@ export const DEMO_NOMINAS: DemoNomina[] = [
   { empleada: 'Roberto Sánchez', mes: 9, anyo: 2026, salarioBruto: 180000, irpf: 18, seguridadSocial: 9000, rol: 'empleado' },
   { empleada: 'Marta Ruiz', mes: 9, anyo: 2026, salarioBruto: 140000, irpf: 15, seguridadSocial: 6500, rol: 'empleado' },
 ]
-
-export function esDemoPerfil(perfilId: string | null | undefined): boolean {
-  return typeof perfilId === 'string' && perfilId.startsWith('demo-')
-}
-
-const STORAGE_KEY = 'mantigestor_demo_perfil_id'
-
-export function guardarPerfilDemo(perfilId: string): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, perfilId)
-  } catch {
-    // localStorage no disponible (SSR/test)
-  }
-}
-
-export function obtenerPerfilDemo(): string | null {
-  try {
-    return localStorage.getItem(STORAGE_KEY)
-  } catch {
-    return null
-  }
-}
-
-export function limpiarPerfilDemo(): void {
-  try {
-    localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    // noop
-  }
-}

@@ -1666,6 +1666,16 @@ export const en: DeepTraducciones = {
     csvPagoFraccionadoIngresar: 'Fractional payment to pay this quarter (form 130)',
     csvRetencionesTrimestre: 'IRPF payroll withholdings (quarter)',
     csvRetencionesAcumulado: 'IRPF payroll withholdings (annual accumulated)',
+    modelosGeneradosTitulo: 'Generated models',
+    modelosGeneradosDesc: 'Models 303, 111 and 130 calculated and saved from the invoices and payslips of this period',
+    modelosBotonGenerar: 'Generate and save',
+    modelosGenerando: 'Generating...',
+    modelosVacio: 'No saved models for this period yet',
+    modelosRegenerados: 'Models regenerated with the latest data',
+    modelosSinCambios: 'No changes: period data has not been modified',
+    modelosError: 'Error generating the models',
+    modelosActualizado: 'Updated',
+    modelosImporte: 'Amount',
   },
 
   // Widget Alertas IVA

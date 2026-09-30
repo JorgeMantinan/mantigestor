@@ -1665,6 +1665,16 @@ export const es = {
     csvPagoFraccionadoIngresar: 'Pago fraccionado a ingresar este trimestre (modelo 130)',
     csvRetencionesTrimestre: 'Retenciones IRPF nóminas (trimestre)',
     csvRetencionesAcumulado: 'Retenciones IRPF nóminas (acumulado año)',
+    modelosGeneradosTitulo: 'Modelos generados',
+    modelosGeneradosDesc: 'Modelos 303, 111 y 130 calculados y guardados a partir de las facturas y nóminas de este periodo',
+    modelosBotonGenerar: 'Generar y guardar',
+    modelosGenerando: 'Generando...',
+    modelosVacio: 'Todavía no hay modelos guardados para este periodo',
+    modelosRegenerados: 'Modelos regenerados con los últimos datos',
+    modelosSinCambios: 'Sin cambios: los datos del periodo no se han modificado',
+    modelosError: 'Error al generar los modelos',
+    modelosActualizado: 'Actualizado',
+    modelosImporte: 'Importe',
   },
 
   // Widget Alertas IVA
