@@ -41,13 +41,21 @@ describe('calcularModelo714 — Impuesto sobre el Patrimonio', () => {
     expect(r.obligatorio).toBe(false)
   })
 
-  it('aplica la bonificación autonómica conocida (Cataluña 75%)', () => {
+  it('aplica la bonificación autonómica del 100% (Madrid, desde 2009)', () => {
+    const r = calcularModelo714({
+      bienes: [bien({ valor: 90_000_000 })],
+      comunidadAutonoma: 'Madrid',
+    })
+    expect(r.porcentajeBonificacion).toBe(1)
+    expect(r.bonificacionAplicable).toContain('100%')
+  })
+
+  it('Cataluña no tiene bonificación general en cuota', () => {
     const r = calcularModelo714({
       bienes: [bien({ valor: 90_000_000 })],
       comunidadAutonoma: 'Cataluña',
     })
-    expect(r.porcentajeBonificacion).toBe(0.75)
-    expect(r.bonificacionAplicable).toContain('75%')
+    expect(r.porcentajeBonificacion).toBe(0)
   })
 
   it('indica ausencia de bonificación para una comunidad sin dato', () => {

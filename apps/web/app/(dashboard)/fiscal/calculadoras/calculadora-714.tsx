@@ -127,9 +127,9 @@ export function CalculadoraModelo714() {
           </div>
           {resultado.porcentajeBonificacion > 0 && (
             <div className="rounded-lg border border-green-500/50 bg-green-500/5 p-3">
-              <dt className="text-xs text-muted-foreground">Ahorro estimado</dt>
+              <dt className="text-xs text-muted-foreground">Bonificación en cuota</dt>
               <dd className="text-sm font-bold text-green-600">
-                {resultado.porcentajeBonificacion}% — {eur(Math.round(resultado.baseImponible * resultado.porcentajeBonificacion / 100))}
+                {Math.round(resultado.porcentajeBonificacion * 100)}% de la cuota íntegra
               </dd>
             </div>
           )}

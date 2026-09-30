@@ -1,28 +1,42 @@
 /**
- * Mínimo multi-annual: reducción del 2% por cada año de actividad anteriores
- * al primer año en que la cuota íntegra del trimestre supera el 70% de la
- * cuota media de los tres primeros trimestres del ejercicio anterior.
- * Máximo 15%. Solo aplica a autónomos con más de 1 año de actividad.
+ * Modelo 130 — IRPF, estimación directa: pago fraccionado.
+ * Base oficial: 20 % del rendimiento neto acumulado desde el 1 de enero hasta
+ * el cierre del trimestre (art. 110 LIRPF y arts. 109-114 RIRPF).
+ *
+ * Del importe resultante se DEDUCEN (AEAT, «Importe de los pagos fraccionados»):
+ * - Pagos fraccionados ya ingresados en el año.
+ * - Retenciones e ingresos a cuenta (profesionales, arrendamientos, imagen...).
+ * - Minoración por rendimientos previos: 25/50/75/100 € si los rendimientos netos
+ *   del ejercicio anterior son ≤ 12.000 / 11.000 / 10.000 / 9.000 €.
+ * - Deducción por adquisición de vivienda habitual: 2 % del rendimiento neto
+ *   acumulado, con tope de 660,14 € por trimestre (2 % de 33.007,20 €), cuando se
+ *   financia con financiación ajena, existe derecho a la deducción por inversión en
+ *   vivienda habitual y los rendimientos íntegros previsibles son < 33.007,20 €.
+ *   No procede con dos o más actividades, con rendimientos del trabajo comunicados
+ *   al pagador ni si el destino es ampliación o construcción de vivienda.
+ *
+ * Los importes se expresan en la MISMA unidad que la entrada (la UI usa euros).
  */
-export function calcularMinimoMultiannual(aniosActividad: number): number {
-  const reduccion = Math.min(15, Math.max(0, (aniosActividad - 1) * 2))
-  return reduccion
+
+export interface OpcionesModelo130 {
+  /** Rendimientos netos de actividades económicas del ejercicio anterior (€) */
+  rendimientosPreviosAnuales?: number
+  /** ¿Procede la deducción del 2 % por adquisición de vivienda habitual? */
+  deduccionVivienda?: boolean
 }
 
-/**
- * Reducción por rendimientos irregulares (art. 32 LIRPF):
- * Aplicable cuando más del 75% de los ingresos tienen un período > 1 año.
- * Reducción del 30% sobre el rendimiento neto (con límite de 300.000€/año).
- */
-export function calcularReduccionIrregular(
-  rendimientoNeto: number,
-  esIrregular: boolean
-): number {
-  if (!esIrregular || rendimientoNeto <= 0) return 0
-  const reduccion = Math.round(rendimientoNeto * 0.30)
-  const limite = 300_000_00 // 300.000€ en céntimos
-  return Math.min(reduccion, Math.round(limite * 0.30))
+/** Minoración fija por rendimientos del ejercicio anterior (0, 25, 50, 75 o 100 €) */
+export function minoracionPagosFraccionados(rendimientosPrevios: number | undefined): number {
+  if (rendimientosPrevios == null || rendimientosPrevios > 12_000) return 0
+  if (rendimientosPrevios <= 9_000) return 100
+  if (rendimientosPrevios <= 10_000) return 75
+  if (rendimientosPrevios <= 11_000) return 50
+  return 25
 }
+
+export const DEDUCCION_VIVIENDA_PCT = 0.02
+/** Tope de la deducción por vivienda en cada trimestre (2 % de 33.007,20 €) */
+export const DEDUCCION_VIVIENDA_MAX_TRIMESTRE = 660.14
 
 export interface ResultadoModelo130 {
   ingresosAcumuladosAño: number
@@ -32,56 +46,23 @@ export interface ResultadoModelo130 {
   cuotaIntegra: number
   pagosAnterioresAño: number
   retencionesNomina: number
+  /** Minoración por rendimientos del ejercicio anterior */
+  minoracionOficial: number
+  /** Deducción del 2 % por vivienda (tope 660,14 €/trimestre) */
+  deduccionVivienda: number
   resultadoFinal: number
   aIngresar: number
   sinActividad: boolean
-  reduccionMultiannual: number
-  reduccionIrregular: number
-  rendimientoNetoTrasReducciones: number
 }
 
-export function calcularModelo130(
-  ingresosAcumulados: number,
-  gastosDeducibles: number,
-  pagosAnteriores: number,
-  retencionesNomina: number = 0,
-  aniosActividad: number = 1,
-  esIrregular: boolean = false
-): ResultadoModelo130 {
-  const rendimientoNetoBruto = Math.max(0, ingresosAcumulados - gastosDeducibles)
-  const PORCENTAJE = 0.20
+export const PORCENTAJE_PAGO_FRACCIONADO_130 = 0.2
 
-  const reduccionMulti = Math.round(rendimientoNetoBruto * (calcularMinimoMultiannual(aniosActividad) / 100))
-  const desReducMulti = rendimientoNetoBruto - reduccionMulti
-  const reduccionIrreg = calcularReduccionIrregular(desReducMulti, esIrregular)
-  const rendimientoNetoTras = Math.max(0, desReducMulti - reduccionIrreg)
-
-  const cuotaIntegra = Math.round(rendimientoNetoTras * PORCENTAJE)
-  const resultadoFinal = cuotaIntegra - pagosAnteriores - retencionesNomina
-  const aIngresar = Math.max(0, resultadoFinal)
-
-  return {
-    ingresosAcumuladosAño: ingresosAcumulados,
-    gastosDeduciblesAcumulados: gastosDeducibles,
-    rendimientoNeto: rendimientoNetoBruto,
-    porcentajeRetencion: PORCENTAJE * 100,
-    cuotaIntegra,
-    pagosAnterioresAño: pagosAnteriores,
-    retencionesNomina,
-    resultadoFinal,
-    aIngresar,
-    sinActividad: rendimientoNetoBruto <= 0,
-    reduccionMultiannual: reduccionMulti,
-    reduccionIrregular: reduccionIrreg,
-    rendimientoNetoTrasReducciones: rendimientoNetoTras,
-  }
-}
-
+/** Fila de la secuencia de pagos fraccionados trimestrales */
 export interface PagoFraccionadoTrimestre {
   trimestre: 1 | 2 | 3 | 4
   /** Beneficio neto acumulado desde enero hasta el cierre del trimestre */
   beneficioAcumulado: number
-  /** Cuota acumulada del año: 20% × beneficio acumulado */
+  /** Cuota acumulada del año: 20 % × beneficio acumulado */
   cuotaAcumulada: number
   /** Pagos fraccionados ya ingresados en trimestres anteriores */
   pagosAnteriores: number
@@ -89,21 +70,60 @@ export interface PagoFraccionadoTrimestre {
   aIngresar: number
 }
 
+export function calcularModelo130(
+  ingresosAcumulados: number,
+  gastosDeducibles: number,
+  pagosAnteriores: number,
+  retencionesNomina: number = 0,
+  opciones: OpcionesModelo130 = {}
+): ResultadoModelo130 {
+  const rendimientoNeto = Math.max(0, ingresosAcumulados - gastosDeducibles)
+
+  const cuotaIntegra = Math.round(rendimientoNeto * PORCENTAJE_PAGO_FRACCIONADO_130)
+
+  const minoracionOficial = minoracionPagosFraccionados(opciones.rendimientosPreviosAnuales)
+
+  let deduccionVivienda = 0
+  if (opciones.deduccionVivienda && rendimientoNeto > 0) {
+    deduccionVivienda = Math.min(
+      Math.round(rendimientoNeto * DEDUCCION_VIVIENDA_PCT * 100) / 100,
+      DEDUCCION_VIVIENDA_MAX_TRIMESTRE
+    )
+  }
+
+  const resultadoFinal =
+    cuotaIntegra - pagosAnteriores - retencionesNomina - minoracionOficial - deduccionVivienda
+  const aIngresar = Math.max(0, resultadoFinal)
+
+  return {
+    ingresosAcumuladosAño: ingresosAcumulados,
+    gastosDeduciblesAcumulados: gastosDeducibles,
+    rendimientoNeto,
+    porcentajeRetencion: PORCENTAJE_PAGO_FRACCIONADO_130 * 100,
+    cuotaIntegra,
+    pagosAnterioresAño: pagosAnteriores,
+    retencionesNomina,
+    minoracionOficial,
+    deduccionVivienda,
+    resultadoFinal,
+    aIngresar,
+    sinActividad: rendimientoNeto <= 0,
+  }
+}
+
 /**
- * Secuencia real de pagos fraccionados del modelo 130: la cuota se calcula
- * sobre el rendimiento neto ACUMULADO del año y se restan los pagos ya
- * ingresados en trimestres anteriores (art. 110 LIRPF).
+ * Secuencia oficial de pagos fraccionados trimestrales (art. 110 LIRPF):
+ * la cuota se calcula sobre el beneficio neto ACUMULADO del año y se restan
+ * los pagos ya ingresados en trimestres anteriores.
  *
  * @param beneficioNetoPorTrimestre Beneficio (ingresos − gastos deducibles) de cada trimestre, en el orden Q1..Q4. Puede ser negativo.
  */
-export function pagosFraccionados130(
-  beneficioNetoPorTrimestre: Array<number>
-): Array<PagoFraccionadoTrimestre> {
+export function pagosFraccionados130(beneficioNetoPorTrimestre: Array<number>) {
   let beneficioAcumulado = 0
   let pagosAnteriores = 0
   return ([1, 2, 3, 4] as const).map((trimestre, i) => {
     beneficioAcumulado += beneficioNetoPorTrimestre[i] ?? 0
-    const cuotaAcumulada = Math.round(Math.max(0, beneficioAcumulado) * 0.2)
+    const cuotaAcumulada = Math.round(Math.max(0, beneficioAcumulado) * PORCENTAJE_PAGO_FRACCIONADO_130)
     const aIngresar = Math.max(0, cuotaAcumulada - pagosAnteriores)
     const fila = { trimestre, beneficioAcumulado, cuotaAcumulada, pagosAnteriores, aIngresar }
     pagosAnteriores += aIngresar

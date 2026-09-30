@@ -26,6 +26,8 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
   const [gastos, setGastos] = useState(datosIniciales?.gastos != null ? String(datosIniciales.gastos) : '')
   const [pagosAnteriores, setPagosAnteriores] = useState(datosIniciales?.pagosAnteriores != null ? String(datosIniciales.pagosAnteriores) : '')
   const [retenciones, setRetenciones] = useState(datosIniciales?.retenciones != null ? String(datosIniciales.retenciones) : '')
+  const [previos, setPrevios] = useState('')
+  const [vivienda, setVivienda] = useState(false)
 
   const [trim1, setTrim1] = useState('')
   const [trim2, setTrim2] = useState('')
@@ -78,9 +80,13 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
         parseFloat(ingresos) || 0,
         parseFloat(gastos) || 0,
         parseFloat(pagosAnteriores) || 0,
-        parseFloat(retenciones) || 0
+        parseFloat(retenciones) || 0,
+        {
+          rendimientosPreviosAnuales: previos !== '' ? parseFloat(previos) || 0 : undefined,
+          deduccionVivienda: vivienda,
+        }
       ),
-    [ingresos, gastos, pagosAnteriores, retenciones]
+    [ingresos, gastos, pagosAnteriores, retenciones, previos, vivienda]
   )
 
   const secuencia = useMemo(() => {
@@ -101,7 +107,9 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
               <div>
                 <CardTitle>Modelo 130 — Pago fraccionado IRPF ({taxYear})</CardTitle>
                 <CardDescription>
-                  Pago fraccionado trimestral de autónomos en estimación directa: 20% sobre el rendimiento neto acumulado anual.
+                  Pago fraccionado trimestral en estimación directa: 20% sobre el rendimiento neto
+                  acumulado, con la minoración por rendimientos previos (25-100 €) y la deducción
+                  del 2% por vivienda cuando procedan.
                 </CardDescription>
               </div>
             </div>
@@ -150,7 +158,28 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
               <LabelConAyuda htmlFor="s130-retenciones">Retenciones de nómina (€)</LabelConAyuda>
               <Input id="s130-retenciones" type="number" min="0" step="0.01" placeholder="0.00" value={retenciones} onChange={e => setRetenciones(e.target.value)} />
             </div>
+            <div className="space-y-2">
+              <LabelConAyuda htmlFor="s130-previos">Rendimientos netos ejercicio anterior (€)</LabelConAyuda>
+              <Input id="s130-previos" type="number" min="0" step="0.01" placeholder="0.00" value={previos} onChange={e => setPrevios(e.target.value)} />
+              <p className="text-xs text-muted-foreground">
+                Da derecho a la minoración de 25/50/75/100 € si no superas 12.000/11.000/10.000/9.000 €.
+              </p>
+            </div>
           </div>
+
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={vivienda}
+              onChange={e => setVivienda(e.target.checked)}
+            />
+            <span>
+              Aplico la deducción del 2% por adquisición de vivienda habitual (financiación ajena con
+              derecho a la deducción, sin otras actividades ni rendimientos del trabajo comunicados;
+              rendimientos previsibles &lt; 33.007,20 €; tope 660,14 € por trimestre).
+            </span>
+          </label>
 
           {hasData && (
             <dl className="grid gap-3 sm:grid-cols-3">
@@ -162,6 +191,18 @@ export function Calculadora130({ taxYear = 2026, datosIniciales }: Props) {
                 <dt className="text-xs text-muted-foreground">Cuota íntegra (20%)</dt>
                 <dd className="text-lg font-semibold">{fEuropeo(resultado.cuotaIntegra)}</dd>
               </div>
+              {resultado.minoracionOficial > 0 && (
+                <div className="rounded-lg border p-3">
+                  <dt className="text-xs text-muted-foreground">Minoración rendimientos previos</dt>
+                  <dd className="text-lg font-semibold text-green-600">−{fEuropeo(resultado.minoracionOficial)}</dd>
+                </div>
+              )}
+              {resultado.deduccionVivienda > 0 && (
+                <div className="rounded-lg border p-3">
+                  <dt className="text-xs text-muted-foreground">Deducción vivienda (2%)</dt>
+                  <dd className="text-lg font-semibold text-green-600">−{fEuropeo(resultado.deduccionVivienda)}</dd>
+                </div>
+              )}
               <div className={`rounded-lg border p-3 ${resultado.aIngresar > 0 ? 'border-amber-500/50 bg-amber-500/5' : 'border-green-500/50 bg-green-500/5'}`}>
                 <dt className="text-xs text-muted-foreground">{resultado.aIngresar > 0 ? 'A ingresar' : 'Cuota cubierta'}</dt>
                 <dd className={`text-lg font-bold flex items-center gap-1 ${resultado.aIngresar > 0 ? 'text-amber-600' : 'text-green-600'}`}>

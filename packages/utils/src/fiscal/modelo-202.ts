@@ -71,11 +71,27 @@ export function calcularModelo202(params: PagoFraccionadoSociedades): ResultadoM
   let tipoPorcentaje: number
   let baseCalculoCents: number
   let tipoAplicable: string
+  let pagoTrimestralCents: number
 
   if (params.modalidad === 'cuota') {
     tipoPorcentaje = 18
     tipoAplicable = 'Modalidad cuota íntegra: 18 % (art. 40.2 LIS)'
     baseCalculoCents = params.cuotaIntegraUltimoPeriodoCents
+    pagoTrimestralCents = Math.round(baseCalculoCents * (tipoPorcentaje / 100))
+  } else if (params.entidad === 'micro') {
+    // Escala de micropyme por tramos (como las casillas "Base a tipo 1/tipo 2" del 202):
+    // 19 % sobre los primeros 50.000 € de base y 21 % sobre el exceso (2026),
+    // aplicando a cada tramo el porcentaje 5/7 (o 19/20) redondeado.
+    const m10 = params.cifraNegocios10M ?? false
+    const base = params.baseImponiblePeriodoCents
+    const tramo1 = Math.min(base, 5_000_000)
+    const tramo2 = Math.max(0, base - 5_000_000)
+    const pct1 = porcentajeModalidadBase(19, m10)
+    const pct2 = porcentajeModalidadBase(21, m10)
+    tipoPorcentaje = tramo2 > 0 ? pct2 : pct1
+    tipoAplicable = `Modalidad base micropyme: ${pct1} % hasta 50.000 € y ${pct2} % sobre el exceso`
+    baseCalculoCents = base
+    pagoTrimestralCents = Math.round(tramo1 * (pct1 / 100)) + Math.round(tramo2 * (pct2 / 100))
   } else {
     const tipoGravamen = TIPOS_GRAVAMEN_IS_2026[params.entidad]
     tipoPorcentaje = porcentajeModalidadBase(tipoGravamen, params.cifraNegocios10M ?? false)
@@ -83,9 +99,9 @@ export function calcularModelo202(params: PagoFraccionadoSociedades): ResultadoM
       ? `Modalidad base: 19/20 × ${tipoGravamen} % → ${tipoPorcentaje} % (≥ 10 M€)`
       : `Modalidad base: 5/7 × ${tipoGravamen} % → ${tipoPorcentaje} % (< 10 M€)`
     baseCalculoCents = params.baseImponiblePeriodoCents
+    pagoTrimestralCents = Math.round(baseCalculoCents * (tipoPorcentaje / 100))
   }
 
-  const pagoTrimestralCents = Math.round(baseCalculoCents * (tipoPorcentaje / 100))
   const totalAPagarCents = Math.max(0, pagoTrimestralCents - params.pagosAnterioresCents)
 
   return {

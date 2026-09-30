@@ -28,7 +28,6 @@ export interface ResultadoModelo036 {
   /** Régimen recomendado para el modelo 303/309 (líquido a ingresar del autónomo) */
   regimenRecomendado: RegimenIva
   cuotaRETA: number
-  cuotaRETAExtremadura: number
   tarifaPlana: number
   hayMinimoProfesional: boolean
   esActividadEconomicaIae: boolean
@@ -40,7 +39,6 @@ const LIMITE_REGSIMPLE_AGRARIO = 250_000
 // RETA 2026 (Orden PJC/297/2026 y RDL 3/2026): base mínima 653,59 €/mes,
 // tipo total de cotización 31,50 % (2025: 31,40 %). Tarifa plana: 80 € + MEI = 88,64 €/mes.
 const BASE_MINIMA_RETA_2026 = 653.59
-const TIPO_RETA_25 = 0.314
 const TIPO_RETA_26 = 0.315
 const TARIFA_PLANA_MENSUAL = 88.64
 
@@ -98,7 +96,6 @@ export function calcularModelo036(datos: DatosModelo036): ResultadoModelo036 {
     ivsimplificadoAgrario,
     regimenRecomendado,
     cuotaRETA,
-    cuotaRETAExtremadura: redondear2(base * TIPO_RETA_25),
     tarifaPlana,
     hayMinimoProfesional,
     esActividadEconomicaIae: esEconomica,

@@ -1,7 +1,14 @@
 /**
  * Modelo 714 — Impuesto sobre el Patrimonio
- * Declaración anual si el patrimonio neto supera los 700.000€
- * Bonificaciones varían por comunidad autónoma
+ * Declaración anual: obligatoria con cuota a ingresar o si el patrimonio neto
+ * supera los 700.000 € (y en todo caso con bienes por más de 2.000.000 €).
+ *
+ * Bonificación general de la cuota por CCAA (Ministerio de Hacienda,
+ * «Tributación Autonómica. Medidas 2026», Cap. I): 100 % Madrid (2009),
+ * Andalucía (2022), Extremadura (2023), Cantabria (2024) y La Rioja (2025);
+ * 50 % Galicia; el resto sin bonificación general (Navarra y País Vasco: régimen
+ * foral). Las bonificaciones del 99-100 % por parentesco son de Sucesiones y
+ * Donaciones, no del Impuesto sobre el Patrimonio.
  */
 
 export interface BienPatrimonio {
@@ -29,23 +36,24 @@ export interface ResultadoModelo714 {
 const UMBRAL = 70_000_000 // 700.000€
 
 const BONIFICACIONES: Record<string, { porcentaje: number; descripcion: string }> = {
-  'Andalucía': { porcentaje: 0.99, descripcion: 'Bonificación del 99% (derechos consolidados)' },
-  'Aragón': { porcentaje: 0.25, descripcion: 'Bonificación del 25% sobre cuota' },
-  'Asturias': { porcentaje: 0.30, descripcion: 'Bonificación del 30% sobre cuota' },
-  'Canarias': { porcentaje: 0.50, descripcion: 'Bonificación del 50% sobre cuota' },
-  'Cantabria': { porcentaje: 0.25, descripcion: 'Bonificación del 25% sobre cuota' },
-  'Castilla y León': { porcentaje: 0.50, descripcion: 'Bonificación del 50% sobre cuota' },
-  'Castilla-La Mancha': { porcentaje: 0.25, descripcion: 'Bonificación del 25% sobre cuota' },
-  'Cataluña': { porcentaje: 0.75, descripcion: 'Bonificación del 75% (prima preventive)' },
-  'Extremadura': { porcentaje: 0.25, descripcion: 'Bonificación del 25% sobre cuota' },
-  'Galicia': { porcentaje: 0.25, descripcion: 'Bonificación del 25% sobre cuota' },
-  'Islas Baleares': { porcentaje: 0.50, descripcion: 'Bonificación del 50% sobre cuota' },
-  'La Rioja': { porcentaje: 0.25, descripcion: 'Bonificación del 25% sobre cuota' },
-  'C. Valenciana': { porcentaje: 0.25, descripcion: 'Bonificación del 25% sobre cuota' },
-  'Comunidad Valenciana': { porcentaje: 0.25, descripcion: 'Bonificación del 25% sobre cuota' },
-  'Murcia': { porcentaje: 0.25, descripcion: 'Bonificación del 25% sobre cuota' },
-  'Navarra': { porcentaje: 0.50, descripcion: 'Bonificación del 50% sobre cuota' },
-  'País Vasco': { porcentaje: 0.50, descripcion: 'Bonificación del 50% sobre cuota (convenio)' },
+  'Madrid': { porcentaje: 1, descripcion: 'Bonificación del 100% de la cuota (desde 2009)' },
+  'Andalucía': { porcentaje: 1, descripcion: 'Bonificación del 100% de la cuota (desde 2022)' },
+  'Extremadura': { porcentaje: 1, descripcion: 'Bonificación del 100% de la cuota (desde 2023)' },
+  'Cantabria': { porcentaje: 1, descripcion: 'Bonificación del 100% de la cuota (desde 2024)' },
+  'La Rioja': { porcentaje: 1, descripcion: 'Bonificación del 100% de la cuota (desde 2025)' },
+  'Galicia': { porcentaje: 0.5, descripcion: 'Bonificación del 50% de la cuota' },
+  'Aragón': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
+  'Asturias': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
+  'Canarias': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
+  'Castilla y León': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
+  'Castilla-La Mancha': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
+  'Cataluña': { porcentaje: 0, descripcion: 'Sin bonificación general (tipos propios)' },
+  'Islas Baleares': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
+  'Murcia': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
+  'C. Valenciana': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
+  'Comunidad Valenciana': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
+  'Navarra': { porcentaje: 0, descripcion: 'Régimen foral: se tributa por la normativa foral' },
+  'País Vasco': { porcentaje: 0, descripcion: 'Régimen foral: se tributa por la normativa foral' },
 }
 
 export const COMUNIDADES_AUTONOMAS = Object.keys(BONIFICACIONES).sort()
