@@ -122,6 +122,12 @@ export const GUIA_IRPF: Record<string, GuiaCampo> = {
 }
 
 export const GUIA_IVA: Record<string, GuiaCampo> = {
+  regimenesEspeciales: {
+    titulo: 'Regímenes especiales de IVA (esta calculadora usa tipos generales)',
+    contenido:
+      'REAGP (agricultura, ganadería y pesca): no se repercute IVA y se recibe una compensación del 12 % de las entregas de productos agrícolas y ganaderos (10,5 % los forestales) abonada por el comprador, que la considera IVA soportado; límite de ingresos 250.000 €. Régimen simplificado (art. 47 LIVA): liquidación con módulos y tipos generales, mismo límite de 250.000 €.',
+    dondeVer: 'Arts. 306-314 LIVA; Reglamento del IVA (arts. 62-71); AEAT «Régimen especial de agricultura, ganadería y pesca».',
+  },
   tipoIva: {
     titulo: 'Tipo de IVA',
     contenido: 'El IVA es un impuesto que añades al precio de tus facturas y luego pagas a Hacienda. El tipo depende de lo que vendas.',

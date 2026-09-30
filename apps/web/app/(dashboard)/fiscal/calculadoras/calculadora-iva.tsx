@@ -58,6 +58,12 @@ export function CalculadoraIva({ datos }: { datos: DatosFiscales }) {
           ))}
         </div>
 
+        <div className="text-xs text-muted-foreground">
+          <LabelConAyuda htmlFor="importe-iva" ayuda={GUIA_IVA.regimenesEspeciales}>
+            ¿Estás en REAGP o en régimen simplificado?
+          </LabelConAyuda>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
           <div className="space-y-2">
             <LabelConAyuda htmlFor="importe-iva" ayuda={GUIA_IVA.importeIva!}>{modo === 'base' ? 'Base imponible (€)' : 'Total con IVA incluido (€)'}</LabelConAyuda>
