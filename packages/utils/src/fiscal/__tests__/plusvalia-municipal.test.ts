@@ -3,14 +3,14 @@ import { calcularPlusvaliaMunicipal } from '../plusvalia-municipal'
 
 describe('calcularPlusvaliaMunicipal — IIVTNU', () => {
   it('calcula la base objetiva sobre el valor catastral y el coeficiente por años', () => {
-    // valor catastral 100.000, 5 años → coef 0.52 → base 52.000
+    // valor catastral 100.000, 5 años → coef 0.18 (tabla 2026) → base 18.000
     const r = calcularPlusvaliaMunicipal({
       valorCatastralTerreno: 100_000,
       anyosTenencia: 5,
       tipoMunicipal: 30,
       metodo: 'objetivo',
     })
-    expect(r.baseImponible).toBe(52_000)
+    expect(r.baseImponible).toBe(18_000)
   })
 
   it('aplica el tipo municipal sobre la base objetiva', () => {
@@ -20,8 +20,8 @@ describe('calcularPlusvaliaMunicipal — IIVTNU', () => {
       tipoMunicipal: 30,
       metodo: 'objetivo',
     })
-    // coef 10 años = 0.42 → base 42.000 × 30% = 12.600
-    expect(r.cuota).toBeCloseTo(12_600, 1)
+    // coef 10 años = 0.16 (tabla 2026) → base 16.000 × 30% = 4.800
+    expect(r.cuota).toBeCloseTo(4_800, 1)
   })
 
   it('baja el coeficiente cuanto más años de tenencia', () => {
@@ -44,7 +44,7 @@ describe('calcularPlusvaliaMunicipal — IIVTNU', () => {
   })
 
   it('detecta el método más favorable por menor base', () => {
-    // 8 años → coef 0.46 → base objetiva 46.000; plusvalía real 60.000 → favorable = objetivo
+    // 8 años → coef 0.23 (tabla 2026) → base objetiva 23.000; plusvalía real 60.000 → favorable = objetivo
     const r = calcularPlusvaliaMunicipal({
       valorCatastralTerreno: 100_000,
       anyosTenencia: 8,
@@ -53,7 +53,7 @@ describe('calcularPlusvaliaMunicipal — IIVTNU', () => {
       valorAdquisicion: 120_000,
       valorTransmision: 180_000,
     })
-    expect(r.baseObjetiva).toBeCloseTo(46_000, 1)
+    expect(r.baseObjetiva).toBeCloseTo(23_000, 1)
     expect(r.metodoFavorable).toBe('objetivo')
     expect(r.baseReal).toBe(60_000)
   })
@@ -67,8 +67,8 @@ describe('calcularPlusvaliaMunicipal — IIVTNU', () => {
       valorAdquisicion: 120_000,
       valorTransmision: 180_000,
     })
-    // min(46.000, 60.000) = 46.000 × 30% = 13.800
-    expect(r.cuotaMinima).toBeCloseTo(13_800, 1)
+    // min(23.000, 60.000) = 23.000 × 30% = 6.900
+    expect(r.cuotaMinima).toBeCloseTo(6_900, 1)
   })
 
   it('advierte si en el método real no hay incremento', () => {

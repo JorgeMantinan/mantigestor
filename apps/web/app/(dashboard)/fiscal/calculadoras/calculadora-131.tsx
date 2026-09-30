@@ -22,7 +22,7 @@ interface FilaActividad {
   tipoIRPF: string
 }
 
-const FILA_VACIA: FilaActividad = { concepto: '', clave: '', unidades: '', precioUnitario: '', tipoIRPF: '19' }
+const FILA_VACIA: FilaActividad = { concepto: '', clave: '', unidades: '', precioUnitario: '', tipoIRPF: '4' }
 
 export function CalculadoraModelo131() {
   const [actividades, setActividades] = useState<FilaActividad[]>([{ ...FILA_VACIA }])
@@ -43,7 +43,7 @@ export function CalculadoraModelo131() {
         clave: a.clave,
         unidades: parseFloat(a.unidades) || 0,
         precioUnitario: eurosACentimos(a.precioUnitario),
-        tipoIRPF: parseFloat(a.tipoIRPF) || 19,
+        tipoIRPF: parseFloat(a.tipoIRPF) || 4,
       })),
     [actividades]
   )
@@ -95,8 +95,16 @@ export function CalculadoraModelo131() {
                 <Input id={`precio-${idx}`} type="number" min="0" step="0.01" value={act.precioUnitario} onChange={e => actualizar(idx, 'precioUnitario', e.target.value)} placeholder="50.00" />
               </div>
               <div className="space-y-1">
-                <Label>Tipo IRPF (%)</Label>
-                <Input type="number" min="0" max="50" step="1" value={act.tipoIRPF} onChange={e => actualizar(idx, 'tipoIRPF', e.target.value)} />
+                <Label>Pago fraccionado (%)</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={act.tipoIRPF}
+                  onChange={e => actualizar(idx, 'tipoIRPF', e.target.value)}
+                >
+                  <option value="4">4 % — con 2 o más asalariados (general)</option>
+                  <option value="3">3 % — con una sola persona asalariada</option>
+                  <option value="2">2 % — sin personal asalariado</option>
+                </select>
               </div>
               {actividades.length > 1 && (
                 <Button type="button" variant="ghost" size="icon" className="h-9 w-9 text-destructive" onClick={() => eliminarFila(idx)}>

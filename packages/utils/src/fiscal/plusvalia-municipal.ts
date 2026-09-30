@@ -43,37 +43,42 @@ export interface ResultadoPlusvalia {
 }
 
 /**
- * Coeficientes máximos de reducción por años de tenencia (art. 107.4 TRLRHL, versión
- * establecida por RD-Ley 26/2021) según los años de permanencia del terreno.
- * Los ayuntamientos pueden reducirlos hasta 4 puntos porcentuales.
+ * Coeficientes MÁXIMOS del método objetivo (art. 107.4 TRLHL) vigentes para
+ * transmisiones con efectos desde el 1 de enero de 2026, fijados por el
+ * Real Decreto-ley 16/2025, de 23 de diciembre (BOE-A-2025-26458). Se actualizan
+ * anualmente mediante norma con rango de ley (Leyes de Presupuestos / RDL).
+ * El ayuntamiento puede aprobar en su ordenanza coeficientes IGUALES O MENORES.
  */
 const COEFICIENTES: Record<number, number> = {
-  1: 0.6,
-  2: 0.58,
-  3: 0.56,
-  4: 0.54,
-  5: 0.52,
-  6: 0.5,
-  7: 0.48,
-  8: 0.46,
-  9: 0.44,
-  10: 0.42,
-  11: 0.4,
-  12: 0.39,
-  13: 0.38,
-  14: 0.37,
-  15: 0.36,
-  16: 0.35,
-  17: 0.34,
-  18: 0.33,
-  19: 0.32,
-  20: 0.31,
+  1: 0.15,
+  2: 0.15,
+  3: 0.15,
+  4: 0.16,
+  5: 0.18,
+  6: 0.2,
+  7: 0.22,
+  8: 0.23,
+  9: 0.21,
+  10: 0.16,
+  11: 0.13,
+  12: 0.11,
+  13: 0.1,
+  14: 0.1,
+  15: 0.1,
+  16: 0.1,
+  17: 0.12,
+  18: 0.16,
+  19: 0.22,
+  20: 0.35,
 }
 
+/** Periodos inferiores a 1 año (gravables desde el RD-Ley 26/2021) */
+const COEFICIENTE_MENOR_UN_ANIO = 0.16
+
 function coeficientePara(anyos: number): number {
-  if (anyos < 1) return 0
-  if (anyos > 20) return COEFICIENTES[20] ?? 0.31
-  return COEFICIENTES[anyos] ?? 0.31
+  if (anyos < 1) return COEFICIENTE_MENOR_UN_ANIO
+  if (anyos > 20) return COEFICIENTES[20] ?? 0.35
+  return COEFICIENTES[anyos] ?? 0.35
 }
 
 export function calcularPlusvaliaMunicipal(datos: DatosPlusvalia): ResultadoPlusvalia {
@@ -100,7 +105,7 @@ export function calcularPlusvaliaMunicipal(datos: DatosPlusvalia): ResultadoPlus
     baseImponible = baseObjetiva
     detalle = `Base objetiva = ${datos.valorCatastralTerreno.toLocaleString('es-ES')} € (valor catastral del terreno) × ${(coef * 100).toFixed(2)}% (coeficiente por ${anyos} año(s) de tenencia)`
     if (anyos < 1) {
-      avisos.push('Con menos de 1 año de tenencia no se genera incremento de valor (no hay base imponible por el método objetivo).')
+      avisos.push('Períodos de generación inferiores a 1 año: se aplica el coeficiente máximo de 0,16 (art. 107.4 TRLHL, vigente desde 1-1-2026).')
     }
     if (trans > 0 && adq > 0) {
       if (baseReal < baseObjetiva) {

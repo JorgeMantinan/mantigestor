@@ -37,10 +37,12 @@ export interface ResultadoModelo036 {
 
 const LIMITE_REGSIMPLE_250K = 250_000
 const LIMITE_REGSIMPLE_AGRARIO = 250_000
-const CUOTA_MINIMA_RETA_2025 = 8_118.6
-const TIPO_RETA_25 = 0.2931
-const TIPO_RETA_26 = 0.297
-const TARIFA_PLANA_MENSUAL = 80
+// RETA 2026 (Orden PJC/297/2026 y RDL 3/2026): base mínima 653,59 €/mes,
+// tipo total de cotización 31,50 % (2025: 31,40 %). Tarifa plana: 80 € + MEI = 88,64 €/mes.
+const BASE_MINIMA_RETA_2026 = 653.59
+const TIPO_RETA_25 = 0.314
+const TIPO_RETA_26 = 0.315
+const TARIFA_PLANA_MENSUAL = 88.64
 
 function redondear2(n: number) {
   return Math.round(n * 100) / 100
@@ -57,7 +59,7 @@ export function calcularModelo036(datos: DatosModelo036): ResultadoModelo036 {
   const regimenRecomendado: RegimenIva =
     datos.tipoActividad === 'profesional' ? 'general' : ivsimplificado ? 'simplificado' : 'general'
 
-  const base = datos.baseCotizacion ?? CUOTA_MINIMA_RETA_2025
+  const base = datos.baseCotizacion ?? BASE_MINIMA_RETA_2026
   // Cotización RETA: base × tipo (2026). La cuota resultante incluye contingencias comunes,
   // profesionales, cese de actividad y formación.
   const cuotaRETA = redondear2(base * TIPO_RETA_26)

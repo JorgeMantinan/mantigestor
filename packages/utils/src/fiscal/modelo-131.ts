@@ -16,7 +16,8 @@ export interface ActividadModulo {
   unidades: number
   /** Precio unitario del módulo (céntimos) */
   precioUnitario: number
-  /** Tipo de retención aplicable: 19% general o 20% si exceed threshold */
+  /** Porcentaje oficial del pago fraccionado: 4 % general (2 o más asalariados),
+   *  3 % con una sola persona asalariada y 2 % sin personal asalariado (art. 110 LIRPF) */
   tipoIRPF: number
 }
 

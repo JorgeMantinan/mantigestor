@@ -5,8 +5,8 @@
  * Declaración trimestral de retenciones practicadas sobre rendimientos
  * del trabajo percibidos por personas físicas no residentes en España.
  *
- * Tipo general: 24% (trabajo personal).
- * Convenio doble imposición: variable según país (0%, 8%, 10%, 11%, 15%, 24%).
+ * Tipos generales: 19 % (residentes UE/EEE y dividendos/intereses) y 24 % (resto).
+ * Convenios de doble imposición: 0 %, 5 %, 8 %, 10 %, 11 % o 15 % según el Estado.
  *
  * Fuentes: Art. 81-83 Reglamento IRNR, modelo oficial AEAT.
  */
@@ -100,10 +100,12 @@ function formatEUR(cents: number): string {
 }
 
 export const TIPOS_RETENCION_216 = [
-  { valor: 24, label: 'General (24%) — sin convenio' },
-  { valor: 15, label: 'Convenio general (15%)' },
+  { valor: 24, label: 'General no UE/EEE (24%) — sin convenio' },
+  { valor: 19, label: 'General UE/EEE o dividendos e intereses (19%)' },
+  { valor: 15, label: 'Convenio de doble imposición (15%)' },
   { valor: 11, label: 'Convenio reducido (11%)' },
   { valor: 10, label: 'Convenio reducido (10%)' },
   { valor: 8, label: 'Convenio reducido (8%)' },
+  { valor: 5, label: 'Convenio reducido (5%)' },
   { valor: 0, label: 'Exento por convenio (0%)' },
 ] as const

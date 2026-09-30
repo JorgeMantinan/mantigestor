@@ -1,4 +1,4 @@
-import type { SubscriptionTier } from '@mantigestor/types'
+﻿import type { SubscriptionTier } from '@mantigestor/types'
 
 export interface FechaFiscal {
   modelo: string
@@ -581,10 +581,10 @@ export function getCalendarioFiscal(año: number): FechaFiscal[] {
       categoria: 'irpf',
     },
 
-    // ── Modelo 151 — IRPF módulos alta/renuncia trimestral ──
+    // ── Modelo 216 — IRNR: retenciones e ingresos a cuenta (trimestral) ──
     {
-      modelo: '151-Q1',
-      descripcion: 'IRPF módulos alta/renuncia 1er trimestre',
+      modelo: '216-Q1',
+      descripcion: 'Retenciones IRNR sin EP (modelo 216) - 1er trimestre',
       fechaLimite: new Date(`${año}-04-20`),
       diasAviso: [15, 7, 1],
       tiersQueAplica: ['basic', 'pro'],
@@ -592,7 +592,7 @@ export function getCalendarioFiscal(año: number): FechaFiscal[] {
       categoria: 'irpf',
     },
     {
-      modelo: '151-Q2',
+      modelo: '216-Q2',
       descripcion: 'IRPF módulos alta/renuncia 2º trimestre',
       fechaLimite: new Date(`${año}-07-20`),
       diasAviso: [15, 7, 1],
@@ -601,8 +601,8 @@ export function getCalendarioFiscal(año: number): FechaFiscal[] {
       categoria: 'irpf',
     },
     {
-      modelo: '151-Q3',
-      descripcion: 'IRPF módulos alta/renuncia 3er trimestre',
+      modelo: '216-Q3',
+      descripcion: 'Retenciones IRNR sin EP (modelo 216) - 3er trimestre',
       fechaLimite: new Date(`${año}-10-20`),
       diasAviso: [15, 7, 1],
       tiersQueAplica: ['basic', 'pro'],
@@ -610,7 +610,7 @@ export function getCalendarioFiscal(año: number): FechaFiscal[] {
       categoria: 'irpf',
     },
     {
-      modelo: '151-Q4',
+      modelo: '216-Q4',
       descripcion: 'IRPF módulos alta/renuncia 4º trimestre',
       fechaLimite: new Date(`${año + 1}-01-30`),
       diasAviso: [15, 7, 1],

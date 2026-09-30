@@ -37,14 +37,8 @@ export function CalculadoraModelo123() {
       const actualizado = { ...c, [campo]: valor }
       // Auto-actualizar retención según tipo y base
       if (campo === 'tipo' || campo === 'baseImponible') {
-        const tipo = campo === 'tipo' ? (valor as FilaConcepto['tipo']) : c.tipo
-        const base = eurosACentimos(campo === 'baseImponible' ? valor : c.baseImponible)
-        if (tipo === 'intereses' || tipo === 'dividendos') {
-          const baseEur = base / 100
-          actualizado.retencionPct = baseEur <= 6_000 ? '19' : baseEur <= 50_000 ? '21' : '23'
-        } else {
-          actualizado.retencionPct = '19'
-        }
+        // Retención sobre capital mobiliario: 19 % fijo (art. 101.4 LIRPF)
+        actualizado.retencionPct = '19'
       }
       return actualizado
     }))

@@ -3,10 +3,12 @@
  * del capital mobiliario y ganancias patrimoniales derivadas de
  * letras del Tesoro (trimestral/anual).
  *
- * Intereses: 19% (hasta 6.000€), 21% (6.000-50.000€), 23% (>50.000€)
- * Dividendos: 19% (hasta 6.000€), 21% (6.000-50.000€), 23% (>50.000€)
+ * La retención sobre rendimientos del capital mobiliario es del 19 % fijo
+ * (art. 101.4 LIRPF y cuadro AEAT de tipos de retención). La escala 19/21/23
+ * es la escala de la BASE DEL AHORRO aplicable en la declaración, no en la retención.
+ * Excepción: propiedad intelectual cuando el perceptor no es el autor → 15 %.
  *
- * Fuentes: Art. 75.1.c y 94.1 RIRPF, escala art. 25.1 LIRPF.
+ * Fuentes: art. 101.4 LIRPF, art. 76.1.b) y 100 RIRPF.
  */
 
 export interface ConceptoCapitalMobiliario {
@@ -40,16 +42,11 @@ export interface ResultadoModelo123 {
   }>
 }
 
-/** Determina el tipo de retención según la escala art. 25.1 LIRPF */
+/** Retención sobre capital mobiliario: 19 % fijo (no escala) — art. 101.4 LIRPF */
 export function tipoRetencionCapitalMobiliario(baseImponibleCents: number, tipo: 'intereses' | 'dividendos' | 'otros'): number {
-  // Para intereses y dividendos se aplica la escala progresiva
-  // Para otros conceptos se usa el tipo general del 19%
-  if (tipo === 'otros') return 19
-
-  const baseEur = baseImponibleCents / 100
-  if (baseEur <= 6_000) return 19
-  if (baseEur <= 50_000) return 21
-  return 23
+  void baseImponibleCents
+  void tipo
+  return 19
 }
 
 export function calcularModelo123(datos: DatosModelo123): ResultadoModelo123 {

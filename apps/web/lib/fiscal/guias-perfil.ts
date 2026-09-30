@@ -79,8 +79,8 @@ export const GUIAS_PERFIL: Record<string, GuiaPerfil> = {
     ],
     consejos: [
       'Revisa tu retención IRPF: si es muy alta, solicita ajuste en nómina',
-      'Deduce gastos de worked from home si aplica (hasta 1.500€/año)',
-      'Invierte en planes de pensiones — reducen la base imponible (7.302€ máx.)',
+      'Gastos deducibles del rendimiento del trabajo: 2.000 € generales y 1.500 € adicionales si te desplazas más de 100 km al trabajo (art. 19.2.f LIRPF).',
+      'Invierte en planes de pensiones: reducen la base imponible hasta 1.500 €/año (o el 30% de tus rendimientos, el menor); con planes de empleo, hasta 10.000 €.',
       'Si tienes varios pagadores, la declaración puede salir a pagar',
       'Aprovecha deducciones por vivienda habitual si alquilas (<35 años)',
       'Guarda nóminas y certificado de retenciones del empleador',

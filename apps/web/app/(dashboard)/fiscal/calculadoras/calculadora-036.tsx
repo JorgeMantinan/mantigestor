@@ -127,8 +127,8 @@ export function CalculadoraModelo036() {
 
           <p className="text-xs text-muted-foreground">
             Orientativo y verificado según normativa vigente. El 037 es la versión simplificada del 036 para
-            autónomos personas físicas. La cuota RETA usa el tipo de 2026 (29,7%); con la tarifa plana los
-            primeros meses la cuota es reducida (80 € aproximadamente) si cumples requisitos.
+            autónomos personas físicas. La cuota RETA usa el tipo de 2026 (31,5%); con la tarifa plana los
+            primeros meses la cuota es reducida (88,64 € = 80 € + MEI) si cumples requisitos.
           </p>
         </CardContent>
       </Card>

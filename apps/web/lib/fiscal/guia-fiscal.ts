@@ -1199,9 +1199,9 @@ export const GUIA_MODELO_036: Record<string, GuiaCampo> = {
     titulo: 'Base de cotización RETA',
     contenido: 'Es la base mensual sobre la que cotizas en el régimen de autónomos. En 2025 se cotiza por tramos según rendimientos netos; puedes elegir base dentro de los límites mínimo y máximo. Cuanto mayor sea la base, mayor será tu cotización pero también tu futura pensión.',
     ejemplos: [
-      'Base mínima 2025: 1.184,10 €/mes',
-      'Base máxima 2025: 4.909,50 €/mes',
-      'La cuota final = base × 29,7% (2026)',
+      'Base mínima 2026: 653,59 €/mes',
+      'Base máxima 2026: 5.101,20 €/mes',
+      'La cuota final = base × 31,5% (2026)',
     ],
     dondeVer: 'Tabla de bases de cotización en la norma anual de cotización (BOE).',
   },

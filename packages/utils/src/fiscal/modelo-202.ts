@@ -1,71 +1,101 @@
 /**
- * Modelo 202 — Declaración trimestral del Impuesto sobre Sociedades
- * y del Impuesto sobre la Renta de no Residentes (pagos fraccionados).
+ * Modelo 202 — IS/IRNR (EP): pagos fraccionados.
  *
- * Fuentes: Art. 40.2 LIS (Ley 27/2014), modelo oficial AEAT.
- *
- * El pago fraccionado se calcula sobre la cuota íntegra del último periodo.
- * Tipos: 5% (general), 17% (entidades de reducida dimensión).
- * Para nuevos contribuyentes: 18% sobre base imponible del trimestre.
+ * Dos modalidades oficiales (art. 40 LIS y folleto AEAT de actividades económicas 4.8.1):
+ * - Modalidad general (art. 40.2): 18 % sobre la cuota íntegra del último período
+ *   vencido, minorada por deducciones, bonificaciones y retenciones. Se ingresa en
+ *   cada uno de los tres plazos (abril, octubre y diciembre).
+ * - Modalidad opcional por base imponible (art. 40.3; OBLIGATORIA si la cifra de
+ *   negocios ≥ 6.000.000 €): sobre la base imponible de los 3, 9 u 11 primeros meses:
+ *     · INNCF < 10.000.000 €: 5/7 del tipo de gravamen redondeado por defecto
+ *       (tipo general 25 % → 17 %).
+ *     · INNCF ≥ 10.000.000 €: 19/20 del tipo de gravamen redondeado por exceso
+ *       (tipo general 25 % → 24 %).
+ *   Se deducen bonificaciones, retenciones y pagos fraccionados anteriores.
  */
 
+export type Modalidad202 = 'cuota' | 'base'
+export type Entidad202 = 'general' | 'reducida' | 'micro' | 'nueva'
+
+/** Tipos de gravamen de la LIS (art. 29) vigentes en 2026 */
+export const TIPOS_GRAVAMEN_IS_2026: Record<Entidad202, number> = {
+  general: 25,
+  reducida: 23,
+  micro: 21,
+  nueva: 15,
+}
+
+export const ETIQUETA_ENTIDAD_202: Record<Entidad202, string> = {
+  general: 'General (25 %)',
+  reducida: 'Reducida dimensión — 1-10 M€ (23 % en 2026)',
+  micro: 'Micropyme < 1 M€ — tramo de más de 50.000 € (21 % en 2026)',
+  nueva: 'Nueva creación (15 %)',
+}
+
 export interface PagoFraccionadoSociedades {
-  /** Tipo de contribuyente */
-  tipoContribuyente: 'nuevo' | 'general' | 'reducida_dimencion'
-  /** Cuota íntegra del último periodo declarado (céntimos) */
+  modalidad: Modalidad202
+  entidad: Entidad202
+  /** Cuota íntegra minorada del último período (modalidad cuota) en céntimos */
   cuotaIntegraUltimoPeriodoCents: number
-  /** Base imponible del trimestre actual (solo para nuevos contribuyentes) */
-  baseImponibleTrimestreCents: number
-  /** Pagos fraccionados anteriores del año (céntimos) */
+  /** Base imponible del periodo 3/9/11 meses menos retenciones (modalidad base), céntimos */
+  baseImponiblePeriodoCents: number
+  /** Pagos fraccionados ya ingresados en el ejercicio (modalidad base), céntimos */
   pagosAnterioresCents: number
+  /** ¿Cifra de negocios ≥ 10 M€ en los 12 meses anteriores? (19/20 por exceso) */
+  cifraNegocios10M?: boolean
 }
 
 export interface ResultadoModelo202 {
+  modalidad: Modalidad202
   tipoAplicable: string
   tipoPorcentaje: number
   baseCalculoCents: number
+  /** Importe a ingresar por plazo */
   pagoTrimestralCents: number
   pagosAnterioresCents: number
   totalAPagarCents: number
-  /** Cuota anual estimada */
-  cuotaAnualEstimadaCents: number
+  /** Total estimado del año (3 plazos: abril, octubre y diciembre) */
+  totalAnualEstimadoCents: number
 }
 
-export function calcularModelo202(
-  params: PagoFraccionadoSociedades
-): ResultadoModelo202 {
-  let tipoPorcentaje: number
-  let tipoAplicable: string
-  let baseCalculoCents: number
+function porcentajeModalidadBase(tipoGravamen: number, cifraNegocios10M: boolean): number {
+  if (cifraNegocios10M) {
+    // 19/20 × tipo, redondeado por exceso
+    return Math.ceil((19 / 20) * tipoGravamen)
+  }
+  // 5/7 × tipo, redondeado por defecto (a la unidad inferior)
+  return Math.floor((5 / 7) * tipoGravamen)
+}
 
-  if (params.tipoContribuyente === 'nuevo') {
-    // Art. 40.3 LIS: 18% sobre base imponible del trimestre
+export function calcularModelo202(params: PagoFraccionadoSociedades): ResultadoModelo202 {
+  let tipoPorcentaje: number
+  let baseCalculoCents: number
+  let tipoAplicable: string
+
+  if (params.modalidad === 'cuota') {
     tipoPorcentaje = 18
-    tipoAplicable = 'Nuevo contribuyente (18% base imponible trimestre)'
-    baseCalculoCents = params.baseImponibleTrimestreCents
-  } else if (params.tipoContribuyente === 'reducida_dimencion') {
-    // Art. 40.2.b LIS: 17% sobre cuota íntegra del último periodo
-    tipoPorcentaje = 17
-    tipoAplicable = 'Reducida dimensión (17% cuota íntegra)'
+    tipoAplicable = 'Modalidad cuota íntegra: 18 % (art. 40.2 LIS)'
     baseCalculoCents = params.cuotaIntegraUltimoPeriodoCents
   } else {
-    // Art. 40.2.a LIS: 5% sobre cuota íntegra del último periodo
-    tipoPorcentaje = 5
-    tipoAplicable = 'General (5% cuota íntegra)'
-    baseCalculoCents = params.cuotaIntegraUltimoPeriodoCents
+    const tipoGravamen = TIPOS_GRAVAMEN_IS_2026[params.entidad]
+    tipoPorcentaje = porcentajeModalidadBase(tipoGravamen, params.cifraNegocios10M ?? false)
+    tipoAplicable = params.cifraNegocios10M
+      ? `Modalidad base: 19/20 × ${tipoGravamen} % → ${tipoPorcentaje} % (≥ 10 M€)`
+      : `Modalidad base: 5/7 × ${tipoGravamen} % → ${tipoPorcentaje} % (< 10 M€)`
+    baseCalculoCents = params.baseImponiblePeriodoCents
   }
 
   const pagoTrimestralCents = Math.round(baseCalculoCents * (tipoPorcentaje / 100))
   const totalAPagarCents = Math.max(0, pagoTrimestralCents - params.pagosAnterioresCents)
-  const cuotaAnualEstimadaCents = pagoTrimestralCents * 4
 
   return {
+    modalidad: params.modalidad,
     tipoAplicable,
     tipoPorcentaje,
     baseCalculoCents,
     pagoTrimestralCents,
     pagosAnterioresCents: params.pagosAnterioresCents,
     totalAPagarCents,
-    cuotaAnualEstimadaCents,
+    totalAnualEstimadoCents: pagoTrimestralCents * 3,
   }
 }

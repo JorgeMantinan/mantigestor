@@ -1,40 +1,40 @@
 import { describe, it, expect } from 'vitest'
 import { calcularModelo123, tipoRetencionCapitalMobiliario } from '../modelo-123'
 
-describe('tipoRetencionCapitalMobiliario (escala art. 25.1 LIRPF)', () => {
-  it('19% hasta 6.000 € en intereses y dividendos', () => {
+describe('tipoRetencionCapitalMobiliario — 19 % fijo (art. 101.4 LIRPF)', () => {
+  it('aplica el 19% a intereses y dividendos por cualquier importe', () => {
     expect(tipoRetencionCapitalMobiliario(500_000, 'intereses')).toBe(19)
     expect(tipoRetencionCapitalMobiliario(600_000, 'dividendos')).toBe(19)
+    expect(tipoRetencionCapitalMobiliario(2_000_000, 'intereses')).toBe(19)
+    expect(tipoRetencionCapitalMobiliario(3_000_000, 'dividendos')).toBe(19)
+    expect(tipoRetencionCapitalMobiliario(10_000_000, 'intereses')).toBe(19)
+    expect(tipoRetencionCapitalMobiliario(10_000_000, 'dividendos')).toBe(19)
   })
 
-  it('21% entre 6.000 y 50.000 €', () => {
-    expect(tipoRetencionCapitalMobiliario(2_000_000, 'intereses')).toBe(21)
-    expect(tipoRetencionCapitalMobiliario(3_000_000, 'dividendos')).toBe(21)
-  })
-
-  it('23% por encima de 50.000 €', () => {
-    expect(tipoRetencionCapitalMobiliario(10_000_000, 'intereses')).toBe(23)
-  })
-
-  it('otros conceptos usan siempre el 19% general', () => {
+  it('otros conceptos de capital mobiliario también retienen al 19%', () => {
     expect(tipoRetencionCapitalMobiliario(500_000, 'otros')).toBe(19)
     expect(tipoRetencionCapitalMobiliario(10_000_000, 'otros')).toBe(19)
   })
 })
 
-describe('calcularModelo123 — retenciones capital mobiliario', () => {
-  it('acumula base y retenciones por concepto', () => {
+describe('calcularModelo123', () => {
+  it('suma bases y retenciones del trimestre', () => {
     const r = calcularModelo123({
+      trimestre: 2,
       conceptos: [
-        { tipo: 'intereses', baseImponible: 100_000, retencionPct: 19 },
-        { tipo: 'dividendos', baseImponible: 200_000, retencionPct: 21 },
+        { tipo: 'dividendos', baseImponible: 100_000, retencionPct: 19 },
+        { tipo: 'intereses', baseImponible: 50_000, retencionPct: 19 },
       ],
-      trimestre: 1,
     })
-    expect(r.totalBase).toBe(300_000)
-    expect(r.totalRetenciones).toBe(19_000 + 42_000)
-    expect(r.desglose[0]?.retencion).toBe(19_000)
-    expect(r.desglose[1]?.retencion).toBe(42_000)
-    expect(r.trimestre).toBe(1)
+    expect(r.totalBase).toBe(150_000)
+    expect(r.totalRetenciones).toBe(28_500) // 19% de 150.000
+    expect(r.desglose).toHaveLength(2)
+    expect(r.trimestre).toBe(2)
+  })
+
+  it('sin conceptos devuelve cero', () => {
+    const r = calcularModelo123({ trimestre: 1, conceptos: [] })
+    expect(r.totalBase).toBe(0)
+    expect(r.totalRetenciones).toBe(0)
   })
 })
