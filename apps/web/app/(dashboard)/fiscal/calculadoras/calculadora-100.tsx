@@ -157,8 +157,8 @@ export function CalculadoraModelo100({ datosIniciales }: { datosIniciales?: { ba
         )}
 
         <p className="text-xs text-muted-foreground">
-          Cálculo orientativo con escala estatal 2025. No incluye deducciones autonómicas específicas,
-          pagos complementarios ni-ganancias patrimoniales. Consulta la declaración oficial.
+          Cálculo orientativo con escala estatal 2026. No incluye deducciones autonómicas específicas,
+          pagos complementarios ni ganancias patrimoniales. Consulta la declaración oficial.
         </p>
       </CardContent>
     </Card>

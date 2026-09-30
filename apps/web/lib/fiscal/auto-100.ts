@@ -2,6 +2,13 @@ import { createClient } from '@/lib/supabase/client'
 import {
   calcularModelo100,
   reduccionRendimientosTrabajoCents,
+  MINIMO_CONTRIBUYENTE,
+  MINIMO_ASCENDIENTE_65,
+  MINIMO_ASCENDIENTE_75,
+  MINIMO_DESCENDIENTE_MENOR_3,
+  MINIMOS_DESCENDIENTE_POR_POSICION,
+  MINIMO_DISCAPACIDAD_GRAVE,
+  MINIMO_DISCAPACIDAD_GRAVE_GRAVE,
   type DatosModelo100,
   type ResultadoModelo100,
 } from '@mantigestor/utils'
@@ -181,27 +188,25 @@ export async function generar100Automatico(
     }
   })()
 
-  // Mínimo personal y familiar (simplified — uses modelo-100 constants)
-  const MINIMO_CONTRIBUYENTE = 555_000 // 5.550€
-  const MINIMO_ASCENDIENTE_65 = 115_000
-  const MINIMO_DESCENDIENTE_MENOR_3 = 280_000
-  const MINIMO_DESCENDIENTE_3_65 = 280_000
-  const MINIMO_DISCAPACIDAD_GRAVE = 300_000
-  const MINIMO_DISCAPACIDAD_GRAVE_GRAVE = 600_000
-
+  // Mínimo personal y familiar (art. 56-60 LIRPF, cuantías 2025/2026)
   let minimoPersonal = MINIMO_CONTRIBUYENTE
-  if (edad >= 75) minimoPersonal += MINIMO_ASCENDIENTE_65
-  else if (edad >= 65) minimoPersonal += MINIMO_ASCENDIENTE_65
+  if (edad >= 65) minimoPersonal += MINIMO_ASCENDIENTE_65 // 1.150€ (art. 57.2)
+  if (edad >= 75) minimoPersonal += MINIMO_ASCENDIENTE_75 // +1.400€ adicionales (art. 57.2)
 
+  // Mínimo por descendientes (art. 58: menores de 25 años que conviven): 2.400/2.700/4.000/4.500€
+  // según posición + 2.800€ adicional si tienen menos de 3 años
+  const hijosMinimo = hijosEdades.filter(edadHijo => edadHijo < 25)
   let minimoFamiliar = 0
-  for (const edadHijo of hijosEdades) {
+  hijosMinimo.forEach((_edadHijo, i) => {
+    minimoFamiliar += MINIMOS_DESCENDIENTE_POR_POSICION[Math.min(i, MINIMOS_DESCENDIENTE_POR_POSICION.length - 1)] ?? 0
+  })
+  for (const edadHijo of hijosMinimo) {
     if (edadHijo < 3) minimoFamiliar += MINIMO_DESCENDIENTE_MENOR_3
-    else if (edadHijo < 65) minimoFamiliar += MINIMO_DESCENDIENTE_3_65
   }
 
   if (p?.tieneDiscapacidad) {
-    if ((p.porcentajeDiscapacidad ?? 0) >= 65) minimoPersonal += MINIMO_DISCAPACIDAD_GRAVE_GRAVE
-    else if ((p.porcentajeDiscapacidad ?? 0) >= 33) minimoPersonal += MINIMO_DISCAPACIDAD_GRAVE
+    if ((p.porcentajeDiscapacidad ?? 0) >= 65) minimoPersonal += MINIMO_DISCAPACIDAD_GRAVE_GRAVE // 9.000€
+    else if ((p.porcentajeDiscapacidad ?? 0) >= 33) minimoPersonal += MINIMO_DISCAPACIDAD_GRAVE // 3.000€
   }
 
   const minimoPersonalFamiliar = minimoPersonal + minimoFamiliar
@@ -220,6 +225,8 @@ export async function generar100Automatico(
     pagosFraccionados: retencionesIRPF,
     retenciones: retencionesIRPF,
     dividendosIRPF: 0,
+    rendimientosIntegrosTrabajo: ingresosTrabajo,
+    ejercicio: anyo,
   }
 
   const resultado = calcularModelo100(datos)

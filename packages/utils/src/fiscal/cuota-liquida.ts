@@ -46,9 +46,9 @@ export interface EntradasCuotaLiquida {
 }
 
 export interface ResultadoCuotaLiquida {
-  baseGeneralTrasMinimoCents: number
-  baseAhorroTrasMinimoCents: number
   remanenteMinimoCents: number
+  minoracionMinimoGeneralCents: number
+  minoracionMinimoAhorroCents: number
   detalleGeneral: Array<ResultadoCuotaEscala>
   detalleAhorro: Array<ResultadoCuotaEscala>
   cuotaIntegraGeneralCents: number
@@ -93,29 +93,42 @@ export function calcularCuotaLiquida(entrada: EntradasCuotaLiquida): ResultadoCu
   const años = new Set(escalasGenerales.map(e => e.taxYear))
   if (años.size > 1) avisos.push(`Escalas generales de años fiscales distintos: ${[...años].join(', ')}`)
 
-  // Art. 45 LIRPF: el mínimo se aplica primero a la parte general; el remanente reduce la del ahorro.
-  const baseGeneralTrasMinimo = Math.max(0, baseGeneralCents - minimoPersonalYFamiliarCents)
+  // Art. 63 LIRPF (esquema gráfico AEAT): la cuota íntegra se minora en el mínimo
+  // personal y familiar. Se aplica la escala al mínimo imputado a cada base:
+  //  - general: cuota = escala(base general) − escala(min(mínimo, base general))
+  //  - ahorro: cuota = escala_ahorro(ahorro) − escala_ahorro(min(remanente, ahorro))
+  //    donde remanente = máximo(0, mínimo − base general)
+  const minimoAplicableGeneral = Math.min(minimoPersonalYFamiliarCents, baseGeneralCents)
   const remanenteMinimo = Math.max(0, minimoPersonalYFamiliarCents - baseGeneralCents)
-  const baseAhorroTrasMinimo = Math.max(0, baseAhorroCents - remanenteMinimo)
-  if (remanenteMinimo > 0 && baseAhorroCents > 0) {
-    avisos.push(
-      `El mínimo absorbe toda la base general; el remanente (${(remanenteMinimo / 100).toFixed(2)} €) reduce también la base del ahorro.`,
-    )
-  }
 
-  const detalleGeneral = escalasGenerales.map(e => calcularCuotaEscala(baseGeneralTrasMinimo, e))
-  const cuotaIntegraGeneral = detalleGeneral.reduce((acc, d) => acc + d.cuotaTotalCentimos, 0)
+  const detalleGeneral = escalasGenerales.map(e => calcularCuotaEscala(baseGeneralCents, e))
+  const cuotaGeneralSinMinimo = detalleGeneral.reduce((acc, d) => acc + d.cuotaTotalCentimos, 0)
+  const minoracionMinimoGeneral = escalasGenerales
+    .map(e => calcularCuotaEscala(minimoAplicableGeneral, e))
+    .reduce((acc, d) => acc + d.cuotaTotalCentimos, 0)
+  const cuotaIntegraGeneral = cuotaGeneralSinMinimo - minoracionMinimoGeneral
 
   let detalleAhorro: Array<ResultadoCuotaEscala> = []
   let cuotaIntegraAhorro = 0
+  let minoracionMinimoAhorro = 0
   const taxYearReferencia = escalasGenerales[0]?.taxYear ?? new Date().getFullYear()
-  if (baseAhorroTrasMinimo > 0 || escalasAhorro?.length) {
+  if (baseAhorroCents > 0 || escalasAhorro?.length) {
     const escalasA = escalasAhorro?.length ? escalasAhorro : escalaAhorroComun(taxYearReferencia)
-    detalleAhorro = escalasA.map(e => calcularCuotaEscala(baseAhorroTrasMinimo, e))
-    cuotaIntegraAhorro = detalleAhorro.reduce((acc, d) => acc + d.cuotaTotalCentimos, 0)
+    detalleAhorro = escalasA.map(e => calcularCuotaEscala(baseAhorroCents, e))
+    const cuotaAhorroSinMinimo = detalleAhorro.reduce((acc, d) => acc + d.cuotaTotalCentimos, 0)
+    const minimoAplicableAhorro = Math.min(remanenteMinimo, baseAhorroCents)
+    minoracionMinimoAhorro = escalasA
+      .map(e => calcularCuotaEscala(minimoAplicableAhorro, e))
+      .reduce((acc, d) => acc + d.cuotaTotalCentimos, 0)
+    cuotaIntegraAhorro = cuotaAhorroSinMinimo - minoracionMinimoAhorro
     if (!escalasAhorro?.length && escalasGenerales.length === 2) {
       avisos.push('Base del ahorro gravada con la escala estatal/autonómica espejo del art. 63 LIRPF.')
     }
+  }
+  if (remanenteMinimo > 0 && baseAhorroCents > 0) {
+    avisos.push(
+      `El mínimo absorbe toda la base general; su remanente (${(remanenteMinimo / 100).toFixed(2)} €) minora también la cuota del ahorro.`,
+    )
   }
 
   const cuotaIntegraTotal = cuotaIntegraGeneral + cuotaIntegraAhorro
@@ -129,9 +142,9 @@ export function calcularCuotaLiquida(entrada: EntradasCuotaLiquida): ResultadoCu
   const cuotaDiferencia = cuotaLiquida - pagosACuentaCents
 
   return {
-    baseGeneralTrasMinimoCents: baseGeneralTrasMinimo,
-    baseAhorroTrasMinimoCents: baseAhorroTrasMinimo,
     remanenteMinimoCents: remanenteMinimo,
+    minoracionMinimoGeneralCents: minoracionMinimoGeneral,
+    minoracionMinimoAhorroCents: minoracionMinimoAhorro,
     detalleGeneral,
     detalleAhorro,
     cuotaIntegraGeneralCents: cuotaIntegraGeneral,

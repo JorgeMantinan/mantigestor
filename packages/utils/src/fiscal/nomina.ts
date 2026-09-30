@@ -4,11 +4,12 @@
 
 import { calcularModelo145, type DatosModelo145 } from './modelo-145'
 
-/** Constantes SS 2026 */
-const SS_CONTINGENCIAS_COMUNES_PCT = 0.0635
-const SS_DESEMPLEO_PCT = 0.0155
-const SS_FORMACION_PCT = 0.001
-const SS_TOTAL_EMPLEADO_PCT = SS_CONTINGENCIAS_COMUNES_PCT + SS_DESEMPLEO_PCT + SS_FORMACION_PCT
+/** Constantes SS 2026 (trabajador por cuenta ajena, contrato indefinido) */
+const SS_CONTINGENCIAS_COMUNES_PCT = 0.047 // 4,70% contingencias comunes
+const SS_DESEMPLEO_PCT = 0.0155 // 1,55% desempleo (contrato indefinido)
+const SS_FORMACION_PCT = 0.001 // 0,10% formación profesional
+const SS_MEI_PCT = 0.0015 // 0,15% MEI (mecanismo de equidad intergeneracional)
+const SS_TOTAL_EMPLEADO_PCT = SS_CONTINGENCIAS_COMUNES_PCT + SS_DESEMPLEO_PCT + SS_FORMACION_PCT + SS_MEI_PCT // 6,50%
 
 export interface DatosNomina {
   salarioBrutoMensual: number // €

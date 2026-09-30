@@ -13,13 +13,14 @@ const formatoEuros = (euros: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(euros)
 
 const OPCIONES_TIPO_RETENCION = [
-  { valor: TIPOS_RETENCION_MODELO_170.personaFisica, etiqueta: '19% — Arrendador persona física' },
-  { valor: TIPOS_RETENCION_MODELO_170.empresarioProfesional, etiqueta: '24% — Arrendatario empresario/profesional' },
+  { valor: TIPOS_RETENCION_MODELO_170.restoConceptos, etiqueta: '19% — Resto de conceptos (art. 75.2.b RIRPF)' },
+  { valor: TIPOS_RETENCION_MODELO_170.cesionImagen, etiqueta: '24% — Cesión de derechos de imagen' },
+  { valor: TIPOS_RETENCION_MODELO_170.profesionalNuevoInicio, etiqueta: '7% — Profesionales de nuevo inicio (año de inicio + 2)' },
 ] as const
 
 export function CalculadoraModelo170() {
   const [baseImponible, setBaseImponible] = useState('')
-  const [tipoRetencion, setTipoRetencion] = useState<number>(TIPOS_RETENCION_MODELO_170.personaFisica)
+  const [tipoRetencion, setTipoRetencion] = useState<number>(TIPOS_RETENCION_MODELO_170.restoConceptos)
 
   const resultado = useMemo(
     () =>
@@ -40,9 +41,10 @@ export function CalculadoraModelo170() {
           <div className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-primary" aria-hidden="true" />
             <div>
-              <CardTitle>Modelo 170 — Retenciones arrendamientos urbanos</CardTitle>
+              <CardTitle>Modelo 170 — Retenciones agrupadas a un solo perceptor</CardTitle>
               <CardDescription>
-                Declaración trimestral de las retenciones del IRPF sobre arrendamientos de inmuebles urbanos.
+                Declaración trimestral de retenciones del IRPF imputadas o agrupadas a un solo perceptor
+                (trabajo, imagen, propiedad intelectual, asistencia técnica, bienes muebles).
               </CardDescription>
             </div>
           </div>
@@ -85,13 +87,14 @@ export function CalculadoraModelo170() {
 
           {!hasData && (
             <p className="text-sm text-muted-foreground">
-              Introduce la base imponible del arrendamiento para calcular la retención a ingresar.
+              Introduce la base imponible sobre la que practicar la retención.
             </p>
           )}
 
           <p className="text-xs text-muted-foreground">
-            Cálculo orientativo. El 19% aplica cuando el arrendador es persona física; el 24% cuando el
-            arrendatario es empresario o profesional en actividad (regla general desde 2015). Presentación trimestral.
+            Cálculo orientativo. 19% para el resto de conceptos, 24% para cesión de derechos de imagen y
+            7% para profesionales de nuevo inicio (año de inicio y los dos siguientes). El arrendamiento de
+            inmuebles urbanos se declara en el modelo 115 (19%).
           </p>
         </CardContent>
       </Card>

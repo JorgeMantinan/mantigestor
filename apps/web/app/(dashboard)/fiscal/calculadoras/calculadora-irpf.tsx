@@ -360,6 +360,14 @@ export function CalculadoraIrpf({
                 <dt className="text-xs text-muted-foreground">Cuota íntegra</dt>
                 <dd className="text-lg font-semibold">{eur(resultado.resultado.cuotaIntegraTotalCents)}</dd>
               </div>
+              {resultado.resultado.minoracionMinimoGeneralCents + resultado.resultado.minoracionMinimoAhorroCents > 0 && (
+                <div className="rounded-lg border p-3">
+                  <dt className="text-xs text-muted-foreground">Minoración por mínimo personal y familiar</dt>
+                  <dd className="text-lg font-semibold text-green-600">
+                    -{eur(resultado.resultado.minoracionMinimoGeneralCents + resultado.resultado.minoracionMinimoAhorroCents)}
+                  </dd>
+                </div>
+              )}
               <div className="rounded-lg border border-primary/50 bg-primary/5 p-3">
                 <dt className="text-xs text-muted-foreground">Cuota líquida</dt>
                 <dd className="text-lg font-bold text-primary">{eur(resultado.resultado.cuotaLiquidaCents)}</dd>

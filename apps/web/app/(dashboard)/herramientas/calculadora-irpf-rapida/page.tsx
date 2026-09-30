@@ -51,7 +51,7 @@ export default function CalculadoraIRPFRapidaPage() {
   const [generando, setGenerando] = useState(false)
 
   const resultado = useMemo(() => {
-    const ssTrabajador = Math.round(salarioBruto * 0.0635)
+    const ssTrabajador = Math.round(salarioBruto * 0.065)
     const cuotaSSTrabajador = ssTrabajador
     const baseImponible = Math.max(0, salarioBruto - ssTrabajador - reduccionGeneral - otrosGastosDeducibles)
     const irpf = calcularIRPF(baseImponible)
@@ -79,9 +79,9 @@ export default function CalculadoraIRPFRapidaPage() {
 
   const comparativas = useMemo(() => {
     return SALARIOS_COMPARATIVA.map(s => {
-      const base = Math.max(0, s.salario - Math.round(s.salario * 0.0635) - reduccionGeneral)
+      const base = Math.max(0, s.salario - Math.round(s.salario * 0.065) - reduccionGeneral)
       const irpf = calcularIRPF(base)
-      const ss = Math.round(s.salario * 0.0635)
+      const ss = Math.round(s.salario * 0.065)
       const neto = s.salario - irpf - ss
       const porcentaje = s.salario > 0 ? ((irpf + ss) / s.salario) * 100 : 0
       const dif = resultado.salarioBruto - s.salario
@@ -176,7 +176,7 @@ export default function CalculadoraIRPFRapidaPage() {
                 <span className="text-sm font-bold">{formatEuro(resultado.salarioBruto)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">
-                <span className="text-sm text-muted-foreground">SS Trabajador (6.35%)</span>
+                <span className="text-sm text-muted-foreground">SS Trabajador (6.5%)</span>
                 <span className="text-sm text-red-600">-{formatEuro(resultado.ssTrabajador)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b">

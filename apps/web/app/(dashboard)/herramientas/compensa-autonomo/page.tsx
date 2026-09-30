@@ -56,7 +56,7 @@ export default function CompensaAutonomoPage() {
     if (salarioNum <= 0) return null
 
     // === CUENTA AJENA ===
-    const ssTrabajador = Math.round(salarioNum * 0.0635) // 6.35% trabajador
+    const ssTrabajador = Math.round(salarioNum * 0.065) // 6.5% trabajador
     const baseImponibleAjea = Math.max(0, salarioNum - ssTrabajador - 2000) // reducción general
     const irpfAjea = calcularIRPF(baseImponibleAjea, TRAMOS_IRPF_2026)
     const netoAjea = salarioNum - ssTrabajador - irpfAjea
@@ -227,7 +227,7 @@ export default function CompensaAutonomoPage() {
                       </p>
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between"><span className="text-muted-foreground">Salario bruto</span><span>{formatEuro(salarioNum)}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">SS trabajador (6.35%)</span><span className="text-red-600">-{formatEuro(resultado.ssTrabajador)}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">SS trabajador (6.5%)</span><span className="text-red-600">-{formatEuro(resultado.ssTrabajador)}</span></div>
                         <div className="flex justify-between"><span className="text-muted-foreground">Base imponible IRPF</span><span>{formatEuro(resultado.baseImponibleAjea)}</span></div>
                         <div className="flex justify-between"><span className="text-muted-foreground">IRPF estimado</span><span className="text-red-600">-{formatEuro(resultado.irpfAjea)}</span></div>
                         <div className="flex justify-between font-bold border-t pt-1"><span>Neto anual</span><span className="text-blue-600">{formatEuro(resultado.netoAjea)}</span></div>

@@ -18,7 +18,7 @@ interface Props {
 
 export function Calculadora206({ taxYear }: Props) {
   const [baseImponible, setBaseImponible] = useState('')
-  const [tipoGravamen, setTipoGravamen] = useState('18')
+  const [tipoGravamen, setTipoGravamen] = useState('17')
   const [pagosAnteriores, setPagosAnteriores] = useState('')
   const [compensaciones, setCompensaciones] = useState('')
 
@@ -27,7 +27,7 @@ export function Calculadora206({ taxYear }: Props) {
     if (base === null) return null
     return calcularModelo206({
       baseImponibleCents: Math.round(base * 100),
-      tipoGravamenPct: parseFloat(tipoGravamen) || 18,
+      tipoGravamenPct: parseFloat(tipoGravamen) || 17,
       pagosAnterioresCents: Math.round((parseEuros(pagosAnteriores) ?? 0) * 100),
       compensacionesPendientesCents: Math.round((parseEuros(compensaciones) ?? 0) * 100),
     })

@@ -12,7 +12,7 @@ describe('calcularModelo145 — retención IRPF del trabajo', () => {
     const r = calcularModelo145({ salarioBrutoAnual: 30_000 })
     expect(r.tipoRetencionPct).toBeGreaterThan(0)
     expect(r.cuotaRetencion).toBeGreaterThan(0)
-    expect(r.cuotaSS).toBeGreaterThan(2_000) // ~7,13% de 30.000
+    expect(r.cuotaSS).toBeCloseTo(1_950, 6) // 6,50% de 30.000
   })
 
   it('superior renta produce mayor tipo de retención', () => {

@@ -8,7 +8,7 @@ import { eur, parseEuros } from './types'
 import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_200 } from '@/lib/fiscal/guia-fiscal'
 import { BotonPDF } from '@/components/boton-pdf'
-import { calcularModelo200, TIPOS_ENTIDAD, tipoImpositivo } from '@mantigestor/utils'
+import { calcularModelo200, TIPOS_ENTIDAD } from '@mantigestor/utils'
 import type { DatosModelo200 } from '@mantigestor/utils'
 
 export function CalculadoraModelo200() {
@@ -63,8 +63,6 @@ export function CalculadoraModelo200() {
 
     return calcularModelo200(datos)
   }, [tipoEntidad, ingresos, gastosExplot, gastosFinanc, resultadoContable, ajustes, basesNeg, deducciones, pagosFrac, retenciones, esNuevaCreacion])
-
-  const tipo = tipoImpositivo(tipoEntidad, esNuevaCreacion, parseEuros(ingresos) ?? 0)
 
   return (
     <div id="pdf-modelo-200" className="space-y-3">

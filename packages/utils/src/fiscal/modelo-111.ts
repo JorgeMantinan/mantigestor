@@ -101,17 +101,20 @@ export function calcularModelo111(
 
 /**
  * Tipos de retención habituales en España (2025/2026):
- * - Trabajo general: 15% (12% primeros 2 años)
- * - Profesionales: 15% (7% primeros 3 años)
- * - Arrendamiento inmuebles urbanos: 19%
+ * - Trabajo: el tipo lo fija el algoritmo de la AEAT (15%-45%); 15% como referencia mínima
+ *   (para un tipo fijo por modelo 145 usar la calculadora del modelo 145)
+ * - Profesionales: 15% (7% en el año de inicio de la actividad y los dos siguientes)
+ * - Arrendamiento de inmuebles urbanos (modelo 115): 19%
+ * - Premios de juegos, concursos y sorteos: 19%
+ * - Cesión de derechos de imagen: 24%
  */
 export const TIPOS_RETENCION_HABITUALES = {
   trabajoGeneral: 15,
-  trabajoPrimeros2Anios: 12,
   profesionalGeneral: 15,
   profesionalPrimeros3Anios: 7,
   arrendamientoUrbano: 19,
   premios: 19,
+  cesionImagen: 24,
 } as const
 
 /**

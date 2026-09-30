@@ -45,9 +45,10 @@ const TRAMOS_RETENCION: Array<{ desde: number; hasta: number | null; tipo: numbe
 ]
 
 const MINIMO_PERSONAL = 5_550
-const MINIMO_HIJO_PRIMERO = 2_400
-const MINIMO_HIJO_ADICIONAL = 2_700
-const CUOTA_SS_EMPLEADO_PCT = 0.0713
+/** Mínimo por descendiente según posición: 1º 2.400€, 2º 2.700€, 3º 4.000€, 4º en adelante 4.500€ */
+const MINIMOS_HIJO_POR_POSICION = [2_400, 2_700, 4_000, 4_500]
+// Cuota SS del trabajador 2026: CC 4,70% + desempleo indefinido 1,55% + formación 0,10% + MEI 0,15% = 6,50%
+const CUOTA_SS_EMPLEADO_PCT = 0.065
 
 function cuotaPorEscala(baseEur: number): number {
   if (baseEur <= 0) return 0
@@ -67,7 +68,7 @@ export function calcularModelo145(datos: DatosModelo145): ResultadoModelo145 {
   const pagadores = datos.numeroPagadores ?? 1
   const hijos = datos.hijos ?? 0
 
-  // Cuota de Seguridad Social del trabajador (contingencias comunes, ~7,13% del bruto)
+  // Cuota de Seguridad Social del trabajador (6,50% del bruto: CC + desempleo + formación + MEI)
   const cuotaSS = bruto * CUOTA_SS_EMPLEADO_PCT
 
   // Rendimiento neto previo (antes de reducción)
@@ -79,10 +80,14 @@ export function calcularModelo145(datos: DatosModelo145): ResultadoModelo145 {
     reduccionRendimientosTrabajoCents(Math.round(rendimientoNetoPrev * 100)) / 100
   )
 
-  // Mínimos: personal + descendientes + discapacidad
+  // Mínimos: personal + descendientes (según posición) + discapacidad
   const minimoPersonal = MINIMO_PERSONAL
-  const minimoDescendientes = hijos >= 1 ? MINIMO_HIJO_PRIMERO + (hijos - 1) * MINIMO_HIJO_ADICIONAL : 0
-  const minimoDiscapacidad = (datos.discapacidadPct ?? 0) >= 33 ? 3_000 : 0
+  let minimoDescendientes = 0
+  for (let i = 0; i < hijos; i++) {
+    minimoDescendientes += MINIMOS_HIJO_POR_POSICION[Math.min(i, MINIMOS_HIJO_POR_POSICION.length - 1)] ?? 0
+  }
+  const discapacidadPct = datos.discapacidadPct ?? 0
+  const minimoDiscapacidad = discapacidadPct >= 65 ? 9_000 : discapacidadPct >= 33 ? 3_000 : 0
   const minimoTotales = minimoPersonal + minimoDescendientes + minimoDiscapacidad
 
   // Base liquidable a efectos de retención

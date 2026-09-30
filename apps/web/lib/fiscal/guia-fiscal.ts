@@ -276,10 +276,10 @@ export const GUIA_MODELO_111: Record<string, GuiaCampo> = {
     titulo: 'Tipo de retención',
     contenido: 'El porcentaje que debes retener sobre la base. Varía según el tipo de rendimiento y la situación del perceptor.',
     ejemplos: [
-      'Trabajo general: 15% (24% los primeros 2 años como nuevo autónomo)',
-      'Profesionales: 15% (24% los primeros 2 años)',
-      'Arrendadores de inmuebles: 19% (si el arrendador es empresa, 24%)',
-      'Premios de lotería: 20% (premios <40.000€)',
+      'Trabajo (nóminas): del 15% al 45% según la tabla de retenciones de la AEAT',
+      'Profesionales: 15%, o 7% si inician actividad (año de inicio y los 2 siguientes)',
+      'Arrendamientos: 19%',
+      'Premios, concursos y ganancias patrimoniales: 19%',
     ],
     dondeVer: 'Artículo 80 del Reglamento del IRPF. Tabla de tipos en la web de la AEAT.',
   },
@@ -385,7 +385,7 @@ export const GUIA_MODELO_347: Record<string, GuiaCampo> = {
   },
   importeTotal: {
     titulo: 'Importe total anual',
-    contenido: 'Es el total de operaciones realizadas con un tercero durante el año. Incluye IVA. Solo se declara si supera el umbral (4.001€ para 2025).',
+    contenido: 'Es el total de operaciones realizadas con un tercero durante el año. Incluye IVA. Solo se declara si supera el umbral (3.005,06 € para 2025).',
     ejemplos: [
       'Si facturaste 45.000€ a un cliente durante el año, ese es el importe total',
       'Incluye todas las facturas emitidas y recibidas con ese tercero',
@@ -396,11 +396,11 @@ export const GUIA_MODELO_347: Record<string, GuiaCampo> = {
     titulo: 'Umbral de declaración',
     contenido: 'El mínimo de operaciones con un tercero para que debas declararlo. Si el importe total es inferior al umbral, no tienes que incluirlo en el modelo 347.',
     ejemplos: [
-      'Umbral general: 4.001€/año (importe total)',
-      'Para seguros: 3.001€/año',
-      'Para entidades públicas: 5.001€/año',
+      'Umbral general: 3.005,06 €/año con cada tercero (IVA incluido)',
+      'Cobro por cuenta de terceros de honorarios o propiedad intelectual/industrial: 300,51 €/año',
+      'No se declaran operaciones ya informadas en otros modelos (180, 190, 193, 349...)',
     ],
-    dondeVer: 'Artículo 32.1.j del Reglamento del IVA. Web de la AEAT.',
+    dondeVer: 'Artículo 32 del RD 1065/2007. Instrucciones del modelo 347 en la AEAT.',
   },
 }
 
@@ -1096,31 +1096,31 @@ export const GUIA_MODELO_303: Record<string, GuiaCampo> = {
 export const GUIA_MODELO_170: Record<string, GuiaCampo> = {
   baseImponible: {
     titulo: 'Base imponible',
-    contenido: 'Es el importe bruto del arrendamiento de inmuebles urbanos sobre el que se aplica la retención. Se corresponde con el rendimiento satisfecho al arrendador antes de cualquier gasto.',
+    contenido: 'Es el importe bruto satisfecho al perceptor sobre el que se practica la retención, antes de descontar la propia retención. Según el concepto puede tratarse de rendimientos del trabajo, actividades económicas, arrendamientos u otros.',
     ejemplos: [
       'Si pagas 900€/mes de alquiler de local, la base trimestral es 2.700€',
-      'Incluye la renta pactada sin IVA (los arrendamientos de vivienda están exentos de IVA)',
+      'Una nómina con 24.000€ de bruto anual: la base anual es 24.000€',
     ],
-    dondeVer: 'En el contrato de arrendamiento o en las facturas/recibos del arrendador.',
+    dondeVer: 'En la nómina, factura o contrato del perceptor.',
   },
   tipoRetencion: {
     titulo: 'Tipo de retención',
-    contenido: 'El porcentaje que se retiene sobre la base imponible y se ingresa en Hacienda. El 19% aplica cuando el arrendador es persona física; el 24% cuando el arrendatario actúa como empresario o profesional en el ejercicio de su actividad (regla general desde 2015).',
+    contenido: 'El porcentaje que se retiene sobre la base imponible y se ingresa en Hacienda. Varía según el concepto: 19% para arrendamientos y resto de conceptos, tabla del 15% al 45% para el trabajo, 15% para actividades económicas (7% en el año de inicio y los dos siguientes) y 24% para la cesión de derechos de imagen.',
     ejemplos: [
-      'La empresa arrenda un local a un particular: retiene el 19%',
-      'Una empresa alquila un local a otra empresa: retiene el 24%',
-      'Un autónomo alquila un piso a un particular para uso personal: retiene el 19%',
+      'Arrendamiento de un local: retiene el 19%',
+      'Cesión de derechos de imagen: retiene el 24%',
+      'Profesional que inicia actividad: retiene el 7% (año de inicio y 2 siguientes)',
     ],
-    dondeVer: 'Art. 75.1.1º y Disposición Transitoria 31ª de la Ley del IRPF. Tipos publicados por la AEAT.',
+    dondeVer: 'Art. 75 y ss. del Reglamento del IRPF. Tipos publicados por la AEAT.',
   },
   cuotaRetenida: {
     titulo: 'Cuota retenida',
-    contenido: 'Es el importe que se retiene y se ingresa trimestralmente en Hacienda. Se calcula: base imponible × tipo de retención / 100. Se declara en el modelo 170 y también se informa con el modelo 115 si eres el arrendatario.',
+    contenido: 'Es el importe que se retiene y se ingresa trimestralmente en Hacienda. Se calcula: base imponible × tipo de retención / 100. Se declara en la declaración-resumen anual y se informa con los modelos anuales correspondientes.',
     ejemplos: [
       'Base 2.700€ × 19% = 513€ de cuota retenida',
-      'Base 5.000€ × 24% = 1.200€ de cuota retenida',
+      'Base 5.000€ de cesión de imagen × 24% = 1.200€ de cuota retenida',
     ],
-    dondeVer: 'Calcula: base imponible × tipo de retención / 100. Modelos 170 y 115.',
+    dondeVer: 'Calcula: base imponible × tipo de retención / 100.',
   },
 }
 
@@ -1416,7 +1416,7 @@ export const GUIA_MODELO_110: Record<string, GuiaCampo> = {
   },
   tipoRetencion: {
     titulo: 'Tipo de retención',
-    contenido: 'Porcentaje aplicado (habitualmente 19%-23%). El rango orientativo depende de la naturaleza de la renta y de la normativa vigente en el ejercicio.',
+    contenido: 'Porcentaje aplicado (habitualmente 19%). El tipo depende de la naturaleza de la renta y de la normativa vigente en el ejercicio.',
     ejemplos: [
       '19% sobre premios y ganancias patrimoniales',
     ],
@@ -1455,20 +1455,21 @@ export const GUIA_MODELO_211: Record<string, GuiaCampo> = {
 export const GUIA_MODELO_222: Record<string, GuiaCampo> = {
   modalidad: {
     titulo: 'Modalidad del pago fraccionado',
-    contenido: 'El pago fraccionado del IS se calcula de dos formas: (a) sobre una parte de la cuota íntegra del ejercicio anterior (18%), o (b) sobre la base imponible del periodo acumulado (método de base, obligatorio para grandes empresas). El modelo 222 lo usan grupos de consolidación fiscal y entidades con cifra de negocios ≥ 10 M€.',
+    contenido: 'El pago fraccionado del IS se calcula de dos formas: (a) modalidad de cuota (art. 40.2 LIS): el 18% de la cuota íntegra del ejercicio anterior; (b) modalidad de base (art. 40.3 LIS): se aplica un porcentaje sobre la base imponible del periodo — 17% si la cifra de negocios es inferior a 10 M€ o 24% si es igual o superior. La modalidad de base es obligatoria si la cifra de negocios supera 6 M€. El modelo 222 se usa en régimen de consolidación fiscal.',
     ejemplos: [
       'Grupo de consolidación → 222',
-      'Empresa con 20 M€ de cifra de negocios → 222 con modalidad de base (24%)',
+      'Cifra de negocios ≥ 6 M€ → modalidad de base obligatoria (17% si <10 M€, 24% si ≥10 M€)',
     ],
     dondeVer: 'Art. 40 LIS y normativa anual del modelo 222 en la sede de la AEAT.',
   },
   baseImponible: {
     titulo: 'Base imponible del periodo',
-    contenido: 'En la modalidad de base, es el resultado contable del periodo ajustado (base imponible acumulada) sobre el que se aplica el tipo del pago fraccionado (18% o 24%).',
+    contenido: 'En la modalidad de base, es el resultado contable del periodo ajustado (base imponible acumulada) sobre el que se aplica el tipo del pago fraccionado (17% o 24% según la cifra de negocios).',
     ejemplos: [
       'Base imponible acumulada de 100.000 € y cifra ≥ 10M → 100.000 × 24% = 24.000 € a cuenta',
+      'Base imponible de 100.000 € y cifra < 10M → 100.000 × 17% = 17.000 € a cuenta',
     ],
-    dondeVer: 'Cálculo de la base imponible del ISS para el periodo (resultado contable + ajustes).',
+    dondeVer: 'Cálculo de la base imponible del IS para el periodo (resultado contable + ajustes).',
   },
   cuotaIntegraAnterior: {
     titulo: 'Cuota íntegra del ejercicio anterior',
@@ -1480,10 +1481,10 @@ export const GUIA_MODELO_222: Record<string, GuiaCampo> = {
   },
   cifraNegocios: {
     titulo: 'Cifra de negocios',
-    contenido: 'El importe neto de la cifra de negocios determina el obligado al 222 y el tipo aplicable: a partir de 10 M€ debes usar el 222 en modalidad de base con el 24%.',
+    contenido: 'El importe neto de la cifra de negocios determina el tipo aplicable en la modalidad de base: 17% si es inferior a 10 M€ y 24% (con mínimo del 23% del resultado de la Cuenta de PyG) si es igual o superior.',
     ejemplos: [
-      '≥ 10 M€ de cifra de negocios → 222 con base (24%)',
-      '< 10 M€ y no grupo → normalmente 202',
+      '≥ 10 M€ de cifra de negocios → modalidad de base al 24%',
+      '< 6 M€ → puedes optar por el 18% de la cuota o el 17% de la base',
     ],
     dondeVer: 'Comercial de la sociedad del ejercicio anterior.',
   },
@@ -1589,12 +1590,12 @@ export const GUIA_MODELO_206: Record<string, GuiaCampo> = {
   },
   tipoGravamen: {
     titulo: 'Tipo de gravamen',
-    contenido: 'El porcentaje que se aplica sobre la base imponible. El 18% es el tipo general para la mayoría de sociedades. El 24% aplica a grandes empresas con cifra de negocios ≥ 6 millones de euros.',
+    contenido: 'Porcentaje del pago fraccionado en la modalidad de base (art. 40.3 LIS): 17% (5/7 del tipo general) si la cifra de negocios es inferior a 10 M€, o 24% (19/20 del tipo general) si es igual o superior. Si la cifra de negocios supera 6 M€ esta modalidad es obligatoria; en otro caso puedes elegir la modalidad de cuota (18% de la cuota del ejercicio anterior).',
     ejemplos: [
-      'General: 18% — para cifra de negocios < 6.000.000€',
-      'Grandes empresas: 24% — para cifra de negocios ≥ 6.000.000€',
+      'General: 17% — para cifra de negocios < 10.000.000€',
+      'Grandes empresas: 24% — para cifra de negocios ≥ 10.000.000€',
     ],
-    dondeVer: 'Art. 40.1 y 40.3 de la Ley del Impuesto sobre Sociedades.',
+    dondeVer: 'Art. 40.3 de la Ley del Impuesto sobre Sociedades.',
   },
   pagosAnteriores: {
     titulo: 'Pagos fraccionados anteriores',

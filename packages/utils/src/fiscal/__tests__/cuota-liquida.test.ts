@@ -39,28 +39,37 @@ describe('escalaAhorroComun', () => {
   })
 })
 
-describe('calcularCuotaLiquida — mínimo personal y familiar', () => {
+describe('calcularCuotaLiquida — mínimo personal y familiar (art. 63 LIRPF)', () => {
+  it('el mínimo minora la cuota con la escala, no la base (esquema gráfico AEAT)', () => {
+    const r = calcularCuotaLiquida(entradaBase({ baseGeneralCents: 3_000_000, minimoPersonalYFamiliarCents: 555_000 }))
+    const completa = calcularCuotaEscala(3_000_000, ESTATAL_2025).cuotaTotalCentimos * 2
+    const sobreMinimo = calcularCuotaEscala(555_000, ESTATAL_2025).cuotaTotalCentimos * 2
+    expect(r.cuotaIntegraGeneralCents).toBe(completa - sobreMinimo)
+    expect(r.cuotaIntegraGeneralCents).toBe(611_100) // 7.165,50 − 1.054,50 €
+    // no es una minoración de base: escala(30.000 − 5.550) daría 524.550 céntimos
+    expect(r.cuotaIntegraGeneralCents).not.toBe(calcularCuotaEscala(2_445_000, ESTATAL_2025).cuotaTotalCentimos * 2)
+    expect(r.remanenteMinimoCents).toBe(0)
+    expect(r.minoracionMinimoGeneralCents).toBe(sobreMinimo)
+  })
+
   it('el mínimo absorbe la base general y deja cuota cero', () => {
     const r = calcularCuotaLiquida(entradaBase({ baseGeneralCents: 2_000_000, minimoPersonalYFamiliarCents: 2_500_000 }))
-    expect(r.baseGeneralTrasMinimoCents).toBe(0)
+    expect(r.cuotaIntegraGeneralCents).toBe(0)
+    expect(r.remanenteMinimoCents).toBe(500_000)
     expect(r.cuotaIntegraTotalCents).toBe(0)
     expect(r.cuotaLiquidaCents).toBe(0)
   })
 
-  it('el remanente del mínimo reduce la base del ahorro (art. 45 LIRPF)', () => {
-    // mínimo 8.000 € > general 0 → remanente 8.000; ahorro 10.000 → base ahorro 2.000
+  it('el remanente del mínimo minora la cuota del ahorro (art. 63 LIRPF)', () => {
+    // mínimo 8.000 € > general 0 → remanente 8.000; ahorro 10.000 → se minorá con escala_ahorro(8.000)
     const r = calcularCuotaLiquida(entradaBase({ baseAhorroCents: 1_000_000, minimoPersonalYFamiliarCents: 800_000 }))
     expect(r.remanenteMinimoCents).toBe(800_000)
-    expect(r.baseAhorroTrasMinimoCents).toBe(200_000)
     const mitad = escalaAhorroComun(2025)[0]
-    const esperadoAhorro = mitad ? calcularCuotaEscala(200_000, mitad).cuotaTotalCentimos * 2 : 0
-    expect(r.cuotaIntegraAhorroCents).toBe(esperadoAhorro)
-  })
-
-  it('el mínimo se reparte primero a general y el resto no toca el ahorro si alcanza', () => {
-    const r = calcularCuotaLiquida(entradaBase({ baseGeneralCents: 3_000_000, minimoPersonalYFamiliarCents: 555_000 }))
-    expect(r.baseGeneralTrasMinimoCents).toBe(3_000_000 - 555_000)
-    expect(r.remanenteMinimoCents).toBe(0)
+    const cuotaCompleta = mitad ? calcularCuotaEscala(1_000_000, mitad).cuotaTotalCentimos * 2 : 0
+    const minoracion = mitad ? calcularCuotaEscala(800_000, mitad).cuotaTotalCentimos * 2 : 0
+    expect(r.minoracionMinimoAhorroCents).toBe(minoracion)
+    expect(r.cuotaIntegraAhorroCents).toBe(cuotaCompleta - minoracion)
+    expect(r.avisos.some(a => a.includes('minora también la cuota del ahorro'))).toBe(true)
   })
 })
 
@@ -104,7 +113,10 @@ describe('calcularCuotaLiquida — forales', () => {
       escalasGenerales: [{ ...ESTATAL_2025, comunidad: 'País Vasco - Bizkaia' }],
     })
     expect(foral.detalleGeneral).toHaveLength(1)
-    expect(foral.cuotaIntegraGeneralCents).toBe(calcularCuotaEscala(1_445_000, ESTATAL_2025).cuotaTotalCentimos)
+    expect(foral.cuotaIntegraGeneralCents).toBe(
+      calcularCuotaEscala(2_000_000, ESTATAL_2025).cuotaTotalCentimos -
+        calcularCuotaEscala(555_000, ESTATAL_2025).cuotaTotalCentimos,
+    )
   })
 
   it('exige escala del ahorro propia para base de ahorro en territorio foral', () => {
