@@ -1242,42 +1242,6 @@ export const GUIA_PLUSVALIA: Record<string, GuiaCampo> = {
   },
 }
 
-export const GUIA_MODELO_104: Record<string, GuiaCampo> = {
-  categoria: {
-    titulo: 'Situación familiar',
-    contenido: 'Define el colectivo que permite la devolución acelerada del IRPF: familia numerosa (general o especial) o persona con discapacidad a cargo. Cada situación genera un mínimo personal y familiar distinto que determina el exceso de retenciones a devolver por anticipado.',
-    ejemplos: [
-      'Familia numerosa general → mínimo por descendientes estándar',
-      'Familia numerosa especial → mínimo incrementado',
-      'Persona con discapacidad a cargo → mínimo por discapacidad notablemente mayor',
-    ],
-    dondeVer: 'Título y categoría de tu tarjeta de familia numerosa, o certificado de discapacidad.',
-  },
-  numHijos: {
-    titulo: 'Nº de hijos / personas a cargo',
-    contenido: 'El número de hijos (para familia numerosa) o personas con discapacidad a cargo que determinan el importe del mínimo por descendientes/familiares. Cuantos más, mayor el mínimo y, en consecuencia, mayor la devolución anticipada.',
-    ejemplos: [
-      '3 hijos, categoría general → mínimo por descendientes de 2.400 + 2×2.700',
-    ],
-    dondeVer: 'Tarjeta de familia numerosa o solicitud de devolución acelerada.',
-  },
-  retencionesAnuales: {
-    titulo: 'Retenciones de IRPF del año',
-    contenido: 'Cantidad total de IRPF que te retiene tu empresa en las nóminas del ejercicio. El anticipo mensual se calcula sobre la parte que no se compensa con tu cuota y que finalmente resultaría a devolver.',
-    ejemplos: [
-      'Si te retienen 6.000 € y tu cuota anual es menor, el exceso es lo que puedes cobrar por adelantado',
-    ],
-    dondeVer: 'En tus nóminas o el resumen anual del trabajador.',
-  },
-  rendimientosBrutos: {
-    titulo: 'Rendimientos brutos del trabajo',
-    contenido: 'Tus rendimientos íntegros del trabajo anuales. Se usan para estimar la cuota anual y el exceso de mínimos que corresponde devolver, afinando el importe mensual solicitable.',
-    ejemplos: [
-      'Rendimientos brutos de 24.000 €',
-    ],
-    dondeVer: 'Nóminas anuales o la declaración de la renta del ejercicio anterior.',
-  },
-}
 
 export const GUIA_MODELO_117: Record<string, GuiaCampo> = {
   periodo: {
@@ -1301,42 +1265,6 @@ export const GUIA_MODELO_117: Record<string, GuiaCampo> = {
   },
 }
 
-export const GUIA_MODELO_110: Record<string, GuiaCampo> = {
-  tipo: {
-    titulo: 'Tipo de retención',
-    contenido: 'Categoría de rendimiento que genera la retención sin modelo propio: capital inmobiliario distinto del arrendamiento de local, premios, ganancias patrimoniales no derivadas de inmuebles, retribuciones en especie u otros.',
-    ejemplos: [
-      'Premios de concursos o sorteos no exentos → retención a cuenta',
-      'Cesión de derechos de imagen o similares → capital',
-    ],
-    dondeVer: 'Factura o documento del perceptor con la retención practicada.',
-  },
-  importe: {
-    titulo: 'Importe bruto satisfecho',
-    contenido: 'Base sobre la que se practica la retención (el importe íntegro del pago, sin descontar la propia retención).',
-    ejemplos: [
-      'Un premio de 5.000 € → base sobre la que se aplica el 19%',
-    ],
-    dondeVer: 'Justificante del pago o factura.',
-  },
-  tipoRetencion: {
-    titulo: 'Tipo de retención',
-    contenido: 'Porcentaje aplicado (habitualmente 19%). El tipo depende de la naturaleza de la renta y de la normativa vigente en el ejercicio.',
-    ejemplos: [
-      '19% sobre premios y ganancias patrimoniales',
-    ],
-    dondeVer: 'Factura o contrato.',
-  },
-  periodo: {
-    titulo: 'Periodo',
-    contenido: 'Las retenciones se ingresan cada trimestre (modelo 110 trimestral) y al final del año se presenta la declaración-resumen anual. Elija "anual" para el resumen de todo el ejercicio.',
-    ejemplos: [
-      'Trimestre 4 → ingreso hasta el 20 de enero',
-      'Resumen anual → hasta el 30 de enero del año siguiente',
-    ],
-    dondeVer: 'Calendario del contribuyente de la AEAT.',
-  },
-}
 
 export const GUIA_MODELO_211: Record<string, GuiaCampo> = {
   precioVenta: {
@@ -1400,27 +1328,6 @@ export const GUIA_MODELO_222: Record<string, GuiaCampo> = {
   },
 }
 
-export const GUIA_MODELO_590: Record<string, GuiaCampo> = {
-  cifraNegocios: {
-    titulo: 'Cifra de negocios',
-    contenido: 'Es el importe neto de la cifra de negocios del periodo impositivo (facturación neta de la sociedad). Determina si estás obligado a presentar el modelo 590 (si superas 250.000 € en el ejercicio y realizas operaciones vinculadas) y a elaborar documentación (a partir de 10 M€).',
-    ejemplos: [
-      'Sociedad con 1 M€ facturados y préstamo de un socio por 300.000 € → debe presentar el 590',
-      'Cifra de negocios 8.000.000 € con operaciones vinculadas de 500.000 € → presenta 590 pero sin documentación individual (<10M)',
-    ],
-    dondeVer: 'Comercial de la sociedad. Lo habitual es coincidir con la línea 01 del modelo 200.',
-  },
-  operaciones: {
-    titulo: 'Operaciones vinculadas',
-    contenido: 'Son las operaciones realizadas con partes vinculadas (socios significativos, administradores, sociedades del grupo familiar, etc.). Deben valorarse a precios de mercado. Suma aquí el importe de cada una para comprobar si superas el umbral individual de 250.000 € que obliga a declararlas.',
-    ejemplos: [
-      'Préstamo participativo de un socio: 300.000 €',
-      'Arrendamiento de local a una sociedad del mismo grupo: 60.000 €/año',
-      'Venta de mercancías a una empresa familiar: 400.000 €',
-    ],
-    dondeVer: 'Identifica a las partes vinculadas y recopila el valor de cada operación del ejercicio.',
-  },
-}
 
 export const GUIA_MODELO_390: Record<string, GuiaCampo> = {
   resumen: {
@@ -1483,44 +1390,6 @@ export const GUIA_MODELO_145: Record<string, GuiaCampo> = {
   },
 }
 
-export const GUIA_MODELO_206: Record<string, GuiaCampo> = {
-  baseImponible: {
-    titulo: 'Base imponible del ejercicio',
-    contenido: 'Es el resultado positivo de la actividad de la sociedad antes de restar las bases negativas pendientes de compensación. Sobre ella se aplica el tipo de gravamen para calcular la cuota íntegra.',
-    ejemplos: [
-      'Beneficio de 200.000€ → base imponible 200.000€',
-      'Si tuviste pérdidas, pon 0 (no hay pago fraccionado)',
-    ],
-    dondeVer: 'Cuenta de resultados del ejercicio corriente. Casilla 001 del modelo 200.',
-  },
-  tipoGravamen: {
-    titulo: 'Tipo de gravamen',
-    contenido: 'Porcentaje del pago fraccionado en la modalidad de base (art. 40.3 LIS): 17% (5/7 del tipo general) si la cifra de negocios es inferior a 10 M€, o 24% (19/20 del tipo general) si es igual o superior. Si la cifra de negocios supera 6 M€ esta modalidad es obligatoria; en otro caso puedes elegir la modalidad de cuota (18% de la cuota del ejercicio anterior).',
-    ejemplos: [
-      'General: 17% — para cifra de negocios < 10.000.000€',
-      'Grandes empresas: 24% — para cifra de negocios ≥ 10.000.000€',
-    ],
-    dondeVer: 'Art. 40.3 de la Ley del Impuesto sobre Sociedades.',
-  },
-  pagosAnteriores: {
-    titulo: 'Pagos fraccionados anteriores',
-    contenido: 'La suma de los pagos fraccionados ya ingresados en trimestres anteriores del mismo ejercicio. Se restan de la cuota para calcular el resultado a ingresar del trimestre actual.',
-    ejemplos: [
-      'Si en trimestres anteriores pagaste 5.000€, pon 5.000€',
-      'Si es el primer trimestre, deja en 0',
-    ],
-    dondeVer: 'Modelos 202/222 de trimestres anteriores del mismo ejercicio.',
-  },
-  compensaciones: {
-    titulo: 'Compensaciones de bases negativas',
-    contenido: 'Son pérdidas fiscales de ejercicios anteriores pendientes de compensar. Se restan de la base imponible antes de calcular la cuota. El límite es el 25% de la base positiva (75% para grandes empresas).',
-    ejemplos: [
-      'Si tienes 30.000€ de bases negativas pendientes, pon 30.000€',
-      'La compensación no puede reducir la base más del 25%',
-    ],
-    dondeVer: 'Modelo 200 del ejercicio anterior. Hoja de bases negativas.',
-  },
-}
 
 export const GUIA_MODELO_216: Record<string, GuiaCampo> = {
   nifBeneficiario: {
@@ -1574,64 +1443,6 @@ export const GUIA_MODELO_216: Record<string, GuiaCampo> = {
   },
 }
 
-export const GUIA_MODELO_231: Record<string, GuiaCampo> = {
-  fecha: {
-    titulo: 'Fecha de la operación',
-    contenido: 'La fecha en que se realizó la operación de compraventa o canje de criptomonedas. Debe estar dentro del ejercicio fiscal que se declara.',
-    ejemplos: [
-      '15/03/2025 para una compra de Bitcoin',
-      '20/06/2025 para una venta de Ethereum',
-    ],
-    dondeVer: 'Historial de transacciones del exchange o plataforma.',
-  },
-  tipoOperacion: {
-    titulo: 'Tipo de operación',
-    contenido: 'La naturaleza de la operación realizada con criptomonedas. Las compras y ventas tributan como ganancias o pérdidas patrimoniales. Los canjes (swaps) entre criptomonedas también tributan.',
-    ejemplos: [
-      'Compra: adquisición de criptomoneda con euros',
-      'Venta: transmisión de criptomoneda por euros',
-      'Cambio: canje de una criptomoneda por otra (tributa como ganancia/pérdida)',
-    ],
-    dondeVer: 'Historial de transacciones del exchange.',
-  },
-  criptomoneda: {
-    titulo: 'Criptomoneda',
-    contenido: 'El nombre o símbolo de la criptomoneda involucrada en la operación (BTC, ETH, SOL, etc.).',
-    ejemplos: [
-      'BTC (Bitcoin)',
-      'ETH (Ethereum)',
-      'SOL (Solana)',
-    ],
-    dondeVer: 'En tu wallet o exchange: activos poseídos.',
-  },
-  unidades: {
-    titulo: 'Unidades',
-    contenido: 'El número de unidades de criptomoneda compradas, vendidas o canjeadas en la operación.',
-    ejemplos: [
-      '0,5 BTC en una compra',
-      '10 ETH en una venta',
-    ],
-    dondeVer: 'Historial de transacciones del exchange.',
-  },
-  valorEur: {
-    titulo: 'Valor en euros',
-    contenido: 'El valor de mercado de la operación en euros al momento de realizarse. Para ventas es el precio de venta. Para compras es el precio pagado.',
-    ejemplos: [
-      'Venta de 0,5 BTC a 21.000€ → valor 21.000€',
-      'Compra de 10 ETH a 25.000€ → valor 25.000€',
-    ],
-    dondeVer: 'Historial del exchange o plataforma de trading.',
-  },
-  wallets: {
-    titulo: 'Wallets origen y destino',
-    contenido: 'Las direcciones de las wallets involucradas en la operación. La wallet de origen es de donde salen los fondos y la de destino es donde llegan.',
-    ejemplos: [
-      'Wallet origen: dirección de tu wallet personal',
-      'Wallet destino: dirección de la wallet del exchange',
-    ],
-    dondeVer: 'Historial de transacciones blockchain o extracto del exchange.',
-  },
-}
 
 export const GUIA_MODELO_182: Record<string, GuiaCampo> = {
   donante: {
@@ -1869,44 +1680,6 @@ export const GUIA_MODELO_282: Record<string, GuiaCampo> = {
   },
 }
 
-export const GUIA_MODELO_715: Record<string, GuiaCampo> = {
-  tipo: {
-    titulo: 'Tipo de inversión',
-    contenido: 'Clasificación de la inversión en el extranjero según su naturaleza.',
-    ejemplos: ['Valores: acciones, bonos, participaciones de fondos', 'Participaciones: capital social de empresas', 'Muebles: bienes muebles de uso o arrendamiento'],
-    dondeVer: 'Extracto de bróker o escritura de compraventa.',
-  },
-  entidad: {
-    titulo: 'Entidad o depositario',
-    contenido: 'Nombre de la entidad financiera o depositario donde se custodia la inversión.',
-    ejemplos: ['Interactive Brokers', 'Deutsche Bank', 'Vanguard'],
-    dondeVer: 'Extracto bancario o contrato con la entidad.',
-  },
-  pais: {
-    titulo: 'País de la inversión',
-    contenido: 'País donde se encuentra la entidad depositaria o el bien.',
-    ejemplos: ['Estados Unidos: US', 'Reino Unido: GB', 'Alemania: DE'],
-    dondeVer: 'Dirección de la entidad en el extracto.',
-  },
-  fechaAdquisicion: {
-    titulo: 'Fecha de adquisición',
-    contenido: 'Fecha en que se adquirió la inversión. Se usa para calcular ganancias o pérdidas patrimoniales.',
-    ejemplos: ['2020-03-15', '2019-07-01'],
-    dondeVer: 'Ticket de compra o contrato de compraventa.',
-  },
-  valorAdquisicion: {
-    titulo: 'Valor de adquisición',
-    contenido: 'Importe pagado por la inversión en el momento de su compra, incluyendo gastos.',
-    ejemplos: ['Precio de compra + comisiones + impuestos'],
-    dondeVer: 'Ticket de compra o escritura de compraventa.',
-  },
-  valorActual: {
-    titulo: 'Valor actual a 31 de diciembre',
-    contenido: 'Valor de mercado de la inversión a 31 de diciembre del año fiscal.',
-    ejemplos: ['Cotización de la acción a 31/12 × número de participaciones', 'Valor liquidativo del fondo a 31/12'],
-    dondeVer: 'Extracto de bróker o certificado de la entidad.',
-  },
-}
 
 export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
   const guias: Record<string, Record<string, GuiaCampo>> = {
