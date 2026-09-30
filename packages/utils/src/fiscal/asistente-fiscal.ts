@@ -173,20 +173,7 @@ export function asistenteFiscal(s: SituacionFiscal): ModeloFiscal[] {
       prioridad: 'media',
     })
 
-    // 104 — IRPF sociedades (si es sociedad)
     if (s.actividad === 'sociedad') {
-      modelos.push({
-        modelo: '104',
-        nombre: 'Modelo 104 — IRPF Sociedades',
-        descripcion: 'Pagos fraccionados del IS por sociedades',
-        frecuencia: 'trimestral',
-        plazos: ['20 abril', '20 julio', '20 octubre', '20 enero'],
-        obligatorio: true,
-        categoria: 'sociedades',
-        urlCalculadora: '/fiscal?seccion=104',
-        prioridad: 'alta',
-      })
-
       // 200 — Impuesto sociedades
       modelos.push({
         modelo: '200',
@@ -211,6 +198,19 @@ export function asistenteFiscal(s: SituacionFiscal): ModeloFiscal[] {
         categoria: 'sociedades',
         urlCalculadora: '/fiscal?seccion=202',
         prioridad: 'media',
+      })
+
+      // 123 — Retenciones sobre capital mobiliario (dividendos, etc.)
+      modelos.push({
+        modelo: '123',
+        nombre: 'Modelo 123 — Retenciones capital mobiliario',
+        descripcion: 'Retenciones del 19 % sobre dividendos y demás rendimientos del capital mobiliario que satisfaga la entidad',
+        frecuencia: 'trimestral',
+        plazos: ['20 abril', '20 julio', '20 octubre', '20 enero'],
+        obligatorio: false,
+        categoria: 'retenciones',
+        urlCalculadora: '/fiscal?seccion=123',
+        prioridad: 'baja',
       })
     }
   }
@@ -300,18 +300,6 @@ export function asistenteFiscal(s: SituacionFiscal): ModeloFiscal[] {
 
   if (s.criptomonedas) {
     modelos.push({
-      modelo: '231',
-      nombre: 'Modelo 231 — Criptomonedas',
-      descripcion: 'Declaración informativa de operaciones con criptomonedas',
-      frecuencia: 'anual',
-      plazos: ['31 marzo siguiente'],
-      obligatorio: true,
-      categoria: 'otros',
-      urlCalculadora: '/fiscal?seccion=231',
-      prioridad: 'alta',
-    })
-
-    modelos.push({
       modelo: '721',
       nombre: 'Modelo 721 — Criptomonedas Extranjero',
       descripcion: 'Declaración informativa de criptomonedas en el extranjero',
@@ -336,57 +324,19 @@ export function asistenteFiscal(s: SituacionFiscal): ModeloFiscal[] {
       urlCalculadora: '/fiscal?seccion=720',
       prioridad: 'alta',
     })
-
-    modelos.push({
-      modelo: '236',
-      nombre: 'Modelo 236 — Bienes Extranjero',
-      descripcion: 'Declaración informativa de bienes y derechos en el extranjero',
-      frecuencia: 'anual',
-      plazos: ['31 marzo siguiente'],
-      obligatorio: false,
-      categoria: 'otros',
-      urlCalculadora: '/fiscal?seccion=236',
-      prioridad: 'media',
-    })
-
-    modelos.push({
-      modelo: '715',
-      nombre: 'Modelo 715 — Inversiones Extranjeras',
-      descripcion: 'Declaración informativa de inversiones en el extranjero',
-      frecuencia: 'anual',
-      plazos: ['31 marzo siguiente'],
-      obligatorio: false,
-      categoria: 'otros',
-      urlCalculadora: '/fiscal?seccion=715',
-      prioridad: 'baja',
-    })
   }
 
   if (s.paraisosFiscales) {
     modelos.push({
-      modelo: '345',
-      nombre: 'Modelo 345 — Paraísos Fiscales',
-      descripcion: 'Declaración informativa de operaciones con entidades en paraísos fiscales',
+      modelo: '232',
+      nombre: 'Modelo 232 — Operaciones vinculadas y paraísos fiscales',
+      descripcion: 'Declaración informativa de operaciones con personas o entidades vinculadas y con paraísos fiscales',
       frecuencia: 'anual',
-      plazos: ['28 febrero siguiente'],
+      plazos: ['Noviembre del año siguiente'],
       obligatorio: true,
-      categoria: 'otros',
-      urlCalculadora: '/fiscal?seccion=345',
+      categoria: 'sociedades',
+      urlCalculadora: '/fiscal?seccion=232',
       prioridad: 'alta',
-    })
-  }
-
-  if (s.transparenciaFiscal) {
-    modelos.push({
-      modelo: '282',
-      nombre: 'Modelo 282 — Transparencia Fiscal',
-      descripcion: 'Declaración informativa de entidades en régimen de transparencia fiscal',
-      frecuencia: 'anual',
-      plazos: ['31 marzo siguiente'],
-      obligatorio: true,
-      categoria: 'otros',
-      urlCalculadora: '/fiscal?seccion=282',
-      prioridad: 'media',
     })
   }
 
@@ -524,29 +474,16 @@ export function asistenteFiscal(s: SituacionFiscal): ModeloFiscal[] {
       prioridad: 'baja',
     })
 
-    // 369 — IVA refundable no establecidos
+    // 369 — IVA del régimen One Stop Shop (OSS)
     modelos.push({
       modelo: '369',
-      nombre: 'Modelo 369 — IVA Refundable',
-      descripcion: 'Devolución del IVA a no establecidos en la UE',
-      frecuencia: 'eventual',
-      plazos: ['Trimestral o anual'],
-      obligatorio: false,
-      categoria: 'iva',
-      urlCalculadora: '/fiscal?seccion=369',
-      prioridad: 'baja',
-    })
-
-    // 590 — Autoliquidación IVA cero
-    modelos.push({
-      modelo: '590',
-      nombre: 'Modelo 590 — IVA Cero',
-      descripcion: 'Autoliquidación del IVA con cuota cero',
+      nombre: 'Modelo 369 — IVA One Stop Shop (OSS)',
+      descripcion: 'IVA del régimen One Stop Shop (ventas a distancia y servicios a clientes de la UE)',
       frecuencia: 'trimestral',
       plazos: ['20 abril', '20 julio', '20 octubre', '20 enero'],
       obligatorio: false,
       categoria: 'iva',
-      urlCalculadora: '/fiscal?seccion=590',
+      urlCalculadora: '/fiscal?seccion=369',
       prioridad: 'baja',
     })
 
@@ -564,6 +501,33 @@ export function asistenteFiscal(s: SituacionFiscal): ModeloFiscal[] {
         prioridad: 'alta',
       })
     }
+  }
+
+  // 145 y 143 — Trabajadores y pensionistas
+  if (s.actividad === 'asalariado' || s.actividad === 'pensionista') {
+    modelos.push({
+      modelo: '145',
+      nombre: 'Modelo 145 — Comunicación de datos al pagador',
+      descripcion: 'Comunicación de la situación personal y familiar para fijar la retención de la nómina (art. 88 RIRPF)',
+      frecuencia: 'eventual',
+      plazos: ['Al inicio de la relación laboral o ante cambios'],
+      obligatorio: true,
+      categoria: 'irpf',
+      urlCalculadora: '/fiscal?seccion=145',
+      prioridad: 'media',
+    })
+
+    modelos.push({
+      modelo: '143',
+      nombre: 'Modelo 143 — Abono anticipado (familia numerosa / discapacidad)',
+      descripcion: 'Solicitud del abono mensual anticipado de las deducciones por familia numerosa o discapacidad a cargo',
+      frecuencia: 'eventual',
+      plazos: ['Cuando proceda el abono anticipado'],
+      obligatorio: false,
+      categoria: 'irpf',
+      urlCalculadora: '/fiscal?seccion=143',
+      prioridad: 'media',
+    })
   }
 
   return modelos

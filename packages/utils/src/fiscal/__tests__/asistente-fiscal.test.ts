@@ -40,8 +40,8 @@ describe('asistenteFiscal', () => {
   it('incluye modelos de criptomonedas si aplica', () => {
     const modelos = asistenteFiscal({ ...basicoAutonomo, criptomonedas: true })
     const modelosNombres = modelos.map(m => m.modelo)
-    expect(modelosNombres).toContain('231')
     expect(modelosNombres).toContain('721')
+    expect(modelosNombres).not.toContain('231')
   })
 
   it('incluye modelos de extranjero si aplica', () => {
@@ -61,7 +61,9 @@ describe('asistenteFiscal', () => {
     const modelos = asistenteFiscal({ ...basicoAutonomo, actividad: 'sociedad' })
     const modelosNombres = modelos.map(m => m.modelo)
     expect(modelosNombres).toContain('200')
-    expect(modelosNombres).toContain('104')
+    expect(modelosNombres).toContain('202')
+    expect(modelosNombres).toContain('123')
+    expect(modelosNombres).not.toContain('104')
   })
 
   it('filtra solo obligatorios', () => {
@@ -92,7 +94,7 @@ describe('asistenteFiscal', () => {
     expect(modelosNombres).toContain('303')
     expect(modelosNombres).toContain('130')
     expect(modelosNombres).toContain('111')
-    expect(modelosNombres).toContain('231')
+    expect(modelosNombres).toContain('721')
     expect(modelosNombres).toContain('720')
     expect(modelosNombres).toContain('182')
     expect(modelosNombres).toContain('RETA')

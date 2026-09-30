@@ -49,7 +49,7 @@ export function CalculadoraModelo193({ taxYear }: { taxYear: number }) {
       <BotonPDF elementId="pdf-modelo-193" filename="modelo-193" />
       <Card>
       <CardHeader>
-        <CardTitle>Modelo 193 — Retenciones seguros</CardTitle>
+        <CardTitle>Modelo 193 - Resumen anual capital mobiliario</CardTitle>
         <CardDescription>
           Retenciones e ingresos a cuenta sobre rendimientos del capital mobiliario derivados de operaciones de seguros
         </CardDescription>
