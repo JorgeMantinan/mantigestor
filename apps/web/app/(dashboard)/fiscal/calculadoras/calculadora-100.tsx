@@ -12,7 +12,19 @@ import { eur } from './types'
 
 const eurosACentimos = (v: string): number => Math.round((parseFloat(v) || 0) * 100)
 
-export function CalculadoraModelo100({ datosIniciales }: { datosIniciales?: { baseGeneral?: number; pagosFraccionados?: number } } = {}) {
+type EscalaTramos = Array<{ desde: number; hasta: number | null; tipo: number }>
+
+export function CalculadoraModelo100(
+  {
+    datosIniciales,
+    escalaEstatal,
+    escalaAutonomica,
+  }: {
+    datosIniciales?: { baseGeneral?: number; pagosFraccionados?: number }
+    escalaEstatal?: EscalaTramos
+    escalaAutonomica?: EscalaTramos | null
+  } = {}
+) {
   const [baseGeneral, setBaseGeneral] = useState(datosIniciales?.baseGeneral != null ? String(datosIniciales.baseGeneral) : '')
   const [baseAhorro, setBaseAhorro] = useState('')
   const [reduccionTrabajo, setReduccionTrabajo] = useState('')
@@ -25,6 +37,8 @@ export function CalculadoraModelo100({ datosIniciales }: { datosIniciales?: { ba
 
   const resultado = useMemo(() =>
     calcularModelo100({
+      escalaEstatal,
+      escalaAutonomica,
       baseImponibleGeneral: eurosACentimos(baseGeneral),
       baseImponibleAhorro: eurosACentimos(baseAhorro),
       reduccionTrabajo: eurosACentimos(reduccionTrabajo),
@@ -35,7 +49,7 @@ export function CalculadoraModelo100({ datosIniciales }: { datosIniciales?: { ba
       retenciones: eurosACentimos(retenciones),
       dividendosIRPF: eurosACentimos(dividendosIRPF),
     }),
-    [baseGeneral, baseAhorro, reduccionTrabajo, reduccionAhorro, minimoPersonal, deduccionesAutonomicas, pagosFraccionados, retenciones, dividendosIRPF]
+    [escalaEstatal, escalaAutonomica, baseGeneral, baseAhorro, reduccionTrabajo, reduccionAhorro, minimoPersonal, deduccionesAutonomicas, pagosFraccionados, retenciones, dividendosIRPF]
   )
 
   const hasData = parseFloat(baseGeneral) > 0 || parseFloat(baseAhorro) > 0
@@ -157,7 +171,7 @@ export function CalculadoraModelo100({ datosIniciales }: { datosIniciales?: { ba
         )}
 
         <p className="text-xs text-muted-foreground">
-          Cálculo orientativo con escala estatal 2026. No incluye deducciones autonómicas específicas,
+          Cálculo con la escala estatal y la autonómica de tu comunidad de la BD (si no hay datos, escala estatal de referencia de 2026). No incluye deducciones autonómicas
           pagos complementarios ni ganancias patrimoniales. Consulta la declaración oficial.
         </p>
       </CardContent>

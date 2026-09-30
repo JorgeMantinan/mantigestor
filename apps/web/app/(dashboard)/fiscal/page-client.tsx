@@ -398,7 +398,7 @@ function PaginaFiscalInner() {
           {seccion === 'modelo200' && <LazyCalculator><CalculadoraModelo200 /></LazyCalculator>}
           {seccion === 'modelo720' && <LazyCalculator><CalculadoraModelo720 /></LazyCalculator>}
           {seccion === 'modelo151' && <LazyCalculator><CalculadoraModelo151 taxYear={taxYear} /></LazyCalculator>}
-          {seccion === 'modelo100' && <LazyCalculator><CalculadoraModelo100 datosIniciales={datosReales ? { baseGeneral: datosReales.baseGeneral, pagosFraccionados: datosReales.pagosFraccionados } : undefined} /></LazyCalculator>}
+          {seccion === 'modelo100' && <LazyCalculator><CalculadoraModelo100 datosIniciales={datosReales ? { baseGeneral: datosReales.baseGeneral, pagosFraccionados: datosReales.pagosFraccionados } : undefined} escalaEstatal={datos.escalaEstatal ? datos.escalaEstatal.tramos.map(t => ({ desde: t.desdeEur, hasta: t.hastaEur, tipo: t.tipoPct })) : undefined} escalaAutonomica={datos.escalaAutonomica ? datos.escalaAutonomica.tramos.map(t => ({ desde: t.desdeEur, hasta: t.hastaEur, tipo: t.tipoPct })) : null} /></LazyCalculator>}
           {seccion === 'modelo131' && <LazyCalculator><CalculadoraModelo131 /></LazyCalculator>}
           {seccion === 'modelo115' && <LazyCalculator><CalculadoraModelo115 /></LazyCalculator>}
           {seccion === 'modelo123' && <LazyCalculator><CalculadoraModelo123 /></LazyCalculator>}

@@ -50,7 +50,6 @@ const BONIFICACIONES: Record<string, { porcentaje: number; descripcion: string }
   'Cataluña': { porcentaje: 0, descripcion: 'Sin bonificación general (tipos propios)' },
   'Islas Baleares': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
   'Murcia': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
-  'C. Valenciana': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
   'Comunidad Valenciana': { porcentaje: 0, descripcion: 'Sin bonificación general en cuota' },
   'Navarra': { porcentaje: 0, descripcion: 'Régimen foral: se tributa por la normativa foral' },
   'País Vasco': { porcentaje: 0, descripcion: 'Régimen foral: se tributa por la normativa foral' },

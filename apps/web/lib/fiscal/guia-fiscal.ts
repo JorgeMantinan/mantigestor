@@ -296,49 +296,32 @@ export const GUIA_MODELO_111: Record<string, GuiaCampo> = {
 
 export const GUIA_MODELO_131: Record<string, GuiaCampo> = {
   activosFijos: {
-    titulo: 'Módulo por activos fijos',
-    contenido: 'Es un valor fijo que se asigna por cada unidad de activo fijo (maquinaria, herramientas, vehículos) utilizados en la actividad. Se multiplica por el número de unidades.',
-    ejemplos: [
-      'Si tienes 2 furgonetas de reparto, el módulo se multiplica por 2',
-      'Una máquina de CNC en un taller: se cuenta como 1 unidad',
-    ],
-    dondeVer: 'Tablas de módulos publicadas por la AEAT para cada epígrafe del IAE.',
+    titulo: 'Módulos y precios por unidad (estimación objetiva)',
+    contenido:
+      'En estimación objetiva el rendimiento neto se estima con los módulos oficiales (unidades × precio) aplicados sobre los datos-base del 1 de enero del año. La deducción adicional por gastos de difícil justificación es del 7 % (3 % los socios de entidades).',
+    dondeVer: 'Tablas de módulos y datos-base en las instrucciones oficiales del modelo 131 (AEAT).',
   },
-  metrosCuadrados: {
-    titulo: 'Módulo por metros cuadrados',
-    contenido: 'Es el módulo que se aplica por cada metro cuadrado del local donde ejerces la actividad. Es uno de los factores que más influye en el módulo anual.',
+  pagoFraccionado: {
+    titulo: 'Porcentaje oficial del pago fraccionado (art. 110 LIRPF)',
+    contenido:
+      'El modelo 131 ingresa el 4 % del rendimiento neto por módulos; el 3 % cuando solo hay una persona asalariada y el 2 % cuando no hay personal asalariado. Si no se pueden determinar datos-base, se aplica el 2 % del volumen de ventas o ingresos del trimestre. Se deducen las retenciones practicadas y los pagos anteriores del año.',
     ejemplos: [
-      'Si tu local tiene 50m² y el módulo es 22,28€/m², el subtotal es 1.114€',
-      'Un trastero de 15m² también se cuenta como espacio de actividad',
+      'Rendimiento por módulos 40.000 € con 1 asalariado → 3 % = 1.200 €',
+      'Sin datos-base: ventas trimestre 50.000 € × 2 % = 1.000 €',
     ],
-    dondeVer: 'Medida del local en tu contrato de alquiler o escritura. Tabla de módulos en la AEAT.',
+    dondeVer: 'AEAT «Pagos fraccionados — Importe de los pagos fraccionados»; art. 110 LIRPF.',
   },
-  personal: {
-    titulo: 'Módulo por personal asalariado',
-    contenido: 'Es el módulo que se asigna por cada empleado que tienes dado de alta. Incluye también a los socios que trabajan en la empresa.',
-    ejemplos: [
-      'Si tienes 1 empleado: el módulo se multiplica por 1',
-      'Si eres socio y trabajas, cuentas también como 1 unidad',
-    ],
-    dondeVer: 'Altas en la Seguridad Social de tu empresa.',
+  minoracion: {
+    titulo: 'Minoración y deducción aplicables',
+    contenido:
+      'Minoración de 25/50/75/100 € si los rendimientos netos del ejercicio anterior son ≤ 12.000/11.000/10.000/9.000 €. Deducción del 0,5 % por adquisición de vivienda (mismas condiciones que en el 130; tope 660,14 € acumulados en el período). Con Ceuta y Melilla el porcentaje se reduce un 60 %.',
+    dondeVer: 'AEAT «Importe de los pagos fraccionados»; arts. 110-114 RIRPF.',
   },
-  kcalAnuales: {
-    titulo: 'Kilovatios de potencia contratada',
-    contenido: 'Es la potencia eléctrica contratada en el local de la actividad. Se usa en actividades como hostelería o industria donde el consumo eléctrico es significativo.',
-    ejemplos: [
-      'Si tienes 10 kW contratados y el módulo es 1,5€/kW, subtotal = 15€',
-      'Un restaurante suele tener entre 15-30 kW',
-    ],
-    dondeVer: 'En tu factura de luz: "Potencia contratada" (kW). En lafactura.com o en tu distribuidora.',
-  },
-  moduloAnual: {
-    titulo: 'Módulo anual resultante',
-    contenido: 'Es el resultado de multiplicar todos los factores anteriores. Representa la cuota anual por módulos antes de aplicar reducciones o bonificaciones. Se paga trimestralmente (25% cada trimestre).',
-    ejemplos: [
-      'Si tu módulo anual es 12.000€, cada trimestre pagas 3.000€',
-      'Puedes aplicar bonificaciones el primer año (95%) y segundo año (50%) si eres nuevo autónomo',
-    ],
-    dondeVer: 'Calcula: activos fijos + metros cuadrados + personal + kcal × tarifas del módulo.',
+  plazo: {
+    titulo: 'Plazos trimestrales',
+    contenido:
+      'Del 1 al 20 de abril, julio y octubre, y del 1 al 30 de enero del año siguiente, por el trimestre correspondiente.',
+    dondeVer: 'AEAT, calendario del contribuyente; art. 99 LIRPF.',
   },
 }
 
@@ -1859,47 +1842,24 @@ export const GUIA_MODELO_236: Record<string, GuiaCampo> = {
 }
 
 export const GUIA_MODELO_282: Record<string, GuiaCampo> = {
-  razonSocial: {
-    titulo: 'Razón social',
-    contenido: 'Nombre oficial de la entidad sometida al régimen de transparencia fiscal.',
-    ejemplos: ['Fondo de Inversión XYZ, SICAV Europa, ETF Global'],
-    dondeVer: 'Escritura de constitución o registro de la entidad.',
+  concepto: {
+    titulo: 'Ayudas del REF de Canarias y de Estado',
+    contenido:
+      'Declaración informativa ANUAL de las ayudas recibidas en el marco del Régimen Económico y Fiscal de Canarias y de otras ayudas de Estado derivadas de la aplicación del Derecho de la Unión Europea. Deben declararse las ayudas de cualquier importe, incluidas las de minimis.',
+    dondeVer: 'Orden HAP/296/2016 (BOE 5-3-2016); Ley 19/1994 (REF de Canarias).',
   },
-  nif: {
-    titulo: 'NIF de la entidad',
-    contenido: 'Número de Identificación Fiscal de la entidad transparente.',
-    ejemplos: ['B12345678', 'A87654321'],
-    dondeVer: 'Certificado fiscal o documento oficial de la entidad.',
+  registro: {
+    titulo: 'Contenido del registro',
+    contenido:
+      'Por cada ayuda: organismo o entidad concedente, concepto de la ayuda, ejercicio al que se refiere e importe percibido.',
+    ejemplos: ['Gobierno de Canarias — Ayuda REF inversión — 2026 — 15.000,00 €'],
+    dondeVer: 'Resolución de concesión o certificación de la ayuda.',
   },
-  tipoEntidad: {
-    titulo: 'Tipo de entidad',
-    contenido: 'Clasificación de la entidad according to the type of collective investment vehicle.',
-    ejemplos: ['Fondo de inversión', 'SICAV', 'FICVM', 'SOCIMI'],
-    dondeVer: 'Estatutos de la entidad o registro oficial.',
-  },
-  tipoRenta: {
-    titulo: 'Tipo de renta',
-    contenido: 'Naturaleza de la renta imputada por la entidad transparente.',
-    ejemplos: ['Dividendos', 'Intereses', 'Plusvalías', 'Rentas de arrendamiento'],
-    dondeVer: 'Certificado anual de la entidad o informe de gestores.',
-  },
-  importeRenta: {
-    titulo: 'Importe de la renta',
-    contenido: 'Importe bruto de la renta imputada en céntimos.',
-    ejemplos: ['Dividendos recibidos: 5.000€', 'Plusvalías realizadas: 3.200€'],
-    dondeVer: 'Certificado de retenciones o informe anual de la entidad.',
-  },
-  sociedad: {
-    titulo: 'Sociedad participada',
-    contenido: 'Nombre de la sociedad en la que se tiene participación.',
-    ejemplos: ['Empresa ABC, S.L.', 'Corporación XYZ, Inc.'],
-    dondeVer: 'Escritura de constitución o pactos de socios.',
-  },
-  porcentaje: {
-    titulo: 'Porcentaje de participación',
-    contenido: 'Porcentaje de participación en el capital o derechos de voto de la sociedad.',
-    ejemplos: ['25%', '100%', '15.5%'],
-    dondeVer: 'Escritura de constitución o registro mercantil.',
+  plazo: {
+    titulo: 'Plazo de presentación',
+    contenido:
+      'El mismo que la autoliquidación del IRPF, del IS o del IRNR del contribuyente en relación con el año natural anterior (p. ej. Renta: hasta el 30 de junio; IS: 25 días naturales tras los 6 meses).',
+    dondeVer: 'Art. 4 de la Orden HAP/296/2016.',
   },
 }
 

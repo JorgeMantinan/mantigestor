@@ -136,3 +136,54 @@ describe('calcularModelo100 — a pagar / a devolver', () => {
     expect(r.baseImponibleGeneral).toBe(2_500_000)
   })
 })
+
+describe('calcularModelo100 — escalas de territorio (estatal + autonómica)', () => {
+  it('suma la parte estatal y la autonómica cuando se proporcionan', () => {
+    const r = calcularModelo100(
+      datos({
+        baseImponibleGeneral: 3_000_000, // 30.000 €
+        escalaEstatal: [{ desde: 0, hasta: null, tipo: 10 }],
+        escalaAutonomica: [{ desde: 0, hasta: null, tipo: 5 }],
+      })
+    )
+    // (10% + 5%) × 30.000 € = 4.500 € = 450.000 céntimos
+    expect(r.cuotaIntegra).toBe(450_000)
+  })
+
+  it('sin escalas de territorio mantiene la escala de referencia (19/24/30...)', () => {
+    const referencia = calcularModelo100(datos({ baseImponibleGeneral: 3_000_000 }))
+    const territorio = calcularModelo100(
+      datos({
+        baseImponibleGeneral: 3_000_000,
+        escalaEstatal: [{ desde: 0, hasta: null, tipo: 10 }],
+        escalaAutonomica: [{ desde: 0, hasta: null, tipo: 5 }],
+      })
+    )
+    expect(referencia.cuotaIntegra).not.toBe(territorio.cuotaIntegra)
+  })
+
+  it('régimen foral: solo la tarifa íntegra del territorio', () => {
+    const r = calcularModelo100(
+      datos({
+        baseImponibleGeneral: 2_000_000, // 20.000 €
+        escalaEstatal: undefined,
+        escalaAutonomica: [{ desde: 0, hasta: null, tipo: 24 }],
+      })
+    )
+    // 24% × 20.000 € = 4.800 € = 480.000 céntimos
+    expect(r.cuotaIntegra).toBe(480_000)
+  })
+
+  it('el mínimo personal minora cada escala de territorio', () => {
+    const r = calcularModelo100(
+      datos({
+        baseImponibleGeneral: 3_000_000, // 30.000 €
+        minimoPersonalFamiliar: 555_000, // 5.550 €
+        escalaEstatal: [{ desde: 0, hasta: null, tipo: 10 }],
+        escalaAutonomica: [{ desde: 0, hasta: null, tipo: 5 }],
+      })
+    )
+    // (10% + 5%) × (30.000 − 5.550) = 15% × 24.450 € = 3.667,50 €
+    expect(r.cuotaIntegra).toBe(366_750)
+  })
+})

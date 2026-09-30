@@ -91,6 +91,12 @@ export function reduccionTrabajo20(rendimientosTrabajoCents: number): number {
 }
 
 export interface DatosModelo100 {
+  /** Escala estatal de la base general (tramos en €: { desde, hasta, tipo }); si se
+   *  indica, se aplica en lugar de la escala de referencia estatal */
+  escalaEstatal?: Array<{ desde: number; hasta: number | null; tipo: number }>
+  /** Escala autonómica de la comunidad (tramos en €): se SUMA a la estatal.
+   *  En régimen foral se pasa solo esta (tarifa íntegra del territorio). */
+  escalaAutonomica?: Array<{ desde: number; hasta: number | null; tipo: number }> | null
   /** Rendimiento neto general previo a reducciones (céntimos) */
   baseImponibleGeneral: number
   /** Rendimientos del ahorro: dividendos, intereses, plusvalías (céntimos) */
@@ -184,11 +190,28 @@ export function calcularModelo100(datos: DatosModelo100): ResultadoModelo100 {
   const baseAhorro = Math.max(0, datos.baseImponibleAhorro - datos.reduccionAhorro)
 
   // Cuota íntegra general: escala aplicada a la base liquidable general
-  let cuotaIntegra = calcularCuotaEscalas(baseGeneral / 100, ESCALA_GENERAL_TRAMOS)
-  // El mínimo personal y familiar minora la cuota íntegra: escala(base) − escala(mínimo)
-  // (art. 62 LIRPF). Nunca puede resultar negativa.
+  const usaEscalasTerritorio = Boolean(datos.escalaEstatal || datos.escalaAutonomica)
   const minimo = Math.max(0, datos.minimoPersonalFamiliar)
-  cuotaIntegra = Math.max(0, cuotaIntegra - calcularCuotaEscalas(minimo / 100, ESCALA_GENERAL_TRAMOS))
+  let cuotaIntegra: number
+  if (usaEscalasTerritorio) {
+    // Escala real: parte estatal + parte autonómica (o tarifa foral íntegra),
+    // minoradas cada una por el mínimo personal/familiar (art. 62 LIRPF).
+    cuotaIntegra = 0
+    if (datos.escalaEstatal) {
+      cuotaIntegra += calcularCuotaEscalas(baseGeneral / 100, datos.escalaEstatal)
+      cuotaIntegra = Math.max(0, cuotaIntegra - calcularCuotaEscalas(minimo / 100, datos.escalaEstatal))
+    }
+    if (datos.escalaAutonomica) {
+      cuotaIntegra += calcularCuotaEscalas(baseGeneral / 100, datos.escalaAutonomica)
+      cuotaIntegra = Math.max(0, cuotaIntegra - calcularCuotaEscalas(minimo / 100, datos.escalaAutonomica))
+    }
+  } else {
+    // Escala de referencia (tipo total estatal + autonómico) usada como aproximación
+    cuotaIntegra = calcularCuotaEscalas(baseGeneral / 100, ESCALA_GENERAL_TRAMOS)
+    // El mínimo personal y familiar minora la cuota íntegra: escala(base) − escala(mínimo)
+    // (art. 62 LIRPF). Nunca puede resultar negativa.
+    cuotaIntegra = Math.max(0, cuotaIntegra - calcularCuotaEscalas(minimo / 100, ESCALA_GENERAL_TRAMOS))
+  }
   // Remanente del mínimo no aplicado por insuficiencia de la base general:
   // minora la cuota del ahorro (art. 63.1 LIRPF)
   const remanenteMinimo = Math.max(0, minimo - baseGeneral)
