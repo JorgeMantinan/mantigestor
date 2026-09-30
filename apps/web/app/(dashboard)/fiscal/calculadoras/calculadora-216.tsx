@@ -9,7 +9,7 @@ import { Plus, Trash2 } from 'lucide-react'
 import { eur, parseEuros } from './types'
 import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_216 } from '@/lib/fiscal/guia-fiscal'
-import { calcularModelo216, TIPOS_RETENCION_216, TRIMESTRES_206 } from '@mantigestor/utils'
+import { calcularModelo216, TIPOS_RETENCION_216 } from '@mantigestor/utils'
 import type { RetencionNoResidente216 } from '@mantigestor/utils'
 import { SELECT_CLS } from '@/lib/ui-constants'
 import { BotonPDF } from '@/components/boton-pdf'
@@ -71,7 +71,7 @@ export function Calculadora216({ taxYear }: Props) {
           <Label>Trimestre</Label>
           <select value={trimestre} onChange={e => setTrimestre(Number(e.target.value) as 1 | 2 | 3 | 4)}
             className={SELECT_CLS}>
-            {TRIMESTRES_206.map(t => <option key={t} value={t}>T{t}</option>)}
+            {[1, 2, 3, 4].map(t => <option key={t} value={t}>T{t}</option>)}
           </select>
         </div>
 

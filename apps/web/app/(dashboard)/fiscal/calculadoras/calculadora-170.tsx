@@ -3,8 +3,10 @@
 import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Building2 } from 'lucide-react'
-import { calcularModelo170, TIPOS_RETENCION_MODELO_170 } from '@mantigestor/utils'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { CreditCard, Smartphone, Plus, Trash2, FileWarning, CalendarClock } from 'lucide-react'
+import { calcularModelo170, type MedioCobro170, type Operacion170 } from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
 import { GUIA_MODELO_170 } from '@/lib/fiscal/guia-fiscal'
 import { BotonPDF } from '@/components/boton-pdf'
@@ -12,26 +14,50 @@ import { BotonPDF } from '@/components/boton-pdf'
 const formatoEuros = (euros: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(euros)
 
-const OPCIONES_TIPO_RETENCION = [
-  { valor: TIPOS_RETENCION_MODELO_170.restoConceptos, etiqueta: '19% — Resto de conceptos (art. 75.2.b RIRPF)' },
-  { valor: TIPOS_RETENCION_MODELO_170.cesionImagen, etiqueta: '24% — Cesión de derechos de imagen' },
-  { valor: TIPOS_RETENCION_MODELO_170.profesionalNuevoInicio, etiqueta: '7% — Profesionales de nuevo inicio (año de inicio + 2)' },
-] as const
+const selectCls =
+  'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50'
 
-export function CalculadoraModelo170() {
-  const [baseImponible, setBaseImponible] = useState('')
-  const [tipoRetencion, setTipoRetencion] = useState<number>(TIPOS_RETENCION_MODELO_170.restoConceptos)
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
-  const resultado = useMemo(
+interface FilaUI {
+  id: string
+  fecha: string
+  importe: string
+  medio: MedioCobro170
+}
+
+interface Props {
+  taxYear: number
+}
+
+export function CalculadoraModelo170({ taxYear }: Props) {
+  const mensual = taxYear >= 2026
+  const [mes, setMes] = useState<number>(1)
+  const [filas, setFilas] = useState<FilaUI[]>([
+    { id: crypto.randomUUID(), fecha: `${taxYear}-01-15`, importe: '', medio: 'tarjeta' },
+  ])
+
+  const operaciones: Operacion170[] = useMemo(
     () =>
-      calcularModelo170({
-        baseImponible: parseFloat(baseImponible) || 0,
-        tipoRetencionPct: tipoRetencion,
-      }),
-    [baseImponible, tipoRetencion]
+      filas
+        .filter(f => f.fecha && parseFloat(f.importe) > 0)
+        .map(f => ({
+          fecha: f.fecha,
+          importeCents: Math.round((parseFloat(f.importe) || 0) * 100),
+          medio: f.medio,
+        })),
+    [filas]
   )
 
-  const hasData = parseFloat(baseImponible) > 0
+  const resultado = useMemo(
+    () => calcularModelo170({ anyo: taxYear, mes: mensual ? mes : undefined, operaciones }),
+    [taxYear, mensual, mes, operaciones]
+  )
+
+  const update = (id: string, patch: Partial<FilaUI>) =>
+    setFilas(prev => prev.map(f => (f.id === id ? { ...f, ...patch } : f)))
+
+  const hasData = operaciones.length > 0
 
   return (
     <div id="pdf-modelo-170" className="space-y-3">
@@ -39,63 +65,167 @@ export function CalculadoraModelo170() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-primary" aria-hidden="true" />
+            <CreditCard className="h-5 w-5 text-primary" aria-hidden="true" />
             <div>
-              <CardTitle>Modelo 170 — Retenciones agrupadas a un solo perceptor</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                Modelo 170 — Cobros con tarjeta y móvil {taxYear}
+                <Badge variant={mensual ? 'default' : 'secondary'}>
+                  {mensual ? 'Mensual (≥ 2026)' : 'Anual (≤ 2025)'}
+                </Badge>
+              </CardTitle>
               <CardDescription>
-                Declaración trimestral de retenciones del IRPF imputadas o agrupadas a un solo perceptor
-                (trabajo, imagen, propiedad intelectual, asistencia técnica, bienes muebles).
+                {mensual
+                  ? 'Declaración informativa mensual de las operaciones de cobro a través de cualquier tipo de tarjeta y de pagos asociados a números de teléfono móvil (Orden HAC/747/2025).'
+                  : 'Declaración informativa anual de las operaciones de cobro a través de tarjetas de crédito o de débito (Orden EHA/97/2010, derogada con efectos 1-1-2026).'}
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <LabelConAyuda htmlFor="m170-base" ayuda={GUIA_MODELO_170.baseImponible}>Base imponible trimestral (€)</LabelConAyuda>
-            <Input id="m170-base" type="number" min="0" step="0.01" placeholder="9000" value={baseImponible} onChange={e => setBaseImponible(e.target.value)} />
+          <div className={`grid gap-4 ${mensual ? 'sm:grid-cols-2' : 'sm:grid-cols-1'}`}>
+            {mensual && (
+              <div className="space-y-2">
+                <LabelConAyuda htmlFor="m170-mes" ayuda={GUIA_MODELO_170.periodo}>
+                  Mes de la declaración
+                </LabelConAyuda>
+                <select id="m170-mes" className={selectCls} value={mes} onChange={e => setMes(Number(e.target.value))}>
+                  {MESES.map((m, i) => (
+                    <option key={m} value={i + 1}>
+                      {m} {taxYear}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="flex items-end">
+              <div className="flex w-full items-center gap-2 rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">
+                <CalendarClock className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>
+                  <strong>Plazo:</strong> {resultado.plazo}
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <LabelConAyuda htmlFor="m170-tipo" ayuda={GUIA_MODELO_170.tipoRetencion}>Tipo de retención</LabelConAyuda>
-            <select
-              id="m170-tipo"
-              value={String(tipoRetencion)}
-              onChange={e => setTipoRetencion(parseInt(e.target.value, 10))}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm"
+
+          <div className="space-y-3">
+            <div className="hidden grid-cols-[1fr_1fr_1fr_2rem] gap-3 px-1 text-xs text-muted-foreground sm:grid">
+              <span>Fecha</span>
+              <span>Importe cobrado (€)</span>
+              <span>Medio de cobro</span>
+              <span />
+            </div>
+            {filas.map(f => (
+              <div key={f.id} className="grid grid-cols-[1fr] gap-3 sm:grid-cols-[1fr_1fr_1fr_2rem] sm:items-center">
+                <Input
+                  type="date"
+                  value={f.fecha}
+                  min={`${taxYear}-01-01`}
+                  max={`${taxYear}-12-31`}
+                  onChange={e => update(f.id, { fecha: e.target.value })}
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="250.00"
+                  value={f.importe}
+                  onChange={e => update(f.id, { importe: e.target.value })}
+                />
+                <select
+                  className={selectCls}
+                  value={f.medio}
+                  onChange={e => update(f.id, { medio: e.target.value as MedioCobro170 })}
+                >
+                  <option value="tarjeta">Tarjeta (crédito/débito/TPV)</option>
+                  <option value="movil" disabled={!mensual}>
+                    Pago con móvil {mensual ? '' : '(solo desde 2026)'}
+                  </option>
+                </select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10"
+                  aria-label="Eliminar operación"
+                  disabled={filas.length === 1}
+                  onClick={() => setFilas(prev => prev.filter(x => x.id !== f.id))}
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </div>
+            ))}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setFilas(prev => [
+                  ...prev,
+                  { id: crypto.randomUUID(), fecha: `${taxYear}-01-15`, importe: '', medio: 'tarjeta' },
+                ])
+              }
             >
-              {OPCIONES_TIPO_RETENCION.map(op => (
-                <option key={op.valor} value={op.valor}>{op.etiqueta}</option>
-              ))}
-            </select>
+              <Plus className="mr-2 h-4 w-4" aria-hidden="true" /> Añadir cobro
+            </Button>
           </div>
 
           {hasData && (
-            <dl className="grid gap-3 sm:grid-cols-3">
+            <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-lg border p-3">
-                <dt className="text-xs text-muted-foreground">Base imponible</dt>
-                <dd className="text-lg font-semibold">{formatoEuros(resultado.baseImponible)}</dd>
+                <dt className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <CreditCard className="h-3.5 w-3.5" aria-hidden="true" /> Con tarjeta
+                </dt>
+                <dd className="text-lg font-semibold">{formatoEuros(resultado.totalTarjetaCents / 100)}</dd>
               </div>
               <div className="rounded-lg border p-3">
-                <dt className="text-xs text-muted-foreground">Tipo de retención</dt>
-                <dd className="text-lg font-semibold">{resultado.tipoRetencion}%</dd>
+                <dt className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Smartphone className="h-3.5 w-3.5" aria-hidden="true" /> Con móvil
+                </dt>
+                <dd className="text-lg font-semibold">{formatoEuros(resultado.totalMovilCents / 100)}</dd>
+              </div>
+              <div className="rounded-lg border p-3">
+                <dt className="text-xs text-muted-foreground">Operaciones</dt>
+                <dd className="text-lg font-semibold">{resultado.numOperaciones}</dd>
               </div>
               <div className="rounded-lg border border-primary/50 bg-primary/5 p-3">
-                <dt className="text-xs text-muted-foreground">Cuota retenida</dt>
-                <dd className="text-lg font-bold text-primary">{formatoEuros(resultado.cuotaRetenida)}</dd>
+                <dt className="text-xs text-muted-foreground">Total declarado</dt>
+                <dd className="text-2xl font-bold text-primary">{formatoEuros(resultado.totalCents / 100)}</dd>
               </div>
             </dl>
           )}
 
-          {!hasData && (
-            <p className="text-sm text-muted-foreground">
-              Introduce la base imponible sobre la que practicar la retención.
-            </p>
+          {hasData && !mensual && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Importes por mes (resumen anual)</p>
+              <div className="grid grid-cols-3 gap-1 text-xs sm:grid-cols-6">
+                {resultado.porMes.map((importe, i) => (
+                  <div key={MESES[i]} className="rounded border p-1.5 text-center">
+                    <p className="text-muted-foreground">{MESES[i]?.slice(0, 3)}</p>
+                    <p className="font-medium">{formatoEuros(importe / 100)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
-          <p className="text-xs text-muted-foreground">
-            Cálculo orientativo. 19% para el resto de conceptos, 24% para cesión de derechos de imagen y
-            7% para profesionales de nuevo inicio (año de inicio y los dos siguientes). El arrendamiento de
-            inmuebles urbanos se declara en el modelo 115 (19%).
-          </p>
+          {resultado.avisos.length > 0 && (
+            <div className="space-y-1">
+              {resultado.avisos.map(a => (
+                <p
+                  key={a}
+                  className="flex items-start gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/5 p-2 text-xs text-amber-700"
+                >
+                  <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  {a}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {!hasData && (
+            <p className="text-sm text-muted-foreground">
+              Añade los cobros realizados con tarjeta{mensual ? ' y móvil' : ''} del ejercicio {taxYear} para
+              calcular la declaración informativa.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

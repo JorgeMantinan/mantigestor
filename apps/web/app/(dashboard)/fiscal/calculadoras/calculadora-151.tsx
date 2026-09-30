@@ -2,83 +2,151 @@
 
 import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Plane, FileWarning } from 'lucide-react'
+import {
+  calcularModelo151,
+  LIMITE_TIPO_REDUCIDO_BECKHAM_CENTS,
+  TIPO_GENERAL_BECKHAM,
+  TIPO_EXCESO_BECKHAM,
+} from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
-import { GUIA_MODELO_131 } from '@/lib/fiscal/guia-fiscal'
-import { calcularModelo151, requisitosEstimacionObjetiva } from '@mantigestor/utils'
+import { GUIA_MODELO_151 } from '@/lib/fiscal/guia-fiscal'
 import { BotonPDF } from '@/components/boton-pdf'
 
-export function CalculadoraModelo151() {
-  const [tipo, setTipo] = useState<'alta' | 'renuncia' | 'revocacion'>('alta')
-  const [nif, setNif] = useState('')
-  const [nombre, setNombre] = useState('')
-  const [actividad, setActividad] = useState('')
-  const [codigoIae, setCodigoIae] = useState('')
+const formatoEuros = (euros: number) =>
+  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(euros)
 
-  const resultado = useMemo(() =>
-    calcularModelo151({ tipo, nif, nombre, actividad, codigoActividad: codigoIae }),
-    [tipo, nif, nombre, actividad, codigoIae]
+interface Props {
+  taxYear?: number
+}
+
+export function CalculadoraModelo151({ taxYear }: Props) {
+  const [rendimientos, setRendimientos] = useState('')
+  const [pagos, setPagos] = useState('')
+
+  const resultado = useMemo(
+    () =>
+      calcularModelo151({
+        rendimientosBaseGeneralCents: Math.round((parseFloat(rendimientos) || 0) * 100),
+        pagosACuentaCents: Math.round((parseFloat(pagos) || 0) * 100),
+      }),
+    [rendimientos, pagos]
   )
+
+  const hasData = parseFloat(rendimientos) > 0
 
   return (
     <div id="pdf-modelo-151" className="space-y-3">
       <BotonPDF elementId="pdf-modelo-151" filename="modelo-151" />
       <Card>
-      <CardHeader>
-        <CardTitle>Modelo 151 — Estimación objetiva (módulos)</CardTitle>
-        <CardDescription>Alta, renuncia o revocación del régimen de módulos</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="max-w-sm space-y-2">
-          <Label>Tipo de comunicación</Label>
-          <select value={tipo} onChange={e => setTipo(e.target.value as typeof tipo)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-            <option value="alta">Alta</option>
-            <option value="renuncia">Renuncia</option>
-            <option value="revocacion">Revocación</option>
-          </select>
-        </div>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Plane className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div>
+              <CardTitle>
+                Modelo 151 — Régimen especial de trabajadores desplazados (Ley Beckham)
+                {taxYear ? ` ${taxYear}` : ''}
+              </CardTitle>
+              <CardDescription>
+                Declaración del IRPF de los contribuyentes acogidos al régimen del art. 93 LIRPF («Ley
+                Beckham»): tipo fijo del 24 % sobre los rendimientos de fuente española hasta 600.000 € y del
+                47 % sobre el exceso, sin mínimos ni deducciones del régimen general.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <LabelConAyuda htmlFor="m151-rendimientos" ayuda={GUIA_MODELO_151.rendimientos}>
+                Rendimientos de trabajo, profesionales y alquileres (€)
+              </LabelConAyuda>
+              <Input
+                id="m151-rendimientos"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="85000.00"
+                value={rendimientos}
+                onChange={e => setRendimientos(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Solo rentas de fuente española sometidas a este régimen (máx. 6 años desde el desplazamiento).
+              </p>
+            </div>
+            <div className="space-y-2">
+              <LabelConAyuda htmlFor="m151-pagos" ayuda={GUIA_MODELO_151.pagosACuenta}>
+                Retenciones y pagos a cuenta (€)
+              </LabelConAyuda>
+              <Input
+                id="m151-pagos"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="20400.00"
+                value={pagos}
+                onChange={e => setPagos(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Retención del pagador (24 %) y pagos fraccionados ya ingresados.
+              </p>
+            </div>
+          </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <LabelConAyuda htmlFor="nif" ayuda={GUIA_MODELO_131.moduloAnual}>NIF</LabelConAyuda>
-            <Input id="nif" value={nif} onChange={e => setNif(e.target.value)} placeholder="12345678A" />
+          <div className="grid gap-3 text-xs text-muted-foreground sm:grid-cols-3">
+            <div className="rounded-lg border p-3">
+              <p>Hasta {formatoEuros(LIMITE_TIPO_REDUCIDO_BECKHAM_CENTS / 100)}</p>
+              <p className="text-lg font-semibold text-foreground">{TIPO_GENERAL_BECKHAM} %</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p>Exceso (mismo pagador)</p>
+              <p className="text-lg font-semibold text-foreground">{TIPO_EXCESO_BECKHAM} %</p>
+            </div>
+            <div className="rounded-lg border p-3">
+              <p>Plazo</p>
+              <p className="text-sm font-medium text-foreground">Igual que el modelo 100</p>
+            </div>
           </div>
-          <div className="space-y-2">
-            <LabelConAyuda htmlFor="nombre" ayuda={GUIA_MODELO_131.kcalAnuales}>Nombre / denominación</LabelConAyuda>
-            <Input id="nombre" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Tu nombre o empresa" />
-          </div>
-          <div className="space-y-2">
-            <Label>Actividad económica</Label>
-            <Input value={actividad} onChange={e => setActividad(e.target.value)} placeholder="Ej: Hostelería, Comercio..." />
-          </div>
-          <div className="space-y-2">
-            <LabelConAyuda htmlFor="codigoIAE" ayuda={GUIA_MODELO_131.personal}>Código IAE</LabelConAyuda>
-            <Input id="codigoIAE" value={codigoIae} onChange={e => setCodigoIae(e.target.value)} placeholder="Ej: 4711" />
-          </div>
-        </div>
 
-        <div className={`rounded-lg border p-4 ${resultado.observaciones.some(o => o.includes('⚠️')) ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-green-500/50 bg-green-500/5'}`}>
-          <h4 className="font-medium">{resultado.tipo}: {resultado.descripcion}</h4>
-          <p className="text-sm text-muted-foreground mt-1">Plazo: {resultado.plazo}</p>
-          <ul className="mt-2 space-y-1">
-            {resultado.observaciones.map((obs, i) => (
-              <li key={i} className="text-sm">{obs}</li>
-            ))}
-          </ul>
-        </div>
+          {hasData && (
+            <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-lg border p-3">
+                <dt className="text-xs text-muted-foreground">Base al 24 %</dt>
+                <dd className="text-sm font-semibold">{formatoEuros(resultado.baseHastaLimiteCents / 100)}</dd>
+              </div>
+              <div className="rounded-lg border p-3">
+                <dt className="text-xs text-muted-foreground">Base al 47 %</dt>
+                <dd className="text-sm font-semibold">{formatoEuros(resultado.baseExcesoCents / 100)}</dd>
+              </div>
+              <div className="rounded-lg border p-3">
+                <dt className="text-xs text-muted-foreground">Cuota íntegra</dt>
+                <dd className="text-lg font-semibold">{formatoEuros(resultado.cuotaIntegraCents / 100)}</dd>
+              </div>
+              <div className="rounded-lg border border-primary/50 bg-primary/5 p-3">
+                <dt className="text-xs text-muted-foreground">
+                  {resultado.resultadoCents >= 0 ? 'A ingresar' : 'A devolver'}
+                </dt>
+                <dd className="text-2xl font-bold text-primary">{formatoEuros(Math.abs(resultado.resultadoCents) / 100)}</dd>
+              </div>
+            </dl>
+          )}
 
-        <div className="rounded-lg border p-4">
-          <h4 className="font-medium text-sm mb-2">Requisitos generales para estimación objetiva</h4>
-          <ul className="space-y-1 text-sm text-muted-foreground">
-            {requisitosEstimacionObjetiva().map((req, i) => (
-              <li key={i}>• {req}</li>
-            ))}
-          </ul>
-        </div>
-      </CardContent>
-    </Card>
+          {hasData && resultado.baseExcesoCents > 0 && (
+            <p className="flex items-start gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/5 p-2 text-xs text-amber-700">
+              <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              Parte de los rendimientos supera 600.000 € y tributa al 47 % (mismo pagador).
+            </p>
+          )}
+
+          {!hasData && (
+            <p className="text-sm text-muted-foreground">
+              Introduce los rendimientos de fuente española percibidos bajo el régimen del art. 93 LIRPF.
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -33,7 +33,7 @@ export function Calculadora111({ taxYear }: Props) {
   const [cargando, setCargando] = useState(false)
 
   // Form state for adding new entry
-  const [formTipo, setFormTipo] = useState<'trabajo' | 'profesional' | 'arrendamiento' | 'otros'>('trabajo')
+  const [formTipo, setFormTipo] = useState<'trabajo' | 'profesional' | 'arrendamiento' | 'agricola' | 'otros'>('trabajo')
   const [formDesc, setFormDesc] = useState('')
   const [formBruto, setFormBruto] = useState('')
   const [formTipoRet, setFormTipoRet] = useState(String(TIPOS_RETENCION_HABITUALES.trabajoGeneral))
@@ -163,8 +163,9 @@ export function Calculadora111({ taxYear }: Props) {
           <div>
             <CardTitle>Modelo 111 — Retenciones {taxYear}</CardTitle>
             <CardDescription>
-              Declaración trimestral de retenciones e ingresos a cuenta del IRPF.
-              Si eres empleador o pagas a profesionales, debes practicar retenciones.
+              Declaración trimestral de retenciones e ingresos a cuenta del IRPF sobre rendimientos del
+              trabajo, actividades profesionales, agrícolas y ganaderas y premios.
+              Si eres empleador o pagas a profesionales o al sector primario, debes practicar retenciones.
             </CardDescription>
           </div>
           <Button
@@ -208,6 +209,7 @@ export function Calculadora111({ taxYear }: Props) {
                   trabajo: TIPOS_RETENCION_HABITUALES.trabajoGeneral,
                   profesional: TIPOS_RETENCION_HABITUALES.profesionalGeneral,
                   arrendamiento: TIPOS_RETENCION_HABITUALES.arrendamientoUrbano,
+                  agricola: TIPOS_RETENCION_HABITUALES.agricolaGanadera,
                   otros: TIPOS_RETENCION_HABITUALES.premios,
                 }
                 setFormTipoRet(String(defaults[t] ?? 15))
@@ -217,7 +219,8 @@ export function Calculadora111({ taxYear }: Props) {
               <option value="trabajo">Trabajo</option>
               <option value="profesional">Profesional</option>
               <option value="arrendamiento">Arrendamiento</option>
-              <option value="otros">Otros</option>
+              <option value="agricola">Agrícola / Ganadera / Forestal</option>
+              <option value="otros">Otros (premios, etc.)</option>
             </select>
           </div>
           <div className="space-y-1">

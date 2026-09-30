@@ -53,16 +53,17 @@ import { CalculadoraModelo600 } from './calculadoras/calculadora-600'
 import { CalculadoraModelo233 } from './calculadoras/calculadora-233'
 import { CalculadoraModelo036 } from './calculadoras/calculadora-036'
 import { CalculadoraModelo145 } from './calculadoras/calculadora-145'
-import { CalculadoraModelo590 } from './calculadoras/calculadora-590'
 import { CalculadoraModelo222 } from './calculadoras/calculadora-222'
 import { CalculadoraModelo211 } from './calculadoras/calculadora-211'
-import { CalculadoraModelo104 } from './calculadoras/calculadora-104'
+import { CalculadoraModelo143 } from './calculadoras/calculadora-143'
+import { Calculadora182 } from './calculadoras/calculadora-182'
+import { Calculadora189 } from './calculadoras/calculadora-189'
+import { Calculadora194 } from './calculadoras/calculadora-194'
+import { Calculadora216 } from './calculadoras/calculadora-216'
 import { CalculadoraPlusvalia } from './calculadoras/calculadora-plusvalia'
-import { CalculadoraModelo110 } from './calculadoras/calculadora-110'
 import { CalculadoraModelo117 } from './calculadoras/calculadora-117'
 import { CalculadoraModelo236 } from './calculadoras/calculadora-236'
 import { CalculadoraModelo282 } from './calculadoras/calculadora-282'
-import { CalculadoraModelo715 } from './calculadoras/calculadora-715'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { GUIAS_PERFIL } from '@/lib/fiscal/guias-perfil'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -396,7 +397,7 @@ function PaginaFiscalInner() {
           {seccion === 'modelo202' && <LazyCalculator><Calculadora202 taxYear={taxYear} /></LazyCalculator>}
           {seccion === 'modelo200' && <LazyCalculator><CalculadoraModelo200 /></LazyCalculator>}
           {seccion === 'modelo720' && <LazyCalculator><CalculadoraModelo720 /></LazyCalculator>}
-          {seccion === 'modelo151' && <LazyCalculator><CalculadoraModelo151 /></LazyCalculator>}
+          {seccion === 'modelo151' && <LazyCalculator><CalculadoraModelo151 taxYear={taxYear} /></LazyCalculator>}
           {seccion === 'modelo100' && <LazyCalculator><CalculadoraModelo100 datosIniciales={datosReales ? { baseGeneral: datosReales.baseGeneral, pagosFraccionados: datosReales.pagosFraccionados } : undefined} /></LazyCalculator>}
           {seccion === 'modelo131' && <LazyCalculator><CalculadoraModelo131 /></LazyCalculator>}
           {seccion === 'modelo115' && <LazyCalculator><CalculadoraModelo115 /></LazyCalculator>}
@@ -408,7 +409,7 @@ function PaginaFiscalInner() {
           {seccion === 'modelo232' && <LazyCalculator><CalculadoraModelo232 /></LazyCalculator>}
           {seccion === 'modelo210' && <LazyCalculator><CalculadoraModelo210 /></LazyCalculator>}
           {seccion === 'modelo220' && <LazyCalculator><CalculadoraModelo220 /></LazyCalculator>}
-          {seccion === 'modelo309' && <LazyCalculator><CalculadoraModelo309 datosIniciales={datosReales ? { base21: datosReales.base21, base10: datosReales.base10, base4: datosReales.base4, deducciones: datosReales.deduccionesIva } : undefined} /></LazyCalculator>}
+          {seccion === 'modelo309' && <LazyCalculator><CalculadoraModelo309 taxYear={taxYear} datosIniciales={datosReales ? { base21: datosReales.base21, base10: datosReales.base10, base4: datosReales.base4, deducciones: datosReales.deduccionesIva } : undefined} /></LazyCalculator>}
           {seccion === 'modelo184' && <LazyCalculator><CalculadoraModelo184 /></LazyCalculator>}
           {seccion === 'modelo296' && <LazyCalculator><CalculadoraModelo296 /></LazyCalculator>}
           {seccion === 'modelo345' && <LazyCalculator><CalculadoraModelo345 taxYear={taxYear} /></LazyCalculator>}
@@ -416,22 +417,23 @@ function PaginaFiscalInner() {
           {seccion === 'modelo369' && <LazyCalculator><CalculadoraModelo369 taxYear={taxYear} /></LazyCalculator>}
           {seccion === 'modelo130' && <LazyCalculator><Calculadora130 taxYear={taxYear} datosIniciales={datosReales ? { ingresos: datosReales.base130Ingresos, gastos: datosReales.base130Gastos, retenciones: datosReales.retencionesNomina } : undefined} /></LazyCalculator>}
           {seccion === 'modelo303' && <LazyCalculator><Calculadora303 taxYear={taxYear} datosIniciales={datosReales ? { base21: datosReales.base21, base10: datosReales.base10, base4: datosReales.base4, baseSop21: datosReales.baseSop21, baseSop10: datosReales.baseSop10, baseSop4: datosReales.baseSop4 } : undefined} /></LazyCalculator>}
-          {seccion === 'modelo170' && <LazyCalculator><CalculadoraModelo170 /></LazyCalculator>}
+          {seccion === 'modelo170' && <LazyCalculator><CalculadoraModelo170 taxYear={taxYear} /></LazyCalculator>}
           {seccion === 'modelo179' && <LazyCalculator><CalculadoraModelo179 /></LazyCalculator>}
           {seccion === 'modelo600' && <LazyCalculator><CalculadoraModelo600 /></LazyCalculator>}
           {seccion === 'modelo233' && <LazyCalculator><CalculadoraModelo233 /></LazyCalculator>}
           {seccion === 'modelo036' && <LazyCalculator><CalculadoraModelo036 /></LazyCalculator>}
           {seccion === 'modelo145' && <LazyCalculator><CalculadoraModelo145 /></LazyCalculator>}
-          {seccion === 'modelo590' && <LazyCalculator><CalculadoraModelo590 /></LazyCalculator>}
+          {seccion === 'modelo143' && <LazyCalculator><CalculadoraModelo143 /></LazyCalculator>}
+          {seccion === 'modelo182' && <LazyCalculator><Calculadora182 taxYear={taxYear} /></LazyCalculator>}
+          {seccion === 'modelo189' && <LazyCalculator><Calculadora189 taxYear={taxYear} /></LazyCalculator>}
+          {seccion === 'modelo194' && <LazyCalculator><Calculadora194 taxYear={taxYear} /></LazyCalculator>}
+          {seccion === 'modelo216' && <LazyCalculator><Calculadora216 taxYear={taxYear} /></LazyCalculator>}
           {seccion === 'modelo222' && <LazyCalculator><CalculadoraModelo222 /></LazyCalculator>}
           {seccion === 'modelo211' && <LazyCalculator><CalculadoraModelo211 /></LazyCalculator>}
-          {seccion === 'modelo104' && <LazyCalculator><CalculadoraModelo104 /></LazyCalculator>}
           {seccion === 'plusvalia' && <LazyCalculator><CalculadoraPlusvalia /></LazyCalculator>}
-          {seccion === 'modelo110' && <LazyCalculator><CalculadoraModelo110 /></LazyCalculator>}
           {seccion === 'modelo117' && <LazyCalculator><CalculadoraModelo117 /></LazyCalculator>}
-          {seccion === 'modelo236' && <LazyCalculator><CalculadoraModelo236 /></LazyCalculator>}
-          {seccion === 'modelo282' && <LazyCalculator><CalculadoraModelo282 /></LazyCalculator>}
-          {seccion === 'modelo715' && <LazyCalculator><CalculadoraModelo715 /></LazyCalculator>}
+          {seccion === 'modelo236' && <LazyCalculator><CalculadoraModelo236 taxYear={taxYear} /></LazyCalculator>}
+          {seccion === 'modelo282' && <LazyCalculator><CalculadoraModelo282 taxYear={taxYear} /></LazyCalculator>}
           {seccion === 'guias' && (() => {
             const guia = GUIAS_PERFIL[perfil ?? 'autonomo'] ?? GUIAS_PERFIL['autonomo']
             if (!guia) return null

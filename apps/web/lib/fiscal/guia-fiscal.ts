@@ -343,33 +343,23 @@ export const GUIA_MODELO_131: Record<string, GuiaCampo> = {
 }
 
 export const GUIA_MODELO_309: Record<string, GuiaCampo> = {
-  ingresos: {
-    titulo: 'Ingresos por actividades',
-    contenido: 'Son los ingresos totales que has obtenido en el trimestre por ventas de bienes o prestación de servicios gravados con IVA. Es la suma de todas tus facturas emitidas en el periodo.',
-    ejemplos: [
-      'Si emitiste 5 facturas de 1.000€ cada una, los ingresos son 5.000€',
-      'Incluye tanto ventas como servicios prestados en el trimestre',
-    ],
-    dondeVer: 'En tus facturas emitidas durante el trimestre. Suma los importes base de todas las facturas.',
+  motivo: {
+    titulo: 'Motivo de la declaración-liquidación no periódica',
+    contenido:
+      'El modelo 309 no es el régimen simplificado: se usa para liquidar operaciones que no procede incluir en un 303/322 periódico y, sobre todo, para rectificar autoliquidaciones del 303 o del 322 ya presentadas (indicando ejercicio y periodo de la autoliquidación original).',
+    dondeVer: 'Ayuda técnica de la AEAT para los modelos 303 y 309; art. 38 del Reglamento del IVA.',
   },
-  tipoIva: {
-    titulo: 'Tipo de IVA aplicado',
-    contenido: 'El porcentaje de IVA que has repercutido en tus facturas. Depende del tipo de bienes o servicios que vendas.',
-    ejemplos: [
-      '21% para la mayoría de servicios profesionales',
-      '10% para restauración, hostelería y algunos bienes',
-      '4% para libros y productos básicos',
-    ],
-    dondeVer: 'En tus facturas emitidas: la línea "% IVA".',
+  periodoOriginal: {
+    titulo: 'Ejercicio y periodo rectificados',
+    contenido:
+      'En las rectificativas debe indicarse el ejercicio y el periodo (T1-T4 o M01-M12) de la autoliquidación que se sustituye, junto con el resultado originalmente liquidado: la diferencia es el importe a ingresar o a devolver.',
+    dondeVer: 'Casillas de identificación del modelo 309.',
   },
-  cuotaIva: {
-    titulo: 'Cuota de IVA repercutida',
-    contenido: 'Es la cantidad de IVA que has cobrado a tus clientes. Se calcula: base imponible × tipo de IVA / 100. Es el dinero que debes declarar y, en su caso, ingresar.',
-    ejemplos: [
-      'Base 5.000€ × 21% = 1.050€ de cuota IVA',
-      'Base 2.000€ × 10% = 200€ de cuota IVA',
-    ],
-    dondeVer: 'Calcula: ingresos × tipo de IVA / 100.',
+  plazo: {
+    titulo: 'Plazo',
+    contenido:
+      'El mismo que el del periodo del modelo 303/322 a que se refiera (p. ej. el del cuarto trimestre finaliza el 30 de enero del año siguiente).',
+    dondeVer: 'Calendario del contribuyente de la AEAT.',
   },
 }
 
@@ -940,54 +930,23 @@ export const GUIA_MODELO_184: Record<string, GuiaCampo> = {
 }
 
 export const GUIA_MODELO_151: Record<string, GuiaCampo> = {
-  tipoComunicacion: {
-    titulo: 'Tipo de comunicación',
-    contenido: 'La naturaleza de la solicitud que presentas ante Hacienda. Puede ser alta, renuncia o modificación de la estimación objetiva (módulos).',
-    ejemplos: [
-      'Alta: cuando empiezas una actividad y eliges módulos como método de tributación',
-      'Renuncia: cuando dejas de tributar por módulos y pasas a estimación directa',
-      'Modificación: cambio de módulos o información censal relacionada',
-    ],
-    dondeVer: 'Artículo 33.1 del Reglamento del IRPF. Modelo 151 en la sede electrónica de la AEAT.',
+  rendimientos: {
+    titulo: 'Rendimientos del régimen (art. 93 LIRPF)',
+    contenido:
+      'Rendimientos de trabajo, actividades profesionales y alquileres de FUENTE ESPAÑOLA percibidos por el contribuyente acogido al régimen especial de trabajadores desplazados («Ley Beckham»). Las rentas de fuente extranjera quedan fuera del impuesto español.',
+    dondeVer: 'Art. 93 LIRPF; Orden HFP/1338/2023 (aprobación del modelo 151 para 2023 y siguientes).',
   },
-  nif: {
-    titulo: 'NIF del titular',
-    contenido: 'El número de identificación fiscal del autónomo o empresa que solicita el alta o renuncia de módulos.',
-    ejemplos: [
-      '12345678Z (autónomo)',
-      'B12345678 (empresa)',
-    ],
-    dondeVer: 'Tarjeta de identificación fiscal del titular. Alta en el censo de empresarios.',
+  pagosACuenta: {
+    titulo: 'Pagos a cuenta',
+    contenido:
+      'Retención practicada por el pagador (24 %) y pagos fraccionados ingresados. El resultado de la declaración es la diferencia: positiva a ingresar, negativa a devolver.',
+    dondeVer: 'Modelo 151, hoja de liquidación.',
   },
-  nombre: {
-    titulo: 'Nombre y apellidos o razón social',
-    contenido: 'El nombre completo del autónomo o la denominación social de la empresa que presenta la comunicación.',
-    ejemplos: [
-      'María García López (autónomo)',
-      'Tecnología y Servicios S.L. (sociedad)',
-    ],
-    dondeVer: 'Escritura de constitución o alta censal.',
-  },
-  actividadEconomica: {
-    titulo: 'Actividad económica',
-    contenido: 'La descripción de la actividad que desarrollas. Debe coincidir con el epígrafe del IAE (Impuesto sobre Actividades Económicas) que tengas dado de alta.',
-    ejemplos: [
-      'Restaurante: epígrafe 561',
-      'Tienda de ropa: epígrafe 643',
-      'Consultoría informática: epígrafe 765',
-    ],
-    dondeVer: 'Alta en el IAE (modelo 840). Certificado censal de la AEAT.',
-  },
-  codigoIAE: {
-    titulo: 'Código del IAE',
-    contenido: 'El código numérico de la actividad económica según el Impuesto sobre Actividades Económicas. Es el epígrafe que identifica tu actividad.',
-    ejemplos: [
-      '561: Restaurantes y otros establecimientos de comida',
-      '643: Comercio al por menor de ropa',
-      '765: Ingeniería y arquitectura',
-      '861: Asistencia sanitaria',
-    ],
-    dondeVer: 'Tarjeta censal de la AEAT. Alta en el IAE (modelo 840). Consulta en la web de la AEAT.',
+  tipos: {
+    titulo: 'Tipos fijos del régimen',
+    contenido:
+      '24 % sobre los rendimientos hasta 600.000 € y 47 % sobre el exceso (mismo pagador). Sin mínimos personales ni deducciones del régimen general. El plazo coincide con el del modelo 100.',
+    dondeVer: 'Cuadro informativo de tipos de retención de la AEAT (regime especial, claves 20.x).',
   },
 }
 
@@ -1094,33 +1053,24 @@ export const GUIA_MODELO_303: Record<string, GuiaCampo> = {
 }
 
 export const GUIA_MODELO_170: Record<string, GuiaCampo> = {
-  baseImponible: {
-    titulo: 'Base imponible',
-    contenido: 'Es el importe bruto satisfecho al perceptor sobre el que se practica la retención, antes de descontar la propia retención. Según el concepto puede tratarse de rendimientos del trabajo, actividades económicas, arrendamientos u otros.',
-    ejemplos: [
-      'Si pagas 900€/mes de alquiler de local, la base trimestral es 2.700€',
-      'Una nómina con 24.000€ de bruto anual: la base anual es 24.000€',
-    ],
-    dondeVer: 'En la nómina, factura o contrato del perceptor.',
+  periodo: {
+    titulo: 'Periodicidad según el ejercicio (cambio oficial en 2026)',
+    contenido:
+      'Hasta el ejercicio 2025 el modelo 170 era una declaración informativa ANUAL de cobros con tarjeta de crédito o débito (Orden EHA/97/2010), presentada en el mes de febrero del año siguiente. Desde el ejercicio 2026 es una declaración informativa MENSUAL de cobros con cualquier tipo de tarjeta y con pagos asociados a números de teléfono móvil (Orden HAC/747/2025), presentada durante el mes natural siguiente al que se refiera.',
+    dondeVer: 'Orden EHA/97/2010 (derogada) y Orden HAC/747/2025, de 27 de junio (BOE 15-7-2025).',
   },
-  tipoRetencion: {
-    titulo: 'Tipo de retención',
-    contenido: 'El porcentaje que se retiene sobre la base imponible y se ingresa en Hacienda. Varía según el concepto: 19% para arrendamientos y resto de conceptos, tabla del 15% al 45% para el trabajo, 15% para actividades económicas (7% en el año de inicio y los dos siguientes) y 24% para la cesión de derechos de imagen.',
-    ejemplos: [
-      'Arrendamiento de un local: retiene el 19%',
-      'Cesión de derechos de imagen: retiene el 24%',
-      'Profesional que inicia actividad: retiene el 7% (año de inicio y 2 siguientes)',
-    ],
-    dondeVer: 'Art. 75 y ss. del Reglamento del IRPF. Tipos publicados por la AEAT.',
+  operacion: {
+    titulo: 'Operaciones de cobro a declarar',
+    contenido:
+      'Se declaran los importes cobrados por el empresario o profesional adherido al sistema de gestión de cobros: número de cuenta de cobro e importe anual facturado (versión anual ≤2025) o importes cobrados por tarjeta y por pagos con móvil, mes a mes (versión mensual ≥2026).',
+    ejemplos: ['Cobros con tarjeta en TPV', 'Pagos asociados a un número de teléfono móvil (desde 2026)'],
+    dondeVer: 'Art. 3 y anexos de la Orden HAC/747/2025; art. 3 de la Orden EHA/97/2010.',
   },
-  cuotaRetenida: {
-    titulo: 'Cuota retenida',
-    contenido: 'Es el importe que se retiene y se ingresa trimestralmente en Hacienda. Se calcula: base imponible × tipo de retención / 100. Se declara en la declaración-resumen anual y se informa con los modelos anuales correspondientes.',
-    ejemplos: [
-      'Base 2.700€ × 19% = 513€ de cuota retenida',
-      'Base 5.000€ de cesión de imagen × 24% = 1.200€ de cuota retenida',
-    ],
-    dondeVer: 'Calcula: base imponible × tipo de retención / 100.',
+  sujetos: {
+    titulo: 'Obligados',
+    contenido:
+      'Empresarios o profesionales adheridos al sistema de gestión de cobros. Desde 2026 el ámbito se amplía a entidades de pago, entidades de dinero electrónico, sucursales y entidades que operan en régimen de libre prestación de servicios.',
+    dondeVer: 'Disposición adicional del Plan Anual de Control Tributario 2026; art. 38 bis RGAT.',
   },
 }
 
@@ -1204,42 +1154,24 @@ export const GUIA_MODELO_600: Record<string, GuiaCampo> = {
 }
 
 export const GUIA_MODELO_233: Record<string, GuiaCampo> = {
-  nifContraparte: {
-    titulo: 'NIF de la contraparte',
-    contenido: 'El número de identificación fiscal de la persona o entidad con la que se realiza la operación vinculada. La vinculación puede venir por socios, administradores, familiares en línea directa o entidades del mismo grupo.',
-    ejemplos: [
-      'B12345678 (entidad vinculada)',
-      '12345678Z (persona física vinculada, por ejemplo un socio)',
-    ],
-    dondeVer: 'Facturas o contratos de la operación. Registro Mercantil o censo de la AEAT.',
+  presentador: {
+    titulo: 'Quién lo presenta',
+    contenido:
+      'EXCLUSIVAMENTE la guardería o centro de educación infantil autorizado (no los progenitores). Cada centro con NIF propio presenta su declaración; los centros públicos sin NIF propio lo hacen con el NIF del departamento titular.',
+    dondeVer: 'Orden HAC/1400/2018 (mod. Orden HAC/682/2025); preguntas frecuentes de la AEAT.',
   },
-  importe: {
-    titulo: 'Importe de la operación',
-    contenido: 'El valor de la operación realizada con la contraparte vinculada en el ejercicio. Se suma por contraparte para comprobar si se supera el umbral de 250.000€.',
-    ejemplos: [
-      'Compraventa de mercancías entre sociedades del mismo grupo',
-      'Préstamo entre socios y la entidad',
-      'Prestación de servicios del administrador a la sociedad',
-    ],
-    dondeVer: 'Facturas emitidas y recibidas. Contabilidad de la entidad.',
+  deduccion: {
+    titulo: 'Vínculo con la deducción por maternidad',
+    contenido:
+      'Los gastos informados respaldan el incremento de la deducción por maternidad por custodia de menores de 3 años: el 25 % de los primeros 4.000 € de gastos, con un máximo de 1.000 € (art. 81.2 LIRPF).',
+    ejemplos: ['4.800 € pagados → incremento máximo de 1.000 €'],
+    dondeVer: 'Art. 81.2 LIRPF; art. 69.9 RIRPF.',
   },
-  umbral: {
-    titulo: 'Umbral de declaración',
-    contenido: 'El importe a partir del cual se declaran las operaciones vinculadas. Si el conjunto de operaciones realizadas con una misma contraparte supera los 250.000€ en el ejercicio, la entidad debe presentar el modelo 233.',
-    ejemplos: [
-      'Total 300.000€ con una contraparte → obligatorio',
-      'Total 200.000€ con una contraparte → no obligatorio por importe',
-    ],
-    dondeVer: 'Art. 18.13 de la Ley del Impuesto sobre Sociedades. Instrucciones del modelo 233.',
-  },
-  superaUmbral: {
-    titulo: 'Estado de declaración',
-    contenido: 'Indica si el total de operaciones vinculadas supera el umbral de 250.000€. Si lo supera, la declaración es obligatoria; en caso contrario no será necesario presentar el modelo.',
-    ejemplos: [
-      'Total 250.000€ exactos → no supera el umbral',
-      'Total 251.000€ → supera el umbral, declaración obligatoria',
-    ],
-    dondeVer: 'Art. 18.13 de la Ley del Impuesto sobre Sociedades. Modelo 233 en la sede electrónica de la AEAT.',
+  contenido: {
+    titulo: 'Contenido y plazo',
+    contenido:
+      'Por cada menor: NIF, apellidos y nombre, meses completos de custodia, gastos anuales pagados e importes subvencionados. Plazo: el mes de enero en relación con el año anterior (del 1 de enero al 2 de febrero de 2026).',
+    dondeVer: 'Arts. 2 a 6 de la Orden HAC/1400/2018.',
   },
 }
 
@@ -1359,40 +1291,24 @@ export const GUIA_MODELO_104: Record<string, GuiaCampo> = {
 }
 
 export const GUIA_MODELO_117: Record<string, GuiaCampo> = {
-  tipo: {
-    titulo: 'Tipo de actividad',
-    contenido: 'Procedencia de la renta del sector primario: venta de ganado (distinto del ibérico originario), ganado ibérico originario, madera, productos lácteos en origen, retribuciones en especie u otras.',
-    ejemplos: [
-      'Venta de madera en pie o corta',
-      'Venta de leche en origen a la industria',
-    ],
-    dondeVer: 'Factura del destinatario (sujeto obligado a retener).',
-  },
-  importe: {
-    titulo: 'Importe bruto',
-    contenido: 'Base sobre la que se practica la retención (el importe íntegro de la operación).',
-    ejemplos: [
-      'Venta de ganado por 5.000 € → base sujeta a retención',
-    ],
-    dondeVer: 'Justificante de la operación o factura.',
-  },
-  tipoRetencion: {
-    titulo: 'Tipo de retención',
-    contenido: 'Porcentaje a cuenta para actividades agrícolas y ganaderas: habitualmente el 1% (2% para el ganado ibérico originario y productos lácteos en origen).',
-    ejemplos: [
-      '1% sobre venta de madera',
-      '2% sobre ganado ibérico originario',
-    ],
-    dondeVer: 'Normativa de retenciones del IRPF del ejercicio.',
-  },
   periodo: {
-    titulo: 'Periodo',
-    contenido: 'Ingreso trimestral (hasta el día 20 del mes siguiente al cierre del trimestre) y resumen anual hasta el 30 de enero.',
-    ejemplos: [
-      'Trimestre 1 → ingreso hasta el 20 de abril',
-      'Resumen anual → hasta el 30 de enero',
-    ],
-    dondeVer: 'Calendario del contribuyente de la AEAT.',
+    titulo: 'Trimestres y plazo',
+    contenido:
+      'Autoliquidación trimestral (enero-marzo, abril-junio, julio-septiembre y octubre-diciembre), dentro de los veinte primeros días naturales siguientes a la finalización de cada trimestre natural.',
+    dondeVer: 'Orden EHA/3435/2007 (aprobación del modelo 117); RGAT.',
+  },
+  base: {
+    titulo: 'Base de la retención: la ganancia, no el importe íntegro',
+    contenido:
+      'La retención del 19 % se practica sobre la ganancia patrimonial de la transmisión o reembolso (diferencia entre contraprestación y coste de adquisición). Si no hay ganancia (pérdida), no procede retención (art. 94.1.a LIRPF).',
+    ejemplos: ['Reembolso de un fondo por 2.500 € con coste de 2.000 € → base 500 €, retención 95 €'],
+    dondeVer: 'Art. 101.6 LIRPF y cuadro AEAT de tipos de retención (19 %).',
+  },
+  sujetos: {
+    titulo: 'Qué rentas se declaran',
+    contenido:
+      'Rentas procedentes de la transmisión o reembolso de acciones o participaciones en Instituciones de Inversión Colectiva (fondos y sociedades de inversión) y de la transmisión de derechos de suscripción.',
+    dondeVer: 'Denominación oficial del modelo 117 (AEAT, «Presentar y consultar declaraciones por modelo»).',
   },
 }
 
@@ -2059,20 +1975,32 @@ export function obtenerGuia(seccion: string, campo: string): GuiaCampo | null {
     modelo233: GUIA_MODELO_233,
     modelo036: GUIA_MODELO_036,
     modelo145: GUIA_MODELO_145,
-    modelo390: GUIA_MODELO_390,
-    modelo590: GUIA_MODELO_590,
-    modelo222: GUIA_MODELO_222,
-    modelo211: GUIA_MODELO_211,
-    modelo104: GUIA_MODELO_104,
-    plusvalia: GUIA_PLUSVALIA,
-    modelo110: GUIA_MODELO_110,
-    modelo117: GUIA_MODELO_117,
-    modelo182: GUIA_MODELO_182,
-    modelo189: GUIA_MODELO_189,
-    modelo194: GUIA_MODELO_194,
-    modelo236: GUIA_MODELO_236,
-    modelo282: GUIA_MODELO_282,
-    modelo715: GUIA_MODELO_715,
-  }
+  modelo390: GUIA_MODELO_390,
+  modelo222: GUIA_MODELO_222,
+  modelo211: GUIA_MODELO_211,
+  modelo143: GUIA_MODELO_143,
+  modelo117: GUIA_MODELO_117,
+  modelo182: GUIA_MODELO_182,
+  modelo189: GUIA_MODELO_189,
+  modelo194: GUIA_MODELO_194,
+  modelo236: GUIA_MODELO_236,
+  modelo282: GUIA_MODELO_282,
+  modelo216: GUIA_MODELO_216,
+}
   return guias[seccion]?.[campo] ?? null
+}
+
+export const GUIA_MODELO_143: Record<string, GuiaCampo> = {
+  concepto: {
+    titulo: 'Conceptos con abono anticipado',
+    contenido:
+      'Familia numerosa (general o especial), ascendiente separado legalmente o sin vínculo con dos hijos y personas con discapacidad (≥ 33 %) a cargo o el propio contribuyente. Cuantías: 1.200 €/año (100 €/mes) y 2.400 €/año (200 €/mes) en familia numerosa especial. Los distintos derechos son acumulables.',
+    dondeVer: 'Arts. 68.2 y 81.bis LIRPF; procedimiento G613 de la AEAT.',
+  },
+  modo: {
+    titulo: 'Modalidad individual o colectiva',
+    contenido:
+      'Individual: el abono lo practica el pagador (nómina o pensión) según los datos comunicados. Colectiva: la AEAT ingresa el importe directamente, compatible con lo abonado por el pagador.',
+    dondeVer: 'Modelo 143, solicitud de abono anticipado.',
+  },
 }

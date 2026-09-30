@@ -125,3 +125,26 @@ describe('resumenAnualRetenciones111', () => {
     expect(anual.totalRetenciones).toBe(0)
   })
 })
+
+describe('retenciones agrícolas en el modelo 111', () => {
+  it('clasifica las actividades agrícolas/forestales con sus tipos oficiales (2%, 1%, 2%)', () => {
+    const res = calcularModelo111([
+      rendimiento({ tipo: 'agricola', brutoCents: 500_000, tipoRetencionPct: 2, retencionCents: 10_000 }),
+      rendimiento({ tipo: 'agricola', brutoCents: 300_000, tipoRetencionPct: 1, retencionCents: 3_000 }),
+      rendimiento({ tipo: 'trabajo', brutoCents: 100_000, retencionCents: 15_000 }),
+    ])
+
+    expect(res.agricolaBruto).toBe(800_000)
+    expect(res.agricolaRetenciones).toBe(13_000)
+    expect(res.totalBruto).toBe(900_000)
+    expect(res.totalRetenciones).toBe(28_000)
+  })
+
+  it('el resumen anual incluye las bases agrícolas', () => {
+    const q1 = calcularModelo111([rendimiento({ tipo: 'agricola', brutoCents: 500_000, retencionCents: 10_000 })])
+    const anual = resumenAnualRetenciones111([q1, calcularModelo111([]), calcularModelo111([]), calcularModelo111([])])
+    expect(anual.totalAgricolaBruto).toBe(500_000)
+    expect(anual.totalAgricolaRetenciones).toBe(10_000)
+    expect(anual.totalBruto).toBe(500_000)
+  })
+})

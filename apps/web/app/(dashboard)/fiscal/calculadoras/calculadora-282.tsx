@@ -4,183 +4,177 @@ import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2 } from 'lucide-react'
-import { eur, parseEuros } from './types'
-import { LabelConAyuda } from './label-con-ayuda'
-import { GUIA_MODELO_282 } from '@/lib/fiscal/guia-fiscal'
-import { SELECT_CLS } from '@/lib/ui-constants'
-import {
-  calcularModelo282,
-  type EntidadTransparencia282,
-  type RentaImputada282,
-  type Participacion282,
-} from '@mantigestor/utils'
+import { Palmtree, Plus, Trash2, FileWarning } from 'lucide-react'
+import { calcularModelo282, type Ayuda282 } from '@mantigestor/utils'
 import { BotonPDF } from '@/components/boton-pdf'
 
-const TIPOS_ENTIDAD = ['Fondo de inversión', 'SICAV', 'FICVM', 'SOCIMI', 'Otro']
-const TIPOS_RENTA = ['Dividendos', 'Intereses', 'Plusvalías', 'Rentas arrendamiento', 'Otras']
+const formatoEuros = (euros: number) =>
+  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(euros)
 
-export function CalculadoraModelo282() {
-  const [razonSocial, setRazonSocial] = useState('')
-  const [nif, setNif] = useState('')
-  const [tipoEntidad, setTipoEntidad] = useState('Fondo de inversión')
+interface FilaUI {
+  id: string
+  organismo: string
+  concepto: string
+  ejercicio: string
+  importe: string
+}
 
-  const [rentas, setRentas] = useState<RentaImputada282[]>([])
-  const [participaciones, setParticipaciones] = useState<Participacion282[]>([])
+function filaVacia(anyo: number): FilaUI {
+  return { id: crypto.randomUUID(), organismo: '', concepto: '', ejercicio: String(anyo), importe: '' }
+}
 
-  // Form — renta
-  const [rTipo, setRTipo] = useState('Dividendos')
-  const [rImporte, setRImporte] = useState('')
+interface Props {
+  taxYear?: number
+}
 
-  // Form — participación
-  const [pSociedad, setPSociedad] = useState('')
-  const [pNif, setPNif] = useState('')
-  const [pPorcentaje, setPPorcentaje] = useState('')
+export function CalculadoraModelo282({ taxYear }: Props) {
+  const anyo = taxYear ?? new Date().getFullYear()
+  const [filas, setFilas] = useState<FilaUI[]>([filaVacia(anyo)])
 
-  const entidad: EntidadTransparencia282 = useMemo(
-    () => ({ razonSocial, nif, tipoEntidad, rentasImputadas: rentas, participaciones }),
-    [razonSocial, nif, tipoEntidad, rentas, participaciones],
-  )
+  const resultado = useMemo(() => {
+    const ayudas: Ayuda282[] = filas
+      .filter(f => parseFloat(f.importe) > 0)
+      .map(f => ({
+        organismo: f.organismo.trim(),
+        concepto: f.concepto.trim() || 'Ayuda REF / de Estado',
+        ejercicio: parseInt(f.ejercicio, 10) || anyo,
+        importeCents: Math.round((parseFloat(f.importe) || 0) * 100),
+      }))
+    return calcularModelo282({ ayudas })
+  }, [filas, anyo])
 
-  const resultado = useMemo(() => calcularModelo282(entidad), [entidad])
+  const update = (id: string, patch: Partial<FilaUI>) =>
+    setFilas(prev => prev.map(f => (f.id === id ? { ...f, ...patch } : f)))
 
-  const addRenta = () => {
-    if (!rImporte) return
-    const importe = parseEuros(rImporte)
-    if (importe === null) return
-    setRentas(prev => [...prev, { tipo: rTipo, importeCents: importe }])
-    setRImporte('')
-  }
-
-  const addParticipacion = () => {
-    if (!pSociedad || !pPorcentaje) return
-    const pct = parseFloat(pPorcentaje)
-    if (isNaN(pct) || pct <= 0) return
-    setParticipaciones(prev => [...prev, { sociedad: pSociedad, nif: pNif, porcentaje: pct }])
-    setPSociedad(''); setPNif(''); setPPorcentaje('')
-  }
-
-  const removeRenta = (idx: number) => setRentas(prev => prev.filter((_, i) => i !== idx))
-  const removeParticipacion = (idx: number) => setParticipaciones(prev => prev.filter((_, i) => i !== idx))
+  const hasData = filas.some(f => parseFloat(f.importe) > 0)
 
   return (
     <div id="pdf-modelo-282" className="space-y-3">
       <BotonPDF elementId="pdf-modelo-282" filename="modelo-282" />
       <Card>
         <CardHeader>
-          <CardTitle>Modelo 282 — Sociedades transparentes</CardTitle>
-          <CardDescription>
-            Declaración informativa de entidades en régimen de transparencia fiscal
-          </CardDescription>
+          <div className="flex items-center gap-2">
+            <Palmtree className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div>
+              <CardTitle>Modelo 282 — Ayudas REF Canarias y ayudas de Estado</CardTitle>
+              <CardDescription>
+                Declaración informativa anual de las ayudas recibidas en el marco del Régimen Económico y
+                Fiscal de Canarias y otras ayudas de Estado derivadas del Derecho de la UE (Orden HAP/296/2016).
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Datos entidad */}
-          <div className="rounded-lg border p-4 space-y-3">
-            <p className="text-sm font-medium">Datos de la entidad</p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="space-y-1">
-                <LabelConAyuda htmlFor="razonSocial" ayuda={GUIA_MODELO_282.razonSocial}>Razón social</LabelConAyuda>
-                <Input id="razonSocial" value={razonSocial} onChange={e => setRazonSocial(e.target.value)} placeholder="Fondo Inversión XYZ" />
-              </div>
-              <div className="space-y-1">
-                <LabelConAyuda htmlFor="nif282" ayuda={GUIA_MODELO_282.nif}>NIF</LabelConAyuda>
-                <Input id="nif282" value={nif} onChange={e => setNif(e.target.value)} placeholder="B12345678" />
-              </div>
-              <div className="space-y-1">
-                <LabelConAyuda htmlFor="tipoEntidad" ayuda={GUIA_MODELO_282.tipoEntidad}>Tipo de entidad</LabelConAyuda>
-                <select id="tipoEntidad" value={tipoEntidad} onChange={e => setTipoEntidad(e.target.value)} className={SELECT_CLS}>
-                  {TIPOS_ENTIDAD.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-            </div>
+          <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground">
+            <span>
+              <strong>Plazo:</strong> el de la autoliquidación del IRPF, IS o IRNR del año anterior.
+            </span>
           </div>
 
-          {/* Summary */}
-          <dl className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-lg border p-3">
-              <dt className="text-xs text-muted-foreground">Total rentas imputadas</dt>
-              <dd className="font-semibold">{eur(resultado.totalRentasImputadas)}</dd>
-            </div>
-            <div className="rounded-lg border p-3">
-              <dt className="text-xs text-muted-foreground">N.º participaciones</dt>
-              <dd className="font-semibold">{resultado.numParticipaciones}</dd>
-            </div>
-          </dl>
-
-          {/* Rentas imputadas */}
           <div className="space-y-3">
-            <h4 className="font-medium text-sm">Rentas imputadas ({resultado.numRentas})</h4>
-            {rentas.map((r, i) => (
-              <div key={i} className="flex items-center justify-between rounded-lg border p-3 text-sm">
-                <div>
-                  <span className="font-medium">{r.tipo}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>{eur(r.importeCents)}</span>
-                  <Button variant="ghost" size="sm" onClick={() => removeRenta(i)}>✕</Button>
-                </div>
+            <div className="hidden grid-cols-[2fr_2fr_1fr_1fr_2rem] gap-3 px-1 text-xs text-muted-foreground sm:grid">
+              <span>Organismo concedente</span>
+              <span>Concepto de la ayuda</span>
+              <span>Ejercicio</span>
+              <span>Importe (€)</span>
+              <span />
+            </div>
+            {filas.map(f => (
+              <div
+                key={f.id}
+                className="grid grid-cols-[1fr] gap-3 sm:grid-cols-[2fr_2fr_1fr_1fr_2rem] sm:items-center"
+              >
+                <Input
+                  placeholder="Gobierno de Canarias"
+                  value={f.organismo}
+                  onChange={e => update(f.id, { organismo: e.target.value })}
+                  aria-label="Organismo concedente"
+                />
+                <Input
+                  placeholder="Ayuda REF — inversión"
+                  value={f.concepto}
+                  onChange={e => update(f.id, { concepto: e.target.value })}
+                  aria-label="Concepto"
+                />
+                <Input
+                  type="number"
+                  min="2000"
+                  max="2100"
+                  value={f.ejercicio}
+                  onChange={e => update(f.id, { ejercicio: e.target.value })}
+                  aria-label="Ejercicio"
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="5000.00"
+                  value={f.importe}
+                  onChange={e => update(f.id, { importe: e.target.value })}
+                  aria-label="Importe"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10"
+                  aria-label="Eliminar ayuda"
+                  disabled={filas.length === 1}
+                  onClick={() => setFilas(prev => prev.filter(x => x.id !== f.id))}
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                </Button>
               </div>
             ))}
-            <div className="rounded-lg border p-4 space-y-3">
-              <p className="text-sm font-medium">Añadir renta imputada</p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="space-y-1">
-                  <LabelConAyuda htmlFor="rTipo" ayuda={GUIA_MODELO_282.tipoRenta}>Tipo de renta</LabelConAyuda>
-                  <select id="rTipo" value={rTipo} onChange={e => setRTipo(e.target.value)} className={SELECT_CLS}>
-                    {TIPOS_RENTA.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <LabelConAyuda htmlFor="rImporte" ayuda={GUIA_MODELO_282.importeRenta}>Importe (€)</LabelConAyuda>
-                  <Input id="rImporte" type="number" step="0.01" value={rImporte} onChange={e => setRImporte(e.target.value)} placeholder="0.00" />
-                </div>
-                <div className="flex items-end">
-                  <Button type="button" size="sm" onClick={addRenta} disabled={!rImporte}>
-                    <Plus className="mr-1 h-3 w-3" /> Añadir
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <Button variant="outline" size="sm" onClick={() => setFilas(prev => [...prev, filaVacia(anyo)])}>
+              <Plus className="mr-2 h-4 w-4" aria-hidden="true" /> Añadir ayuda
+            </Button>
           </div>
 
-          {/* Participaciones */}
-          <div className="space-y-3">
-            <h4 className="font-medium text-sm">Participaciones ({participaciones.length})</h4>
-            {participaciones.map((p, i) => (
-              <div key={i} className="flex items-center justify-between rounded-lg border p-3 text-sm">
-                <div>
-                  <span className="font-medium">{p.sociedad}</span>
-                  {p.nif && <span className="text-muted-foreground ml-2">NIF: {p.nif}</span>}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>{p.porcentaje}%</span>
-                  <Button variant="ghost" size="sm" onClick={() => removeParticipacion(i)}>✕</Button>
-                </div>
+          {hasData && (
+            <dl className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border p-3">
+                <dt className="text-xs text-muted-foreground">Ayudas declaradas</dt>
+                <dd className="text-lg font-semibold">{resultado.numAyudas}</dd>
               </div>
-            ))}
-            <div className="rounded-lg border p-4 space-y-3">
-              <p className="text-sm font-medium">Añadir participación</p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="space-y-1">
-                  <LabelConAyuda htmlFor="pSociedad" ayuda={GUIA_MODELO_282.sociedad}>Sociedad</LabelConAyuda>
-                  <Input id="pSociedad" value={pSociedad} onChange={e => setPSociedad(e.target.value)} placeholder="Empresa ABC, S.L." />
-                </div>
-                <div className="space-y-1">
-                  <LabelConAyuda htmlFor="pNif" ayuda={GUIA_MODELO_282.nif}>NIF</LabelConAyuda>
-                  <Input id="pNif" value={pNif} onChange={e => setPNif(e.target.value)} placeholder="B12345678" />
-                </div>
-                <div className="space-y-1">
-                  <LabelConAyuda htmlFor="pPorcentaje" ayuda={GUIA_MODELO_282.porcentaje}>Participación (%)</LabelConAyuda>
-                  <Input id="pPorcentaje" type="number" step="0.01" value={pPorcentaje} onChange={e => setPPorcentaje(e.target.value)} placeholder="25" />
-                </div>
-                <div className="flex items-end">
-                  <Button type="button" size="sm" onClick={addParticipacion} disabled={!pSociedad || !pPorcentaje}>
-                    <Plus className="mr-1 h-3 w-3" /> Añadir
-                  </Button>
-                </div>
+              <div className="rounded-lg border border-primary/50 bg-primary/5 p-3">
+                <dt className="text-xs text-muted-foreground">Total ayudas recibidas</dt>
+                <dd className="text-2xl font-bold text-primary">{formatoEuros(resultado.totalCents / 100)}</dd>
+              </div>
+            </dl>
+          )}
+
+          {hasData && resultado.porEjercicio.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">Desglose por ejercicio</p>
+              <div className="flex flex-wrap gap-2">
+                {resultado.porEjercicio.map(e => (
+                  <span key={e.ejercicio} className="rounded-lg border px-3 py-1.5 text-sm">
+                    {e.ejercicio}: <strong>{formatoEuros(e.totalCents / 100)}</strong>
+                  </span>
+                ))}
               </div>
             </div>
-          </div>
+          )}
+
+          {resultado.avisos.length > 0 && (
+            <div className="space-y-1">
+              {resultado.avisos.map(a => (
+                <p
+                  key={a}
+                  className="flex items-start gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/5 p-2 text-xs text-amber-700"
+                >
+                  <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  {a}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {!hasData && (
+            <p className="text-sm text-muted-foreground">
+              Añade las ayudas del REF de Canarias o de Estado recibidas en el año.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

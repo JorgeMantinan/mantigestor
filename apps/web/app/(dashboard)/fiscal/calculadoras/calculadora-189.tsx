@@ -55,7 +55,7 @@ export function Calculadora189({ taxYear }: Props) {
       <BotonPDF elementId="pdf-modelo-189" filename="modelo-189" />
       <Card>
         <CardHeader>
-          <CardTitle>Modelo 189 — Rentas exentas {taxYear}</CardTitle>
+          <CardTitle>Modelo 189 — Valores, seguros y rentas {taxYear}</CardTitle>
           <CardDescription>
             Declaración informativa de rentas exentas del IRPF satisfechas por Administraciones Públicas y otros obligados.
           </CardDescription>

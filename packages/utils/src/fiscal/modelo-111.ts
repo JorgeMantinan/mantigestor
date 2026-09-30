@@ -8,7 +8,7 @@
 
 export interface RendimientoRetencion {
   /** Tipo de rendimiento */
-  tipo: 'trabajo' | 'profesional' | 'arrendamiento' | 'otros'
+  tipo: 'trabajo' | 'profesional' | 'arrendamiento' | 'agricola' | 'otros'
   /** Descripción del pagador o concepto */
   descripcion: string
   /** Importe bruto satisfecho en céntimos */
@@ -29,6 +29,9 @@ export interface ResultadoModelo111 {
   /** Rendimientos de arrendamiento de inmuebles urbanos */
   arrendamientoBruto: number
   arrendamientoRetenciones: number
+  /** Rendimientos de actividades agrícolas, ganaderas y forestales (claves G.08/H.01/H.03 del 190) */
+  agricolaBruto: number
+  agricolaRetenciones: number
   /** Otros rendimientos */
   otrosBruto: number
   otrosRetenciones: number
@@ -53,6 +56,8 @@ export function calcularModelo111(
   let profesionalRetenciones = 0
   let arrendamientoBruto = 0
   let arrendamientoRetenciones = 0
+  let agricolaBruto = 0
+  let agricolaRetenciones = 0
   let otrosBruto = 0
   let otrosRetenciones = 0
 
@@ -73,6 +78,10 @@ export function calcularModelo111(
         arrendamientoBruto += bruto
         arrendamientoRetenciones += ret
         break
+      case 'agricola':
+        agricolaBruto += bruto
+        agricolaRetenciones += ret
+        break
       case 'otros':
         otrosBruto += bruto
         otrosRetenciones += ret
@@ -80,8 +89,9 @@ export function calcularModelo111(
     }
   }
 
-  const totalBruto = trabajoBruto + profesionalBruto + arrendamientoBruto + otrosBruto
-  const totalRetenciones = trabajoRetenciones + profesionalRetenciones + arrendamientoRetenciones + otrosRetenciones
+  const totalBruto = trabajoBruto + profesionalBruto + arrendamientoBruto + agricolaBruto + otrosBruto
+  const totalRetenciones =
+    trabajoRetenciones + profesionalRetenciones + arrendamientoRetenciones + agricolaRetenciones + otrosRetenciones
   const aIngresar = Math.max(0, totalRetenciones - pagosAnteriores)
 
   return {
@@ -91,6 +101,8 @@ export function calcularModelo111(
     profesionalRetenciones,
     arrendamientoBruto,
     arrendamientoRetenciones,
+    agricolaBruto,
+    agricolaRetenciones,
     otrosBruto,
     otrosRetenciones,
     totalBruto,
@@ -100,19 +112,25 @@ export function calcularModelo111(
 }
 
 /**
- * Tipos de retención habituales en España (2025/2026):
- * - Trabajo: el tipo lo fija el algoritmo de la AEAT (15%-45%); 15% como referencia mínima
- *   (para un tipo fijo por modelo 145 usar la calculadora del modelo 145)
- * - Profesionales: 15% (7% en el año de inicio de la actividad y los dos siguientes)
- * - Arrendamiento de inmuebles urbanos (modelo 115): 19%
- * - Premios de juegos, concursos y sorteos: 19%
- * - Cesión de derechos de imagen: 24%
+ * Tipos de retención habituales en España (ejercicios 2025 y 2026 — cuadro
+ * informativo de tipos de retención de la AEAT):
+ * - Trabajo: escala 19-47 % según el algoritmo de la AEAT (mínimo 2 %)
+ * - Profesionales: 15 % general; 7 % en determinadas actividades y en el año de
+ *   inicio de la actividad y los dos siguientes (art. 101.5.a LIRPF)
+ * - Arrendamiento de inmuebles urbanos (modelo 115): 19 %
+ * - Agrícolas y ganaderas: 2 % (engorde de porcino y avicultura: 1 %); forestales: 2 %
+ * - Premios de juegos, concursos y sorteos: 19 %
+ * - Cesión de derechos de imagen: 24 %
+ * - Reducción del 60 % para rentas de Ceuta y Melilla (art. 68.4 LIRPF)
  */
 export const TIPOS_RETENCION_HABITUALES = {
   trabajoGeneral: 15,
   profesionalGeneral: 15,
   profesionalPrimeros3Anios: 7,
   arrendamientoUrbano: 19,
+  agricolaGanadera: 2,
+  porcinoAvicultura: 1,
+  forestal: 2,
   premios: 19,
   cesionImagen: 24,
 } as const
@@ -136,6 +154,8 @@ export function resumenAnualRetenciones111(
   totalProfesionalRetenciones: number
   totalArrendamientoBruto: number
   totalArrendamientoRetenciones: number
+  totalAgricolaBruto: number
+  totalAgricolaRetenciones: number
   totalOtrosBruto: number
   totalOtrosRetenciones: number
   totalBruto: number
@@ -144,6 +164,7 @@ export function resumenAnualRetenciones111(
   let totalTrabajoBruto = 0, totalTrabajoRetenciones = 0
   let totalProfesionalBruto = 0, totalProfesionalRetenciones = 0
   let totalArrendamientoBruto = 0, totalArrendamientoRetenciones = 0
+  let totalAgricolaBruto = 0, totalAgricolaRetenciones = 0
   let totalOtrosBruto = 0, totalOtrosRetenciones = 0
 
   for (const t of trimestres) {
@@ -153,6 +174,8 @@ export function resumenAnualRetenciones111(
     totalProfesionalRetenciones += t.profesionalRetenciones
     totalArrendamientoBruto += t.arrendamientoBruto
     totalArrendamientoRetenciones += t.arrendamientoRetenciones
+    totalAgricolaBruto += t.agricolaBruto
+    totalAgricolaRetenciones += t.agricolaRetenciones
     totalOtrosBruto += t.otrosBruto
     totalOtrosRetenciones += t.otrosRetenciones
   }
@@ -164,9 +187,11 @@ export function resumenAnualRetenciones111(
     totalProfesionalRetenciones,
     totalArrendamientoBruto,
     totalArrendamientoRetenciones,
+    totalAgricolaBruto,
+    totalAgricolaRetenciones,
     totalOtrosBruto,
     totalOtrosRetenciones,
-    totalBruto: totalTrabajoBruto + totalProfesionalBruto + totalArrendamientoBruto + totalOtrosBruto,
-    totalRetenciones: totalTrabajoRetenciones + totalProfesionalRetenciones + totalArrendamientoRetenciones + totalOtrosRetenciones,
+    totalBruto: totalTrabajoBruto + totalProfesionalBruto + totalArrendamientoBruto + totalAgricolaBruto + totalOtrosBruto,
+    totalRetenciones: totalTrabajoRetenciones + totalProfesionalRetenciones + totalArrendamientoRetenciones + totalAgricolaRetenciones + totalOtrosRetenciones,
   }
 }

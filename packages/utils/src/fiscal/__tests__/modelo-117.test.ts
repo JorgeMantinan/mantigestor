@@ -1,34 +1,52 @@
 import { describe, it, expect } from 'vitest'
-import { calcularModelo117 } from '../modelo-117'
+import { calcularModelo117, TIPO_RETENCION_IIC, type Fila117 } from '../modelo-117'
 
-describe('calcularModelo117 — retenciones actividades agrícolas y ganaderas', () => {
-  it('acumula base y retención totales', () => {
-    const r = calcularModelo117({
+function fila(overrides: Partial<Fila117>): Fila117 {
+  return {
+    concepto: 'reembolso',
+    nif: 'A-12345678',
+    descripcion: 'Fondo Demostración FI',
+    contraprestacionCents: 250_000,
+    adquisicionCents: 200_000,
+    ...overrides,
+  }
+}
+
+describe('calcularModelo117 — IIC (fondos de inversión)', () => {
+  it('retiene el 19% sobre la ganancia del reembolso', () => {
+    expect(TIPO_RETENCION_IIC).toBe(19)
+    const res = calcularModelo117({ periodo: 1, filas: [fila({})] })
+    expect(res.baseTotal).toBe(50_000)
+    expect(res.retencionTotal).toBe(9_500)
+    expect(res.detalle[0]?.retencion).toBe(9_500)
+  })
+
+  it('sin ganancia (pérdida) no retiene y avisa (art. 94.1.a LIRPF)', () => {
+    const res = calcularModelo117({
       periodo: 2,
-      filas: [
-        { tipo: 'madera', importe: 4_000, tipoRetencion: 1 },
-        { tipo: 'ganadoIbericoOriginario', importe: 2_000, tipoRetencion: 2 },
-      ],
+      filas: [fila({ contraprestacionCents: 100_000, adquisicionCents: 150_000 })],
     })
-    expect(r.baseTotal).toBe(6_000)
-    // 40 + 40 = 80
-    expect(r.retencionTotal).toBeCloseTo(80, 2)
+    expect(res.baseTotal).toBe(0)
+    expect(res.retencionTotal).toBe(0)
+    expect(res.avisos.some(a => a.includes('94.1.a'))).toBe(true)
   })
 
-  it('calcula la retención del 1% y 2% según procedencia', () => {
-    const uno = calcularModelo117({ periodo: 1, filas: [{ tipo: 'productosLacteosOrigen', importe: 5_000, tipoRetencion: 2 }] })
-    expect(uno.retencionTotal).toBeCloseTo(100, 2)
-    const dos = calcularModelo117({ periodo: 1, filas: [{ tipo: 'ganadoOtro', importe: 5_000, tipoRetencion: 1 }] })
-    expect(dos.retencionTotal).toBeCloseTo(50, 2)
+  it('en la transmisión de derechos de suscripción retiene sobre el importe íntegro', () => {
+    const res = calcularModelo117({
+      periodo: 3,
+      filas: [fila({ concepto: 'derechosSuscripcion', contraprestacionCents: 100_000, adquisicionCents: 0 })],
+    })
+    expect(res.baseTotal).toBe(100_000)
+    expect(res.retencionTotal).toBe(19_000)
   })
 
-  it('advierte si el tipo no coincide con el habitual', () => {
-    const r = calcularModelo117({ periodo: 3, filas: [{ tipo: 'madera', importe: 1_000, tipoRetencion: 7 }] })
-    expect(r.avisos.some(a => a.includes('1%'))).toBe(true)
-  })
-
-  it('informa del plazo anual', () => {
-    const r = calcularModelo117({ periodo: 'anual', filas: [{ tipo: 'especie', importe: 900, tipoRetencion: 1 }] })
-    expect(r.avisos.some(a => a.includes('30 de enero'))).toBe(true)
+  it('acumula varias operaciones y avisa en el resumen anual', () => {
+    const res = calcularModelo117({
+      periodo: 'anual',
+      filas: [fila({ contraprestacionCents: 300_000, adquisicionCents: 200_000 }), fila({ nif: 'B-87654321' })],
+    })
+    expect(res.detalle.length).toBe(2)
+    expect(res.retencionTotal).toBe(19_000 + 9_500)
+    expect(res.avisos.some(a => a.includes('190'))).toBe(true)
   })
 })

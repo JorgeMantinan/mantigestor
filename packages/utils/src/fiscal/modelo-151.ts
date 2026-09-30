@@ -1,109 +1,63 @@
 /**
- * Modelo 151 — Comunicación de alta/renuncia al régimen de estimación objetiva
- * Para autónomos que renuncian o revocan la estimación objetiva (módulos)
+ * Modelo 151 — Declaración del IRPF del régimen especial aplicable a los
+ * trabajadores, profesionales, emprendedores e inversores desplazados a
+ * territorio español («Ley Beckham», art. 93 LIRPF).
  *
- * Plazos:
- * - Alta: antes del 31 de enero del ejercicio
- * - Renuncia: durante el mes de diciembre del anterior o en el momento de la alta
- * - Revocación: igual plazo que renuncia
+ * Aprobado por la Orden HFP/1338/2023 (BOE 15-12-2023) para ejercicios 2023 y
+ * siguientes (sustituye al de la Orden HAP/2783/2015). Comunica además la opción
+ * con el modelo 149.
+ *
+ * Tipos oficiales (cuadro AEAT de tipos de retención y manual IRPF, c15):
+ * - Base general (trabajo, profesionales, alquileres de fuente española):
+ *   24 % hasta 600.000 € de rendimientos y 47 % sobre el exceso (mismo pagador).
+ * - Sin mínimos personales ni deducciones del régimen general: tipo fijo.
+ * - Se deducen los pagos a cuenta (retenciones y pagos fraccionados).
  */
 
+export const LIMITE_TIPO_REDUCIDO_BECKHAM_CENTS = 60_000_000 // 600.000 €
+export const TIPO_GENERAL_BECKHAM = 24
+export const TIPO_EXCESO_BECKHAM = 47
+
 export interface DatosModelo151 {
-  tipo: 'alta' | 'renuncia' | 'revocacion'
-  nif: string
-  nombre: string
-  actividad: string
-  codigoActividad: string // IAE
-  fechaInicio?: string
-  fechaEfectos?: string
+  /** Rendimientos de trabajo, actividades profesionales y alquileres de fuente española (céntimos) */
+  rendimientosBaseGeneralCents: number
+  /** Retenciones y pagos a cuenta ya practicados (céntimos) */
+  pagosACuentaCents: number
 }
 
 export interface ResultadoModelo151 {
-  tipo: string
-  descripcion: string
-  plazo: string
-  obligatorio: boolean
-  observaciones: string[]
+  rendimientosBaseGeneralCents: number
+  /** Rendimientos que tributan al 24 % (hasta 600.000 €) */
+  baseHastaLimiteCents: number
+  /** Exceso por encima de 600.000 € que tributa al 47 % */
+  baseExcesoCents: number
+  cuotaHastaLimiteCents: number
+  cuotaExcesoCents: number
+  cuotaIntegraCents: number
+  pagosACuentaCents: number
+  /** Positivo = a ingresar; negativo = a devolver */
+  resultadoCents: number
 }
 
 export function calcularModelo151(datos: DatosModelo151): ResultadoModelo151 {
-  const ahora = new Date()
-  const mes = ahora.getMonth() + 1
-  const dia = ahora.getDate()
+  const rendimientos = Math.max(0, datos.rendimientosBaseGeneralCents)
+  const pagosACuenta = Math.max(0, datos.pagosACuentaCents)
 
-  const observaciones: string[] = []
+  const baseHastaLimiteCents = Math.min(rendimientos, LIMITE_TIPO_REDUCIDO_BECKHAM_CENTS)
+  const baseExcesoCents = Math.max(0, rendimientos - LIMITE_TIPO_REDUCIDO_BECKHAM_CENTS)
 
-  switch (datos.tipo) {
-    case 'alta': {
-      const enPlazo = mes === 1 && dia <= 31
-      observaciones.push('El alta debe realizarse antes del 31 de enero del ejercicio')
-      if (!enPlazo) {
-        observaciones.push('⚠️ Fuera de plazo — se aplicará a partir del próximo ejercicio')
-      }
-      return {
-        tipo: 'Alta',
-        descripcion: 'Alta en régimen de estimación objetiva',
-        plazo: '31 de enero del ejercicio',
-        obligatorio: false,
-        observaciones,
-      }
-    }
+  const cuotaHastaLimiteCents = Math.round(baseHastaLimiteCents * (TIPO_GENERAL_BECKHAM / 100))
+  const cuotaExcesoCents = Math.round(baseExcesoCents * (TIPO_EXCESO_BECKHAM / 100))
+  const cuotaIntegraCents = cuotaHastaLimiteCents + cuotaExcesoCents
 
-    case 'renuncia': {
-      const enPlazo = mes === 12
-      observaciones.push('La renuncia debe realizarse durante diciembre del ejercicio anterior')
-      observaciones.push('Si es alta nueva, la renuncia puede hacerse en el momento del alta')
-      if (!enPlazo) {
-        observaciones.push('⚠️ Fuera de plazo — se aplicará a partir del siguiente ejercicio')
-      }
-      return {
-        tipo: 'Renuncia',
-        descripcion: 'Renuncia al régimen de estimación objetiva',
-        plazo: 'Diciembre del ejercicio anterior',
-        obligatorio: false,
-        observaciones,
-      }
-    }
-
-    case 'revocacion': {
-      const enPlazo = mes === 12
-      observaciones.push('La revocación tiene el mismo plazo que la renuncia')
-      observaciones.push('Una vez revocada, no se podrá volver a estimación objetiva durante 3 años')
-      if (!enPlazo) {
-        observaciones.push('⚠️ Fuera de plazo')
-      }
-      return {
-        tipo: 'Revocación',
-        descripcion: 'Revocación del régimen de estimación objetiva',
-        plazo: 'Diciembre del ejercicio anterior',
-        obligatorio: false,
-        observaciones,
-      }
-    }
-
-    default: {
-      return {
-        tipo: datos.tipo,
-        descripcion: 'Tipo no reconocido',
-        plazo: 'Consultar',
-        obligatorio: false,
-        observaciones: ['Tipo de operación no reconocido'],
-      }
-    }
+  return {
+    rendimientosBaseGeneralCents: rendimientos,
+    baseHastaLimiteCents,
+    baseExcesoCents,
+    cuotaHastaLimiteCents,
+    cuotaExcesoCents,
+    cuotaIntegraCents,
+    pagosACuentaCents: pagosACuenta,
+    resultadoCents: cuotaIntegraCents - pagosACuenta,
   }
-}
-
-/**
- * Comprueba si un autónomo puede estar en estimación objetiva
- * (simplificación: muestra requisitos generales)
- */
-export function requisitosEstimacionObjetiva(): string[] {
-  return [
-    'No superar los límites del artículo 31.1 LIRPF',
-    'No haber renunciado o revocado en los últimos 3 años',
-    'No tener más de un local de negocio (excepto hostelería)',
-    'No tener más de 3 empleados simultáneamente',
-    'Actividad incluida en el Real Decreto de módulos',
-    'No facturar más de 150.000€ anuales',
-  ]
 }

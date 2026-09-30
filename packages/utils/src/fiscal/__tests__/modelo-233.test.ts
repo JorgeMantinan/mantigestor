@@ -1,49 +1,36 @@
 import { describe, it, expect } from 'vitest'
-import { calcularModelo233 } from '../modelo-233'
+import { calcularModelo233, incrementoDeduccionGuarderia, DEDUCCION_MAXIMA_GUARDERIA_CENTS, type Menor233 } from '../modelo-233'
 
-describe('calcularModelo233 — operaciones vinculadas', () => {
-  it('avisa cuando el total supera el umbral de 250.000€', () => {
-    const r = calcularModelo233({
-      operaciones: [
-        { nifContraparte: 'B12345678', importe: 180_000 },
-        { nifContraparte: 'B87654321', importe: 120_000 },
-      ],
+function menor(overrides: Partial<Menor233>): Menor233 {
+  return { nif: '12345678A', nombre: 'Menor Demo', meses: 9, gastosPagadosCents: 480_000, subvencionCents: 0, ...overrides }
+}
+
+describe('calcularModelo233 — gastos en guarderías (lo presenta el centro)', () => {
+  it('suma gastos, subvenciones y gastos netos por menor', () => {
+    const res = calcularModelo233({
+      menores: [menor({}), menor({ nif: '87654321B', gastosPagadosCents: 300_000, subvencionCents: 60_000 })],
     })
-    expect(r.totalOperaciones).toBe(300_000)
-    expect(r.umbral).toBe(250_000)
-    expect(r.superaUmbral).toBe(true)
+    expect(res.numMenores).toBe(2)
+    expect(res.gastosTotalesCents).toBe(780_000)
+    expect(res.subvencionesTotalesCents).toBe(60_000)
+    expect(res.gastosNetosCents).toBe(720_000)
+    expect(res.incrementoMaximoDeduccionCents).toBe(DEDUCCION_MAXIMA_GUARDERIA_CENTS)
+    expect(res.avisos.length).toBe(0)
   })
 
-  it('no avisa cuando el total es igual o inferior al umbral', () => {
-    const r = calcularModelo233({
-      operaciones: [{ nifContraparte: 'B12345678', importe: 250_000 }],
+  it('avisa si los meses están fuera de rango o la subvención supera los gastos', () => {
+    const res = calcularModelo233({
+      menores: [menor({ meses: 15 }), menor({ nif: 'X', gastosPagadosCents: 10_000, subvencionCents: 20_000 })],
     })
-    expect(r.superaUmbral).toBe(false)
+    expect(res.avisos.length).toBe(2)
   })
+})
 
-  it('acepta un umbral configurable', () => {
-    const r = calcularModelo233({
-      operaciones: [{ nifContraparte: 'B12345678', importe: 30_000 }],
-      umbral: 25_000,
-    })
-    expect(r.umbral).toBe(25_000)
-    expect(r.superaUmbral).toBe(true)
-  })
-
-  it('devuelve total cero y no supera umbral sin operaciones', () => {
-    const r = calcularModelo233({ operaciones: [] })
-    expect(r.totalOperaciones).toBe(0)
-    expect(r.superaUmbral).toBe(false)
-  })
-
-  it('conserva el detalle de cada operación', () => {
-    const ops = [
-      { nifContraparte: 'B12345678', importe: 50_000 },
-      { nifContraparte: '12345678Z', importe: 30_000 },
-    ]
-    const r = calcularModelo233({ operaciones: ops })
-    expect(r.operaciones).toHaveLength(2)
-    expect(r.operaciones[0]).toMatchObject({ nifContraparte: 'B12345678', importe: 50_000 })
-    expect(r.totalOperaciones).toBe(80_000)
+describe('incrementoDeduccionGuarderia (art. 81.2 LIRPF)', () => {
+  it('el 25% de hasta 4.000 €, con tope de 1.000 €', () => {
+    expect(incrementoDeduccionGuarderia(0)).toBe(0)
+    expect(incrementoDeduccionGuarderia(200_000)).toBe(50_000) // 25% de 2.000 €
+    expect(incrementoDeduccionGuarderia(400_000)).toBe(100_000) // tope 1.000 €
+    expect(incrementoDeduccionGuarderia(900_000)).toBe(100_000)
   })
 })

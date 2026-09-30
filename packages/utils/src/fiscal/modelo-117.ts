@@ -1,31 +1,44 @@
 /**
- * Modelo 117 — Retenciones e ingresos a cuenta de rentas derivadas de actividades agrícolas y ganaderas.
+ * Modelo 117 — Retenciones e ingresos a cuenta (IRPF, IS e IRNR) sobre rentas
+ * procedentes de la transmisión o reembolso de acciones o participaciones en
+ * Instituciones de Inversión Colectiva (fondos de inversión y sociedades de
+ * inversión) y de las transmisiones de derechos de suscripción.
  *
- * Sustituyó al empleo parcial del 115 para ciertas rentas del sector primario (venta de madera, productos
- * lácteos en origen, cría de ganado, etc.). Declara la retención del 1% o del 2% según la procedencia de la
- * renta. Se presenta de forma trimestral y, al final del ejercicio, la declaración-resumen anual.
+ * Autoliquidación trimestral (y resumen por el 190).
+ * Tipo: 19 % sobre la ganancia patrimonial (art. 101.6 LIRPF). No se aplica
+ * retención cuando no proceda computar ganancia (pérdida) — art. 94.1.a LIRPF.
+ * Fuentes: Orden EHA/3435/2007 (aprobación), cuadro AEAT de tipos de retención,
+ * art. 101.6 LIRPF y art. 190 del Reglamento del IRPF.
  */
 
-export type TipoActividad117 =
-  | 'ganadoOtro'
-  | 'ganadoIbericoOriginario'
-  | 'madera'
-  | 'productosLacteosOrigen'
-  | 'especie'
-  | 'otras'
+export const TIPO_RETENCION_IIC = 19
+
+export type Concepto117 = 'reembolso' | 'transmision' | 'derechosSuscripcion'
 
 export interface Fila117 {
-  tipo: TipoActividad117
-  /** Importe bruto de la operación (€) */
-  importe: number
-  /** Tipo de retención aplicado (%) */
-  tipoRetencion: number
+  concepto: Concepto117
+  /** NIF de la entidad gestora / fondo / emisor */
+  nif: string
+  /** Descripción del fondo o valor */
+  descripcion?: string
+  /** Contraprestación recibida (valor de reembolso/transmisión) en céntimos */
+  contraprestacionCents: number
+  /** Coste de adquisición en céntimos (base para la ganancia; 0 si se ignora) */
+  adquisicionCents: number
 }
 
 export interface DatosModelo117 {
-  /** Trimestre (1-4) o 'anual' para la resumen del año */
+  /** Trimestre (1-4) o 'anual' para el resumen del año */
   periodo: number | 'anual'
   filas: Fila117[]
+}
+
+export interface Fila117Resultado {
+  concepto: Concepto117
+  nif: string
+  /** Base de la retención (ganancia o importe íntegro) en céntimos */
+  base: number
+  retencion: number
 }
 
 export interface ResultadoModelo117 {
@@ -35,58 +48,37 @@ export interface ResultadoModelo117 {
   avisos: string[]
 }
 
-export interface Fila117Resultado {
-  tipo: TipoActividad117
-  base: number
-  retencion: number
-}
-
-// Tipo de retención orientativo por tipo de actividad
-const TIPOS_REF: Record<TipoActividad117, number> = {
-  ganadoOtro: 1,
-  ganadoIbericoOriginario: 2,
-  madera: 1,
-  productosLacteosOrigen: 2,
-  especie: 1,
-  otras: 1,
-}
-
 export function calcularModelo117(datos: DatosModelo117): ResultadoModelo117 {
   const avisos: string[] = []
   const detalle: Fila117Resultado[] = []
-
   let baseTotal = 0
   let retencionTotal = 0
 
   for (const fila of datos.filas) {
-    const importe = Math.max(0, fila.importe)
-    const retencion = Math.round(importe * (fila.tipoRetencion / 100) * 100) / 100
-    baseTotal += importe
+    const contraprestacion = Math.max(0, fila.contraprestacionCents)
+    const adquisicion = Math.max(0, fila.adquisicionCents)
+
+    let base: number
+    if (fila.concepto === 'derechosSuscripcion') {
+      // Transmisión de derechos de suscripción: se retiene sobre el importe íntegro
+      base = contraprestacion
+    } else {
+      // Transmisión o reembolso de acciones/participaciones de IIC: sobre la ganancia
+      base = Math.max(0, contraprestacion - adquisicion)
+      if (base === 0 && contraprestacion > 0) {
+        avisos.push(`Sin ganancia patrimonial en ${fila.descripcion ?? fila.nif}: no procede retención (art. 94.1.a LIRPF).`)
+      }
+    }
+
+    const retencion = Math.round(base * (TIPO_RETENCION_IIC / 100))
+    baseTotal += base
     retencionTotal += retencion
-    detalle.push({ tipo: fila.tipo, base: importe, retencion })
+    detalle.push({ concepto: fila.concepto, nif: fila.nif, base, retencion })
   }
 
   if (datos.periodo === 'anual') {
-    avisos.push(
-      'Resumen anual: la declaración-resumen del modelo 117 se presenta antes del 30 de enero del año siguiente.'
-    )
-  } else {
-    avisos.push(
-      'Declaración trimestral: ingreso durante los 20 primeros días del mes siguiente al trimestre (hasta el 20 de enero, abril, julio y octubre).'
-    )
+    avisos.push('El modelo 117 se presenta por trimestres; este total sirve para el resumen anual (modelo 190).')
   }
 
-  const tiposIncorrectos = datos.filas.filter(f => f.tipoRetencion > 0 && f.tipoRetencion !== TIPOS_REF[f.tipo])
-  if (tiposIncorrectos.length > 0) {
-    avisos.push(
-      'El tipo habitual en actividades agrícolas/ganaderas es del 1% (o 2% para ganado ibérico originario y productos lácteos en origen). Revisa si el tipo indicado es el correcto.'
-    )
-  }
-
-  return {
-    baseTotal,
-    retencionTotal,
-    detalle,
-    avisos,
-  }
+  return { baseTotal, retencionTotal, detalle, avisos }
 }
