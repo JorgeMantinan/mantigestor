@@ -858,6 +858,7 @@ export const en: DeepTraducciones = {
     tipoRetencion: 'Withholding type',
     cuotaSSTrabajador: 'Annual employee SS contribution (€) — automatic (6.5%)',
     reduccionIRPF: 'Work expenses (€) — automatic 2,000 (art. 19.2.f)',
+    soloTrabajo: 'The SS contribution and deductible expenses only apply to employment income. With this type, nothing is deducted.',
     resultado: 'Result',
     brutoAnual: 'Annual gross',
     baseRetencion: 'Withholding base',

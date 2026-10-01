@@ -848,6 +848,7 @@ export const gl = {
     tipoRetencion: 'Tipo de retención',
     cuotaSSTrabajador: 'Cuota SS trabajador anual (€)',
     reduccionIRPF: 'Reducción IRPF (€)',
+    soloTrabajo: 'A cota da SS e os gastos deducibles só se aplican a rendementos do traballo. Con este tipo non se desconta nada deste concepto.',
     resultado: 'Resultado',
     brutoAnual: 'Bruto anual',
     baseRetencion: 'Base retención',

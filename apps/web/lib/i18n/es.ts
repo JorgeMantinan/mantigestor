@@ -848,6 +848,7 @@ export const es = {
     tipoRetencion: 'Tipo de retención',
     cuotaSSTrabajador: 'Cuota SS trabajador anual (€) — automática (6,5 %)',
     reduccionIRPF: 'Gastos deducibles del trabajo (€) — automáticos 2.000 (art. 19.2.f)',
+    soloTrabajo: 'La cuota SS y los gastos deducibles solo aplican a rendimientos del trabajo (nómina). Con este tipo no se descuenta nada de este concepto.',
     resultado: 'Resultado',
     brutoAnual: 'Bruto anual',
     baseRetencion: 'Base retención',

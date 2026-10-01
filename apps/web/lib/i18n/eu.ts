@@ -848,6 +848,7 @@ export const eu = {
     tipoRetencion: 'Tipo de retención',
     cuotaSSTrabajador: 'Cuota SS trabajador anual (€)',
     reduccionIRPF: 'Reducción IRPF (€)',
+    soloTrabajo: 'Langabeziaren kuota eta gastu deduzigarriak laneko errentei bakarrik aplikatzen zaizkie. Mota honetan ez da ezer deskontatzen kontzeptu honetatik.',
     resultado: 'Resultado',
     brutoAnual: 'Bruto anual',
     baseRetencion: 'Base retención',

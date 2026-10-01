@@ -29,12 +29,13 @@ export default function SimuladorRetencionesPage() {
   const [tipoContrato, setTipoContrato] = useState('profesionales')
   const { idioma, t } = useLanguage()
 
-  // Calculados automáticamente (en céntimos) para que el usuario no tenga que conocerlos:
-  // - Cuota SS del trabajador: 6,5 % del bruto (contingencias comunes, desempleo,
-  //   formación y MEI en 2026).
-  // - Gastos deducibles del trabajo: 2.000 € (art. 19.2.f LIRPF).
-  const seguridadSocial = Math.round(brutoAnual * 0.065)
-  const reduccionIRPF = 200000
+  // Calculados automáticamente (en céntimos) para que el usuario no tenga que conocerlos,
+  // pero SOLO cuando aplica: la cuota SS y los gastos deducibles son propios de los
+  // rendimientos del trabajo (nómina). Para profesionales/actividades/capital la base es
+  // el importe íntegro (art. 100.2 LIRPF: no se reducen por SS ni por gastos de trabajo).
+  const esRendimientosTrabajo = tipoContrato === 'general'
+  const seguridadSocial = esRendimientosTrabajo ? Math.round(brutoAnual * 0.065) : 0
+  const reduccionIRPF = esRendimientosTrabajo ? 200000 : 0
 
   const resultado = useMemo(() => {
     const brutoMensual = brutoAnual / 12
@@ -118,6 +119,9 @@ export default function SimuladorRetencionesPage() {
                 {formatEuro(reduccionIRPF / 100)}
               </div>
             </div>
+            {!esRendimientosTrabajo && (
+              <p className="text-xs text-muted-foreground">{t('simuladorRetenciones.soloTrabajo')}</p>
+            )}
           </CardContent>
         </Card>
 

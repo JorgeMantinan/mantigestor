@@ -56,9 +56,23 @@ async function obtenerWorker() {
 
 /** Extrae texto de una imagen (data URL o base64) con OCR tradicional. */
 export async function extraerTextoImagen(imagen: string): Promise<string> {
-  const dataUri = imagen.startsWith('data:') ? imagen : `data:image/jpeg;base64,${imagen}`
   const worker = await obtenerWorker()
-  const { data } = await worker.recognize(dataUri)
+  let entrada: Buffer
+  const base64 = imagen.startsWith('data:') ? (imagen.split(',')[1] ?? '') : imagen
+  try {
+    // Preprocesado: escala de grises, normalización de contraste y enfoque —
+    // mejora mucho la lectura de tickets térmicos (tinta desvaída, poco contraste).
+    const sharp = (await import('sharp')).default
+    entrada = await sharp(Buffer.from(base64, 'base64'))
+      .grayscale()
+      .normalise()
+      .sharpen()
+      .png()
+      .toBuffer()
+  } catch {
+    entrada = Buffer.from(base64, 'base64') // si sharp falla, OCR sobre la original
+  }
+  const { data } = await worker.recognize(entrada)
   return data.text ?? ''
 }
 
@@ -114,15 +128,24 @@ export function parseTextoTicket(texto: string, tipoPorDefecto: 'ingreso' | 'gas
     .map(l => l.trim())
     .filter(Boolean)
 
-  // ── Total (la línea con "total" que más cantidad tenga; el total suele ser el mayor)
+  // ── Total: preferimos líneas que empiezan por "total"; si no, cualquier "total"
   let total: number | null = null
-  for (const l of lineas) {
-    if (!/\btotal\b/i.test(l)) continue // no confunde con SUBTOTAL si es mayor
+  const lineasTotal = lineas.filter(l => /^\s*(import[eé]\s*total|total)\b/i.test(l))
+  const candidatosTotal = lineasTotal.length > 0 ? lineasTotal : lineas.filter(l => /\btotal\b/i.test(l))
+  for (const l of candidatosTotal) {
     const candidatos = numerosDe(l)
     if (candidatos.length > 0) {
       const max = Math.max(...candidatos)
       if (total === null || max > total) total = max
     }
+  }
+
+  // ── Base imponible directa (si la factura la incluye explícita)
+  let baseDirecta: number | null = null
+  for (const l of lineas) {
+    if (!/base\s*imponible|base\s*impon/i.test(l)) continue
+    const nums = numerosDe(l)
+    if (nums.length > 0) baseDirecta = Math.max(...nums)
   }
 
   // ── IVA: porcentaje e importe
@@ -146,7 +169,10 @@ export function parseTextoTicket(texto: string, tipoPorDefecto: 'ingreso' | 'gas
 
   // ── Base imponible
   let base: number | null = null
-  if (total !== null && ivaImporte !== null && ivaImporte < total) {
+  if (baseDirecta !== null && (total === null || baseDirecta <= total)) {
+    base = baseDirecta
+    if (total !== null && ivaImporte === null) ivaImporte = Math.round((total - base) * 100) / 100
+  } else if (total !== null && ivaImporte !== null && ivaImporte < total) {
     base = Math.round((total - ivaImporte) * 100) / 100
   } else if (total !== null && ivaPorcentaje !== null) {
     base = Math.round((total / (1 + ivaPorcentaje / 100)) * 100) / 100

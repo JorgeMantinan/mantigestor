@@ -848,6 +848,7 @@ export const ca = {
     tipoRetencion: 'Tipo de retención',
     cuotaSSTrabajador: 'Cuota SS trabajador anual (€)',
     reduccionIRPF: 'Reducción IRPF (€)',
+    soloTrabajo: 'La quota SS i les despeses deduïbles només s’apliquen a rendiments del treball. Amb aquest tipus no es descompta res d’aquest concepte.',
     resultado: 'Resultado',
     brutoAnual: 'Bruto anual',
     baseRetencion: 'Base retención',
