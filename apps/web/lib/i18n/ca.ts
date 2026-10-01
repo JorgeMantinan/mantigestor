@@ -334,6 +334,12 @@ export const ca = {
   },
 
   // Persona selector
+  gestionandoBanner: {
+    gestionando: 'Gestionant',
+    gestor: 'Gestor',
+    visualizador: 'Visualitzador',
+    cambiarPersona: 'Canviar persona',
+  },
   personaSelector: {
     miPerfil: 'El meu perfil',
     otraPersona: 'Otra persona',

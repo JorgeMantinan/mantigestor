@@ -25,20 +25,24 @@ const TRAMOS_IRPF_2026 = [
 ]
 
 export default function SimuladorRetencionesPage() {
-  const [brutoAnual, setBrutoAnual] = useState<number>(30000)
+  const [brutoAnual, setBrutoAnual] = useState<number>(3000000) // céntimos (30.000 €)
   const [tipoContrato, setTipoContrato] = useState('profesionales')
-  const [seguridadSocial, setSeguridadSocial] = useState<number>(2965.20)
-  const [reduccionIRPF, setReduccionIRPF] = useState<number>(2000)
   const { idioma, t } = useLanguage()
+
+  // Calculados automáticamente (en céntimos) para que el usuario no tenga que conocerlos:
+  // - Cuota SS del trabajador: 6,5 % del bruto (contingencias comunes, desempleo,
+  //   formación y MEI en 2026).
+  // - Gastos deducibles del trabajo: 2.000 € (art. 19.2.f LIRPF).
+  const seguridadSocial = Math.round(brutoAnual * 0.065)
+  const reduccionIRPF = 200000
 
   const resultado = useMemo(() => {
     const brutoMensual = brutoAnual / 12
     const tipoRetencion = TIPOS_CONTRATO.find(tipo => tipo.id === tipoContrato)?.retencion ?? 19
 
-    // Base para retención: bruto anual - cuota SS trabajador (50% - 2965.20 en 2026)
     const baseRetencion = Math.max(0, brutoAnual - seguridadSocial - reduccionIRPF)
     const retencionAnual = Math.round(baseRetencion * (tipoRetencion / 100))
-    const retencionMensual = retencionAnual / 12
+    const retencionMensual = Math.round(retencionAnual / 12)
 
     // Cálculo IRPF real por tramos
     const baseImponible = Math.max(0, brutoAnual - seguridadSocial - reduccionIRPF)
@@ -52,23 +56,23 @@ export default function SimuladorRetencionesPage() {
     }
 
     const netoAnual = brutoAnual - retencionAnual - seguridadSocial
-    const netoMensual = netoAnual / 12
-    const cuotaSSMensual = seguridadSocial / 12
+    const netoMensual = Math.round(netoAnual / 12)
+    const cuotaSSMensual = Math.round(seguridadSocial / 12)
     const costeEmpresa = brutoAnual + Math.round(brutoAnual * 0.299) // 29.9% SS empresa
 
     return {
-      brutoMensual: brutoMensual / 100,
-      retencionAnual: retencionAnual / 100,
-      retencionMensual: retencionMensual / 100,
+      brutoMensual: Math.round(brutoMensual / 100),
+      retencionAnual: Math.round(retencionAnual / 100),
+      retencionMensual: Math.round(retencionMensual / 100),
       tipoRetencion,
-      irpfTramos: irpfTramos / 100,
-      baseRetencion: baseRetencion / 100,
-      netoAnual: netoAnual / 100,
-      netoMensual: netoMensual / 100,
-      cuotaSSMensual: cuotaSSMensual / 100,
-      seguridadSocial: seguridadSocial / 100,
-      reduccionIRPF: reduccionIRPF / 100,
-      costeEmpresa: costeEmpresa / 100,
+      irpfTramos: Math.round(irpfTramos / 100),
+      baseRetencion: Math.round(baseRetencion / 100),
+      netoAnual: Math.round(netoAnual / 100),
+      netoMensual: Math.round(netoMensual / 100),
+      cuotaSSMensual: Math.round(cuotaSSMensual / 100),
+      seguridadSocial: Math.round(seguridadSocial / 100),
+      reduccionIRPF: Math.round(reduccionIRPF / 100),
+      costeEmpresa: Math.round(costeEmpresa / 100),
     }
   }, [brutoAnual, tipoContrato, seguridadSocial, reduccionIRPF])
 
@@ -104,11 +108,15 @@ export default function SimuladorRetencionesPage() {
             </div>
             <div className="space-y-2">
               <Label>{t('simuladorRetenciones.cuotaSSTrabajador')}</Label>
-              <Input type="number" step="0.01" value={seguridadSocial / 100} onChange={(e) => setSeguridadSocial(Math.round(parseFloat(e.target.value || '0') * 100))} />
+              <div className="flex h-10 items-center rounded-md border bg-muted px-3 text-sm">
+                {formatEuro(seguridadSocial / 100)}
+              </div>
             </div>
             <div className="space-y-2">
               <Label>{t('simuladorRetenciones.reduccionIRPF')}</Label>
-              <Input type="number" step="0.01" value={reduccionIRPF / 100} onChange={(e) => setReduccionIRPF(Math.round(parseFloat(e.target.value || '0') * 100))} />
+              <div className="flex h-10 items-center rounded-md border bg-muted px-3 text-sm">
+                {formatEuro(reduccionIRPF / 100)}
+              </div>
             </div>
           </CardContent>
         </Card>

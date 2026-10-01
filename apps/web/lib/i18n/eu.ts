@@ -334,6 +334,12 @@ export const eu = {
   },
 
   // Persona selector
+  gestionandoBanner: {
+    gestionando: 'Kudeatzen',
+    gestor: 'Kudeatzaile',
+    visualizador: 'Ikuslea',
+    cambiarPersona: 'Aldatu pertsona',
+  },
   personaSelector: {
     miPerfil: 'El meu perfil',
     otraPersona: 'Otra persona',

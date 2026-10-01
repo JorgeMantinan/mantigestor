@@ -336,6 +336,12 @@ export const en: DeepTraducciones = {
   },
 
   // Persona selector
+  gestionandoBanner: {
+    gestionando: 'Managing',
+    gestor: 'Manager',
+    visualizador: 'Viewer',
+    cambiarPersona: 'Change person',
+  },
   personaSelector: {
     miPerfil: 'My profile',
     otraPersona: 'Another person',
@@ -850,8 +856,8 @@ export const en: DeepTraducciones = {
     datosEntrada: 'Input data',
     salarioBrutoAnual: 'Annual gross salary (€)',
     tipoRetencion: 'Withholding type',
-    cuotaSSTrabajador: 'Annual employee SS contribution (€)',
-    reduccionIRPF: 'Income tax reduction (€)',
+    cuotaSSTrabajador: 'Annual employee SS contribution (€) — automatic (6.5%)',
+    reduccionIRPF: 'Work expenses (€) — automatic 2,000 (art. 19.2.f)',
     resultado: 'Result',
     brutoAnual: 'Annual gross',
     baseRetencion: 'Withholding base',

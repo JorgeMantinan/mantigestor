@@ -334,6 +334,12 @@ export const gl = {
   },
 
   // Persona selector
+  gestionandoBanner: {
+    gestionando: 'Xestionando',
+    gestor: 'Xestor',
+    visualizador: 'Visualizador',
+    cambiarPersona: 'Cambiar persoa',
+  },
   personaSelector: {
     miPerfil: 'El meu perfil',
     otraPersona: 'Otra persona',

@@ -30,9 +30,6 @@ export async function POST(req: NextRequest) {
       return badRequest('URL de documento no permitida')
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json({ error: 'API de IA no configurada' }, { status: 503 })
-    }
 
     const result = await extractInvoiceData(pdfUrl)
     return NextResponse.json(result)

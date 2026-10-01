@@ -33,120 +33,203 @@ export function esUrlStorageSegura(url: string): boolean {
   }
 }
 
-export async function extractInvoiceData(pdfUrl: string): Promise<OcrResult> {
+// ─────────────────────────────────────────────────────────────
+// OCR sin IA: Tesseract.js (imágenes) y pdf-parse (PDF), con
+// parser heurístico en español para tickets y facturas.
+// ─────────────────────────────────────────────────────────────
+
+let workerPromise: Promise<import('tesseract.js').Worker> | null = null
+
+async function obtenerWorker() {
+  if (!workerPromise) {
+    workerPromise = (async () => {
+      const { createWorker } = await import('tesseract.js')
+      // Worker en español reutilizado entre invocaciones (calentamiento del lambda)
+      return createWorker('spa')
+    })()
+    workerPromise.catch(() => {
+      workerPromise = null // si falla (p.ej. red), se reintenta en la siguiente llamada
+    })
+  }
+  return workerPromise
+}
+
+/** Extrae texto de una imagen (data URL o base64) con OCR tradicional. */
+export async function extraerTextoImagen(imagen: string): Promise<string> {
+  const dataUri = imagen.startsWith('data:') ? imagen : `data:image/jpeg;base64,${imagen}`
+  const worker = await obtenerWorker()
+  const { data } = await worker.recognize(dataUri)
+  return data.text ?? ''
+}
+
+/** Extrae texto de un PDF (almacenado en Supabase Storage) sin IA. */
+export async function extraerTextoPdf(pdfUrl: string): Promise<string> {
   if (!esUrlStorageSegura(pdfUrl)) {
     throw new Error('URL de documento no permitida')
   }
-
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY no configurada')
+  const res = await fetch(pdfUrl)
+  if (!res.ok) throw new Error('No se pudo descargar el documento')
+  const buffer = Buffer.from(await res.arrayBuffer())
+  const { PDFParse } = await import('pdf-parse')
+  const parser = new PDFParse({ data: new Uint8Array(buffer) })
+  try {
+    const result = await parser.getText()
+    return result?.text ?? ''
+  } finally {
+    await parser.destroy().catch(() => undefined)
   }
-
-  const pdfResponse = await fetch(pdfUrl)
-  if (!pdfResponse.ok) {
-    throw new Error('No se pudo descargar el PDF')
-  }
-
-  const pdfBuffer = await pdfResponse.arrayBuffer()
-  const pdfBase64 = Buffer.from(pdfBuffer).toString('base64')
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-3-sonnet-20241022',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'document',
-              source: {
-                type: 'base64',
-                media_type: 'application/pdf',
-                data: pdfBase64,
-              },
-            },
-            {
-              type: 'text',
-              text: `Extrae los datos de esta factura en español.
-Devuelve SOLO un objeto JSON válido sin explicaciones adicionales, con estos campos:
-{
-  "numero": "número de factura",
-  "emisorReceptor": "nombre del emisor o receptor según el contexto",
-  "nifContraparte": "NIF/CIF de la otra parte",
-  "fechaEmision": "fecha en formato YYYY-MM-DD",
-  "baseImponible": 123.45,
-  "iva": 21,
-  "total": 149.37,
-  "tipo": "ingreso" si es una factura emitida, "gasto" si es recibida,
-  "categoriaGasto": "suministros" | "alquiler" | "nómina" | "seguridad-social" | "marketing" | "seguros" | "profesionales" | "material" | "transporte" | "comunicaciones" | "formación" | "otros" | null,
-  "modelosSugeridos": [
-    {"modelo": "303", "razon": "IVA repercutido en liquidación trimestral"},
-    {"modelo": "130", "razon": "Ingreso en pagos fraccionados IRPF"}
-  ]
 }
 
-Para categoriaGasto, si es gasto, clasifícalo según el concepto:
-- suministros: luz, agua, gas, telefonía, internet
-- alquiler: alquiler de local/oficina
-- nómina: salarios
-- seguridad-social: cuotas SS
-- marketing: publicidad, redes sociales
-- seguros: pólizas
-- profesionales: honorarios abogados, contables, etc.
-- material: material de oficina, ordenadores
-- transporte: gasolina, parking, transportes
-- comunicaciones: teléfono, internet
-- formación: cursos, libros
-- otros: si no encaja en ninguno
+// ── Parser heurístico (es) ──
 
-Para modelosSugeridos, incluye SOLO los modelos AEAT realmente afectados por esta factura:
-- Toda factura afecta a 303 (IVA) y 390 (resumen anual)
-- Si es ingreso/gasto de autónomo, afecta a 130/131 (IRPF trimestral)
-- Si el NIF empieza por letras de país UE (DE, FR, IT...), afecta a 349 (intracomunitaria)
-- Si IVA es 0% y es intracomunitaria, añadir nota de exenta en 303
-- Si parece retención de profesional (ingreso, NIF empresa), sugerir 111
+/** Importes en formato español (1.234,56) o inglés (1,234.56) */
+function aEuro(texto: string): number | null {
+  const limpio = texto.replace(/[^\d.,-]/g, '')
+  if (!limpio) return null
+  let normal = limpio
+  if (/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(limpio)) normal = limpio.replace(/\./g, '').replace(',', '.')
+  else normal = limpio.replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')
+  const n = parseFloat(normal)
+  return Number.isFinite(n) && n >= 0 ? n : null
+}
 
-Si no encuentras un valor, pon null. Si no puedes determinar modelos, devuelve un array vacío [].`,
-            },
-          ],
-        },
-      ],
-    }),
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Error al procesar OCR: ${response.status} ${errorText}`)
+function numerosDe(linea: string): number[] {
+  const re = /\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:[.,]\d{1,2})?/g
+  const out: number[] = []
+  for (const m of linea.match(re) ?? []) {
+    const v = aEuro(m)
+    if (v !== null) out.push(v)
   }
+  return out
+}
 
-  const data = await response.json()
-  const text = data.content?.[0]?.text ?? ''
+/**
+ * Parsea el texto OCR de un ticket/factura y devuelve los datos en euros.
+ * Es best-effort: lo que no se encuentre queda en null y el usuario lo
+ * corrige en la vista previa.
+ */
+export function parseTextoTicket(texto: string, tipoPorDefecto: 'ingreso' | 'gasto' = 'gasto'): OcrResult {
+  const lineas = texto
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(Boolean)
 
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('No se encontró JSON en la respuesta')
-    const parsed = JSON.parse(jsonMatch[0]) as OcrResult
-
-    // Si Claude no devolvió modelos, calcular con la util local
-    if (!parsed.modelosSugeridos || parsed.modelosSugeridos.length === 0) {
-      parsed.modelosSugeridos = sugerirModelos({
-        tipo: parsed.tipo,
-        iva: parsed.iva,
-        baseImponible: parsed.baseImponible,
-        nifContraparte: parsed.nifContraparte,
-      }).map(m => ({ modelo: m.modelo, razon: m.razon }))
+  // ── Total (la línea con "total" que más cantidad tenga; el total suele ser el mayor)
+  let total: number | null = null
+  for (const l of lineas) {
+    if (!/\btotal\b/i.test(l)) continue // no confunde con SUBTOTAL si es mayor
+    const candidatos = numerosDe(l)
+    if (candidatos.length > 0) {
+      const max = Math.max(...candidatos)
+      if (total === null || max > total) total = max
     }
-
-    return parsed
-  } catch {
-    throw new Error('No se pudieron extraer los datos de la factura')
   }
+
+  // ── IVA: porcentaje e importe
+  let ivaPorcentaje: number | null = null
+  let ivaImporte: number | null = null
+  for (const l of lineas) {
+    if (!/\biva\b|\bimp\.?\s*valor\s*a[nñ]adido\b/i.test(l)) continue
+    const pctMatch = l.match(/(\d{1,2})(?:[.,](\d))?\s*%/)
+    const nums = numerosDe(l)
+    if (pctMatch) {
+      const pct = parseFloat(pctMatch[0].replace('%', '').replace(',', '.'))
+      if (pct <= 30) ivaPorcentaje = pct
+      const otros = nums.filter(n => Math.abs(n - pct) > 0.01)
+      if (otros.length > 0 && ivaImporte === null) ivaImporte = Math.max(...otros)
+    } else if (nums.length > 0 && ivaImporte === null) {
+      ivaImporte = Math.max(...nums)
+    }
+    if (ivaPorcentaje !== null && ivaImporte !== null) break
+  }
+  if (ivaPorcentaje !== null && ivaPorcentaje > 30) ivaPorcentaje = null
+
+  // ── Base imponible
+  let base: number | null = null
+  if (total !== null && ivaImporte !== null && ivaImporte < total) {
+    base = Math.round((total - ivaImporte) * 100) / 100
+  } else if (total !== null && ivaPorcentaje !== null) {
+    base = Math.round((total / (1 + ivaPorcentaje / 100)) * 100) / 100
+    if (ivaImporte === null) ivaImporte = Math.round((total - base) * 100) / 100
+  }
+
+  // ── Fecha (dd/mm/aaaa o dd-mm-aaaa)
+  let fecha: string | null = null
+  for (const l of lineas) {
+    const m = l.match(/\b(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})\b/)
+    if (!m) continue
+    const dia = parseInt(m[1] ?? '', 10)
+    const mes = parseInt(m[2] ?? '', 10)
+    let anio = parseInt(m[3] ?? '', 10)
+    if (anio < 100) anio += 2000
+    if (dia >= 1 && dia <= 31 && mes >= 1 && mes <= 12 && anio >= 2000 && anio <= 2100) {
+      fecha = `${anio}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
+      break
+    }
+  }
+
+  // ── NIF/CIF
+  let nif: string | null = null
+  for (const l of lineas) {
+    const m = l.match(/\b(?:NIF|C\.?I\.?F\.?|F\.?\s*C\.?I\.?F?\.?)\s*[:.\s-]*([A-Za-z0-9-]{8,10})\b/i)
+    const nifCapturado = m?.[1]
+    if (nifCapturado) {
+      nif = nifCapturado.toUpperCase()
+      break
+    }
+  }
+
+  // ── Número de documento
+  let numero: string | null = null
+  for (const l of lineas) {
+    const m = l.match(/\b(?:factura|n[ºo°]|n[uú]mero|ticket|albar[aá]n|documento)\s*[:ºn.\s-]*([A-Za-z][\w./-]*\d[\w./-]*)/i)
+    const numeroCapturado = m?.[1]
+    if (numeroCapturado) {
+      numero = numeroCapturado
+      break
+    }
+  }
+
+  // ── Proveedor / emisor (primera línea con letras que no sea ruido)
+  let proveedor: string | null = null
+  for (const l of lineas.slice(0, 8)) {
+    const limpio = l.replace(/[*#°•|_-]+/g, ' ').replace(/\s+/g, ' ').trim()
+    if (limpio.length < 4) continue
+    if (/^\d[\d\s.,/:-]*$/.test(limpio)) continue
+    if (/(total|iva|ticket|factura|nif|c\.?i\.?f|tel[eé]fono|direcci[oó]n|www\.|http)/i.test(limpio)) continue
+    if ((limpio.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g) ?? []).length < 3) continue
+    proveedor = limpio
+    break
+  }
+
+  const iva = ivaPorcentaje !== null && [0, 4, 10, 21].includes(ivaPorcentaje) ? ivaPorcentaje : null
+  const baseFinal = base !== null ? Math.round(base * 100) / 100 : null
+  const totalFinal = total !== null ? Math.round(total * 100) / 100 : null
+  const ivaFinal = ivaImporte !== null ? Math.round(ivaImporte * 100) / 100 : null
+
+  const modelos = sugerirModelos({
+    tipo: tipoPorDefecto,
+    iva: iva,
+    baseImponible: baseFinal,
+    nifContraparte: nif,
+  }).map(m => ({ modelo: m.modelo, razon: m.razon }))
+
+  return {
+    numero,
+    emisorReceptor: proveedor,
+    nifContraparte: nif,
+    fechaEmision: fecha,
+    baseImponible: baseFinal,
+    iva,
+    total: totalFinal,
+    tipo: tipoPorDefecto,
+    categoriaGasto: null,
+    modelosSugeridos: modelos,
+  }
+}
+
+/** OCR de un PDF de Storage: descarga, extrae texto y parsea (sin IA). */
+export async function extractInvoiceData(pdfUrl: string): Promise<OcrResult> {
+  const texto = await extraerTextoPdf(pdfUrl)
+  return parseTextoTicket(texto)
 }

@@ -31,9 +31,6 @@ export async function POST(req: NextRequest) {
       return badRequest('Debes enviar entre 1 y 10 archivos')
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json({ error: 'API de IA no configurada' }, { status: 503 })
-    }
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

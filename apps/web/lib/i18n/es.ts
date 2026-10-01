@@ -334,6 +334,12 @@ export const es = {
   },
 
   // Persona selector
+  gestionandoBanner: {
+    gestionando: 'Gestionando',
+    gestor: 'Gestor',
+    visualizador: 'Visualizador',
+    cambiarPersona: 'Cambiar persona',
+  },
   personaSelector: {
     miPerfil: 'Mi perfil',
     otraPersona: 'Otra persona',
@@ -840,8 +846,8 @@ export const es = {
     datosEntrada: 'Datos de entrada',
     salarioBrutoAnual: 'Salario bruto anual (€)',
     tipoRetencion: 'Tipo de retención',
-    cuotaSSTrabajador: 'Cuota SS trabajador anual (€)',
-    reduccionIRPF: 'Reducción IRPF (€)',
+    cuotaSSTrabajador: 'Cuota SS trabajador anual (€) — automática (6,5 %)',
+    reduccionIRPF: 'Gastos deducibles del trabajo (€) — automáticos 2.000 (art. 19.2.f)',
     resultado: 'Resultado',
     brutoAnual: 'Bruto anual',
     baseRetencion: 'Base retención',
