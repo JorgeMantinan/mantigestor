@@ -256,20 +256,6 @@ function RegisterForm() {
               </svg>
               {t('register.registrarGoogle')}
             </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => handleOAuthRegister('azure')}
-              disabled={cargando}
-            >
-              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                <path fill="#F25022" d="M11.4 11.4H2V2h9.4v9.4z" />
-                <path fill="#00A4EF" d="M22 11.4h-9.4V2H22v9.4z" />
-                <path fill="#7FBA00" d="M11.4 22H2v-9.4h9.4V22z" />
-                <path fill="#FFB900" d="M22 22h-9.4v-9.4H22V22z" />
-              </svg>
-              {t('register.registrarOutlook')}
-            </Button>
           </div>
 
           <div className="relative">
