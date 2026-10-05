@@ -69,8 +69,8 @@ export default function BackupPage() {
           .from(tabla.tabla)
           .select('id', { count: 'exact', head: true })
           .eq('perfilId', perfilId)
-        if (fechaDesde) query = query.gte(tabla.key === 'auditLog' || tabla.key === 'notificaciones' ? 'creadoEn' : 'createdAt', fechaDesde)
-        if (fechaHasta) query = query.lte(tabla.key === 'auditLog' || tabla.key === 'notificaciones' ? 'creadoEn' : 'createdAt', fechaHasta + 'T23:59:59')
+        if (fechaDesde) query = query.gte(tabla.key === 'notificaciones' ? 'creadoEn' : 'createdAt', fechaDesde)
+        if (fechaHasta) query = query.lte(tabla.key === 'notificaciones' ? 'creadoEn' : 'createdAt', fechaHasta + 'T23:59:59')
         const { count } = await query
         return { key: tabla.key, count: count ?? 0 }
       })
@@ -102,7 +102,7 @@ export default function BackupPage() {
       .eq('userId', user.id)
       .maybeSingle()
     const perfilId = perfil?.id ?? user.id
-    const dateField = tabla.key === 'auditLog' || tabla.key === 'notificaciones' ? 'creadoEn' : 'createdAt'
+    const dateField = tabla.key === 'notificaciones' ? 'creadoEn' : 'createdAt'
     let query = getSupabase().from(tabla.tabla).select('*').eq('perfilId', perfilId)
     if (fechaDesde) query = query.gte(dateField, fechaDesde)
     if (fechaHasta) query = query.lte(dateField, fechaHasta + 'T23:59:59')

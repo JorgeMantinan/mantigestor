@@ -13,7 +13,7 @@ interface AuditEntry {
   entidad: string
   entidadId: string | null
   detalle: string | null
-  creadoEn: string
+  createdAt: string
 }
 
 const ICONOS: Record<string, React.ReactNode> = {
@@ -45,7 +45,7 @@ export default function AuditLogPage() {
         .from('audit_log')
         .select('*')
         .eq('perfilId', perfilActivoId ?? user.id)
-        .order('creadoEn', { ascending: false })
+        .order('createdAt', { ascending: false })
         .limit(200)
       if (data) setEntradas(data as AuditEntry[])
       setCargando(false)
@@ -102,7 +102,7 @@ export default function AuditLogPage() {
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    {new Date(entry.creadoEn).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {new Date(entry.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               ))}

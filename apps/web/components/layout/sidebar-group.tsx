@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ChevronDown } from 'lucide-react'
@@ -48,9 +49,9 @@ export function SidebarGroupComponent({
                 className="h-10 w-10 mx-auto relative"
                 asChild
               >
-                <a href={item.href} title={item.label}>
+                <Link href={item.href} title={item.label}>
                   <item.icon className="h-4 w-4" aria-hidden="true" />
-                </a>
+                </Link>
               </Button>
             )
           })}
@@ -94,10 +95,10 @@ export function SidebarGroupComponent({
               className="justify-start relative px-3"
               asChild
             >
-              <a href={item.href}>
+              <Link href={item.href}>
                 <item.icon className="h-4 w-4 mr-3" aria-hidden="true" />
                 {item.label}
-              </a>
+              </Link>
             </Button>
           )
         })}

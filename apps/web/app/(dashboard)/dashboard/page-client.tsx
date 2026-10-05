@@ -279,7 +279,7 @@ export default function DashboardPage() {
         }
       }
       fetchData()
-    }, 60000)
+    }, 300000) // 5 minutos (antes 60 s: refresco agresivo con select('*') x4)
     return () => clearInterval(interval)
   }, [getSupabase, perfilActivoId, selectedYear])
 

@@ -13,7 +13,7 @@ interface AuditEntry {
   accion: string
   entidad: string
   detalle: string | null
-  creadoEn: string
+  createdAt: string
 }
 
 const ICONS: Record<string, typeof FileText> = {
@@ -49,9 +49,9 @@ export function WidgetActivity() {
 
     const { data } = await supabase
       .from('audit_log')
-      .select('id, accion, entidad, detalle, creadoEn')
+      .select('id, accion, entidad, detalle, createdAt')
       .eq('perfilId', perfil.id)
-      .order('creadoEn', { ascending: false })
+      .order('createdAt', { ascending: false })
       .limit(5)
 
     if (data) setActividad(data as AuditEntry[])
@@ -107,7 +107,7 @@ export function WidgetActivity() {
                       {' '}{accionLabel}
                       {entry.detalle && <span className="text-muted-foreground"> — {entry.detalle}</span>}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">{timeAgo(entry.creadoEn)}</p>
+                    <p className="text-[10px] text-muted-foreground">{timeAgo(entry.createdAt)}</p>
                   </div>
                 </div>
               )

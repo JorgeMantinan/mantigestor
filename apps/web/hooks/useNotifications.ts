@@ -46,6 +46,7 @@ export function useNotifications() {
       .select('*')
       .eq('perfilId', perfilId)
       .order('creadoEn', { ascending: false })
+      .limit(100)
 
     if (data) {
       setNotificaciones(data)

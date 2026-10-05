@@ -66,6 +66,7 @@ model InvitacionPendiente {
   aceptada            Boolean   @default(false)
   createdAt           DateTime  @default(now())
 
+  @@index([email])
   @@map("invitaciones_pendientes")
 }
 
@@ -117,6 +118,7 @@ model PerfilAsociado {
 
   @@unique([ownerUserId, perfilId])
   @@index([ownerUserId])
+  @@index([perfilId])
   @@map("perfil_asociado")
 }
 
@@ -154,6 +156,7 @@ model Factura {
 
   @@index([perfilId, tipo])
   @@index([perfilId, fechaEmision])
+  @@index([perfilId, estado, fechaVencimiento])
   @@index([tokenCliente])
   @@index([empresaId])
   @@map("facturas")
@@ -261,6 +264,7 @@ model Notificacion {
   creadoEn  DateTime @default(now())
 
   @@index([perfilId, leido])
+  @@index([perfilId, creadoEn])
   @@map("notificaciones")
 }
 
@@ -313,6 +317,7 @@ model GastoAlquiler {
   fecha       DateTime          @default(now())
   createdAt   DateTime          @default(now())
 
+  @@index([propiedadId])
   @@map("gastos_alquiler")
 }
 
@@ -891,6 +896,7 @@ model AuditLog {
 
   @@index([perfilId])
   @@index([createdAt])
+  @@index([perfilId, createdAt])
   @@map("audit_log")
 }
 
