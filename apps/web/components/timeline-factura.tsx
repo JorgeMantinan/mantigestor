@@ -51,16 +51,6 @@ const ICON_COLORS: Record<TipoEvento, string> = {
   eliminada: 'text-red-600 dark:text-red-400',
 }
 
-const _ETIQUETAS: Record<TipoEvento, string> = {
-  creada: 'Creada',
-  editada: 'Editada',
-  estado_cambiado: 'Estado cambiado',
-  ocr: 'OCR',
-  email: 'Email enviado',
-  pdf_descargada: 'PDF descargado',
-  conciliada: 'Conciliada',
-  eliminada: 'Eliminada',
-}
 
 function agruparPorFecha(eventos: EventoTimeline[]): Map<string, EventoTimeline[]> {
   const grupos = new Map<string, EventoTimeline[]>()

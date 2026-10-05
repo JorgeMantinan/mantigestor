@@ -9,10 +9,6 @@ import { listarPagos, type PagoRecurrente } from '@/lib/pagos-recurrentes'
 import { useLanguage } from '@/contexts/language-context'
 import { createClient } from '@/lib/supabase/client'
 
-const _MESES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-]
 
 export default function GoogleCalendarPage() {
   const { t } = useLanguage()

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,7 +19,6 @@ export default function ConfirmarAsociacionPage() {
 
 function ConfirmarAsociacion() {
   const searchParams = useSearchParams()
-  const _router = useRouter()
   const invitacionId = searchParams.get('invitacion')
   const email = searchParams.get('email')
 

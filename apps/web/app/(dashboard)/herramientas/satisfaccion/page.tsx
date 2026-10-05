@@ -22,7 +22,7 @@ interface Encuesta {
 export default function SatisfaccionPage() {
   const { t } = useLanguage()
   const [encuestas, setEncuestas] = useState<Encuesta[]>([])
-  const [_cargando, setCargando] = useState(true)
+  const [, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')

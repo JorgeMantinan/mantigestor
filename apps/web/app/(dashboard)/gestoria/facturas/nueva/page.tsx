@@ -168,7 +168,6 @@ function NuevaFacturaContenido() {
     if (get('nifContraparte')) setField('nifContraparte', get('nifContraparte')!)
     if (get('fechaEmision')) setField('fechaEmision', get('fechaEmision')!)
     setOcrUsado(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
   async function guardarPlantilla() {

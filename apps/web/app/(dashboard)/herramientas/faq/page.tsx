@@ -64,7 +64,7 @@ const FAQ_DATA: Categoria[] = [
 export default function FaqPage() {
   const [categoriaActiva, setCategoriaActiva] = useState<string | null>(null)
   const [preguntaIA, setPreguntaIA] = useState('')
-  const [_respuestaIA, setRespuestaIA] = useState('')
+  const [, setRespuestaIA] = useState('')
   const [loadingIA, setLoadingIA] = useState(false)
   const [historial, setHistorial] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)

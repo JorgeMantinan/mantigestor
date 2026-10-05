@@ -31,7 +31,6 @@ export function ComparativaSector({ facturas, sector = 'servicios' }: { facturas
 
     const totalIngresos = ingresos.reduce((s, f) => s + f.total, 0)
     const totalGastos = gastos.reduce((s, f) => s + f.total, 0)
-    const _totalIva = ingresos.reduce((s, f) => s + Math.round(f.baseImponible * (f.iva / 100)), 0)
 
     const margen = totalIngresos > 0 ? ((totalIngresos - totalGastos) / totalIngresos) * 100 : 0
     const ratioGastos = totalIngresos > 0 ? (totalGastos / totalIngresos) * 100 : 0

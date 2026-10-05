@@ -44,7 +44,7 @@ function fechaISO(f: Factura): string {
 }
 
 export function ExpedientePageClient() {
-  const { perfilActivoId, personas, esPropio: _esPropio } = usePersonaActiva()
+  const { perfilActivoId, personas } = usePersonaActiva()
   const [perfil, setPerfil] = useState<Perfil | null>(null)
   const [facturas, setFacturas] = useState<Factura[]>([])
   const [loading, setLoading] = useState(true)

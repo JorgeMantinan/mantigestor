@@ -46,7 +46,6 @@ export function ChartWaterfall({ facturas }: Props) {
       const entry = mapa.get(m) ?? { ingresos: 0, gastos: 0 }
       const ingEur = entry.ingresos / 100
       const gasEur = entry.gastos / 100
-      const _neto = ingEur - gasEur
 
       if (m === 0) {
         rows.push({

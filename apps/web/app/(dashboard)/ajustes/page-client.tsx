@@ -88,7 +88,6 @@ function PerfilTab() {
   const [idiomaFactura, setIdiomaFactura] = useState<'es' | 'en'>('es')
   const [guardando, setGuardando] = useState(false)
   const [guardadoOk, setGuardadoOk] = useState(false)
-  const [_guardandoFirma, _setGuardandoFirma] = useState(false)
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()

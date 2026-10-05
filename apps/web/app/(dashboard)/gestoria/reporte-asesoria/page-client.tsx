@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
-import { useLanguage } from '@/contexts/language-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -22,7 +21,6 @@ const formatPct = (v: number) =>
 
 export function ReporteAsesoriaPageClient() {
   const { perfilActivoId } = usePersonaActiva()
-  const { t: _t } = useLanguage()
   const [reporte, setReporte] = useState<ReporteAsesoria | null>(null)
   const [anyo, setAnyo] = useState(new Date().getFullYear())
   const [cargando, setCargando] = useState(true)

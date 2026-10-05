@@ -75,7 +75,6 @@ export function convertirMoneda(
 }
 
 export function formatoMoneda(cantidad: number, moneda: string): string {
-  const _monedaInfo = MOEDAS.find(m => m.code === moneda)
   const decimales = moneda === 'JPY' ? 0 : 2
   return new Intl.NumberFormat('es-ES', {
     style: 'currency',

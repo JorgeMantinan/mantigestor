@@ -76,13 +76,13 @@ export default function PagosRecurrentesPage() {
   }, [])
 
   const pagosActivos = useMemo(() => pagos.filter(p => p.activo), [pagos])
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- calcularTotalMensual cierra sobre `pagos`
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- calcularTotalMensual viene de lib/pagos-recurrentes (lee localStorage); pagos es el trigger
   const totalMensual = useMemo(() => calcularTotalMensual(), [pagos])
   // eslint-disable-next-line react-hooks/exhaustive-deps -- el helper cierra sobre `pagos`
   const pendientes = useMemo(() => obtenerPagosPendientes(hoy), [pagos, hoy])
   // eslint-disable-next-line react-hooks/exhaustive-deps -- el helper cierra sobre `pagos`
   const pagadosMes = useMemo(() => obtenerPagosDelMes(hoy).filter(p => estaPagadoEsteMes(p, hoy)), [pagos, hoy])
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- obtenerDiasConPagos cierra sobre `pagos`
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- obtenerDiasConPagos viene de lib/pagos-recurrentes (lee localStorage); pagos es el trigger
   const diasConPagos = useMemo(() => obtenerDiasConPagos(anyoCalendario, mesCalendario), [pagos, anyoCalendario, mesCalendario])
 
   const abrirCrear = () => {

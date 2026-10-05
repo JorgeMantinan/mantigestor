@@ -58,7 +58,6 @@ export function useRecurringInvoiceCheck() {
             .eq('diaGeneracion', diaActual)
 
           if (plantillas && plantillas.length > 0) {
-            let generadas = 0
             for (const tpl of plantillas) {
               if (tpl.ultimaGeneracion) {
                 const ultima = new Date(tpl.ultimaGeneracion)
@@ -85,7 +84,6 @@ export function useRecurringInvoiceCheck() {
               })
 
               if (!error) {
-                generadas++
                 await supabase
                   .from('facturas_recurrentes')
                   .update({ ultimaGeneracion: hoy.toISOString() })

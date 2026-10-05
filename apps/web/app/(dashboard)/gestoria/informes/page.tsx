@@ -30,7 +30,7 @@ const formatEuro = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'c
 
 export default function InformesPage() {
   const [facturas, setFacturas] = useState<Factura[]>([])
-  const [_cargando, setCargando] = useState(true)
+  const [, setCargando] = useState(true)
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
   const [tipo, setTipo] = useState('todos')

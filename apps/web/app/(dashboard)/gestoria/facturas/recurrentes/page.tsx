@@ -472,7 +472,6 @@ export default function FacturasRecurrentesPage() {
   const formatMoney = (cents: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
-  const _nombreMes = (dia: number) => t('facturaRecurrente.diaDeCadaMes').replace('{dia}', String(dia))
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

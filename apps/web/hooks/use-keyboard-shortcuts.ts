@@ -12,48 +12,52 @@ interface ShortcutHandlers {
 }
 
 export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
+  // Desestructurado: el efecto depende de las funciones (no del objeto, que
+  // se recrea en cada render del padre)
+  const { onSearch, onNew, onEscape, onFilterEstado, onFilterTipo, onFocusSearch } = handlers
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement
       const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable
 
-      if (e.key === 'Escape' && handlers.onEscape) {
-        handlers.onEscape()
+      if (e.key === 'Escape' && onEscape) {
+        onEscape()
         return
       }
 
-      if (e.key === '/' && !isInput && handlers.onSearch) {
+      if (e.key === '/' && !isInput && onSearch) {
         e.preventDefault()
-        handlers.onSearch()
+        onSearch()
         return
       }
 
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k' && handlers.onSearch) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k' && onSearch) {
         e.preventDefault()
-        handlers.onSearch()
+        onSearch()
         return
       }
 
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !isInput && handlers.onNew) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !isInput && onNew) {
         e.preventDefault()
-        handlers.onNew()
+        onNew()
         return
       }
 
       if (!isInput) {
-        if (e.key === 'f' && handlers.onFocusSearch) {
+        if (e.key === 'f' && onFocusSearch) {
           e.preventDefault()
-          handlers.onFocusSearch()
+          onFocusSearch()
           return
         }
-        if (e.key === 'e' && handlers.onFilterEstado) {
+        if (e.key === 'e' && onFilterEstado) {
           e.preventDefault()
-          handlers.onFilterEstado()
+          onFilterEstado()
           return
         }
-        if (e.key === 't' && handlers.onFilterTipo) {
+        if (e.key === 't' && onFilterTipo) {
           e.preventDefault()
-          handlers.onFilterTipo()
+          onFilterTipo()
           return
         }
       }
@@ -61,5 +65,5 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers) {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [handlers.onSearch, handlers.onNew, handlers.onEscape, handlers.onFilterEstado, handlers.onFilterTipo, handlers.onFocusSearch])
+  }, [onSearch, onNew, onEscape, onFilterEstado, onFilterTipo, onFocusSearch])
 }

@@ -36,6 +36,27 @@ describe('FacturaSchema', () => {
     expect(result.success).toBe(false)
   })
 
+  it('acepta un NIF con letras en minúsculas', () => {
+    const result = FacturaSchema.safeParse({ ...facturaValida, nifContraparte: 'b12345678' })
+    expect(result.success).toBe(true)
+  })
+
+  it('acepta los campos opcionales de la BD (empresaId, notasPrivadas, deducible, descuento)', () => {
+    const result = FacturaSchema.safeParse({
+      ...facturaValida,
+      empresaId: 'emp-1',
+      notasPrivadas: 'Gestor: revisar',
+      deducible: false,
+      descuentoPorcentaje: 10,
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rechaza un descuentoPorcentaje fuera de rango', () => {
+    const result = FacturaSchema.safeParse({ ...facturaValida, descuentoPorcentaje: 150 })
+    expect(result.success).toBe(false)
+  })
+
   it('rechaza un IVA que no sea 0, 4, 10 o 21', () => {
     const result = FacturaSchema.safeParse({ ...facturaValida, iva: 15 })
     expect(result.success).toBe(false)

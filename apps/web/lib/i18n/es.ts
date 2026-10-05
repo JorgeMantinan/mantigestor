@@ -241,7 +241,6 @@ export const es = {
     buscando: 'Buscando...',
     sinResultados: 'Sin resultados para',
     escribeMinimo: 'Escribe al menos 2 caracteres para buscar',
-    atajoTeclado: 'Ctrl+K para abrir/cerrar',
     sinInquilino: 'Sin inquilino',
   },
 
@@ -311,27 +310,6 @@ export const es = {
   },
 
   // Help dialog
-  helpDialog: {
-    atajosTeclado: 'Atajos de teclado',
-    referenciaRapida: 'Referencia rápida de atajos disponibles en MantiGestor',
-    busquedaGlobal: 'Búsqueda global',
-    buscarPaginaActual: 'Buscar en la página actual',
-    crearNuevo: 'Crear nuevo registro',
-    cerrarCancelar: 'Cerrar panel / cancelar',
-    mostrarAyuda: 'Mostrar esta ayuda',
-    irFacturas: 'Ir a Facturas',
-    irDashboard: 'Ir a Dashboard',
-    irAlquiler: 'Ir a Alquiler',
-    irNominas: 'Ir a Nóminas',
-    exportarExcel: 'Exportar Excel',
-    exportarPdf: 'Exportar PDF',
-    buscarFacturas: 'Buscar en facturas',
-    filtrarEstado: 'Filtrar por estado (pendiente/pagada/vencida)',
-    filtrarTipo: 'Filtrar por tipo (ingreso/gasto)',
-    enlaces: 'Enlaces',
-    documentacion: 'Documentación',
-    soporte: 'Soporte',
-  },
 
   // Persona selector
   gestionandoBanner: {
@@ -461,45 +439,8 @@ export const es = {
   },
 
   // Informe de asesoría
-  reporteAsesoria: {
-    titulo: 'Informe de asesoría',
-    subtitulo: 'Informe fiscal completo para asesoría — Ejercicio',
-    datosCliente: 'Datos del cliente',
-    resumenFiscal: 'Resumen fiscal del año',
-    ivaPorTrimestre: 'IVA repercutido vs soportado por trimestre',
-    retencionesSoportadas: 'Retenciones soportadas',
-    modelosPresentados: 'Modelos fiscales presentados',
-    pagosFraccionados: 'Pagos fraccionados IRPF (Modelo 130)',
-    anexoGastos: 'Anexo A: Top gastos por categoría',
-    anexoClientes: 'Anexo B: Top clientes por facturación',
-    descargarPdf: 'Descargar PDF',
-    enviarEmail: 'Enviar por email',
-    totalRetenciones: 'Total retenciones',
-    facturasConRetencion: 'Facturas con retención',
-    presentado: 'Presentado',
-    pendiente: 'Pendiente',
-    pagado: 'Pagado',
-    aIngresar: 'A ingresar',
-    aCompensar: 'A compensar',
-    beneficioNeto: 'Beneficio neto',
-    ivaRepercutido: 'IVA repercutido',
-    ivaSoportado: 'IVA soportado',
-    irpfRetenciones: 'IRPF retenciones',
-    documentoGenerado: 'Documento generado automáticamente — Revisar antes de presentar',
-  },
 
   // Asistente fiscal
-  asistente: {
-    titulo: 'Asistente Fiscal',
-    subtitulo: 'Analiza tu situación y te recomienda los modelos que necesitas',
-    siguiente: 'Siguiente',
-    anterior: 'Anterior',
-    finalizar: 'Ver resultados',
-    reiniciar: 'Reiniciar',
-    modelosRecomendados: 'Modelos recomendados',
-    sinModelos: 'No se encontraron modelos aplicables',
-    situacion: 'Situación',
-  },
 
   // Alquiler
   alquiler: {
@@ -577,21 +518,6 @@ export const es = {
   },
 
   // Herramientas
-  herramientas: {
-    dividirGasto: 'Dividir gasto',
-    temporizador: 'Temporizador',
-    Conversiones: 'Conversiones',
-    divisorGasto: 'Divisor de gasto',
-    total: 'Total',
-    dividirPor: 'Dividir entre',
-    resultado: 'Resultado',
-    iniciar: 'Iniciar',
-    pausar: 'Pausar',
-    detener: 'Detener',
-    sesiones: 'Sesiones',
-    totalTiempo: 'Total tiempo',
-    totalFacturar: 'Total a facturar',
-  },
 
   // Google Calendar
   googleCalendar: {
@@ -781,12 +707,6 @@ export const es = {
   },
 
   // Currency / formatting
-  currency: {
-    EUR: '€',
-    meses: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
-    mesesCorto: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-    dias: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
-  },
 
   // Conciliación bancaria
   conciliacion: {
@@ -866,46 +786,6 @@ export const es = {
   },
 
   // API Docs
-  apiDocs: {
-    titulo: 'API Docs',
-    subtitulo: 'Documentación de las rutas públicas y autenticadas de MantiGestor.',
-    requiereBodyJson: 'Requiere body JSON',
-    queryParamsUrl: 'Query params en URL',
-    authRequerida: 'Auth requerida',
-    bodyParams: 'Body params',
-    queryParams: 'Query params',
-    campo: 'Campo',
-    tipo: 'Tipo',
-    req: 'Req.',
-    descripcion: 'Descripción',
-    respuesta: 'Respuesta',
-    ejemploRespuesta: 'Ejemplo de respuesta',
-    si: 'Sí',
-    no: 'No',
-    // Route titles and descriptions
-    ocrFacturaPdf: 'OCR de factura (PDF)',
-    ocrFacturaPdfDesc: 'Extrae datos de una factura a partir de su URL de PDF usando IA (Claude).',
-    ocrImagen: 'OCR de imagen',
-    ocrImagenDesc: 'Extrae datos de una factura, recibo o ticket a partir de una imagen en base64.',
-    facturaPublica: 'Factura pública',
-    facturaPublicaDesc: 'Devuelve los datos de una factura emitida para visualización pública (portal de cliente).',
-    portalCliente: 'Portal de cliente',
-    portalClienteDesc: 'Devuelve todas las facturas emitidas de un cliente identificado por token. Retrocompatible con tokens de factura individual.',
-    tiposCambio: 'Tipos de cambio',
-    tiposCambioDesc: 'Proxy de la API de Frankfurter para obtener tasas de cambio en tiempo real desde EUR.',
-    stripeCheckout: 'Stripe Checkout',
-    stripeCheckoutDesc: 'Crea una sesión de checkout de Stripe para suscripción PRO.',
-    stripePortal: 'Stripe Portal',
-    stripePortalDesc: 'Crea una sesión del portal de cliente de Stripe para gestionar la suscripción.',
-    stripeWebhook: 'Stripe Webhook',
-    stripeWebhookDesc: 'Endpoint de webhook para eventos de Stripe (checkout.session.completed, invoice.paid, subscription updates/deletions).',
-    misPersonas: 'Mis personas',
-    misPersonasDesc: 'Lista las personas asociadas al usuario actual (gestiones de otros usuarios).',
-    asociarPersona: 'Asociar persona',
-    asociarPersonaDesc: 'Crea un perfil temporal y asocia una persona al usuario actual. Envía email de invitación si Resend está configurado.',
-    desasociarPersona: 'Desasociar persona',
-    desasociarPersonaDesc: 'Elimina la asociación entre el usuario actual y una persona gestionada.',
-  },
 
   // Precios
   precios: {
@@ -936,7 +816,6 @@ export const es = {
     subtituloInvitado: 'Se te ha invitado a gestionar una persona en MantiGestor',
     registrar: 'Crear cuenta',
     registrarGoogle: 'Registrarse con Google',
-    registrarOutlook: 'Registrarse con Outlook',
     yaTieneCuenta: '¿Ya tienes cuenta?',
     iniciarSesion: 'Iniciar sesión',
     volver: 'Volver al inicio',
@@ -1094,12 +973,6 @@ export const es = {
   },
 
   // Dashboard widgets
-  dashboardWidgets: {
-    resumenMensual: 'Resumen mensual',
-    proximosVencimientos: 'Próximos vencimientos',
-    facturasPendientes: 'Facturas pendientes',
-    actividadFiscal: 'Actividad fiscal',
-  },
 
   // Placeholders / guidance
   guia: {
@@ -1234,19 +1107,6 @@ export const es = {
   },
 
   // Multi-empresa
-  multiEmpresa: {
-    titulo: 'Vista consolidada multi-empresa',
-    subtitulo: 'Resumen de todas las empresas que gestionas',
-    ingresosTotales: 'Ingresos totales',
-    gastosTotales: 'Gastos totales',
-    beneficioNeto: 'Beneficio neto',
-    sinAsociadas: 'No tienes personas asociadas para ver una vista consolidada.',
-    asociarPersona: 'Asociar persona',
-    sinNombre: 'Sin nombre',
-    ingresos: 'Ingresos',
-    gastos: 'Gastos',
-    facturas: 'Facturas',
-  },
 
   // Reporte trimestral
   reporteTrimestral: {
@@ -1822,22 +1682,6 @@ export const es = {
   },
 
   // Exámenes
-  examenes: {
-    titulo: 'Exámenes',
-    subtitulo: 'Exámenes generados por IA desde tus documentos',
-    generarExamen: 'Generar examen',
-    generando: 'Generando...',
-    generandoConIa: 'Generando examen con IA...',
-    volverDocumentos: 'Volver a documentos',
-    cargando: 'Cargando...',
-    sinExamenes: 'No hay exámenes',
-    sinExamenesDesc: 'Sube documentos en la sección de alumnos y pulsa "Generar examen" para crear uno con IA',
-    examenAlumnos: 'Examen de alumnos',
-    creado: 'Creado',
-    completado: 'Completado',
-    correcta: 'Correcta',
-    errorGenerar: 'Error al generar el examen',
-  },
 
   // Backup
   backup: {
@@ -1941,7 +1785,6 @@ export const es = {
   notificacionesConfig: {
     titulo: 'Preferencias de notificaciones',
     subtitulo: 'Configura cómo y cuándo recibir recordatorios fiscales',
-    atajos: 'Atajos:',
     recomendado: 'Recomendado',
     maximo: 'Máximo (todos activos)',
     desactivarTodos: 'Desactivar todos',
@@ -2188,7 +2031,6 @@ export const es = {
   },
 
   // Widget comparativa
-  widgetComparativa: {},
 
   // Notification Dropdown
   notificationDropdown: {
@@ -2290,10 +2132,6 @@ export const es = {
   },
 
   // Feature Gate
-  featureGate: {
-    funcionRequierePlan: 'Esta función requiere el plan',
-    verPlanes: 'Ver planes',
-  },
 
   // Offline Indicator
   offlineIndicator: {

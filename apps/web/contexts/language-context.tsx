@@ -47,7 +47,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const t = useCallback((path: string): string => resolver(paquete, path), [paquete])
+  const t = useCallback(
+    (path: string): string => {
+      const resultado = resolver(paquete, path)
+      // Fallback: si la clave no existe en el idioma activo, se intenta en 'es'
+      // antes de devolver la clave literal (evita pintar 'grupo.clave' en pantalla)
+      if (resultado !== path) return resultado
+      return resolver(traduccionesDe('es'), path)
+    },
+    [paquete]
+  )
 
   return (
     <LanguageContext.Provider value={{ idioma, setIdioma, t }}>

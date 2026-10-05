@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { TrendingUp, TrendingDown, ArrowRight, Minus } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { useLanguage } from '@/contexts/language-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 
 interface Factura {
@@ -61,7 +60,6 @@ export default function ComparativaTrimestralPage() {
   const [trimestre, setTrimestre] = useState(Math.floor(new Date().getMonth() / 3))
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
-  const { t: _t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()
 
   useEffect(() => {

@@ -3,12 +3,9 @@ import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/l
 import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { escapeHtml } from '@/lib/escape-html'
 import crypto from 'crypto'
 import { z } from 'zod'
-
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
 
 export async function POST(req: NextRequest) {
   try {

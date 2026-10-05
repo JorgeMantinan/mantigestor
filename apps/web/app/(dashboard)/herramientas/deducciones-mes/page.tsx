@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, AlertCircle, TrendingUp, TrendingDown, Loader2, ArrowRight } from 'lucide-react'
-import { useLanguage } from '@/contexts/language-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { clasificarGastos, clasificarGasto, type NivelDeducibilidad } from '@/lib/fiscal/clasificar-gastos'
 import Link from 'next/link'
@@ -36,7 +35,6 @@ interface StatsMes {
 }
 
 export default function DeduccionesMesPage() {
-  const { t: _t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()
   const [facturas, setFacturas] = useState<FacturaMes[]>([])
   const [cargando, setCargando] = useState(true)

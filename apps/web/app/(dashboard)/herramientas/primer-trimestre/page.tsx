@@ -327,7 +327,6 @@ export default function PrimerTrimestrePage() {
               </div>
 
               {CHECKLIST.map((item, idx) => {
-                const _Icon = item.icono
                 const completado = checklist[idx] ?? false
                 return (
                   <button

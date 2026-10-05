@@ -32,7 +32,7 @@ export default function ConciliacionPage() {
   const [textoOriginal, setTextoOriginal] = useState('')
   const [movimientosGuardados, setMovimientosGuardados] = useState<MovimientoGuardado[]>([])
   const [guardando, setGuardando] = useState(false)
-  const [_guardadosIds, setGuardadosIds] = useState<Set<string>>(new Set())
+  const [, setGuardadosIds] = useState<Set<string>>(new Set())
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
 

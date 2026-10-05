@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Send, Check, Clock, AlertTriangle, Search, Mail, MailCheck } from 'lucide-react'
-import { useLanguage } from '@/contexts/language-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { createClient } from '@/lib/supabase/client'
 
@@ -39,7 +38,6 @@ function diasDesde(fecha: string): number {
 }
 
 export default function ControlEnviosPage() {
-  const { t: _t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()
   const [facturas, setFacturas] = useState<FacturaEnvio[]>([])
   const [cargando, setCargando] = useState(true)

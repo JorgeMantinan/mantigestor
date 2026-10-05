@@ -176,7 +176,7 @@ export function CalculadoraIrpf({
     }
 
     return componentes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- imp/impContiene cierran sobre los estados ya listados; incluir las funciones (nuevas en cada render) anularía el memo
   }, [edad, hijos, menores3, ascendientes, mayores75, monoparental, conyuge, discapacidad, ayudaTerceras, minimosTerritorio])
 
   const resultado = useMemo(() => {
@@ -185,7 +185,6 @@ export function CalculadoraIrpf({
       const reduccion = trabajoCents > 0 ? reduccionRendimientosTrabajoCents(trabajoCents) : 0
       // Reducción por aportaciones a planes de pensiones (límite general 1.500€, máximo 8.000€ con seguros)
       const aportacionesCents = eurosACentimos(aportacionesPension)
-      const _LIMITE_PENSION_GENERAL = 1_500_00 // 1.500€
       const LIMITE_PENSION_MAXIMO = 8_000_00 // 8.000€ con seguros de dependencia
       const reduccionPension = Math.min(aportacionesCents, LIMITE_PENSION_MAXIMO)
       const baseGeneral = Math.max(0, trabajoCents - reduccion - reduccionPension) + eurosACentimos(actividades)

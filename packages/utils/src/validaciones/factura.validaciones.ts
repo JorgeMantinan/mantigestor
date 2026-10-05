@@ -1,12 +1,15 @@
 import { z } from 'zod'
 
+// Refleja los campos escribibles de `model Factura` (schema.prisma).
+// Nota: fechaVencimiento se mantiene como string (opcional) por compatibilidad
+// con la UI; rectificativas con base negativa no pasan por esta vía de API.
 export const FacturaSchema = z.object({
   tipo: z.enum(['ingreso', 'gasto', 'proforma']),
   numero: z.string().min(1, 'El número de factura es requerido').max(50),
   emisorReceptor: z.string().min(1, 'El nombre de la contraparte es requerido').max(200),
   nifContraparte: z
     .string()
-    .regex(/^[A-Z0-9]{9}$/, 'NIF/CIF no válido (9 caracteres alfanuméricos)')
+    .regex(/^[A-Za-z0-9]{9}$/, 'NIF/CIF no válido (9 caracteres alfanuméricos)')
     .nullable()
     .optional(),
   fechaEmision: z.coerce
@@ -27,14 +30,18 @@ export const FacturaSchema = z.object({
   ], { errorMap: () => ({ message: 'IVA debe ser 0, 4, 10 o 21' }) }),
   total: z.number().int(),
   estado: z.enum(['pendiente', 'pagada', 'vencida', 'cancelada']).default('pendiente'),
-  categoriaGasto: z.string().optional().nullable(),
-  notas: z.string().optional().nullable(),
-  tags: z.string().optional().nullable(),
-  pdfUrl: z.string().optional().nullable(),
-  tokenCliente: z.string().optional().nullable(),
-  moneda: z.string().optional(),
-  tipoCambio: z.number().optional(),
-  pagosParciales: z.string().optional().nullable(),
+  empresaId: z.string().max(64).nullable().optional(),
+  descuentoPorcentaje: z.number().min(0).max(100).optional(),
+  categoriaGasto: z.string().max(50).optional().nullable(),
+  notas: z.string().max(5000).optional().nullable(),
+  notasPrivadas: z.string().max(5000).optional().nullable(),
+  deducible: z.boolean().optional().nullable(),
+  tags: z.string().max(500).optional().nullable(),
+  pdfUrl: z.string().max(2048).optional().nullable(),
+  tokenCliente: z.string().max(128).optional().nullable(),
+  moneda: z.string().length(3).optional(),
+  tipoCambio: z.number().min(0).max(1000).optional(),
+  pagosParciales: z.string().max(20000).optional().nullable(),
 })
 
 export type FacturaInput = z.infer<typeof FacturaSchema>

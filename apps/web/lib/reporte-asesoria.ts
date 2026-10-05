@@ -3,10 +3,6 @@
 import { generarPDFDeHTML } from './pdf'
 import { escapeHtml } from './escape-html'
 
-const _MESES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-]
 
 export interface FacturaAsesoria {
   tipo: 'emitida' | 'recibida'

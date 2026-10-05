@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
+import type { User } from '@supabase/supabase-js'
 
 function jsonResponse(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -46,10 +47,6 @@ function queryChain(result: unknown) {
   }
 }
 
-function insertResult(error: unknown = null) {
-  return { insert: vi.fn().mockResolvedValue({ error }) }
-}
-
 function req(body: unknown) {
   return new NextRequest('http://localhost/api/fiscal/asociar-persona', {
     method: 'POST',
@@ -62,16 +59,16 @@ beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(createServerClient).mockImplementation(() => ({
     from: vi.fn((table: string) => fromHandler(table)),
-  }) as any)
+  }) as unknown as ReturnType<typeof createServerClient>)
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://test.supabase.co'
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-key'
   delete process.env.RESEND_API_KEY
-  vi.mocked(getAuthenticatedUser).mockResolvedValue({ id: 'user-1', email: 'test@example.com' } as any)
+  vi.mocked(getAuthenticatedUser).mockResolvedValue({ id: 'user-1', email: 'test@example.com' } as unknown as User)
 })
 
 describe('POST /api/fiscal/asociar-persona', () => {
   it('returns 401 when not authenticated', async () => {
-    vi.mocked(getAuthenticatedUser).mockResolvedValue(null as any)
+    vi.mocked(getAuthenticatedUser).mockResolvedValue(null)
 
     const res = await POST(req({ email: 'new@test.com' }))
 

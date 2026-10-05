@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Calculator, TrendingUp, TrendingDown, Minus, Download } from 'lucide-react'
-import { useLanguage } from '@/contexts/language-context'
 import { generarPDF } from '@/lib/pdf'
 
 const TRAMOS_IRPF_2026 = [
@@ -47,7 +46,6 @@ export default function CalculadoraIRPFRapidaPage() {
   const [salarioBruto, setSalarioBruto] = useState(30000)
   const [reduccionGeneral, setReduccionGeneral] = useState(2000)
   const [otrosGastosDeducibles, setOtrosGastosDeducibles] = useState(0)
-  const { t: _t } = useLanguage()
   const [generando, setGenerando] = useState(false)
 
   const resultado = useMemo(() => {

@@ -18,11 +18,6 @@ const TRAMOS_IRPF_2026 = [
 ]
 
 // Coeficientes módulos simplificados por actividad (ejemplos)
-const _MODULOS_EJEMPLO: Record<string, { beneficioBase: number; moduloMensual: number }> = {
-  'restaurante': { beneficioBase: 15000, moduloMensual: 1200 },
-  'tienda': { beneficioBase: 12000, moduloMensual: 900 },
-  'profesional': { beneficioBase: 18000, moduloMensual: 600 },
-}
 
 function calcularIRPF(base: number): number {
   let irpf = 0
@@ -88,7 +83,6 @@ export default function AnalisisRegimenPage() {
     const excedeLimite = ingresos > limiteModulos
 
     // Verificar actividad compatible con módulos
-    const _actividadesModulos = ['restaurante', 'tienda', 'profesional']
 
     return {
       baseDirecta,

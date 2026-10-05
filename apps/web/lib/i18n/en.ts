@@ -243,7 +243,6 @@ export const en: DeepTraducciones = {
     buscando: 'Searching...',
     sinResultados: 'No results for',
     escribeMinimo: 'Type at least 2 characters to search',
-    atajoTeclado: 'Ctrl+K to open/close',
     sinInquilino: 'No tenant',
   },
 
@@ -313,27 +312,6 @@ export const en: DeepTraducciones = {
   },
 
   // Help dialog
-  helpDialog: {
-    atajosTeclado: 'Keyboard shortcuts',
-    referenciaRapida: 'Quick reference of available shortcuts in MantiGestor',
-    busquedaGlobal: 'Global search',
-    buscarPaginaActual: 'Search on current page',
-    crearNuevo: 'Create new record',
-    cerrarCancelar: 'Close panel / cancel',
-    mostrarAyuda: 'Show this help',
-    irFacturas: 'Go to Invoices',
-    irDashboard: 'Go to Dashboard',
-    irAlquiler: 'Go to Rental',
-    irNominas: 'Go to Payrolls',
-    exportarExcel: 'Export Excel',
-    exportarPdf: 'Export PDF',
-    buscarFacturas: 'Search invoices',
-    filtrarEstado: 'Filter by status (pending/paid/overdue)',
-    filtrarTipo: 'Filter by type (income/expense)',
-    enlaces: 'Links',
-    documentacion: 'Documentation',
-    soporte: 'Support',
-  },
 
   // Persona selector
   gestionandoBanner: {
@@ -463,45 +441,8 @@ export const en: DeepTraducciones = {
   },
 
   // Advisory report
-  reporteAsesoria: {
-    titulo: 'Advisory Report',
-    subtitulo: 'Complete tax report for advisory — Fiscal year',
-    datosCliente: 'Client details',
-    resumenFiscal: 'Annual tax summary',
-    ivaPorTrimestre: 'Output vs input VAT by quarter',
-    retencionesSoportadas: 'Withholdings supported',
-    modelosPresentados: 'Tax forms filed',
-    pagosFraccionados: 'Income tax fractional payments (Form 130)',
-    anexoGastos: 'Annex A: Top expenses by category',
-    anexoClientes: 'Annex B: Top clients by revenue',
-    descargarPdf: 'Download PDF',
-    enviarEmail: 'Send by email',
-    totalRetenciones: 'Total withholdings',
-    facturasConRetencion: 'Invoices with withholding',
-    presentado: 'Filed',
-    pendiente: 'Pending',
-    pagado: 'Paid',
-    aIngresar: 'Due to tax agency',
-    aCompensar: 'To offset',
-    beneficioNeto: 'Net profit',
-    ivaRepercutido: 'Output VAT',
-    ivaSoportado: 'Input VAT',
-    irpfRetenciones: 'Income tax withholdings',
-    documentoGenerado: 'Auto-generated document — Review before submitting to advisor',
-  },
 
   // Asistente fiscal
-  asistente: {
-    titulo: 'Tax Assistant',
-    subtitulo: 'Analyze your situation and get personalized form recommendations',
-    siguiente: 'Next',
-    anterior: 'Back',
-    finalizar: 'View results',
-    reiniciar: 'Restart',
-    modelosRecomendados: 'Recommended forms',
-    sinModelos: 'No applicable forms found',
-    situacion: 'Situation',
-  },
 
   // Alquiler
   alquiler: {
@@ -579,21 +520,6 @@ export const en: DeepTraducciones = {
   },
 
   // Herramientas
-  herramientas: {
-    dividirGasto: 'Split expense',
-    temporizador: 'Timer',
-    Conversiones: 'Conversions',
-    divisorGasto: 'Expense splitter',
-    total: 'Total',
-    dividirPor: 'Split by',
-    resultado: 'Result',
-    iniciar: 'Start',
-    pausar: 'Pause',
-    detener: 'Stop',
-    sesiones: 'Sessions',
-    totalTiempo: 'Total time',
-    totalFacturar: 'Total to bill',
-  },
 
   // Google Calendar
   googleCalendar: {
@@ -783,12 +709,6 @@ export const en: DeepTraducciones = {
   },
 
   // Currency / formatting
-  currency: {
-    EUR: '€',
-    meses: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    mesesCorto: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    dias: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-  },
 
   // Placeholders / guidance
   guia: {
@@ -876,45 +796,6 @@ export const en: DeepTraducciones = {
   },
 
   // API Docs
-  apiDocs: {
-    titulo: 'API Docs',
-    subtitulo: 'Documentation for MantiGestor public and authenticated routes.',
-    requiereBodyJson: 'Requires JSON body',
-    queryParamsUrl: 'Query params in URL',
-    authRequerida: 'Auth required',
-    bodyParams: 'Body params',
-    queryParams: 'Query params',
-    campo: 'Field',
-    tipo: 'Type',
-    req: 'Req.',
-    descripcion: 'Description',
-    respuesta: 'Response',
-    ejemploRespuesta: 'Response example',
-    si: 'Yes',
-    no: 'No',
-    ocrFacturaPdf: 'Invoice OCR (PDF)',
-    ocrFacturaPdfDesc: 'Extracts invoice data from a PDF URL using AI (Claude).',
-    ocrImagen: 'Image OCR',
-    ocrImagenDesc: 'Extracts invoice, receipt or ticket data from a base64 image.',
-    facturaPublica: 'Public invoice',
-    facturaPublicaDesc: 'Returns issued invoice data for public viewing (client portal).',
-    portalCliente: 'Client portal',
-    portalClienteDesc: 'Returns all issued invoices for a client identified by token. Backward-compatible with individual invoice tokens.',
-    tiposCambio: 'Exchange rates',
-    tiposCambioDesc: 'Proxy for the Frankfurter API to get real-time exchange rates from EUR.',
-    stripeCheckout: 'Stripe Checkout',
-    stripeCheckoutDesc: 'Creates a Stripe checkout session for PRO subscription.',
-    stripePortal: 'Stripe Portal',
-    stripePortalDesc: 'Creates a Stripe customer portal session to manage the subscription.',
-    stripeWebhook: 'Stripe Webhook',
-    stripeWebhookDesc: 'Webhook endpoint for Stripe events (checkout.session.completed, invoice.paid, subscription updates/deletions).',
-    misPersonas: 'My people',
-    misPersonasDesc: 'Lists people associated with the current user (management of other users).',
-    asociarPersona: 'Add person',
-    asociarPersonaDesc: 'Creates a temporary profile and associates a person with the current user. Sends invitation email if Resend is configured.',
-    desasociarPersona: 'Remove person',
-    desasociarPersonaDesc: 'Removes the association between the current user and a managed person.',
-  },
 
   // Pricing
   precios: {
@@ -945,7 +826,6 @@ export const en: DeepTraducciones = {
     subtituloInvitado: "You've been invited to manage a person in MantiGestor",
     registrar: 'Sign up',
     registrarGoogle: 'Sign up with Google',
-    registrarOutlook: 'Sign up with Outlook',
     yaTieneCuenta: 'Already have an account?',
     iniciarSesion: 'Sign in',
     volver: 'Back to home',
@@ -1103,12 +983,6 @@ export const en: DeepTraducciones = {
   },
 
   // Dashboard widgets
-  dashboardWidgets: {
-    resumenMensual: 'Monthly summary',
-    proximosVencimientos: 'Upcoming due dates',
-    facturasPendientes: 'Pending invoices',
-    actividadFiscal: 'Tax activity',
-  },
 
   // Empresa selector
   empresa: {
@@ -1235,19 +1109,6 @@ export const en: DeepTraducciones = {
   },
 
   // Multi-company
-  multiEmpresa: {
-    titulo: 'Multi-company consolidated view',
-    subtitulo: 'Summary of all companies you manage',
-    ingresosTotales: 'Total income',
-    gastosTotales: 'Total expenses',
-    beneficioNeto: 'Net profit',
-    sinAsociadas: 'You have no associated people to view a consolidated view.',
-    asociarPersona: 'Add person',
-    sinNombre: 'No name',
-    ingresos: 'Income',
-    gastos: 'Expenses',
-    facturas: 'Invoices',
-  },
 
   // Quarterly report
   reporteTrimestral: {
@@ -1823,22 +1684,6 @@ export const en: DeepTraducciones = {
   },
 
   // Exams
-  examenes: {
-    titulo: 'Exams',
-    subtitulo: 'AI-generated exams from your documents',
-    generarExamen: 'Generate exam',
-    generando: 'Generating...',
-    generandoConIa: 'Generating exam with AI...',
-    volverDocumentos: 'Back to documents',
-    cargando: 'Loading...',
-    sinExamenes: 'No exams',
-    sinExamenesDesc: 'Upload documents in the students section and press "Generate exam" to create one with AI',
-    examenAlumnos: 'Student exam',
-    creado: 'Created',
-    completado: 'Completed',
-    correcta: 'Correct',
-    errorGenerar: 'Error generating exam',
-  },
 
   // Backup
   backup: {
@@ -1942,7 +1787,6 @@ export const en: DeepTraducciones = {
   notificacionesConfig: {
     titulo: 'Notification preferences',
     subtitulo: 'Configure how and when to receive tax reminders',
-    atajos: 'Shortcuts:',
     recomendado: 'Recommended',
     maximo: 'Maximum (all active)',
     desactivarTodos: 'Disable all',
@@ -2189,7 +2033,6 @@ export const en: DeepTraducciones = {
   },
 
   // Widget comparativa
-  widgetComparativa: {},
 
   // Notification Dropdown
   notificationDropdown: {
@@ -2291,10 +2134,6 @@ export const en: DeepTraducciones = {
   },
 
   // Feature Gate
-  featureGate: {
-    funcionRequierePlan: 'This feature requires the',
-    verPlanes: 'View plans',
-  },
 
   // Offline Indicator
   offlineIndicator: {

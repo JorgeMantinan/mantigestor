@@ -26,19 +26,6 @@ const MONEDAS = [
   { value: 'BRL', label: 'Real brasileño (BRL)' },
 ]
 
-const _MONEDA_LABELS: Record<string, string> = {
-  EUR: 'conversiones.monedaEur',
-  USD: 'conversiones.monedaUsd',
-  GBP: 'conversiones.monedaGbp',
-  CHF: 'conversiones.monedaChf',
-  CAD: 'conversiones.monedaCad',
-  AUD: 'conversiones.monedaAud',
-  JPY: 'conversiones.monedaJpy',
-  MXN: 'conversiones.monedaMxn',
-  ARS: 'conversiones.monedaArs',
-  COP: 'conversiones.monedaCop',
-  BRL: 'conversiones.monedaBrl',
-}
 
 const TASAS_CAMBIO_APROX: Record<string, Record<string, number>> = {
   EUR: { USD: 1.08, GBP: 0.85, CHF: 0.96, MXN: 19.5, ARS: 950, COP: 4200 },

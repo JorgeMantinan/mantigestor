@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Copy, Share2, Check, Calendar, TrendingUp, TrendingDown, Clock } from 'lucide-react'
-import { useLanguage } from '@/contexts/language-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { createClient } from '@/lib/supabase/client'
 
@@ -23,7 +22,6 @@ function formatEuro(v: number): string {
 }
 
 export default function ResumenMensualPage() {
-  const { t: _t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()
   const [mesSeleccionado, setMesSeleccionado] = useState(() => {
     const now = new Date()

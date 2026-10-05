@@ -134,7 +134,6 @@ function PaginaFiscalInner() {
     if (clavesValidas.has(seccionParam as SeccionKey)) {
       setSeccion(seccionParam as SeccionKey)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
   useEffect(() => {

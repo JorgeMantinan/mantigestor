@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Upload, CheckCircle, FileText, Building2, Save, Database, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useLanguage } from '@/contexts/language-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import {
   parsearCSV,
@@ -40,7 +39,6 @@ function formatEuro(v: number): string {
 }
 
 export default function ImportarBancoPage() {
-  const { t: _t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()
   const [movimientos, setMovimientos] = useState<MovimientoBancoCSV[]>([])
   const [coincidencias, setCoincidencias] = useState<Coincidencia[]>([])
@@ -48,11 +46,10 @@ export default function ImportarBancoPage() {
   const [cargado, setCargado] = useState(false)
   const [procesando, setProcesando] = useState(false)
   const [guardando, setGuardando] = useState(false)
-  const [_bancoDetectado, setBancoDetectado] = useState<BancoFormato>('generico')
+  const [, setBancoDetectado] = useState<BancoFormato>('generico')
   const [bancoManual, setBancoManual] = useState<BancoFormato>('generico')
   const [textoOriginal, setTextoOriginal] = useState('')
   const [movimientosGuardados, setMovimientosGuardados] = useState<MovimientoGuardado[]>([])
-  const [_reconciliadas, _setReconciliadas] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (!perfilActivoId) return

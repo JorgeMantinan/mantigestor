@@ -52,7 +52,6 @@
 - **Perfil** — id, userId (Supabase), email, nombre, nif, createdAt, updatedAt
 - **Factura** — id, perfilId, numero, tipo(emitida/recibida), emisorReceptor, nifContraparte, fechaEmision, fechaVencimiento, baseImponible, iva, total, estado, pdfUrl, createdAt
 - **Documento** — id, perfilId, tipo, nombre, tamanoBytes, url, subidoEn
-- **Examen** — id, perfilId, tipo(facturas/trimestres/alquiler/nominas/alumnos), estado, resultado, creadoEn, completadoEn
 - **Suscripcion** — id, perfilId, tier(BASIC/PRO), provider(stripe/paypal), providerSubscriptionId, estado, currentPeriodStart, currentPeriodEnd, createdAt
 - **Notificacion** — id, perfilId, tipo, leido, contenido, creadoEn
 
@@ -62,7 +61,7 @@
 - **Gratuito inicial:** periodo de prueba de 30 días PRO completo
 
 ## Seguridad (auditoría 2026-10-02)
-- **Storage PRIVADO**: buckets `documentos` y `backups` con `public=false`; policies por carpeta usando `perfiles_accesibles(auth.uid())` (dueño + gestores, cualquier rol). **NUNCA usar `getPublicUrl` para servir archivos**: firmar con `lib/storage.ts` (cliente, `firmarUrlStorage`/`firmarUrlsStorage`) o `lib/storage-server.ts` (servidor, `firmarUrlAdmin`). Las APIs que leen documentos comprueban `carpetaDeUrlStorage(url) === perfilId`.
+- **Storage PRIVADO**: buckets `documentos` y `backups` con `public=false`; policies por carpeta usando `perfiles_accesibles(auth.uid())` (dueño + gestores, cualquier rol). **NUNCA servir un archivo sin firmar**: `getPublicUrl` solo se usa como referencia guardada en BD (FileUpload/panel); los lectores firman con `lib/storage.ts` (cliente, `firmarUrlStorage`/`firmarUrlsStorage`) o `lib/storage-server.ts` (servidor, `firmarUrlAdmin`). Las APIs que leen documentos comprueban `carpetaDeUrlStorage(url) === perfilId`.
 - **RPC protegidas**: `crear_asociacion_segura` exige que el perfil pertenezca al llamante Y una invitación pendiente de ese gestor para su email (el enlace de invitación ES la confirmación del gestionado); `REVOKE ... FROM PUBLIC, anon` en las3 RPC (`20261002_seguridad_auditoria/migration.sql`).
 - **Gate PRO = lo que usa IA** (regla del producto): el middleware solo protege `/ai`; las APIs `/api/ai/chat`, `/api/facturas/parsear-voz` y `fiscal/clasificar-documento` comprueban `tier==='PRO'` en servidor. Todo lo demás (nóminas, conversiones, trimestres, renta, alquiler) es BASIC.
 - **Cron**: usar SIEMPRE `verificarCron(req)` de `lib/cron-auth.ts` (timing-safe, acepta Bearer o `x-cron-secret`, deniega si falta `CRON_SECRET`). `/api/*` está FUERA del gate de cookies del middleware (webhook de Stripe y crons no llevan cookies).
@@ -82,7 +81,7 @@
 
 ### API Routes
 - `try/catch` alrededor de TODO el handler, nunca exceptions sin capturar
-- Rate limiting en TODAS las rutas (30/min default, 10/min AI chat, 5/min Stripe)
+- Rate limiting en51/54 rutas (30/min default, 10/min AI chat, 5/min Stripe, 3/min demo); las sin rate limit: 9 crons (`CRON_SECRET`), `stripe/webhook` (firma) y `docs` (público inofensivo)
 - Auth check (`getAuthenticatedUser`) antes de procesar cualquier dato
 - **NUNCA** confiar en `perfilId` del body — usar `user.id` de la sesión
 - Validar input con Zod antes de tocar la BD
@@ -119,11 +118,13 @@
 ## Testing
 - Tests unitarios: `packages/utils/src/**/__tests__/`
 - Tests utils (fiscal): `packages/utils/src/fiscal/__tests__/`
-- Comando: `pnpm --filter=utils test`
-- Tests web (multi-persona): `apps/web/__tests__/multi-persona/` (19 tests: resolve-perfil-activo, asociar-persona, desasociar-persona, mis-personas)
-- Comando: `pnpm --filter=web test`
+- Comando: `pnpm --filter=utils test` (383 tests)
+- Tests web: `apps/web/__tests__/` — multi-persona (19), generador-modelos (12), cron-auth (7), middleware (6), rate-limit-ip (4), ocr (5), chunk-error (4)
+- Comando: `pnpm --filter=web test` (56 tests,1 skip E2E condicional)
+- Coverage web (sin thresholds): `pnpm --filter=web exec vitest run --coverage` (incluye `lib/**`, `app/api/**/route.ts`, `middleware.ts`)
 - Tests E2E: `apps/web/e2e/` (14 specs Playwright: auth, navigation, public-pages, conversiones, visual)
-- Coverage configurado en vitest.config.ts raíz
+- Coverage configurado en vitest.config.ts raíz (packages/utils + types, thresholds80/80/75)
+- Lint con TODOS los dirs: `pnpm --filter=web lint` (app, components, lib, hooks, contexts, __tests__, e2e, middleware.ts)
 
 ## Deploy (Vercel)
 - **Repositorio**: `github.com/JorgeMantinan/mantigestor`
@@ -138,9 +139,9 @@
 ## Comandos útiles
 ```bash
 pnpm dev              # Arrancar todo en dev
-pnpm --filter=web build   # Build producción web (29 rutas, 0 errores)
-pnpm --filter=web test   # Tests vitest web (multi-persona)
-pnpm --filter=utils test # Tests vitest utils (fiscal)
+pnpm --filter=web build   # Build producción web (77 páginas +54 rutas API, 0 errores)
+pnpm --filter=web test   # Tests vitest web (56)
+pnpm --filter=utils test # Tests vitest utils (fiscal,383)
 pnpm --filter=database exec -- dotenv -e ../../.env.local -- prisma db execute --file prisma/migrations/20260825_multi_persona.sql  # Migración multi-persona
 pnpm db:push          # Push schema a Supabase
 pnpm db:generate      # Regenerar Prisma client
@@ -155,7 +156,7 @@ git add -A; git commit -m "msg"; git push origin master  # Deploy a Vercel
 - Todas las credenciales en `.env.local` raíz ✅
 
 ## Estado del proyecto
-- **29 rutas, 0 errores de build.** Prácticamente todo el MVP implementado.
+- **77 páginas +54 rutas API, 0 errores de build.** Prácticamente todo el MVP implementado.
 - Stripe integrado (checkout, portal, webhook) — opcional, si faltan env vars muestra "Próximamente"
 - OCR de facturas con Anthropic Claude API — botón "Escanear factura con IA" auto-rellena formulario
 - Subida de archivos con dropzone + validación + progreso
@@ -163,10 +164,9 @@ git add -A; git commit -m "msg"; git push origin master  # Deploy a Vercel
 - Loading/Error states en todas las rutas
 - Tasas de cambio en tiempo real (Frankfurter API + fallback hardcoded)
 - SEO metadata en layouts y root page
-- Rate limiting en todas las API routes (in-memory, sin Redis)
+- Rate limiting en51/54 API routes (in-memory, Upstash opcional; crons con `CRON_SECRET`)
 - Middleware con graceful fallback si faltan NEXT_PUBLIC_SUPABASE_URL/KEY
 - **Deploy en Vercel funcional** (Root Directory: apps/web)
-- **Generación de exámenes con IA** desde documentos de alumno (requiere API key de Anthropic con crédito)
 - **Todos los inserts corregidos**: id explícito con `crypto.randomUUID()` en todas las tablas Prisma-managed
 - **Registro de perfil fijo**: ahora incluye `userId` para que las consultas por `userId` funcionen correctamente
 - **Tooltips en calculadoras**: las calculadoras tienen `LabelConAyuda` + guías `GUIA_*` en `lib/fiscal/guia-fiscal.ts`

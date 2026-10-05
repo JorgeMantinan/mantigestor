@@ -27,7 +27,6 @@ interface Props {
 
 export function Calculadora190({ taxYear }: Props) {
   const [rendimientos, setRendimientos] = useState<RendimientoRetencion190[]>([])
-  const [_loading, _setLoading] = useState(false)
   const [cargandoNominas, setCargandoNominas] = useState(false)
   const { perfilActivoId } = usePersonaActiva()
 

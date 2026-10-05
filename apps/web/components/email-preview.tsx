@@ -58,7 +58,7 @@ function TextoResaltado({ texto, className }: { texto: string; className?: strin
   )
 }
 
-export function EmailPreview({ plantilla: _plantilla, asuntoRenderizado, cuerpoRenderizado, onAsuntoChange, onCuerpoChange, editable = false }: EmailPreviewProps) {
+export function EmailPreview({ asuntoRenderizado, cuerpoRenderizado, onAsuntoChange, onCuerpoChange, editable = false }: EmailPreviewProps) {
   const [editMode, setEditMode] = useState(false)
   const { t } = useLanguage()
 

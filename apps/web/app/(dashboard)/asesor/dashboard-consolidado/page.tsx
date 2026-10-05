@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -21,7 +20,6 @@ export default function DashboardConsolidadoPage() {
   const [busqueda, setBusqueda] = useState('')
   const [filtro, setFiltro] = useState<FiltroEstado>('todos')
   const [orden, setOrden] = useState<'nombre' | 'vencimiento' | 'pendientes'>('nombre')
-  const _getSupabase = useCallback(() => createClient(), [])
 
   const clientesGestionados = personas.filter(p => p.tipo === 'gestiono')
 

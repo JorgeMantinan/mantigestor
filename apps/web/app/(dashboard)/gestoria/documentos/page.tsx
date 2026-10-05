@@ -26,12 +26,6 @@ interface Documento {
   subidoEn: string
 }
 
-const _TIPO_LABELS: Record<string, string> = {
-  factura: 'Factura',
-  trimestre: 'Trimestre',
-  alquiler: 'Alquiler',
-  nomina: 'Nómina',
-}
 
 const TIPO_COLORS: Record<string, string> = {
   factura: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',

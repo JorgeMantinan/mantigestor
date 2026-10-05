@@ -70,15 +70,6 @@ export function PersonaSelector() {
     }
   }
 
-  const _handleDesasociar = async (pid: string) => {
-    try {
-      await fetch(`/api/fiscal/desasociar-persona?perfilId=${pid}`, { method: 'DELETE' })
-      if (perfilActivoId === pid) setPerfilActivo(null)
-      window.location.reload()
-    } catch {
-      // silent
-    }
-  }
 
   return (
     <>

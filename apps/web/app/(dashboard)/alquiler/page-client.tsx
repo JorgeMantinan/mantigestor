@@ -50,8 +50,8 @@ export default function AlquilerPage() {
   const [guardando, setGuardando] = useState(false)
   const [cargando, setCargando] = useState(true)
   const [busqueda, setBusqueda] = useState('')
-  const [ordenCampo, setOrdenCampo] = useState<OrdenCampo>('direccion')
-  const [ordenDir, setOrdenDir] = useState<OrdenDir>('asc')
+  const [ordenCampo, _setOrdenCampo] = useState<OrdenCampo>('direccion')
+  const [ordenDir, _setOrdenDir] = useState<OrdenDir>('asc')
   const searchRef = useRef<HTMLInputElement>(null)
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
@@ -141,14 +141,6 @@ export default function AlquilerPage() {
     })
   }, [propiedades, busqueda, ordenCampo, ordenDir])
 
-  const _toggleOrden = (campo: OrdenCampo) => {
-    if (ordenCampo === campo) {
-      setOrdenDir(ordenDir === 'asc' ? 'desc' : 'asc')
-    } else {
-      setOrdenCampo(campo)
-      setOrdenDir('asc')
-    }
-  }
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()

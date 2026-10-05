@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
+import type { User } from '@supabase/supabase-js'
 
 function jsonResponse(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -47,12 +48,12 @@ beforeEach(() => {
   vi.clearAllMocks()
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://test.supabase.co'
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-key'
-  vi.mocked(getAuthenticatedUser).mockResolvedValue({ id: 'user-1', email: 'test@example.com' } as any)
+  vi.mocked(getAuthenticatedUser).mockResolvedValue({ id: 'user-1', email: 'test@example.com' } as unknown as User)
 })
 
 describe('DELETE /api/fiscal/desasociar-persona', () => {
   it('returns 401 when not authenticated', async () => {
-    vi.mocked(getAuthenticatedUser).mockResolvedValue(null as any)
+    vi.mocked(getAuthenticatedUser).mockResolvedValue(null)
 
     const res = await DELETE(req('perfil-1'))
 

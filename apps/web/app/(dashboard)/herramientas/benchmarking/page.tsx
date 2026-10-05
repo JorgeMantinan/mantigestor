@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { TrendingUp, TrendingDown, Minus, Info, BarChart3 } from 'lucide-react'
-import { useLanguage } from '@/contexts/language-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -27,11 +26,10 @@ function formatEuro(v: number): string {
 }
 
 export default function BenchmarkingPage() {
-  const { t: _t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()
   const [sector, setSector] = useState('servicios')
   const [facturas, setFacturas] = useState<{ tipo: string; baseImponible: number; total: number; fechaEmision: string }[]>([])
-  const [_cargando, setCargando] = useState(true)
+  const [, setCargando] = useState(true)
 
   useEffect(() => {
     if (!perfilActivoId) return
