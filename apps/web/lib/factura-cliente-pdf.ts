@@ -1,4 +1,5 @@
 'use client'
+import { escapeHtml } from './escape-html'
 
 import { generarPDFDeHTML } from '@/lib/pdf'
 import { type PagoParcial, calcularSaldoPendiente } from '@/lib/pago-parcial'
@@ -112,8 +113,8 @@ function htmlPagosParciales(pagos: PagoParcial[], total: number, idioma?: Idioma
           <tr style="border-bottom:1px solid #f3f4f6">
             <td style="padding:6px 8px;color:#374151">${new Date(p.fecha).toLocaleDateString(locale)}</td>
             <td style="padding:6px 8px;text-align:right;font-weight:600;color:#374151">${formatEuro(p.importe)}</td>
-            <td style="padding:6px 8px;color:#6b7280;text-transform:capitalize">${p.metodo}</td>
-            <td style="padding:6px 8px;color:#6b7280">${p.notas || '—'}</td>
+            <td style="padding:6px 8px;color:#6b7280;text-transform:capitalize">${escapeHtml(String(p.metodo))}</td>
+            <td style="padding:6px 8px;color:#6b7280">${escapeHtml(p.notas || '—')}</td>
           </tr>
           `).join('')}
         </tbody>
@@ -124,7 +125,7 @@ function htmlPagosParciales(pagos: PagoParcial[], total: number, idioma?: Idioma
 
 function htmlLogo(logoBase64?: string): string {
   if (!logoBase64) return ''
-  return `<img src="${logoBase64}" style="max-width:80px;max-height:80px;object-fit:contain" alt="Logo empresa" />`
+  return `<img src="${escapeHtml(String(logoBase64))}" style="max-width:80px;max-height:80px;object-fit:contain" alt="Logo empresa" />`
 }
 
 function htmlFirma(firmaBase64?: string): string {
@@ -142,9 +143,9 @@ function htmlFirma(firmaBase64?: string): string {
   return `
     <div style="margin-top:32px;display:flex;justify-content:flex-end">
       <div style="text-align:center;width:240px">
-        <img src="${imagen}" style="max-height:80px;width:auto" alt="Firma digital" />
+        <img src="${escapeHtml(String(imagen))}" style="max-height:80px;width:auto" alt="Firma digital" />
         <div style="border-top:1px solid #374151;margin-top:4px;padding-top:4px">
-          <p style="font-size:11px;font-weight:600;color:#1a1a1a;margin:0">${nombre}</p>
+          <p style="font-size:11px;font-weight:600;color:#1a1a1a;margin:0">${escapeHtml(String(nombre))}</p>
         </div>
       </div>
     </div>
@@ -179,19 +180,19 @@ function htmlClasico(f: FacturaPDF): string {
         <div>
           ${f.logoBase64 ? `<div style="margin-bottom:12px">${htmlLogo(f.logoBase64)}</div>` : ''}
           <h1 style="font-size:28px;font-weight:800;margin:0;color:#1a1a1a">${titulo}</h1>
-          <p style="font-size:14px;color:#6b7280;margin:4px 0 0 0">${t.numero} ${f.numero}</p>
+          <p style="font-size:14px;color:#6b7280;margin:4px 0 0 0">${t.numero} ${escapeHtml(String(f.numero))}</p>
         </div>
         <div style="text-align:right">
-          <p style="font-size:18px;font-weight:700;margin:0">${empresa}</p>
-          <p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">${direccion}</p>
-          <p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">${t.nif}: ${nifEmpresa}</p>
+          <p style="font-size:18px;font-weight:700;margin:0">${escapeHtml(String(empresa))}</p>
+          <p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">${escapeHtml(String(direccion))}</p>
+          <p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">${t.nif}: ${escapeHtml(String(nifEmpresa))}</p>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
         <div style="background:#f9fafb;border-radius:8px;padding:16px">
           <p style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;margin:0 0 8px 0">${clienteLabel}</p>
-          <p style="font-size:14px;font-weight:600;margin:0">${f.emisorReceptor}</p>
-          ${f.nifContraparte ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">${t.nif}: ${f.nifContraparte}</p>` : ''}
+          <p style="font-size:14px;font-weight:600;margin:0">${escapeHtml(String(f.emisorReceptor))}</p>
+          ${f.nifContraparte ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">${t.nif}: ${escapeHtml(String(f.nifContraparte))}</p>` : ''}
         </div>
         <div style="background:#f9fafb;border-radius:8px;padding:16px">
           <p style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;margin:0 0 8px 0">${t.fecha}</p>
@@ -209,7 +210,7 @@ function htmlClasico(f: FacturaPDF): string {
         </thead>
         <tbody>
           <tr style="border-bottom:1px solid #e5e7eb">
-            <td style="padding:12px 16px;font-size:13px">${esGasto ? t.gasto : t.servicio} — ${f.emisorReceptor}</td>
+            <td style="padding:12px 16px;font-size:13px">${esGasto ? t.gasto : t.servicio} — ${escapeHtml(String(f.emisorReceptor))}</td>
             <td style="padding:12px 16px;text-align:right;font-size:13px">${formatEuro(f.baseImponible)}</td>
             <td style="padding:12px 16px;text-align:right;font-size:13px">${f.iva}%</td>
             <td style="padding:12px 16px;text-align:right;font-size:13px;font-weight:600">${formatEuro(f.baseImponible + Math.round(f.baseImponible * (f.iva / 100)))}</td>
@@ -231,11 +232,11 @@ function htmlClasico(f: FacturaPDF): string {
         </tfoot>
       </table>
       ${f.pagosParciales && f.pagosParciales.length > 0 ? htmlPagosParciales(f.pagosParciales, f.total, f.idioma) : ''}
-      ${f.notas ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px"><p style="font-size:12px;margin:0;color:#1e40af"><strong>${t.notas}</strong> ${f.notas}</p></div>` : ''}
+      ${f.notas ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px"><p style="font-size:12px;margin:0;color:#1e40af"><strong>${t.notas}</strong> ${escapeHtml(String(f.notas))}</p></div>` : ''}
       ${htmlFirma(f.firmaBase64)}
       <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:48px;padding-top:16px;border-top:1px solid #e5e7eb">
         <div style="font-size:10px;color:#9ca3af">
-          <p style="margin:0">${empresa} · ${direccion} · ${t.nif} ${nifEmpresa}</p>
+          <p style="margin:0">${escapeHtml(String(empresa))} · ${escapeHtml(String(direccion))} · ${t.nif} ${escapeHtml(String(nifEmpresa))}</p>
           <p style="margin:4px 0 0 0">${t.documento_generado_por}</p>
         </div>
         ${f.qrUrl ? `<div>${htmlQR(f.qrUrl, f.idioma)}</div>` : ''}
@@ -263,19 +264,19 @@ function htmlModerno(f: FacturaPDF): string {
           <div>
             ${f.logoBase64 ? `<div style="margin-bottom:8px">${htmlLogo(f.logoBase64)}</div>` : ''}
             <h1 style="font-size:24px;font-weight:800;margin:0;color:#059669">${titulo}</h1>
-            <p style="font-size:13px;color:#6b7280;margin:4px 0 0 0">${t.numero} ${f.numero}</p>
+            <p style="font-size:13px;color:#6b7280;margin:4px 0 0 0">${t.numero} ${escapeHtml(String(f.numero))}</p>
           </div>
           <div style="text-align:right">
-            <p style="font-size:20px;font-weight:800;margin:0;color:#059669">${empresa}</p>
-            <p style="font-size:11px;color:#6b7280;margin:2px 0 0 0">${direccion}</p>
-            <p style="font-size:11px;color:#6b7280;margin:2px 0 0 0">${t.nif}: ${nifEmpresa}</p>
+            <p style="font-size:20px;font-weight:800;margin:0;color:#059669">${escapeHtml(String(empresa))}</p>
+            <p style="font-size:11px;color:#6b7280;margin:2px 0 0 0">${escapeHtml(String(direccion))}</p>
+            <p style="font-size:11px;color:#6b7280;margin:2px 0 0 0">${t.nif}: ${escapeHtml(String(nifEmpresa))}</p>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
           <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:12px 16px;border-radius:0 8px 8px 0">
             <p style="font-size:10px;font-weight:700;color:#059669;text-transform:uppercase;margin:0 0 4px 0">${clienteLabel}</p>
-            <p style="font-size:13px;font-weight:600;margin:0">${f.emisorReceptor}</p>
-            ${f.nifContraparte ? `<p style="font-size:11px;color:#6b7280;margin:2px 0 0 0">${t.nif}: ${f.nifContraparte}</p>` : ''}
+            <p style="font-size:13px;font-weight:600;margin:0">${escapeHtml(String(f.emisorReceptor))}</p>
+            ${f.nifContraparte ? `<p style="font-size:11px;color:#6b7280;margin:2px 0 0 0">${t.nif}: ${escapeHtml(String(f.nifContraparte))}</p>` : ''}
           </div>
           <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:12px 16px;border-radius:0 8px 8px 0">
             <p style="font-size:10px;font-weight:700;color:#059669;text-transform:uppercase;margin:0 0 4px 0">${t.fecha}</p>
@@ -293,7 +294,7 @@ function htmlModerno(f: FacturaPDF): string {
           </thead>
           <tbody>
             <tr style="border-bottom:1px solid #e5e7eb">
-              <td style="padding:14px 16px;font-size:13px">${esGasto ? t.gasto : t.servicio} — ${f.emisorReceptor}</td>
+              <td style="padding:14px 16px;font-size:13px">${esGasto ? t.gasto : t.servicio} — ${escapeHtml(String(f.emisorReceptor))}</td>
               <td style="padding:14px 16px;text-align:right;font-size:13px">${formatEuro(f.baseImponible)}</td>
               <td style="padding:14px 16px;text-align:right;font-size:13px">${f.iva}%</td>
               <td style="padding:14px 16px;text-align:right;font-size:13px;font-weight:700">${formatEuro(f.baseImponible + Math.round(f.baseImponible * (f.iva / 100)))}</td>
@@ -313,11 +314,11 @@ function htmlModerno(f: FacturaPDF): string {
           <span style="font-size:24px;font-weight:800">${formatEuro(f.total)}</span>
         </div>
         ${f.pagosParciales && f.pagosParciales.length > 0 ? htmlPagosParciales(f.pagosParciales, f.total, f.idioma) : ''}
-        ${f.notas ? `<div style="background:#f0fdf4;border:1px solid #a7f3d0;border-radius:8px;padding:12px;margin-top:16px"><p style="font-size:11px;margin:0;color:#065f46"><strong>${t.notas}</strong> ${f.notas}</p></div>` : ''}
+        ${f.notas ? `<div style="background:#f0fdf4;border:1px solid #a7f3d0;border-radius:8px;padding:12px;margin-top:16px"><p style="font-size:11px;margin:0;color:#065f46"><strong>${t.notas}</strong> ${escapeHtml(String(f.notas))}</p></div>` : ''}
         ${htmlFirma(f.firmaBase64)}
         <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb">
           <div style="font-size:9px;color:#9ca3af">
-            <p style="margin:0">${empresa} · ${direccion} · ${t.nif} ${nifEmpresa}</p>
+            <p style="margin:0">${escapeHtml(String(empresa))} · ${escapeHtml(String(direccion))} · ${t.nif} ${escapeHtml(String(nifEmpresa))}</p>
             <p style="margin:4px 0 0 0">${t.documento_generado_por}</p>
           </div>
           ${f.qrUrl ? `<div>${htmlQR(f.qrUrl, f.idioma)}</div>` : ''}
@@ -345,21 +346,21 @@ function htmlMinimalista(f: FacturaPDF): string {
         ${f.logoBase64 ? `<div style="margin-bottom:16px">${htmlLogo(f.logoBase64)}</div>` : ''}
         <h1 style="font-size:32px;font-weight:300;margin:0;letter-spacing:4px">${titulo}</h1>
         <div style="display:flex;justify-content:space-between;margin-top:8px">
-          <p style="font-size:12px;color:#999;margin:0">${t.numero} ${f.numero}</p>
+          <p style="font-size:12px;color:#999;margin:0">${t.numero} ${escapeHtml(String(f.numero))}</p>
           <p style="font-size:12px;color:#999;margin:0">${new Date(f.fechaEmision).toLocaleDateString(locale)}</p>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-bottom:48px">
         <div>
           <p style="font-size:9px;color:#999;text-transform:uppercase;letter-spacing:2px;margin:0 0 8px 0">${clienteLabel}</p>
-          <p style="font-size:14px;font-weight:600;margin:0">${f.emisorReceptor}</p>
-          ${f.nifContraparte ? `<p style="font-size:12px;color:#666;margin:4px 0 0 0">${f.nifContraparte}</p>` : ''}
+          <p style="font-size:14px;font-weight:600;margin:0">${escapeHtml(String(f.emisorReceptor))}</p>
+          ${f.nifContraparte ? `<p style="font-size:12px;color:#666;margin:4px 0 0 0">${escapeHtml(String(f.nifContraparte))}</p>` : ''}
         </div>
         <div>
           <p style="font-size:9px;color:#999;text-transform:uppercase;letter-spacing:2px;margin:0 0 8px 0">${t.nif}</p>
-          <p style="font-size:14px;font-weight:600;margin:0">${empresa}</p>
-          <p style="font-size:12px;color:#666;margin:4px 0 0 0">${nifEmpresa}</p>
-          <p style="font-size:12px;color:#666;margin:4px 0 0 0">${direccion}</p>
+          <p style="font-size:14px;font-weight:600;margin:0">${escapeHtml(String(empresa))}</p>
+          <p style="font-size:12px;color:#666;margin:4px 0 0 0">${escapeHtml(String(nifEmpresa))}</p>
+          <p style="font-size:12px;color:#666;margin:4px 0 0 0">${escapeHtml(String(direccion))}</p>
         </div>
       </div>
       <table style="width:100%;border-collapse:collapse;margin-bottom:32px">
@@ -393,11 +394,11 @@ function htmlMinimalista(f: FacturaPDF): string {
         <p style="font-size:36px;font-weight:200;margin:0">${formatEuro(f.total)}</p>
       </div>
       ${f.pagosParciales && f.pagosParciales.length > 0 ? htmlPagosParciales(f.pagosParciales, f.total, f.idioma) : ''}
-      ${f.notas ? `<p style="font-size:11px;color:#666;margin:0 0 32px 0;border-top:1px solid #eee;padding-top:16px">${f.notas}</p>` : ''}
+      ${f.notas ? `<p style="font-size:11px;color:#666;margin:0 0 32px 0;border-top:1px solid #eee;padding-top:16px">${escapeHtml(String(f.notas))}</p>` : ''}
       ${htmlFirma(f.firmaBase64)}
       <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:32px">
         <div style="font-size:9px;color:#ccc;letter-spacing:1px">
-          <p style="margin:0">${empresa.toUpperCase()} · ${nifEmpresa}</p>
+          <p style="margin:0">${empresa.toUpperCase()} · ${escapeHtml(String(nifEmpresa))}</p>
         </div>
         ${f.qrUrl ? `<div>${htmlQR(f.qrUrl, f.idioma)}</div>` : ''}
       </div>

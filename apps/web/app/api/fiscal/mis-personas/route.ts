@@ -40,9 +40,11 @@ export async function GET(req: NextRequest) {
       .select('perfilId, rol')
       .eq('ownerUserId', user.id)
 
-    // Obtener personas que me gestionan a mí (bypasea RLS)
-    const { data: meGestionan } = await supabase
-      .rpc('obtener_gestores_de_perfil', { p_perfil_id: perfilPropio.id })
+    // Obtener personas que me gestionan a mí: RPC con la pertenencia ya
+    // verificada en servidor (obtener_perfiles_por_ids filtra por perfiles
+    // accesibles y los gestores NO lo son desde mi lado — regresión C2).
+    const { data: gestoresFn } = await supabase
+      .rpc('datos_gestores_de_mi_perfil')
 
     // Obtener datos de los perfiles asociados
     const personas = []
@@ -78,35 +80,18 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Añadir personas que me gestionan a mí
-    if (meGestionan && meGestionan.length > 0) {
-      const gestorIds = meGestionan.map((a: { owneruserid: string }) => a.owneruserid)
-
-      const { data: gestoresFn } = await supabase
-        .rpc('obtener_perfiles_por_ids', { p_ids: gestorIds })
-
-      let gestores = gestoresFn
-
-      if (!gestoresFn || gestoresFn.length === 0) {
-        const { data: gestoresDirect } = await supabase
-          .from('perfiles')
-          .select('id, nombre, email')
-          .in('id', gestorIds)
-        gestores = gestoresDirect
-      }
-
-      if (gestores) {
-        for (const g of gestores) {
-          // No duplicar si ya está en la lista
-          if (!personas.find(p => p.perfilId === g.id)) {
-            personas.push({
-              perfilId: g.id,
-              nombre: g.nombre,
-              email: g.email,
-              rol: 'gestor',
-              tipo: 'me_gestiona',
-            })
-          }
+    // Añadir personas que me gestionan a mí (id, nombre y email vienen de la RPC)
+    if (gestoresFn && gestoresFn.length > 0) {
+      for (const g of gestoresFn) {
+        // No duplicar si ya está en la lista
+        if (!personas.find(p => p.perfilId === g.id)) {
+          personas.push({
+            perfilId: g.id,
+            nombre: g.nombre,
+            email: g.email,
+            rol: 'gestor',
+            tipo: 'me_gestiona',
+          })
         }
       }
     }

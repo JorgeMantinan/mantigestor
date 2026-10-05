@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
         invitadoPorEmail: user.email ?? '',
         aceptada: false,
         rol,
+        tipo: 'gestion',
         createdAt: now,
       })
 

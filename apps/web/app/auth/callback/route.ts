@@ -7,7 +7,9 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams, origin } = new URL(req.url)
     const code = searchParams.get('code')
-    const next = searchParams.get('next') ?? '/dashboard'
+    // next debe ser una ruta interna (sin open redirect: //host o @host)
+    const nextParam = searchParams.get('next') ?? '/dashboard'
+    const next = nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/dashboard'
 
     const error = searchParams.get('error')
     const errorDescription = searchParams.get('error_description')
@@ -20,15 +22,27 @@ export async function GET(req: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=no_code`)
     }
 
+    type OpcionesCookie = {
+      path?: string
+      maxAge?: number
+      sameSite?: 'lax' | 'strict' | 'none'
+      httpOnly?: boolean
+      secure?: boolean
+      domain?: string
+    }
+    const opcionesGuardadas = new Map<string, OpcionesCookie>()
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
+        cookieOptions: { secure: true },
         cookies: {
           getAll: () => req.cookies.getAll().map(c => ({ name: c.name, value: c.value })),
           setAll: (cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) => {
             cookiesToSet.forEach(({ name, value, options }) => {
               req.cookies.set({ name, value, ...options })
+              opcionesGuardadas.set(name, options as OpcionesCookie)
             })
           },
         },
@@ -61,8 +75,20 @@ export async function GET(req: NextRequest) {
     }
 
     const response = NextResponse.redirect(`${origin}${next}`)
+    // Reasentar cookies conservando las opciones de @supabase/ssr (secure,
+    // maxAge, sameSite...): antes se perdían y quedaban solo con path='/'
     req.cookies.getAll().forEach(c => {
-      response.cookies.set({ name: c.name, value: c.value, path: '/' })
+      const op = opcionesGuardadas.get(c.name) ?? {}
+      response.cookies.set({
+        name: c.name,
+        value: c.value,
+        path: op.path ?? '/',
+        sameSite: op.sameSite ?? 'lax',
+        secure: op.secure ?? true,
+        maxAge: op.maxAge ?? 400 * 24 * 60 * 60,
+        ...(op.httpOnly !== undefined ? { httpOnly: op.httpOnly } : {}),
+        ...(op.domain !== undefined ? { domain: op.domain } : {}),
+      })
     })
     return response
   } catch (err) {

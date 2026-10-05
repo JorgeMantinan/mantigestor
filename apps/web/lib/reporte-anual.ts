@@ -1,6 +1,7 @@
 'use client'
 
 import { generarPDFDeHTML } from './pdf'
+import { escapeHtml } from './escape-html'
 
 const MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -310,7 +311,7 @@ export async function exportarReportePDF(reporte: ReporteAnual): Promise<void> {
     ${r.categorias.map((c, i) => `
     <tr>
       <td style="padding:5px;border:1px solid #e5e7eb">${i + 1}</td>
-      <td style="padding:5px;border:1px solid #e5e7eb;font-weight:bold">${c.label}</td>
+      <td style="padding:5px;border:1px solid #e5e7eb;font-weight:bold">${escapeHtml(String(c.label))}</td>
       <td style="padding:5px;border:1px solid #e5e7eb;text-align:right">${formatEUR(c.total)}</td>
       <td style="padding:5px;border:1px solid #e5e7eb;text-align:right">${formatPct(c.porcentaje)}</td>
     </tr>`).join('')}
@@ -331,7 +332,7 @@ export async function exportarReportePDF(reporte: ReporteAnual): Promise<void> {
     ${r.clientes.map((c, i) => `
     <tr>
       <td style="padding:5px;border:1px solid #e5e7eb">${i + 1}</td>
-      <td style="padding:5px;border:1px solid #e5e7eb;font-weight:bold">${c.cliente}</td>
+      <td style="padding:5px;border:1px solid #e5e7eb;font-weight:bold">${escapeHtml(String(c.cliente))}</td>
       <td style="padding:5px;border:1px solid #e5e7eb;text-align:right">${formatEUR(c.total)}</td>
       <td style="padding:5px;border:1px solid #e5e7eb;text-align:center">${c.numFacturas}</td>
     </tr>`).join('')}

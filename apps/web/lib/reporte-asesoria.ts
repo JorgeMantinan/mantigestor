@@ -1,6 +1,7 @@
 'use client'
 
 import { generarPDFDeHTML } from './pdf'
+import { escapeHtml } from './escape-html'
 
 const _MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -263,10 +264,10 @@ export async function exportarReporteAsesoriaPDF(reporte: ReporteAsesoria): Prom
   <div style="background:#f0f4ff;border:1px solid #c7d2fe;border-radius:8px;padding:16px;margin-bottom:20px">
     <h2 style="font-size:14px;color:#1e40af;margin:0 0 8px 0">1. DATOS DEL CLIENTE</h2>
     <table style="width:100%;font-size:12px;border-collapse:collapse">
-      <tr><td style="padding:3px 8px;font-weight:bold;width:120px">Nombre:</td><td style="padding:3px 0">${r.cliente.nombre ?? '—'}</td></tr>
-      <tr><td style="padding:3px 8px;font-weight:bold">NIF/CIF:</td><td style="padding:3px 0">${r.cliente.nif ?? '—'}</td></tr>
-      <tr><td style="padding:3px 8px;font-weight:bold">Dirección:</td><td style="padding:3px 0">${r.cliente.direccion ?? '—'}</td></tr>
-      <tr><td style="padding:3px 8px;font-weight:bold">Email:</td><td style="padding:3px 0">${r.cliente.email ?? '—'}</td></tr>
+      <tr><td style="padding:3px 8px;font-weight:bold;width:120px">Nombre:</td><td style="padding:3px 0">${escapeHtml(String(r.cliente.nombre ?? '—'))}</td></tr>
+      <tr><td style="padding:3px 8px;font-weight:bold">NIF/CIF:</td><td style="padding:3px 0">${escapeHtml(String(r.cliente.nif ?? '—'))}</td></tr>
+      <tr><td style="padding:3px 8px;font-weight:bold">Dirección:</td><td style="padding:3px 0">${escapeHtml(String(r.cliente.direccion ?? '—'))}</td></tr>
+      <tr><td style="padding:3px 8px;font-weight:bold">Email:</td><td style="padding:3px 0">${escapeHtml(String(r.cliente.email ?? '—'))}</td></tr>
     </table>
   </div>
 
@@ -429,7 +430,7 @@ export async function exportarReporteAsesoriaPDF(reporte: ReporteAsesoria): Prom
         ${r.anexos.topGastos.map((g, i) => `
         <tr>
           <td style="padding:5px;border:1px solid #e5e7eb">${i + 1}</td>
-          <td style="padding:5px;border:1px solid #e5e7eb;font-weight:bold">${g.categoria}</td>
+          <td style="padding:5px;border:1px solid #e5e7eb;font-weight:bold">${escapeHtml(String(g.categoria))}</td>
           <td style="padding:5px;border:1px solid #e5e7eb;text-align:right">${formatEUR(g.total)}</td>
           <td style="padding:5px;border:1px solid #e5e7eb;text-align:right">${formatPct(g.porcentaje)}</td>
           <td style="padding:5px;border:1px solid #e5e7eb;text-align:center">${g.numFacturas}</td>
@@ -456,8 +457,8 @@ export async function exportarReporteAsesoriaPDF(reporte: ReporteAsesoria): Prom
         ${r.anexos.topClientes.map((c, i) => `
         <tr>
           <td style="padding:5px;border:1px solid #e5e7eb">${i + 1}</td>
-          <td style="padding:5px;border:1px solid #e5e7eb;font-weight:bold">${c.cliente}</td>
-          <td style="padding:5px;border:1px solid #e5e7eb">${c.nif ?? '—'}</td>
+          <td style="padding:5px;border:1px solid #e5e7eb;font-weight:bold">${escapeHtml(String(c.cliente))}</td>
+          <td style="padding:5px;border:1px solid #e5e7eb">${escapeHtml(String(c.nif ?? '—'))}</td>
           <td style="padding:5px;border:1px solid #e5e7eb;text-align:right">${formatEUR(c.total)}</td>
           <td style="padding:5px;border:1px solid #e5e7eb;text-align:center">${c.numFacturas}</td>
         </tr>`).join('')}

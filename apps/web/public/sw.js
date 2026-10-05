@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mantigestor-v5'
+const CACHE_NAME = 'mantigestor-v6'
 const SHELL_ASSETS = [
   '/favicon.svg',
   '/icon.svg',
@@ -24,18 +24,10 @@ self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
 
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone()
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
-          }
-          return response
-        })
-        .catch(() => caches.match(request))
-    )
+  // Datos privados: NUNCA en caché. Red directa para /api/* y para
+  // cualquier destino externo (Supabase REST, etc.) — si no, las
+  // respuestas privadas sobreviven al logout en Cache Storage.
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
     return
   }
 

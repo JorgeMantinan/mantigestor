@@ -1,4 +1,5 @@
 'use client'
+import { escapeHtml } from './escape-html'
 
 import { type PlantillaFactura } from '@/lib/factura-cliente-pdf'
 
@@ -40,9 +41,9 @@ function htmlFirma(firmaBase64?: string): string {
   return `
     <div style="margin-top:32px;display:flex;justify-content:flex-end">
       <div style="text-align:center;width:240px">
-        <img src="${imagen}" style="max-height:80px;width:auto" alt="Firma digital" />
+        <img src="${escapeHtml(String(imagen))}" style="max-height:80px;width:auto" alt="Firma digital" />
         <div style="border-top:1px solid #374151;margin-top:4px;padding-top:4px">
-          <p style="font-size:11px;font-weight:600;color:#1a1a1a;margin:0">${nombre}</p>
+          <p style="font-size:11px;font-weight:600;color:#1a1a1a;margin:0">${escapeHtml(String(nombre))}</p>
         </div>
       </div>
     </div>
@@ -60,10 +61,10 @@ function htmlEmailBody(f: FacturaEmailPayload): string {
     <div style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;max-width:600px;margin:0 auto;padding:20px">
       <div style="background:linear-gradient(135deg,#eab308 0%,#f59e0b 100%);border-radius:12px;padding:24px;margin-bottom:24px">
         <h1 style="font-size:22px;font-weight:800;margin:0;color:#000">${titulo}</h1>
-        <p style="font-size:13px;color:#1a1a1a;margin:4px 0 0 0">Nº ${f.numero}</p>
+        <p style="font-size:13px;color:#1a1a1a;margin:4px 0 0 0">Nº ${escapeHtml(String(f.numero))}</p>
       </div>
       <div style="margin-bottom:20px">
-        <p style="font-size:14px;color:#555;margin:0 0 4px 0"><strong>Contraparte:</strong> ${f.emisorReceptor}${f.nifContraparte ? ` (${f.nifContraparte})` : ''}</p>
+        <p style="font-size:14px;color:#555;margin:0 0 4px 0"><strong>Contraparte:</strong> ${escapeHtml(String(f.emisorReceptor))}${f.nifContraparte ? ` (${escapeHtml(String(f.nifContraparte))})` : ''}</p>
         <p style="font-size:14px;color:#555;margin:0 0 4px 0"><strong>Fecha:</strong> ${new Date(f.fechaEmision).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
       </div>
       <table style="width:100%;border-collapse:collapse;margin-bottom:20px;border-radius:8px;overflow:hidden">
@@ -88,10 +89,10 @@ function htmlEmailBody(f: FacturaEmailPayload): string {
         <span style="font-size:14px;font-weight:600;color:#000">TOTAL</span>
         <span style="font-size:22px;font-weight:800;color:#000">${formatEuro(f.total)}</span>
       </div>
-      ${f.notas ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;margin-bottom:20px"><p style="font-size:12px;margin:0;color:#92400e"><strong>Notas:</strong> ${f.notas}</p></div>` : ''}
+      ${f.notas ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;margin-bottom:20px"><p style="font-size:12px;margin:0;color:#92400e"><strong>Notas:</strong> ${escapeHtml(String(f.notas))}</p></div>` : ''}
       <p style="font-size:12px;color:#999;text-align:center;margin-top:24px">
         Adjunto encontrarás el PDF de esta factura.<br/>
-        ${empresa} · ${direccion}${nifEmpresa ? ` · NIF ${nifEmpresa}` : ''}
+        ${escapeHtml(String(empresa))} · ${escapeHtml(String(direccion))}${nifEmpresa ? ` · NIF ${escapeHtml(String(nifEmpresa))}` : ''}
       </p>
     </div>
   `
@@ -109,21 +110,21 @@ function pdfHTML(f: FacturaEmailPayload): string {
     <div style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;padding:40px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px">
         <div>
-          ${f.logoBase64 ? `<div style="margin-bottom:12px"><img src="${f.logoBase64}" style="max-height:80px;max-width:200px;object-fit:contain" alt="Logo empresa" /></div>` : ''}
+          ${f.logoBase64 ? `<div style="margin-bottom:12px"><img src="${escapeHtml(String(f.logoBase64))}" style="max-height:80px;max-width:200px;object-fit:contain" alt="Logo empresa" /></div>` : ''}
           <h1 style="font-size:28px;font-weight:800;margin:0;color:#1a1a1a">${titulo}</h1>
-          <p style="font-size:14px;color:#6b7280;margin:4px 0 0 0">Nº ${f.numero}</p>
+          <p style="font-size:14px;color:#6b7280;margin:4px 0 0 0">Nº ${escapeHtml(String(f.numero))}</p>
         </div>
         <div style="text-align:right">
-          <p style="font-size:18px;font-weight:700;margin:0">${empresa}</p>
-          <p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">${direccion}</p>
-          <p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">NIF: ${nifEmpresa}</p>
+          <p style="font-size:18px;font-weight:700;margin:0">${escapeHtml(String(empresa))}</p>
+          <p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">${escapeHtml(String(direccion))}</p>
+          <p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">NIF: ${escapeHtml(String(nifEmpresa))}</p>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
         <div style="background:#f9fafb;border-radius:8px;padding:16px">
           <p style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;margin:0 0 8px 0">${esGasto ? 'Proveedor' : 'Cliente'}</p>
-          <p style="font-size:14px;font-weight:600;margin:0">${f.emisorReceptor}</p>
-          ${f.nifContraparte ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">NIF: ${f.nifContraparte}</p>` : ''}
+          <p style="font-size:14px;font-weight:600;margin:0">${escapeHtml(String(f.emisorReceptor))}</p>
+          ${f.nifContraparte ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">NIF: ${escapeHtml(String(f.nifContraparte))}</p>` : ''}
         </div>
         <div style="background:#f9fafb;border-radius:8px;padding:16px">
           <p style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;margin:0 0 8px 0">Fecha</p>
@@ -141,7 +142,7 @@ function pdfHTML(f: FacturaEmailPayload): string {
         </thead>
         <tbody>
           <tr style="border-bottom:1px solid #e5e7eb">
-            <td style="padding:12px 16px;font-size:13px">${esGasto ? 'Gasto' : 'Servicio'} — ${f.emisorReceptor}</td>
+            <td style="padding:12px 16px;font-size:13px">${esGasto ? 'Gasto' : 'Servicio'} — ${escapeHtml(String(f.emisorReceptor))}</td>
             <td style="padding:12px 16px;text-align:right;font-size:13px">${formatEuro(f.baseImponible)}</td>
             <td style="padding:12px 16px;text-align:right;font-size:13px">${f.iva}%</td>
             <td style="padding:12px 16px;text-align:right;font-size:13px;font-weight:600">${formatEuro(f.baseImponible + Math.round(f.baseImponible * (f.iva / 100)))}</td>
@@ -162,10 +163,10 @@ function pdfHTML(f: FacturaEmailPayload): string {
           </tr>
         </tfoot>
       </table>
-      ${f.notas ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px"><p style="font-size:12px;margin:0;color:#1e40af"><strong>Notas:</strong> ${f.notas}</p></div>` : ''}
+      ${f.notas ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px"><p style="font-size:12px;margin:0;color:#1e40af"><strong>Notas:</strong> ${escapeHtml(String(f.notas))}</p></div>` : ''}
       ${htmlFirma(f.firmaBase64)}
       <div style="margin-top:48px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:10px;color:#9ca3af;text-align:center">
-        <p style="margin:0">${empresa} · ${direccion} · NIF ${nifEmpresa}</p>
+        <p style="margin:0">${escapeHtml(String(empresa))} · ${escapeHtml(String(direccion))} · NIF ${escapeHtml(String(nifEmpresa))}</p>
         <p style="margin:4px 0 0 0">Documento generado por MantiGestor</p>
       </div>
     </div>

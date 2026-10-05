@@ -1,4 +1,5 @@
 'use client'
+import { escapeHtml } from './escape-html'
 
 import { generarPDFDeHTML } from '@/lib/pdf'
 
@@ -28,14 +29,14 @@ export async function generarNominaPDF(nomina: NominaPDF, empresaNombre: string 
           <p style="font-size:13px;color:#6b7280;margin:0">${MESES[nomina.mes - 1]} ${nomina.anyo}</p>
         </div>
         <div style="text-align:right">
-          <p style="font-size:14px;font-weight:600;margin:0">${empresaNombre}</p>
+          <p style="font-size:14px;font-weight:600;margin:0">${escapeHtml(String(empresaNombre))}</p>
           <p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">CIF: B00000000</p>
         </div>
       </div>
 
       <div style="background:#f9fafb;border-radius:8px;padding:16px;margin-bottom:20px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
-          <div><span style="color:#6b7280">Empleado/a:</span> <strong>${nomina.empleada}</strong></div>
+          <div><span style="color:#6b7280">Empleado/a:</span> <strong>${escapeHtml(String(nomina.empleada))}</strong></div>
           <div><span style="color:#6b7280">Puesto:</span> <strong>${nomina.rol === 'jefe' ? 'Director/a' : 'Empleado/a'}</strong></div>
           <div><span style="color:#6b7280">Periodo:</span> <strong>${MESES[nomina.mes - 1]} ${nomina.anyo}</strong></div>
           <div><span style="color:#6b7280">Fecha de pago:</span> <strong>Último día del mes</strong></div>

@@ -64,6 +64,8 @@ model InvitacionPendiente {
   invitadoPorUserId   String
   invitadoPorEmail    String
   aceptada            Boolean   @default(false)
+  rol                 String?
+  tipo                String    @default("gestion") // 'gestion' | 'referido'
   createdAt           DateTime  @default(now())
 
   @@index([email])

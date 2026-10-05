@@ -92,6 +92,7 @@ export async function createReferral(
       invitadoPorUserId: userId,
       invitadoPorEmail: userEmail,
       aceptada: false,
+      tipo: 'referido',
       createdAt: new Date().toISOString(),
     })
 

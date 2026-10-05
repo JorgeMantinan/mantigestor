@@ -79,13 +79,15 @@ function RegisterForm() {
       const nuevoUserId = data.session.user.id
 
       // Buscar si hay una invitación pendiente para este email
-      let invitacionPendiente: { id: string; invitadoPorUserId: string } | null = null
+      // (solo las de tipo 'gestion' dan derecho a crear asociación; las de
+      // 'referido' jamás otorgan rol de gestor — ver migración 20261005)
+      let invitacionPendiente: { id: string; invitadoPorUserId: string; tipo: string } | null = null
 
       if (invitacionId) {
         // Buscar por ID de invitación
         const { data: inv } = await getSupabase()
           .from('invitaciones_pendientes')
-          .select('id, invitadoPorUserId')
+          .select('id, invitadoPorUserId, tipo')
           .eq('id', invitacionId)
           .eq('email', emailFinal)
           .eq('aceptada', false)
@@ -97,7 +99,7 @@ function RegisterForm() {
         // Buscar por email
         const { data: inv } = await getSupabase()
           .from('invitaciones_pendientes')
-          .select('id, invitadoPorUserId')
+          .select('id, invitadoPorUserId, tipo')
           .eq('email', emailFinal)
           .eq('aceptada', false)
           .order('createdAt', { ascending: false })
@@ -134,23 +136,32 @@ function RegisterForm() {
             rol: 'propietario',
           })
 
-        // Crear asociación gestor → perfil (quien invitó).
-        // RPC SECURITY DEFINER: RLS exige auth.uid = ownerUserId, imposible
-        // desde el cliente del usuario invitado.
-        const { error: gestorError } = await getSupabase().rpc('crear_asociacion_segura', {
-          p_owner_user_id: invitacionPendiente.invitadoPorUserId,
-          p_perfil_id: nuevoUserId,
-          p_rol: 'gestor',
-        })
-        if (gestorError) {
-          console.error('Error creating gestor association:', gestorError)
-        }
+        if (invitacionPendiente.tipo === 'gestion') {
+          // Crear asociación gestor → perfil (quien invitó).
+          // RPC SECURITY DEFINER: exige que el perfil pertenezca al que llama
+          // Y una invitación de tipo 'gestion' pendiente de este email.
+          const { error: gestorError } = await getSupabase().rpc('crear_asociacion_segura', {
+            p_owner_user_id: invitacionPendiente.invitadoPorUserId,
+            p_perfil_id: nuevoUserId,
+            p_rol: 'gestor',
+          })
+          if (gestorError) {
+            console.error('Error creating gestor association:', gestorError)
+          }
 
-        // Marcar invitación como aceptada
-        await getSupabase()
-          .from('invitaciones_pendientes')
-          .update({ aceptada: true })
-          .eq('id', invitacionPendiente.id)
+          // Marcar invitación como aceptada
+          await getSupabase()
+            .from('invitaciones_pendientes')
+            .update({ aceptada: true })
+            .eq('id', invitacionPendiente.id)
+        } else {
+          // Invitación de tipo 'referido' (programa de referidos): solo cuenta
+          // para las estadísticas del referente — NUNCA crea asociación de gestor.
+          await getSupabase()
+            .from('invitaciones_pendientes')
+            .update({ aceptada: true })
+            .eq('id', invitacionPendiente.id)
+        }
       } else {
         // Perfil normal (sin invitación)
         const now = new Date().toISOString()

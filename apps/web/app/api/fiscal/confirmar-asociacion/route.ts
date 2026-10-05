@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
       .select('invitadoPorUserId, aceptada')
       .eq('id', invitacionId)
       .eq('email', email)
+      .eq('tipo', 'gestion')
       .maybeSingle()
 
     if (!invitacion) {
@@ -96,6 +97,7 @@ export async function POST(req: NextRequest) {
       .select('id, invitadoPorUserId, aceptada, rol')
       .eq('id', invitacionId)
       .eq('email', email)
+      .eq('tipo', 'gestion')
       .maybeSingle()
 
     if (invError || !invitacion) {

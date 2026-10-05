@@ -1,4 +1,5 @@
 'use client'
+import { escapeHtml } from './escape-html'
 
 import { generarPDFDeHTML } from '@/lib/pdf'
 
@@ -45,12 +46,12 @@ export async function generarReporteGastosPDF(reporte: ReporteGastos): Promise<v
     <div style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;padding:40px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px">
         <div>
-          <h1 style="font-size:24px;font-weight:800;margin:0">${reporte.titulo}</h1>
+          <h1 style="font-size:24px;font-weight:800;margin:0">${escapeHtml(String(reporte.titulo))}</h1>
           <p style="font-size:13px;color:#6b7280;margin:4px 0 0 0">${reporte.periodo}</p>
         </div>
         <div style="text-align:right">
-          <p style="font-size:16px;font-weight:700;margin:0">${empresa}</p>
-          <p style="font-size:11px;color:#6b7280;margin:2px 0 0 0">NIF: ${nif}</p>
+          <p style="font-size:16px;font-weight:700;margin:0">${escapeHtml(String(empresa))}</p>
+          <p style="font-size:11px;color:#6b7280;margin:2px 0 0 0">NIF: ${escapeHtml(String(nif))}</p>
         </div>
       </div>
 
@@ -99,9 +100,9 @@ export async function generarReporteGastosPDF(reporte: ReporteGastos): Promise<v
           ${reporte.lineas.map((l, i) => `
             <tr style="border-bottom:1px solid #e5e7eb;${i % 2 === 0 ? '' : 'background:#f9fafb'}">
               <td style="padding:8px 12px;font-size:11px">${formatFecha(l.fecha)}</td>
-              <td style="padding:8px 12px;font-size:11px">${l.numero}</td>
-              <td style="padding:8px 12px;font-size:11px">${l.contraparte}</td>
-              <td style="padding:8px 12px;font-size:11px;text-transform:capitalize">${l.categoria.replace(/-/g, ' ')}</td>
+              <td style="padding:8px 12px;font-size:11px">${escapeHtml(String(l.numero))}</td>
+              <td style="padding:8px 12px;font-size:11px">${escapeHtml(String(l.contraparte))}</td>
+              <td style="padding:8px 12px;font-size:11px;text-transform:capitalize">${escapeHtml(l.categoria.replace(/-/g, ' '))}</td>
               <td style="padding:8px 12px;font-size:11px;text-align:right">${formatEuro(l.baseImponible)}</td>
               <td style="padding:8px 12px;font-size:11px;text-align:right">${formatEuro(l.iva)}</td>
               <td style="padding:8px 12px;font-size:11px;text-align:right;font-weight:600">${formatEuro(l.total)}</td>
@@ -119,7 +120,7 @@ export async function generarReporteGastosPDF(reporte: ReporteGastos): Promise<v
       </table>
 
       <div style="font-size:9px;color:#9ca3af;text-align:center;margin-top:32px;padding-top:16px;border-top:1px solid #e5e7eb">
-        <p style="margin:0">${empresa} · NIF ${nif} · Generado por MantiGestor</p>
+        <p style="margin:0">${escapeHtml(String(empresa))} · NIF ${escapeHtml(String(nif))} · Generado por MantiGestor</p>
       </div>
     </div>
   `

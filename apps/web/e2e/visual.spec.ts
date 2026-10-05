@@ -52,7 +52,8 @@ test.describe('Login page visual', () => {
   test('shows social login buttons', async ({ page }) => {
     await page.goto('/login')
     await expect(page.getByText('Continuar con Google')).toBeVisible()
-    await expect(page.getByText('Continuar con Outlook')).toBeVisible()
+    // El botón de Outlook se retiró (solo Google OAuth)
+    await expect(page.getByText('Continuar con Outlook')).toHaveCount(0)
   })
 
   test('has link to register', async ({ page }) => {
@@ -72,7 +73,8 @@ test.describe('Register page visual', () => {
   test('shows social login buttons', async ({ page }) => {
     await page.goto('/register')
     await expect(page.getByText('Registrarse con Google')).toBeVisible()
-    await expect(page.getByText('Registrarse con Outlook')).toBeVisible()
+    // El botón de Outlook se retiró (solo Google OAuth)
+    await expect(page.getByText('Registrarse con Outlook')).toHaveCount(0)
   })
 
   test('has link to login', async ({ page }) => {
