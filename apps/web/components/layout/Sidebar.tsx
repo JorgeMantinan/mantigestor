@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { getCalendarioFiscal } from '@mantigestor/utils'
 import { SidebarGroupComponent } from './sidebar-group'
 import { SearchTrigger } from '@/components/search/search-trigger'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 function PlazosFiscalesWidget({ collapsed }: { collapsed: boolean }) {
   const [plazos, setPlazos] = useState<{ fecha: Date; nombre: string }[]>([])
@@ -148,14 +149,14 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          'flex flex-col border-r bg-sidebar transition-all duration-300',
+          'flex flex-col border-r bg-sidebar transition-all duration-300 overflow-hidden',
           'hidden lg:flex',
           collapsed ? 'lg:w-16' : 'lg:w-64',
           mobileOpen && '!flex fixed inset-y-0 left-0 z-40 w-64'
         )}
       >
         <div className="flex h-14 items-center gap-2 border-b px-4">
-          <div className={cn('flex items-center gap-2', collapsed && 'justify-center w-full')}>
+          <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <span className="text-sm font-bold text-primary-foreground">M</span>
             </div>
@@ -174,21 +175,23 @@ export function Sidebar() {
         )}
 
         <div className="flex-1 overflow-y-auto py-4">
-          <nav className="flex flex-col gap-5 px-3">
-            {collapsed && (
-              <SearchTrigger collapsed />
-            )}
-            {menuGroups.map((group) => (
-              <SidebarGroupComponent
-                key={group.group}
-                group={group.group}
-                items={group.items}
-                collapsed={collapsed}
-                pathname={pathname}
-                defaultOpen={group.defaultOpen}
-              />
-            ))}
-          </nav>
+          <TooltipProvider delayDuration={200}>
+            <nav className="flex flex-col gap-5 px-3">
+              {collapsed && (
+                <SearchTrigger collapsed />
+              )}
+              {menuGroups.map((group) => (
+                <SidebarGroupComponent
+                  key={group.group}
+                  group={group.group}
+                  items={group.items}
+                  collapsed={collapsed}
+                  pathname={pathname}
+                  defaultOpen={group.defaultOpen}
+                />
+              ))}
+            </nav>
+          </TooltipProvider>
         </div>
 
         <PlazosFiscalesWidget collapsed={collapsed} />
@@ -197,7 +200,7 @@ export function Sidebar() {
           <Button
             variant="ghost"
             size={collapsed ? 'icon' : 'default'}
-            className={cn('w-full', collapsed && 'mx-auto')}
+            className={cn(collapsed ? 'w-10' : 'w-full')}
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
           >

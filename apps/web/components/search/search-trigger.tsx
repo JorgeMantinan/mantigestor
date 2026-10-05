@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { GlobalSearchDialog } from './global-search-dialog'
 
 export function SearchTrigger({ collapsed = false }: { collapsed?: boolean }) {
@@ -24,26 +25,31 @@ export function SearchTrigger({ collapsed = false }: { collapsed?: boolean }) {
 
   return (
     <>
-      <Button
-        variant="outline"
-        className={cn(
-          'h-8 w-8 shrink-0 p-0 text-muted-foreground hover:text-foreground sm:h-9 sm:w-auto sm:px-3 sm:py-2',
-          collapsed && 'h-10 w-10 mx-auto'
-        )}
-        onClick={handleOpen}
-        aria-label="Búsqueda global (Ctrl+K)"
-      >
-        <Search className="h-4 w-4" aria-hidden="true" />
-        {!collapsed && (
-          <>
-            <span className="hidden flex-1 text-left text-sm sm:inline">Buscar...</span>
-            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 lg:flex">
-              <span className="text-xs">Ctrl</span>
-              <span className="text-xs">K</span>
-            </kbd>
-          </>
-        )}
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              'h-8 w-8 shrink-0 p-0 text-muted-foreground hover:text-foreground sm:h-9 sm:w-auto sm:px-3 sm:py-2',
+              collapsed && 'h-10 w-10'
+            )}
+            onClick={handleOpen}
+            aria-label="Búsqueda global (Ctrl+K)"
+          >
+            <Search className="h-4 w-4" aria-hidden="true" />
+            {!collapsed && (
+              <>
+                <span className="hidden flex-1 text-left text-sm sm:inline">Buscar...</span>
+                <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 lg:flex">
+                  <span className="text-xs">Ctrl</span>
+                  <span className="text-xs">K</span>
+                </kbd>
+              </>
+            )}
+          </Button>
+        </TooltipTrigger>
+        {collapsed && <TooltipContent side="right">Búsqueda global (Ctrl+K)</TooltipContent>}
+      </Tooltip>
       <GlobalSearchDialog open={open} onOpenChange={setOpen} />
     </>
   )

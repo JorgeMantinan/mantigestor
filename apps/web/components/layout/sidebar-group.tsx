@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { ChevronDown } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -42,17 +43,21 @@ export function SidebarGroupComponent({
                 : pathname === item.href ||
                   pathname.startsWith(item.href + '/')
             return (
-              <Button
-                key={item.href}
-                variant={isActive ? 'secondary' : 'ghost'}
-                size="icon"
-                className="h-10 w-10 mx-auto relative"
-                asChild
-              >
-                <Link href={item.href} title={item.label}>
-                  <item.icon className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </Button>
+              <Tooltip key={item.href}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={isActive ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className="h-10 w-10 relative"
+                    asChild
+                  >
+                    <Link href={item.href} aria-label={item.label}>
+                      <item.icon className="h-4 w-4" aria-hidden="true" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">{item.label}</TooltipContent>
+              </Tooltip>
             )
           })}
         </div>
