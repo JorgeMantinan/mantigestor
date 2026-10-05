@@ -41,6 +41,8 @@ export default function ApiDocsPageClient() {
         url: '/api/docs',
         domNode: ref.current,
         layout: 'BaseLayout',
+        // Envía las cookies de sesión en "Try it out" (la API autentica por cookie)
+        withCredentials: true,
       })
     }
 
