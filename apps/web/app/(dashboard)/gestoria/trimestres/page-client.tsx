@@ -76,6 +76,7 @@ export default function TrimestresPage() {
         .eq('perfilId', perfilActivoId ?? user.id)
         .gte('fechaEmision', desde)
         .lt('fechaEmision', hasta)
+        .limit(1000)
 
       if (errFacturas) throw new Error(t('trimestres.errorConsultarFacturas'))
       const facturasTipadas = (facturas ?? []) as unknown as FacturaFila[]
@@ -102,6 +103,7 @@ export default function TrimestresPage() {
         .eq('perfilId', perfilActivoId ?? user.id)
         .eq('rol', 'empleado')
         .eq('anyo', anho)
+        .limit(120)
 
       const retencionesPorTrimestre: [number, number, number, number] = [0, 0, 0, 0]
       if (nominasEmp) {

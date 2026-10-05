@@ -20,11 +20,11 @@ export function WidgetExport() {
     if (!user) return { facturas: [], documentos: [], nominas: [], perfil: null, propiedadesAlquiler: [], auditLog: [], notificaciones: [] }
 
     const [facturasRes, docsRes, nominasRes, perfilRes, propsRes, auditRes, notifRes] = await Promise.all([
-      supabase.from('facturas').select('*').eq('perfilId', user.id).order('fechaEmision', { ascending: false }),
-      supabase.from('documentos').select('*').eq('perfilId', user.id),
-      supabase.from('nominas').select('*').eq('perfilId', user.id),
+      supabase.from('facturas').select('*').eq('perfilId', user.id).order('fechaEmision', { ascending: false }).limit(2000),
+      supabase.from('documentos').select('*').eq('perfilId', user.id).limit(1000),
+      supabase.from('nominas').select('*').eq('perfilId', user.id).limit(500),
       supabase.from('perfiles').select('*').eq('userId', user.id).single(),
-      supabase.from('propiedades_alquiler').select('*').eq('perfilId', user.id),
+      supabase.from('propiedades_alquiler').select('*').eq('perfilId', user.id).limit(500),
       supabase.from('audit_log').select('*').eq('perfilId', user.id).order('createdAt', { ascending: false }).limit(500),
       supabase.from('notificaciones').select('*').eq('perfilId', user.id).order('creadoEn', { ascending: false }).limit(200),
     ])

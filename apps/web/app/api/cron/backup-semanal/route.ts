@@ -1,9 +1,12 @@
 ﻿import { NextResponse, type NextRequest } from 'next/server'
 import { escapeHtml } from '@/lib/escape-html'
+import { mapConcurrente } from '@/lib/concurrency'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
 
+
+export const maxDuration = 300
 /**
  * Cron job: /api/cron/backup-semanal
  *
@@ -49,7 +52,9 @@ export async function GET(req: NextRequest) {
 
   let backedUp = 0
 
-  for (const perfil of perfiles as Perfil[]) {
+  // Concurrencia acotada: antes eran4 queries + upload + firma + email por
+  // perfil de forma secuencial (6N round-trips encadenados)
+  await mapConcurrente(perfiles as Perfil[], 3, async (perfil) => {
     try {
       const [facturasRes, documentosRes, suscripcionesRes, notificacionesRes] = await Promise.all([
         supabase.from('facturas').select('*').eq('perfilId', perfil.id).order('fechaEmision', { ascending: true }),
@@ -78,7 +83,7 @@ export async function GET(req: NextRequest) {
 
       if (uploadError) {
         console.error(`Error subiendo backup para ${perfil.id}:`, uploadError.message)
-        continue
+        return
       }
 
       // Bucket privado: URL firmada válida 7 días
@@ -107,7 +112,7 @@ export async function GET(req: NextRequest) {
     } catch (e) {
       console.error(`Error en backup semanal para perfil ${perfil.id}:`, e)
     }
-  }
+  })
 
   return NextResponse.json({ backedUp, fecha })
 }

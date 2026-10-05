@@ -122,6 +122,7 @@ export default function ProformasPage() {
         .select('*')
         .eq('perfilId', perfilId)
         .order('createdAt', { ascending: false })
+        .limit(500)
       if (error) throw error
       setProformas((data ?? []) as Proforma[])
     } catch {

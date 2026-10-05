@@ -1,9 +1,12 @@
 ﻿import { NextResponse, type NextRequest } from 'next/server'
 import { escapeHtml } from '@/lib/escape-html'
+import { mapConcurrente } from '@/lib/concurrency'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notificarVencimientosProximos } from '@/lib/enviar-push'
 
+
+export const maxDuration = 300
 /**
  * Cron job: /api/cron/recordatorios-facturas
  *
@@ -72,7 +75,8 @@ export async function GET(req: NextRequest) {
   let notified = 0
   let emails = 0
 
-  for (const [perfilId, facturasPerfil] of porPerfil) {
+  // Concurrencia acotada (antes:3 round-trips secuenciales por perfil)
+  await mapConcurrente(Array.from(porPerfil), 5, async ([perfilId, facturasPerfil]) => {
     try {
       const { data: perfil } = await supabase
         .from('perfiles')
@@ -80,7 +84,7 @@ export async function GET(req: NextRequest) {
         .eq('id', perfilId)
         .single()
 
-      if (!perfil?.email) continue
+      if (!perfil?.email) return
 
       // Verificar si ya se notificó alguna de estas facturas hoy
       const { data: yaNotificadas } = await supabase
@@ -92,7 +96,7 @@ export async function GET(req: NextRequest) {
       const yaSet = new Set((yaNotificadas ?? []).map(n => n.contenido))
       const nuevas = facturasPerfil.filter(f => !yaSet.has(f.id))
 
-      if (nuevas.length === 0) continue
+      if (nuevas.length === 0) return
 
       // Crear notificaciones in-app
       const notifInserts = nuevas.map(f => ({
@@ -115,7 +119,7 @@ export async function GET(req: NextRequest) {
     } catch (e) {
       console.error('Error en recordatorio de facturas:', e)
     }
-  }
+  })
 
   // Enviar push notifications a todos los perfiles con suscripciones activas
   const pushResult = await notificarVencimientosProximos(pendientes, supabase)

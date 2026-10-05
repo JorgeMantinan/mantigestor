@@ -143,9 +143,10 @@ function PaginaFiscalInner() {
     setMostrarWizard(!p)
     // Sincroniza con la BD ANTES de la primera carga de datos: la preferencia guardada
     // en cuenta manda sobre el dispositivo local y evita cargas en carrera con distinta comunidad
+    const ctrl = new AbortController()
     void (async () => {
       try {
-        const res = await fetch('/api/fiscal/perfil')
+        const res = await fetch('/api/fiscal/perfil', { signal: ctrl.signal })
         if (res.ok) {
           const json = (await res.json()) as {
             data?: { comunidadFiscal?: string | null; perfilFiscal?: PerfilFiscal | null }
@@ -165,6 +166,7 @@ function PaginaFiscalInner() {
         setSincronizado(true)
       }
     })()
+    return () => ctrl.abort()
   }, [])
 
   const cargarDatos = useCallback(async (comunidadSel: string, anhoSel: number, forzar = false) => {

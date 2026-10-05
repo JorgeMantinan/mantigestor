@@ -75,6 +75,7 @@ export default function AlquilerPage() {
       .select('*, gastos_alquiler(*)')
       .eq('perfilId', perfilActivoId ?? user.id)
       .order('createdAt', { ascending: false })
+        .limit(200)
     if (empresaActiva?.id) {
       query = query.eq('empresaId', empresaActiva.id)
     }

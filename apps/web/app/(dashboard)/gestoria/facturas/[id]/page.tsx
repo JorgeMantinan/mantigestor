@@ -140,10 +140,11 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
 
   useEffect(() => {
     if (!factura) return
+    const ctrl = new AbortController()
     const fetchVersiones = async () => {
       setCargandoVersiones(true)
       try {
-        const res = await fetch(`/api/fiscal/versiones?entidad=factura&entidadId=${factura.id}`)
+        const res = await fetch(`/api/fiscal/versiones?entidad=factura&entidadId=${factura.id}`, { signal: ctrl.signal })
         if (res.ok) {
           const { data } = await res.json()
           setVersiones(data ?? [])
@@ -154,6 +155,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
       setCargandoVersiones(false)
     }
     fetchVersiones()
+    return () => ctrl.abort()
   }, [factura])
 
   useEffect(() => {

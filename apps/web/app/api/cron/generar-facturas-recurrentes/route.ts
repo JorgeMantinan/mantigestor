@@ -1,9 +1,12 @@
 ﻿import { NextResponse, type NextRequest } from 'next/server'
 import { escapeHtml } from '@/lib/escape-html'
+import { mapConcurrente } from '@/lib/concurrency'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { acquireLock, releaseLock } from '@/lib/recurring-invoice-lock'
 
+
+export const maxDuration = 300
 /**
  * Cron job: /api/cron/generar-facturas-recurrentes
  *
@@ -92,10 +95,11 @@ export async function GET(req: NextRequest) {
     porPerfil.set(p.perfilId, arr)
   }
 
-  for (const [perfilId, templates] of porPerfil) {
+  // Concurrencia acotada entre perfiles (el lock sigue siendo por perfil,
+  // así que no hay solape; antes todo era secuencial)
+  await mapConcurrente(Array.from(porPerfil), 5, async ([perfilId, templates]) => {
     if (!acquireLock(perfilId)) {
-
-      continue
+      return
     }
 
     try {
@@ -199,7 +203,7 @@ export async function GET(req: NextRequest) {
     } finally {
       releaseLock(perfilId)
     }
-  }
+  })
 
   return NextResponse.json({ generated: generadas, emails: emailsEnviados })
 }

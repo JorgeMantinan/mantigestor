@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { verificarCron } from '@/lib/cron-auth'
+import { mapConcurrente } from '@/lib/concurrency'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
@@ -12,6 +13,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
  * Seguridad: comprobar CRON_SECRET en header x-cron-secret.
  */
 
+
+export const maxDuration = 300
 interface Perfil {
   id: string
   email: string | null
@@ -94,7 +97,8 @@ export async function GET(req: NextRequest) {
 
   let backedUp = 0
 
-  for (const perfil of perfiles as Perfil[]) {
+  // Concurrencia acotada (antes:3 queries secuenciales por perfil)
+  await mapConcurrente(perfiles as Perfil[], 5, async (perfil) => {
     try {
       const { data: facturas } = await supabase
         .from('facturas')
@@ -102,7 +106,7 @@ export async function GET(req: NextRequest) {
         .eq('perfilId', perfil.id)
         .order('fechaEmision', { ascending: true })
 
-      if (!facturas || facturas.length === 0) continue
+      if (!facturas || facturas.length === 0) return
 
       const csv = facturasToCsv(facturas as Factura[])
       const hoy = new Date().toISOString().slice(0, 10)
@@ -117,7 +121,7 @@ export async function GET(req: NextRequest) {
         .eq('contenido', contenido)
         .limit(1)
 
-      if (yaExiste && yaExiste.length > 0) continue
+      if (yaExiste && yaExiste.length > 0) return
 
       await supabase.from('notificaciones').insert({
         id: crypto.randomUUID(),
@@ -131,7 +135,7 @@ export async function GET(req: NextRequest) {
     } catch (e) {
       console.error(`Error generando backup para perfil ${perfil.id}:`, e)
     }
-  }
+  })
 
   return NextResponse.json({ backedUp })
 }

@@ -1,9 +1,12 @@
 ﻿import { NextResponse, type NextRequest } from 'next/server'
 import { escapeHtml } from '@/lib/escape-html'
+import { mapConcurrente } from '@/lib/concurrency'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCalendarioFiscal } from '@mantigestor/utils'
 
+
+export const maxDuration = 300
 /**
  * Cron job: /api/cron/recordatorios-plazos
  *
@@ -93,9 +96,10 @@ export async function GET(req: NextRequest) {
   let notified = 0
   let emails = 0
 
-  for (const perfil of perfiles as Perfil[]) {
+  // Concurrencia acotada (antes:4 round-trips secuenciales por perfil)
+  await mapConcurrente(perfiles as Perfil[], 5, async (perfil) => {
     // Solo usuarios con email (los perfiles con userId 'pending:...' no tienen auth)
-    if (!perfil.email) continue
+    if (!perfil.email) return
 
     try {
       // Cargar preferencias del usuario
@@ -113,7 +117,7 @@ export async function GET(req: NextRequest) {
         cumplePreferenciaEmail(v.diffDias, v.categoria ?? 'todos', preferencias)
       )
 
-      if (vencimientosFiltrados.length === 0) continue
+      if (vencimientosFiltrados.length === 0) return
 
       const clavePorVencimiento: Array<{ clave: string; v: VencimientoProximo }> = []
       for (const v of vencimientosFiltrados) {
@@ -132,7 +136,7 @@ export async function GET(req: NextRequest) {
 
       const pendientes = clavePorVencimiento.filter(c => !yaSet.has(c.clave))
 
-      if (pendientes.length === 0) continue
+      if (pendientes.length === 0) return
 
       // Crear notificación in-app por cada vencimiento pendiente
       const nuevas = pendientes.map(c => ({
@@ -155,7 +159,7 @@ export async function GET(req: NextRequest) {
     } catch (e) {
       console.error('Error en recordatorio de plazos:', e)
     }
-  }
+  })
 
   return NextResponse.json({ notified, emails })
 }

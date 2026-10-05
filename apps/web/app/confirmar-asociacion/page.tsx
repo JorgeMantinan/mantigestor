@@ -37,10 +37,11 @@ function ConfirmarAsociacion() {
       return
     }
 
+    const ctrl = new AbortController()
     const fetchData = async () => {
       // Primero obtener info del invitador (sin auth)
       try {
-        const resInfo = await fetch(`/api/fiscal/confirmar-asociacion?invitacion=${invitacionId}&email=${encodeURIComponent(email)}`)
+        const resInfo = await fetch(`/api/fiscal/confirmar-asociacion?invitacion=${invitacionId}&email=${encodeURIComponent(email)}`, { signal: ctrl.signal })
         const infoData = await resInfo.json()
 
         if (infoData.aceptada) {
@@ -73,6 +74,7 @@ function ConfirmarAsociacion() {
     }
 
     fetchData()
+    return () => ctrl.abort()
   }, [invitacionId, email, getSupabase])
 
   const handleConfirmar = async () => {

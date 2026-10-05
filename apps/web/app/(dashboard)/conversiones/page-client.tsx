@@ -122,10 +122,11 @@ export default function ConversionesPage() {
   const [convirtiendo, setConvirtiendo] = useState(false)
 
   useEffect(() => {
+    const ctrl = new AbortController()
     const fetchTasas = async () => {
       try {
         const allCodes = ['USD', 'GBP', 'CHF', 'CAD', 'AUD', 'JPY', 'MXN', 'ARS', 'COP', 'BRL']
-        const res = await fetch(`https://api.frankfurter.dev/latest?from=EUR&to=${allCodes.join(',')}`)
+        const res = await fetch(`https://api.frankfurter.dev/latest?from=EUR&to=${allCodes.join(',')}`, { signal: ctrl.signal })
         if (!res.ok) throw new Error('Failed to fetch')
         const data = await res.json()
         const eurRates = data.rates as Record<string, number>
@@ -151,6 +152,7 @@ export default function ConversionesPage() {
     }
 
     fetchTasas()
+    return () => ctrl.abort()
   }, [])
 
   const tabs: { value: ConversionType; label: string }[] = [

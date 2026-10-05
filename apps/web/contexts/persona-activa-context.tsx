@@ -50,6 +50,7 @@ export function PersonaActivaProvider({ children }: { children: ReactNode }) {
       return
     }
 
+    const ctrl = new AbortController()
     const supabase = createClient()
 
     async function cargarPersonas() {
@@ -59,6 +60,7 @@ export function PersonaActivaProvider({ children }: { children: ReactNode }) {
 
         const res = await fetch('/api/fiscal/mis-personas', {
           headers: { Authorization: `Bearer ${session.access_token}` },
+          signal: ctrl.signal,
         })
         if (res.ok) {
           const data = await res.json()
@@ -72,6 +74,7 @@ export function PersonaActivaProvider({ children }: { children: ReactNode }) {
     }
 
     cargarPersonas()
+    return () => ctrl.abort()
   }, [user])
 
   const setPerfilActivo = useCallback((perfilId: string | null) => {

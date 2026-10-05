@@ -1,9 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { verificarCron } from '@/lib/cron-auth'
+import { mapConcurrente } from '@/lib/concurrency'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCalendarioFiscal } from '@mantigestor/utils'
 import { sendPushNotification } from '@/lib/web-push'
 
+
+export const maxDuration = 300
 /**
  * Cron job: /api/cron/push-notifications
  *
@@ -67,7 +70,8 @@ export async function GET(req: NextRequest) {
   let sent = 0
   let failed = 0
 
-  for (const userId of uniqueUserIds) {
+  // Concurrencia entre usuarios: los envíos HTTP eran U×V×S secuenciales
+  await mapConcurrente(uniqueUserIds, 5, async (userId) => {
     const userSubs = subs.filter(s => s.userId === userId)
 
     for (const v of vencimientos) {
@@ -87,7 +91,7 @@ export async function GET(req: NextRequest) {
         else failed++
       }
     }
-  }
+  })
 
   return NextResponse.json({ sent, failed })
 }

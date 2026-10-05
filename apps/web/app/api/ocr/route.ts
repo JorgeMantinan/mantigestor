@@ -6,6 +6,8 @@ import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { firmarUrlAdmin, carpetaDeUrlStorage } from '@/lib/storage-server'
 import { z } from 'zod'
 
+
+export const maxDuration = 60
 const OcrBodySchema = z.object({
   pdfUrl: z.string().min(1, 'pdfUrl requerido'),
 })

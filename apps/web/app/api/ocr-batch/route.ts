@@ -6,6 +6,8 @@ import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { extractInvoiceData, esUrlStorageSegura, type OcrResult } from '@/lib/ocr'
 import { firmarUrlAdmin, carpetaDeUrlStorage } from '@/lib/storage-server'
 
+
+export const maxDuration = 120
 interface ArchivoBatch {
   url: string
   nombre: string

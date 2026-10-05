@@ -1,11 +1,14 @@
 ﻿import { NextResponse, type NextRequest } from 'next/server'
 import { escapeHtml } from '@/lib/escape-html'
+import { mapConcurrente } from '@/lib/concurrency'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
 import { regenerarModelosPeriodo } from '@/lib/fiscal/modelos-generados'
 import type { Trimestre } from '@/lib/fiscal/generador-modelos'
 
+
+export const maxDuration = 300
 /**
  * Cron job: /api/cron/generar-modelos-trimestrales
  *
@@ -66,7 +69,8 @@ export async function GET(req: NextRequest) {
   let generated = 0
   const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
-  for (const perfil of perfiles as Perfil[]) {
+  // Concurrencia acotada (antes: regeneración + N inserts + email por perfil, secuencial)
+  await mapConcurrente(perfiles as Perfil[], 5, async (perfil) => {
     try {
       const { modelos, regenerado } = await regenerarModelosPeriodo(
         supabase,
@@ -75,7 +79,7 @@ export async function GET(req: NextRequest) {
         trimestre
       )
 
-      if (modelos.length === 0) continue
+      if (modelos.length === 0) return
 
       if (regenerado) {
         for (const modelo of modelos) {
@@ -113,7 +117,7 @@ export async function GET(req: NextRequest) {
     } catch (e) {
       console.error(`Error generando modelos para perfil ${perfil.id}:`, e)
     }
-  }
+  })
 
   return NextResponse.json({ generated, trimestre, year })
 }

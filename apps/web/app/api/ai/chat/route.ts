@@ -5,6 +5,8 @@ import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { z } from 'zod'
 
+
+export const maxDuration = 120
 const ChatMessageSchema = z.object({
   mensaje: z.string().min(1, 'Mensaje requerido'),
   historial: z.array(z.object({

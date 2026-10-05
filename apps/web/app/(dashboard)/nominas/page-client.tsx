@@ -85,6 +85,7 @@ export default function NominasPage() {
         .eq('perfilId', perfilId)
         .eq('anyo', anyoFiltro)
         .order('mes', { ascending: false })
+        .limit(500)
       if (empresaActiva?.id) {
         query = query.eq('empresaId', empresaActiva.id)
       }

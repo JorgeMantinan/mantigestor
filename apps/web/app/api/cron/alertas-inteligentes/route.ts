@@ -1,8 +1,11 @@
 ﻿import { NextResponse, type NextRequest } from 'next/server'
 import { escapeHtml } from '@/lib/escape-html'
+import { mapConcurrente } from '@/lib/concurrency'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 
+
+export const maxDuration = 300
 interface Perfil {
   id: string
   email: string | null
@@ -34,8 +37,9 @@ export async function GET(req: NextRequest) {
 
   let alertsSent = 0
 
-  for (const perfil of perfiles as Perfil[]) {
-    if (!perfil.email) continue
+  // Concurrencia acotada: antes eran5 round-trips secuenciales por usuario
+  await mapConcurrente(perfiles as Perfil[], 5, async (perfil) => {
+    if (!perfil.email) return
 
     const alertas: string[] = []
 
@@ -147,7 +151,7 @@ export async function GET(req: NextRequest) {
     } catch (e) {
       console.error(`Error procesando alertas para ${perfil.id}:`, e)
     }
-  }
+  })
 
   return NextResponse.json({ alerts: alertsSent })
 }

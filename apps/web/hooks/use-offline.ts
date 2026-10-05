@@ -32,9 +32,10 @@ export function useOffline() {
   }, [activePerfilId])
 
   useEffect(() => {
+    const ctrl = new AbortController()
     if (!activePerfilId) return
     if (navigator.onLine) {
-      fetch(`/api/fiscal/facturas?perfilId=${activePerfilId}`)
+      fetch(`/api/fiscal/facturas?perfilId=${activePerfilId}`, { signal: ctrl.signal })
         .then((r) => r.json())
         .then((data) => {
           if (Array.isArray(data)) {
@@ -44,6 +45,7 @@ export function useOffline() {
         })
         .catch(() => {})
     }
+    return () => ctrl.abort()
   }, [activePerfilId])
 
   const saveForOffline = useCallback(

@@ -140,6 +140,7 @@ export default function KanbanCobrosPage() {
       .eq('perfilId', perfilActivoId ?? user.id)
       .eq('tipo', 'ingreso')
       .order('fechaEmision', { ascending: false })
+      .limit(1000)
     if (!error && data) setFacturas(data as Factura[])
     setLoading(false)
   }, [perfilActivoId])

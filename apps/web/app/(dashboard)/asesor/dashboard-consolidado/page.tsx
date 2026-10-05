@@ -26,10 +26,11 @@ export default function DashboardConsolidadoPage() {
   const clientesGestionados = personas.filter(p => p.tipo === 'gestiono')
 
   useEffect(() => {
+    const ctrl = new AbortController()
     async function cargarDatos() {
       setLoading(true)
       try {
-        const res = await fetch('/api/fiscal/asesor/dashboard')
+        const res = await fetch('/api/fiscal/asesor/dashboard', { signal: ctrl.signal })
         if (res.ok) {
           const data = await res.json()
           setDatos(data.personas ?? [])
@@ -45,6 +46,7 @@ export default function DashboardConsolidadoPage() {
     } else {
       setLoading(false)
     }
+    return () => ctrl.abort()
   }, [clientesGestionados.length])
 
   const hoy = new Date()

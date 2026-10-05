@@ -195,9 +195,10 @@ export default function DashboardPage() {
           supabase.from('perfiles').select('nombre, nif').eq('id', perfilId).single(),
           supabase.from('facturas').select('*').eq('perfilId', perfilId)
             .gte('fechaEmision', `${selectedYear}-01-01`).lt('fechaEmision', `${selectedYear + 1}-01-01`)
-            .order('fechaEmision', { ascending: false }),
-          supabase.from('nominas').select('*').eq('perfilId', perfilId).eq('anyo', selectedYear).order('mes', { ascending: false }),
-          supabase.from('propiedades_alquiler').select('*, gastos_alquiler(*)').eq('perfilId', perfilId),
+            .order('fechaEmision', { ascending: false })
+            .limit(5000),
+          supabase.from('nominas').select('*').eq('perfilId', perfilId).eq('anyo', selectedYear).order('mes', { ascending: false }).limit(1000),
+          supabase.from('propiedades_alquiler').select('*, gastos_alquiler(*)').eq('perfilId', perfilId).limit(500),
         ])
 
         if (perfilRes.data?.nombre) setNombre(perfilRes.data.nombre)
@@ -250,9 +251,10 @@ export default function DashboardPage() {
             supabase.from('perfiles').select('nombre, nif').eq('id', perfilId).single(),
             supabase.from('facturas').select('*').eq('perfilId', perfilId)
               .gte('fechaEmision', `${selectedYear}-01-01`).lt('fechaEmision', `${selectedYear + 1}-01-01`)
-              .order('fechaEmision', { ascending: false }),
-            supabase.from('nominas').select('*').eq('perfilId', perfilId).eq('anyo', selectedYear).order('mes', { ascending: false }),
-            supabase.from('propiedades_alquiler').select('*, gastos_alquiler(*)').eq('perfilId', perfilId),
+              .order('fechaEmision', { ascending: false })
+              .limit(5000),
+            supabase.from('nominas').select('*').eq('perfilId', perfilId).eq('anyo', selectedYear).order('mes', { ascending: false }).limit(1000),
+            supabase.from('propiedades_alquiler').select('*, gastos_alquiler(*)').eq('perfilId', perfilId).limit(500),
           ])
 
           if (perfilRes.data?.nombre) setNombre(perfilRes.data.nombre)

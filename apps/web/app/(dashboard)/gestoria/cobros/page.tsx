@@ -45,6 +45,7 @@ export default function CobrosPage() {
       .eq('perfilId', perfilActivoId ?? user.id)
       .eq('tipo', 'ingreso')
       .order('fechaEmision', { ascending: false })
+      .limit(1000)
     if (!error && data) setFacturas(data as Factura[])
     setLoading(false)
   }, [perfilActivoId])

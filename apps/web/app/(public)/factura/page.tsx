@@ -34,6 +34,7 @@ export default function FacturaPublicaPage({ searchParams }: { searchParams: { t
   const [expandida, setExpandida] = useState<string | null>(null)
 
   useEffect(() => {
+    const ctrl = new AbortController()
     const cargar = async () => {
       if (!searchParams.token) {
         setError('Token no proporcionado')
@@ -41,7 +42,7 @@ export default function FacturaPublicaPage({ searchParams }: { searchParams: { t
         return
       }
       try {
-        const res = await fetch(`/api/cliente-portal?token=${searchParams.token}`)
+        const res = await fetch(`/api/cliente-portal?token=${searchParams.token}`, { signal: ctrl.signal })
         if (!res.ok) {
           const err = await res.json()
           setError(err.error || 'Error al cargar facturas')
@@ -51,12 +52,14 @@ export default function FacturaPublicaPage({ searchParams }: { searchParams: { t
         const data = await res.json()
         setFacturas(data.facturas || [])
         setTokenCliente(data.tokenCliente)
-      } catch {
+      } catch (e) {
+        if ((e as Error)?.name === 'AbortError') return
         setError('Error al conectar con el servidor')
       }
       setCargando(false)
     }
     cargar()
+    return () => ctrl.abort()
   }, [searchParams.token])
 
   const facturasFiltradas = useMemo(() => {

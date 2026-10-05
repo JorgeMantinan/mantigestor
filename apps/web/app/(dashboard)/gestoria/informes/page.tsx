@@ -55,6 +55,7 @@ export default function InformesPage() {
         .select('*')
         .eq('perfilId', perfil.id)
         .order('fechaEmision', { ascending: false })
+        .limit(500)
       if (data) setFacturas(data as Factura[])
       setCargando(false)
     }

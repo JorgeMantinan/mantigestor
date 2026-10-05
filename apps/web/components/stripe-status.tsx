@@ -8,10 +8,12 @@ export function StripeStatus() {
   const [configured, setConfigured] = useState<boolean | null>(null)
 
   useEffect(() => {
-    fetch('/api/stripe/status')
+    const ctrl = new AbortController()
+    fetch('/api/stripe/status', { signal: ctrl.signal })
       .then(r => r.json())
       .then(data => setConfigured(data.configured ?? false))
       .catch(() => setConfigured(false))
+    return () => ctrl.abort()
   }, [])
 
   if (configured === null) return null

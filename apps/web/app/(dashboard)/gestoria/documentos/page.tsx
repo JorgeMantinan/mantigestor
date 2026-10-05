@@ -89,6 +89,7 @@ export default function DocumentosPage() {
         .select('*')
         .eq('perfilId', perfilId)
         .order('subidoEn', { ascending: false })
+        .limit(500)
       if (empresaActiva?.id) {
         query = query.eq('empresaId', empresaActiva.id)
       }
