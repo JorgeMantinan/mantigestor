@@ -174,7 +174,14 @@ export function Sidebar() {
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto py-4">
+        <div
+          className={cn(
+            'flex-1 overflow-y-auto py-4',
+            // Al colapsar el menú muestra todos los iconos y no cabe sin
+            // scroll: se oculta la barra visual (el scroll con rueda/touch sigue)
+            collapsed && '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+          )}
+        >
           <TooltipProvider delayDuration={200}>
             <nav className="flex flex-col gap-5 px-3">
               {collapsed && (
