@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge'
 import { getCalendarioFiscal } from '@mantigestor/utils'
 import { SidebarGroupComponent } from './sidebar-group'
 import { SearchTrigger } from '@/components/search/search-trigger'
-import { TooltipProvider } from '@/components/ui/tooltip'
 
 function PlazosFiscalesWidget({ collapsed }: { collapsed: boolean }) {
   const [plazos, setPlazos] = useState<{ fecha: Date; nombre: string }[]>([])
@@ -182,23 +181,21 @@ export function Sidebar() {
             collapsed && '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
           )}
         >
-          <TooltipProvider delayDuration={200}>
-            <nav className="flex flex-col gap-5 px-3">
-              {collapsed && (
-                <SearchTrigger collapsed />
-              )}
-              {menuGroups.map((group) => (
-                <SidebarGroupComponent
-                  key={group.group}
-                  group={group.group}
-                  items={group.items}
-                  collapsed={collapsed}
-                  pathname={pathname}
-                  defaultOpen={group.defaultOpen}
-                />
-              ))}
-            </nav>
-          </TooltipProvider>
+          <nav className="flex flex-col gap-5 px-3">
+            {collapsed && (
+              <SearchTrigger collapsed />
+            )}
+            {menuGroups.map((group) => (
+              <SidebarGroupComponent
+                key={group.group}
+                group={group.group}
+                items={group.items}
+                collapsed={collapsed}
+                pathname={pathname}
+                defaultOpen={group.defaultOpen}
+              />
+            ))}
+          </nav>
         </div>
 
         <PlazosFiscalesWidget collapsed={collapsed} />
