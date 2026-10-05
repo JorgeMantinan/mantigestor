@@ -269,7 +269,7 @@ export default function NominasPage() {
           ))}
         </div>
 
-        {/* BÃºsqueda + filtros */}
+        {/* Búsqueda + filtros */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -279,7 +279,7 @@ export default function NominasPage() {
               value={busqueda}
               onChange={e => { setBusqueda(e.target.value); setPage(0) }}
               className="pl-9"
-              aria-label="Buscar nÃ³minas"
+              aria-label="Buscar nóminas"
             />
           </div>
           <div className="flex gap-2">
@@ -293,14 +293,14 @@ export default function NominasPage() {
           <div className="flex-1" />
           <Button variant="outline" size="sm" disabled={visibles.length === 0}
             onClick={() => {
-              const headers = ['Empleada', 'Rol', 'Mes', 'AÃ±o', 'Salario Bruto', 'IRPF', 'Seg. Social', 'Neto']
+              const headers = ['Empleada', 'Rol', 'Mes', 'Año', 'Salario Bruto', 'IRPF', 'Seg. Social', 'Neto']
               const rows = visibles.map(n => [
                 n.empleada, n.rol === 'jefe' ? 'Jefe' : 'Empleada',
                 n.mes.toString(), n.anyo.toString(),
                 (n.salarioBruto / 100).toFixed(2), (n.irpf / 100).toFixed(2),
                 (n.seguridadSocial / 100).toFixed(2), (n.neto / 100).toFixed(2)
               ])
-              descargarExcel(headers, rows, `nominas-${new Date().toISOString().slice(0, 10)}.xlsx`, 'NÃ³minas')
+              descargarExcel(headers, rows, `nominas-${new Date().toISOString().slice(0, 10)}.xlsx`, 'Nóminas')
             }}>
             <Download className="mr-1 h-4 w-4" /> {t('nominas.exportarExcel')}
           </Button>
@@ -313,7 +313,7 @@ export default function NominasPage() {
             const totalNeto = visibles.reduce((s, n) => s + n.neto, 0)
             const html = `
               <div style="font-family:system-ui,sans-serif;padding:40px;color:#1a1a1a">
-                <h1 style="font-size:24px;font-weight:800;margin:0 0 4px 0">Resumen de nÃ³minas</h1>
+                <h1 style="font-size:24px;font-weight:800;margin:0 0 4px 0">Resumen de nóminas</h1>
                 <p style="font-size:13px;color:#6b7280;margin:0 0 24px 0">Periodo: ${anyoFiltro}</p>
                 <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
                   <thead><tr style="background:#1a1a1a;color:white">
@@ -337,7 +337,7 @@ export default function NominasPage() {
                     </tr>`).join('')}
                   </tbody>
                   <tfoot><tr style="background:#f3f4f6;font-weight:700">
-                    <td style="padding:10px 12px;font-size:12px" colspan="3">Total (${visibles.length} nÃ³minas)</td>
+                    <td style="padding:10px 12px;font-size:12px" colspan="3">Total (${visibles.length} nóminas)</td>
                     <td style="padding:10px 12px;font-size:12px;text-align:right">${formatEuro(totalBruto)}</td>
                     <td style="padding:10px 12px;font-size:12px;text-align:right;color:#ef4444">${formatEuro(totalIrpf)}</td>
                     <td style="padding:10px 12px;font-size:12px;text-align:right;color:#f97316">${formatEuro(totalSs)}</td>

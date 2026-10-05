@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server'
+﻿import { NextResponse, type NextRequest } from 'next/server'
+import { escapeHtml } from '@/lib/escape-html'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
@@ -89,12 +90,12 @@ export async function GET(req: NextRequest) {
       }
 
       if (resend && perfil.email && regenerado) {
-        await resend.emails.send({
+        const { error: sendError } = await resend.emails.send({
           from: 'MantiGestor <noreply@mantigestor.com>',
           to: perfil.email,
           subject: `Tus modelos fiscales ${label} ${year} están listos`,
           html: `
-            <p>Hola ${perfil.nombre ?? ''},</p>
+            <p>Hola ${escapeHtml(perfil.nombre ?? '')},</p>
             <p>Los modelos fiscales del <strong>${label} ${year}</strong> están listos para revisar:</p>
             <ul>
               <li>Modelo 303 — IVA trimestral</li>
@@ -105,6 +106,7 @@ export async function GET(req: NextRequest) {
             <p><a href="https://mantigestor.com/fiscal">Ir al área fiscal →</a></p>
           `,
         })
+        if (sendError) console.error('[cron:generar-modelos-trimestrales] error de Resend:', sendError)
       }
 
       generated++

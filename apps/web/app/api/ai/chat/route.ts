@@ -101,6 +101,9 @@ export async function POST(req: NextRequest) {
       .from('chat_historial')
       .select('rol, contenido')
       .eq('perfilId', perfilId)
+      // Solo roles válidos: nunca se envía un rol 'system' al modelo
+      // (inyección de instrucciones de sistema desde filas insertables)
+      .in('rol', ['user', 'assistant'])
       .order('creadoEn', { ascending: true })
       .limit(20)
 
@@ -121,7 +124,7 @@ export async function POST(req: NextRequest) {
     const messages = [
       { role: 'system', content: SYSTEM_PROMPT + contextoPrompt },
       ...(historialDB ?? []).map(m => ({
-        role: m.rol as 'user' | 'assistant',
+        role: m.rol === 'assistant' ? ('assistant' as const) : ('user' as const),
         content: m.contenido,
       })),
     ]

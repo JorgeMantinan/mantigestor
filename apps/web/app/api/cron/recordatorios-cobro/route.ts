@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server'
+﻿import { NextResponse, type NextRequest } from 'next/server'
+import { escapeHtml } from '@/lib/escape-html'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -110,7 +111,7 @@ function formatearFactura(f: FacturaVencida): string {
   const total = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(f.total / 100)
   const diasAtraso = Math.abs(f.diffDias)
   const cuando = diasAtraso === 1 ? 'con 1 día de retraso' : `con ${diasAtraso} días de retraso`
-  return `<li><strong>${f.numero}</strong> — ${f.emisorReceptor} (${total}) venció el ${fecha} (${cuando})</li>`
+  return `<li><strong>${escapeHtml(String(f.numero))}</strong> — ${escapeHtml(String(f.emisorReceptor))} (${total}) venció el ${fecha} (${cuando})</li>`
 }
 
 async function enviarEmailRecordatorioCobro(
@@ -129,14 +130,14 @@ async function enviarEmailRecordatorioCobro(
   const totalPendiente = facturas.reduce((s, f) => s + f.total, 0)
   const totalFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(totalPendiente / 100)
 
-  await resend.emails.send({
+  const { error: sendError } = await resend.emails.send({
     from: process.env.EMAIL_FROM || 'MantiGestor <noreply@mantigestor.vercel.app>',
     to: email,
     subject: `MantiGestor — Recordatorio de cobro: ${facturas.length} factura(s) vencida(s)`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #dc2626;">Facturas pendientes de cobro</h2>
-        <p>Hola ${nombre ?? ''},</p>
+        <p>Hola ${escapeHtml(nombre ?? '')},</p>
         <p>Las siguientes facturas emitidas han superado su fecha de vencimiento y siguen pendientes de cobro:</p>
         <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; border-radius: 8px; margin: 16px 0;">
           <ul style="margin: 0; padding-left: 18px; line-height: 1.7;">${lista}</ul>
@@ -152,4 +153,5 @@ async function enviarEmailRecordatorioCobro(
       </div>
     `,
   })
+  if (sendError) console.error('[cron:recordatorios-cobro] error de Resend:', sendError)
 }

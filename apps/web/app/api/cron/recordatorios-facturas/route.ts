@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server'
+﻿import { NextResponse, type NextRequest } from 'next/server'
+import { escapeHtml } from '@/lib/escape-html'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notificarVencimientosProximos } from '@/lib/enviar-push'
@@ -126,7 +127,7 @@ function formatearFactura(f: FacturaVencimiento): string {
   const fecha = new Date(f.fechaVencimiento).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
   const total = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(f.total / 100)
   const cuando = f.diffDias === 0 ? 'HOY' : f.diffDias === 1 ? 'MAÑANA' : `en ${f.diffDias} días`
-  return `<li><strong>${f.numero}</strong> — ${f.emisorReceptor} (${total}) vence ${cuando} (${fecha})</li>`
+  return `<li><strong>${escapeHtml(String(f.numero))}</strong> — ${escapeHtml(String(f.emisorReceptor))} (${total}) vence ${cuando} (${fecha})</li>`
 }
 
 async function enviarEmailFacturas(
@@ -145,14 +146,14 @@ async function enviarEmailFacturas(
   const totalPendiente = facturas.reduce((s, f) => s + f.total, 0)
   const totalFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(totalPendiente / 100)
 
-  await resend.emails.send({
+  const { error: sendError } = await resend.emails.send({
     from: process.env.EMAIL_FROM || 'MantiGestor <noreply@mantigestor.vercel.app>',
     to: email,
     subject: `MantiGestor — Facturas con cobro próximo (${hoyTexto})`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #1a1a1a;">Tienes facturas próximas a vencer</h2>
-        <p>Hola ${nombre ?? ''},</p>
+        <p>Hola ${escapeHtml(nombre ?? '')},</p>
         <p>Estas facturas emitidas tienen fecha de cobro en los próximos días:</p>
         <div style="background: #fef3c7; padding: 16px; border-radius: 8px; margin: 16px 0;">
           <ul style="margin: 0; padding-left: 18px; line-height: 1.7;">${lista}</ul>
@@ -167,4 +168,5 @@ async function enviarEmailFacturas(
       </div>
     `,
   })
+  if (sendError) console.error('[cron:recordatorios-facturas] error de Resend:', sendError)
 }

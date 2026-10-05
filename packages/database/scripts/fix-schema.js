@@ -7,12 +7,12 @@ let c = fs.readFileSync(p, 'utf8');
 
 // Repair double-encoded UTF8 (read as latin1 then written as utf8)
 const map = {
-  '\u00C3\u00B1': 'ñ', // Ã±
-  '\u00C3\u00B3': 'ó', // Ã³
-  '\u00C3\u00A9': 'é', // Ã©
-  '\u00C3\u00AD': 'í', // Ã­
-  '\u00C3\u00BA': 'ú', // Ãº
-  '\u00C3\u00A1': 'á', // Ã¡
+  '\u00C3\u00B1': 'ñ', // ñ
+  '\u00C3\u00B3': 'ó', // ó
+  '\u00C3\u00A9': 'é', // é
+  '\u00C3\u00AD': 'í', // í
+  '\u00C3\u00BA': 'ú', // ú
+  '\u00C3\u00A1': 'á', // á
   '\u00C3\u0093': 'Ó',
   '\u00C3\u0089': 'É',
   '\u00C3\u008D': 'Í',

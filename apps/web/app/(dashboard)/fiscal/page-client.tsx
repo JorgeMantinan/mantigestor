@@ -18,9 +18,9 @@ import { PanelDeduccionesAutonomicas } from './calculadoras/panel-deducciones-au
 import { PanelDocumentosFiscales } from './calculadoras/panel-documentos-fiscales'
 import dynamic from 'next/dynamic'
 
-// IRPF (secciÃ³n por defecto) y paneles: estÃ¡ticos. El resto de calculadoras
+// IRPF (sección por defecto) y paneles: estáticos. El resto de calculadoras
 // y modelos se cargan BAJO DEMANDA (chunks separados): la ruta /fiscal pesaba
-// 1.5 MB porque importaba las ~50 calculadoras de forma estÃ¡tica. Todos estÃ¡n
+// 1.5 MB porque importaba las ~50 calculadoras de forma estática. Todos están
 // envueltos en <LazyCalculator> (Suspense) en su punto de uso.
 
 const CalculadoraIva = dynamic(() => import('./calculadoras/calculadora-iva').then(m => ({ default: m.CalculadoraIva })), { ssr: false })
@@ -116,12 +116,12 @@ function PaginaFiscalInner() {
           .single()
         setEsPro(sub?.tier === 'PRO')
       } catch {
-        // sin sesiÃ³n o sin sub: se mantiene false
+        // sin sesión o sin sub: se mantiene false
       }
     })()
   }, [perfilActivoId])
 
-  // Deep-link: permite abrir una calculadora concreta vÃ­a ?seccion=modeloXXX
+  // Deep-link: permite abrir una calculadora concreta vía ?seccion=modeloXXX
   const searchParams = useSearchParams()
   useEffect(() => {
     const seccionParam = searchParams.get('seccion')
@@ -155,12 +155,12 @@ function PaginaFiscalInner() {
           if (bd?.perfilFiscal) {
             setPerfil(bd.perfilFiscal)
             setMostrarWizard(false)
-            // Nota: NO forzamos aquÃ­ seccionInicial para no pisar la elecciÃ³n
-            // del usuario si interactÃºa antes de que resuelva la sincronizaciÃ³n
+            // Nota: NO forzamos aquí seccionInicial para no pisar la elección
+            // del usuario si interactúa antes de que resuelva la sincronización
           }
         }
       } catch {
-        // sin sesiÃ³n o red caÃ­da: seguimos con localStorage
+        // sin sesión o red caída: seguimos con localStorage
       } finally {
         setSincronizado(true)
       }
@@ -212,7 +212,7 @@ function PaginaFiscalInner() {
     try {
       window.localStorage.setItem('perfil-fiscal', p)
     } catch {
-      // almacenamiento bloqueado: solo estado de sesiÃ³n
+      // almacenamiento bloqueado: solo estado de sesión
     }
     void guardarPerfilBd({ perfilFiscal: p, comunidadFiscal: comunidad })
     const config = PERFILES.find(x => x.key === p)
@@ -225,14 +225,14 @@ function PaginaFiscalInner() {
       const resultado = await fetchDatosReales(taxYear)
       setDatosReales(resultado)
     } catch {
-      // silently fail â€” the user can still type manually
+      // silently fail — the user can still type manually
     } finally {
       setCargandoReales(false)
     }
   }, [taxYear])
 
   useEffect(() => {
-    // Auto-cargar datos reales la primera vez que la sesiÃ³n estÃ¡ lista
+    // Auto-cargar datos reales la primera vez que la sesión está lista
     if (datosReales === null) {
       void cargarDatosReales()
     }
@@ -481,7 +481,7 @@ function PaginaFiscalInner() {
           {seccion === 'packTrimestre' && <PanelPackTrimestre taxYear={taxYear} />}
           {seccion === 'presupuestoAnual' && <PanelPresupuestoAnual taxYear={taxYear} />}
           <p className="print:hidden text-xs text-muted-foreground">
-            {t('fiscalPage.ejerce')} {datos.taxYear} Â· datos en cachÃ© de la sesiÃ³n durante 24 h Â·{' '}
+            {t('fiscalPage.ejerce')} {datos.taxYear} Â· datos en caché de la sesión durante 24 h Â·{' '}
             <button type="button" className="underline hover:no-underline" onClick={() => void cargarDatos(comunidad, taxYear, true)}>
               {t('fiscalPage.actualizarAhora')}
             </button>

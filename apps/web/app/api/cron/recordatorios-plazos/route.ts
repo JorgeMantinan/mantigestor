@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server'
+﻿import { NextResponse, type NextRequest } from 'next/server'
+import { escapeHtml } from '@/lib/escape-html'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCalendarioFiscal } from '@mantigestor/utils'
@@ -180,14 +181,14 @@ async function enviarEmailVencimientos(
   const hoyTexto = hoy.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
   const lista = vencimientos.map(formatearVencimiento).join('')
 
-  await resend.emails.send({
+  const { error: sendError } = await resend.emails.send({
     from: process.env.EMAIL_FROM || 'MantiGestor <noreply@mantigestor.vercel.app>',
     to: email,
     subject: `MantiGestor — Vencimientos fiscales próximos (${hoyTexto})`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #1a1a1a;">Tienes vencimientos fiscales próximos</h2>
-        <p>Hola ${nombre ?? ''},</p>
+        <p>Hola ${escapeHtml(nombre ?? '')},</p>
         <p>Según el calendario fiscal, en los próximos días vencen estas obligaciones:</p>
         <div style="background: #fef3c7; padding: 16px; border-radius: 8px; margin: 16px 0;">
           <ul style="margin: 0; padding-left: 18px; line-height: 1.7;">${lista}</ul>
@@ -202,4 +203,5 @@ async function enviarEmailVencimientos(
       </div>
     `,
   })
+  if (sendError) console.error('[cron:recordatorios-plazos] error de Resend:', sendError)
 }

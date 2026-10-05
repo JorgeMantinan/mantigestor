@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server'
+﻿import { NextResponse, type NextRequest } from 'next/server'
+import { escapeHtml } from '@/lib/escape-html'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
@@ -84,12 +85,12 @@ export async function GET(req: NextRequest) {
       const { data: urlData } = await supabase.storage.from('backups').createSignedUrl(path, 604800)
 
       if (resend && perfil.email && urlData?.signedUrl) {
-        await resend.emails.send({
+        const { error: sendError } = await resend.emails.send({
           from: 'MantiGestor <noreply@mantigestor.com>',
           to: perfil.email,
           subject: `Backup semanal MantiGestor — ${fecha}`,
           html: `
-            <p>Hola ${perfil.nombre ?? ''},</p>
+            <p>Hola ${escapeHtml(perfil.nombre ?? '')},</p>
             <p>Tu backup semanal de MantiGestor está disponible:</p>
             <ul>
               <li>${backup.facturas.length} facturas</li>
@@ -99,6 +100,7 @@ export async function GET(req: NextRequest) {
             <p><a href="${urlData.signedUrl}">Descargar backup →</a></p>
           `,
         })
+        if (sendError) console.error('[cron:backup-semanal] error de Resend:', sendError)
       }
 
       backedUp++

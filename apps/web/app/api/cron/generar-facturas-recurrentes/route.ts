@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from 'next/server'
+﻿import { NextResponse, type NextRequest } from 'next/server'
+import { escapeHtml } from '@/lib/escape-html'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { acquireLock, releaseLock } from '@/lib/recurring-invoice-lock'
@@ -215,10 +216,10 @@ async function enviarEmailRecordatorio(
 
   const nombreMes = new Date(anyo, mes - 1).toLocaleDateString('es-ES', { month: 'long' })
   const filasTabla = contrapartes.map(c =>
-    `<tr><td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;">${c}</td></tr>`
+    `<tr><td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;">${escapeHtml(String(c))}</td></tr>`
   ).join('')
 
-  await resend.emails.send({
+  const { error: sendError } = await resend.emails.send({
     from: process.env.EMAIL_FROM || 'MantiGestor <noreply@mantigestor.vercel.app>',
     to: email,
     subject: `MantiGestor — Revisa tus facturas recurrentes de ${nombreMes}`,
@@ -241,7 +242,7 @@ async function enviarEmailRecordatorio(
               <tr>
                 <td style="padding:32px;">
                   <h2 style="margin:0 0 20px;font-size:20px;font-weight:600;color:#1a1a1a;">Facturas recurrentes de ${nombreMes}</h2>
-                  <p style="margin:0 0 8px;font-size:15px;color:#374151;line-height:1.6;">Hola${nombre ? ` ${nombre}` : ''},</p>
+                  <p style="margin:0 0 8px;font-size:15px;color:#374151;line-height:1.6;">Hola${nombre ? ` ${escapeHtml(nombre)}` : ''},</p>
                   <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Se han generado automáticamente las siguientes facturas recurrentes:</p>
                   <!-- Invoice table -->
                   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;border-collapse:separate;overflow:hidden;margin-bottom:24px;">
@@ -278,4 +279,5 @@ async function enviarEmailRecordatorio(
       </html>
     `,
   })
+  if (sendError) console.error('[cron:generar-facturas-recurrentes] error de Resend:', sendError)
 }
