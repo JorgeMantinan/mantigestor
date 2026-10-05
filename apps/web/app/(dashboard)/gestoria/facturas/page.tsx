@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
@@ -12,7 +12,6 @@ import { BotonPDF } from '@/components/boton-pdf'
 import { toast, Toaster } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
-import { Kbd } from '@/components/ui/kbd'
 import { Download } from 'lucide-react'
 import { descargarExcelConResumen } from '@/lib/descargar-excel'
 import { exportarContaplus, exportarSage, descargarCSV } from '@/lib/exportar-contaplus'
@@ -214,7 +213,7 @@ export default function FacturasPage() {
       const estadosAnteriores = facturasSeleccionadas.map(f => f.estado)
       const { error } = await getSupabase().from('facturas').update({ estado: nuevoEstado }).in('id', ids)
       if (error) throw error
-      await logAccion('cambio_estado', 'factura', ids.join(','), `${ids.length} facturas → ${nuevoEstado}`, {
+      await logAccion('cambio_estado', 'factura', ids.join(','), `${ids.length} facturas â†’ ${nuevoEstado}`, {
         antes: { estados: estadosAnteriores },
         despues: { estado: nuevoEstado },
       })
@@ -242,16 +241,16 @@ export default function FacturasPage() {
 
     const resumen = [
       { label: 'Total facturas', value: datos.length },
-      { label: 'Total ingresos', value: `${(totalIngresos / 100).toFixed(2)} €` },
-      { label: 'Total gastos', value: `${(totalGastos / 100).toFixed(2)} €` },
-      { label: 'Saldo neto', value: `${((totalIngresos - totalGastos) / 100).toFixed(2)} €` },
-      { label: 'IVA total', value: `${(totalIva / 100).toFixed(2)} €` },
+      { label: 'Total ingresos', value: `${(totalIngresos / 100).toFixed(2)} â‚¬` },
+      { label: 'Total gastos', value: `${(totalGastos / 100).toFixed(2)} â‚¬` },
+      { label: 'Saldo neto', value: `${((totalIngresos - totalGastos) / 100).toFixed(2)} â‚¬` },
+      { label: 'IVA total', value: `${(totalIva / 100).toFixed(2)} â‚¬` },
       { label: 'Facturas pendientes', value: facturasPendientes },
       { label: 'Facturas pagadas', value: facturasPagadas },
     ]
 
     const headers = [
-      'Fecha', 'Tipo', 'Nº Factura', 'Contraparte', 'NIF',
+      'Fecha', 'Tipo', 'NÂº Factura', 'Contraparte', 'NIF',
       'Base Imponible', 'IVA', 'Total', 'Estado', 'Moneda',
       'Tipo Cambio', 'Etiquetas',
     ]
@@ -293,7 +292,7 @@ export default function FacturasPage() {
         <thead><tr style="background:#f3f4f6">
           <th style="padding:6px;text-align:left;border-bottom:2px solid #d1d5db">Fecha</th>
           <th style="padding:6px;text-align:left;border-bottom:2px solid #d1d5db">Tipo</th>
-          <th style="padding:6px;text-align:left;border-bottom:2px solid #d1d5db">Nº</th>
+          <th style="padding:6px;text-align:left;border-bottom:2px solid #d1d5db">NÂº</th>
           <th style="padding:6px;text-align:left;border-bottom:2px solid #d1d5db">Contraparte</th>
           <th style="padding:6px;text-align:right;border-bottom:2px solid #d1d5db">Base</th>
           <th style="padding:6px;text-align:right;border-bottom:2px solid #d1d5db">IVA</th>
@@ -387,7 +386,7 @@ export default function FacturasPage() {
         </div>
       </div>
 
-      {/* Búsqueda + filtros */}
+      {/* BÃºsqueda + filtros */}
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1 max-w-sm">
@@ -401,13 +400,10 @@ export default function FacturasPage() {
               aria-label={t('facturas.buscarLabel')}
               data-search-input
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <Kbd>/</Kbd>
-            </div>
           </div>
           <Button variant="outline" size="sm" className="sm:hidden"
             onClick={() => setMostrarFiltrosMovil(!mostrarFiltrosMovil)}>
-            <Filter className="mr-1 h-4 w-4" /> {mostrarFiltrosMovil ? 'Ocultar filtros' : 'Más filtros'}
+            <Filter className="mr-1 h-4 w-4" /> {mostrarFiltrosMovil ? 'Ocultar filtros' : 'MÃ¡s filtros'}
             {(filtro !== 'todas' || filtroEstado !== 'todos' || fechaDesde || fechaHasta || filtroTag.length > 0) && (
               <span className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
                 {(filtro !== 'todas' ? 1 : 0) + (filtroEstado !== 'todos' ? 1 : 0) + (fechaDesde ? 1 : 0) + (fechaHasta ? 1 : 0) + (filtroTag.length > 0 ? 1 : 0)}
@@ -419,7 +415,7 @@ export default function FacturasPage() {
           <div className="flex items-center gap-2">
             <Input type="date" value={fechaDesde} onChange={e => { setFechaDesde(e.target.value); setPage(0) }}
               className="w-[150px]" placeholder="Desde" aria-label="Fecha desde" />
-            <span className="text-muted-foreground text-xs">—</span>
+            <span className="text-muted-foreground text-xs">â€”</span>
             <Input type="date" value={fechaHasta} onChange={e => { setFechaHasta(e.target.value); setPage(0) }}
               className="w-[150px]" placeholder="Hasta" aria-label="Fecha hasta" />
           </div>
@@ -508,7 +504,7 @@ export default function FacturasPage() {
                 const total = visibles.reduce((s, v) => s + v.total, 0)
                 await generarReporteGastosPDF({
                   titulo: 'Listado de facturas',
-                  periodo: `${fechaDesde || 'Inicio'} — ${fechaHasta || 'Fin'}`,
+                  periodo: `${fechaDesde || 'Inicio'} â€” ${fechaHasta || 'Fin'}`,
                   lineas: visibles.map(v => ({
                     fecha: v.fechaEmision,
                     numero: v.numero,
@@ -536,11 +532,11 @@ export default function FacturasPage() {
           <ul className="mt-1 space-y-1 text-orange-700 dark:text-orange-300">
             {duplicados.slice(0, 3).map((d, i) => (
               <li key={i} className="text-xs">
-                {d.factura1.numero} ↔ {d.factura2.numero}: {d.razon}
+                {d.factura1.numero} â†” {d.factura2.numero}: {d.razon}
               </li>
             ))}
             {duplicados.length > 3 && (
-              <li className="text-xs">... y {duplicados.length - 3} más</li>
+              <li className="text-xs">... y {duplicados.length - 3} mÃ¡s</li>
             )}
           </ul>
         </div>
@@ -591,7 +587,7 @@ export default function FacturasPage() {
         <>
           <p className="text-xs text-muted-foreground">
             {visibles.length} factura{visibles.length !== 1 ? 's' : ''}
-            {busqueda && ` · Buscando "${busqueda}"`}
+            {busqueda && ` Â· Buscando "${busqueda}"`}
           </p>
 
           {seleccionadas.size > 0 && (
@@ -642,8 +638,8 @@ export default function FacturasPage() {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>¿Eliminar {seleccionadas.size} factura{seleccionadas.size !== 1 ? 's' : ''}?</AlertDialogTitle>
-                      <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                      <AlertDialogTitle>Â¿Eliminar {seleccionadas.size} factura{seleccionadas.size !== 1 ? 's' : ''}?</AlertDialogTitle>
+                      <AlertDialogDescription>Esta acciÃ³n no se puede deshacer.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
@@ -674,7 +670,7 @@ export default function FacturasPage() {
                       </label>
                     </th>
                     <th className="px-4 py-3 text-left font-medium cursor-pointer select-none" onClick={() => toggleSort('numero')}>
-                      Nº <SortIcon campo="numero" />
+                      NÂº <SortIcon campo="numero" />
                     </th>
                     <th className="px-4 py-3 text-left font-medium">Tipo</th>
                     <th className="px-4 py-3 text-left font-medium cursor-pointer select-none" onClick={() => toggleSort('emisorReceptor')}>
@@ -712,7 +708,7 @@ export default function FacturasPage() {
                       <td className="px-4 py-3 capitalize">
                         {f.tipo === 'rectificativa' ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-                            {f.tags?.includes('nota-credito') ? 'Crédito' : 'Débito'}
+                            {f.tags?.includes('nota-credito') ? 'CrÃ©dito' : 'DÃ©bito'}
                           </span>
                         ) : f.tipo === 'ingreso' ? 'Emitida' : 'Recibida'}
                       </td>
@@ -765,8 +761,8 @@ export default function FacturasPage() {
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>¿Eliminar esta factura?</AlertDialogTitle>
-                                  <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                  <AlertDialogTitle>Â¿Eliminar esta factura?</AlertDialogTitle>
+                                  <AlertDialogDescription>Esta acciÃ³n no se puede deshacer.</AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
@@ -784,11 +780,11 @@ export default function FacturasPage() {
             </div>
           </div>
 
-          {/* Paginación */}
+          {/* PaginaciÃ³n */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
-                Página {page + 1} de {totalPages}
+                PÃ¡gina {page + 1} de {totalPages}
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>

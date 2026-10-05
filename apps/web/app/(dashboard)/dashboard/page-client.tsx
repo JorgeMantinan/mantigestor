@@ -12,7 +12,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { proximosPlazos, getCalendarioFiscal } from '@mantigestor/utils'
-import { Kbd } from '@/components/ui/kbd'
 import { Suspense } from 'react'
 import { SkeletonDashboard } from '@/components/dashboard/skeleton-dashboard'
 import { OnboardingChecklist } from '@/components/dashboard/onboarding-checklist'
@@ -393,7 +392,7 @@ export default function DashboardPage() {
           <div className="flex flex-wrap gap-2">
             <Link href="/gestoria/facturas/nueva">
               <Button size="sm">
-                <Plus className="mr-1.5 h-4 w-4" /> {t('dashboard.nuevaFactura')} <Kbd className="ml-2 hidden sm:inline-flex">Ctrl+N</Kbd>
+                <Plus className="mr-1.5 h-4 w-4" /> {t('dashboard.nuevaFactura')}
               </Button>
             </Link>
             <Link href="/dashboard/cashflow">
@@ -408,7 +407,7 @@ export default function DashboardPage() {
             </Link>
             <Link href="/gestoria/facturas">
               <Button variant="outline" size="sm">
-                <FileText className="mr-1.5 h-4 w-4" /> {t('facturas.titulo')} <Kbd className="ml-2 hidden sm:inline-flex">/</Kbd>
+                <FileText className="mr-1.5 h-4 w-4" /> {t('facturas.titulo')}
               </Button>
             </Link>
           </div>

@@ -126,7 +126,6 @@ export function CommandPalette() {
           {!loading && query.length < 2 && (
             <div className="text-center py-4 text-sm text-muted-foreground">
               <p>{t('commandPalette.escribeMinimo')}</p>
-              <p className="text-xs mt-1">{t('commandPalette.atajoTeclado')}</p>
             </div>
           )}
         </div>

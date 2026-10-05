@@ -34,21 +34,15 @@ export function SearchTrigger({ collapsed = false }: { collapsed?: boolean }) {
               collapsed && 'h-10 w-10'
             )}
             onClick={handleOpen}
-            aria-label="Búsqueda global (Ctrl+K)"
+            aria-label="Búsqueda global"
           >
             <Search className="h-4 w-4" aria-hidden="true" />
             {!collapsed && (
-              <>
-                <span className="hidden flex-1 text-left text-sm sm:inline">Buscar...</span>
-                <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 lg:flex">
-                  <span className="text-xs">Ctrl</span>
-                  <span className="text-xs">K</span>
-                </kbd>
-              </>
+              <span className="hidden flex-1 text-left text-sm sm:inline">Buscar...</span>
             )}
           </Button>
         </TooltipTrigger>
-        {collapsed && <TooltipContent side="right">Búsqueda global (Ctrl+K)</TooltipContent>}
+        {collapsed && <TooltipContent side="right">Búsqueda global</TooltipContent>}
       </Tooltip>
       <GlobalSearchDialog open={open} onOpenChange={setOpen} />
     </>

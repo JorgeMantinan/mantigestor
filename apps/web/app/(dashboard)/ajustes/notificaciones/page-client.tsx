@@ -131,7 +131,6 @@ export function NotificacionesPageClient() {
       <Card className="border-dashed">
         <CardContent className="pt-6">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm font-medium text-muted-foreground">{t('notificacionesConfig.atajos')}</span>
             <Button variant="outline" size="sm"
               onClick={() => {
                 setPreferencias(prev => prev.map(p => ({

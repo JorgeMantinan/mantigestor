@@ -335,16 +335,6 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
           {!loading && query.length < 2 && recentSearches.length === 0 && (
             <div className="text-center py-4 text-sm text-muted-foreground">
               <p>Escribe para buscar páginas, facturas y más</p>
-              <p className="text-xs mt-1">
-                <kbd className="px-1 py-0.5 rounded border bg-muted text-[10px]">
-                  Ctrl
-                </kbd>{' '}
-                +{' '}
-                <kbd className="px-1 py-0.5 rounded border bg-muted text-[10px]">
-                  K
-                </kbd>{' '}
-                para abrir
-              </p>
             </div>
           )}
         </div>

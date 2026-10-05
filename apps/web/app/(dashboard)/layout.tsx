@@ -12,7 +12,6 @@ import { GestionandoBanner } from '@/components/layout/gestionando-banner'
 import { ContextualChat } from '@/components/ai/contextual-chat'
 import dynamic from 'next/dynamic'
 
-const HelpDialog = dynamic(() => import('@/components/help-dialog').then(m => m.HelpDialog), { ssr: false })
 const MilestoneProvider = dynamic(() => import('@/components/milestone-provider').then(m => m.MilestoneProvider), { ssr: false })
 
 export const metadata: Metadata = {
@@ -58,7 +57,6 @@ export default async function DashboardLayout({
           </div>
           <DashboardShortcuts />
           <ContextualChat />
-          <HelpDialog />
           <MilestoneProvider />
         </div>
       </EmpresaActivaProvider>
