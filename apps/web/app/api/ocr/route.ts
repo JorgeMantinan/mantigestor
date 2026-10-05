@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { extractInvoiceData, esUrlStorageSegura } from '@/lib/ocr'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { firmarUrlAdmin, carpetaDeUrlStorage } from '@/lib/storage-server'
 import { z } from 'zod'
 
 const OcrBodySchema = z.object({
@@ -30,8 +32,13 @@ export async function POST(req: NextRequest) {
       return badRequest('URL de documento no permitida')
     }
 
+    // El documento debe vivir en la carpeta del perfil activo (bucket privado)
+    const { perfilId } = await resolvePerfilActivo(req)
+    if (carpetaDeUrlStorage(pdfUrl) !== perfilId) {
+      return badRequest('URL de documento no permitida')
+    }
 
-    const result = await extractInvoiceData(pdfUrl)
+    const result = await extractInvoiceData(await firmarUrlAdmin(pdfUrl))
     return NextResponse.json(result)
   } catch (error) {
     return serverError(error)

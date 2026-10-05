@@ -4,6 +4,7 @@ import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/l
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { esUrlStorageSegura } from '@/lib/ocr'
+import { firmarUrlAdmin, carpetaDeUrlStorage } from '@/lib/storage-server'
 
 interface ClasificacionResultado {
   tipo: 'nomina' | 'factura' | 'alquiler' | 'extracto_banco' | 'otro'
@@ -124,8 +125,12 @@ export async function POST(req: NextRequest) {
     if (!esUrlStorageSegura(pdfUrl)) {
       return badRequest('URL de documento no permitida')
     }
+    // El documento debe vivir en la carpeta del perfil activo (bucket privado)
+    if (carpetaDeUrlStorage(pdfUrl) !== perfilId) {
+      return badRequest('URL de documento no permitida')
+    }
 
-    const resultado = await clasificarDocumento(pdfUrl)
+    const resultado = await clasificarDocumento(await firmarUrlAdmin(pdfUrl))
     return NextResponse.json(resultado)
   } catch (error) {
     return serverError(error)

@@ -80,9 +80,10 @@ export async function GET(req: NextRequest) {
         continue
       }
 
-      const { data: urlData } = supabase.storage.from('backups').getPublicUrl(path)
+      // Bucket privado: URL firmada válida 7 días
+      const { data: urlData } = await supabase.storage.from('backups').createSignedUrl(path, 604800)
 
-      if (resend && perfil.email && urlData?.publicUrl) {
+      if (resend && perfil.email && urlData?.signedUrl) {
         await resend.emails.send({
           from: 'MantiGestor <noreply@mantigestor.com>',
           to: perfil.email,
@@ -95,7 +96,7 @@ export async function GET(req: NextRequest) {
               <li>${backup.documentos.length} documentos</li>
               <li>${backup.suscripciones.length} suscripciones</li>
             </ul>
-            <p><a href="${urlData.publicUrl}">Descargar backup →</a></p>
+            <p><a href="${urlData.signedUrl}">Descargar backup →</a></p>
           `,
         })
       }

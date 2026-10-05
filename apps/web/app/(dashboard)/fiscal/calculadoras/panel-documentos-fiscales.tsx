@@ -61,23 +61,24 @@ export function PanelDocumentosFiscales({ esPro, onAplicarDatos }: PanelDocument
 
     for (const archivo of archivos) {
       try {
-        // Upload to Supabase Storage
+        // Get user ID primero (define la carpeta de propiedad del upload)
+        const { data: userData } = await supabase.auth.getUser()
+        if (!userData.user) throw new Error('No autenticado')
+        const perfilDestino = perfilActivoId ?? userData.user.id
+
+        // Upload to Supabase Storage — carpeta del perfil (bucket privado con RLS por propiedad)
         const fileName = `${crypto.randomUUID()}.${archivo.name.split('.').pop()}`
-        const filePath = `fiscal/${fileName}`
+        const filePath = `${perfilDestino}/fiscal/${fileName}`
         const { error: uploadError } = await supabase.storage.from('documentos').upload(filePath, archivo)
         if (uploadError) throw uploadError
 
         const { data: urlData } = supabase.storage.from('documentos').getPublicUrl(filePath)
         const publicUrl = urlData.publicUrl
 
-        // Get user ID
-        const { data: userData } = await supabase.auth.getUser()
-        if (!userData.user) throw new Error('No autenticado')
-
         // Save document record
         await supabase.from('documentos').insert({
           id: crypto.randomUUID(),
-          perfilId: perfilActivoId ?? userData.user.id,
+          perfilId: perfilDestino,
           tipo: 'fiscal',
           nombre: archivo.name,
           tamanoBytes: archivo.size,

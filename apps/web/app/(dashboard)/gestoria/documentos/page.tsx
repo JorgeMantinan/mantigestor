@@ -15,6 +15,7 @@ import { useLanguage } from '@/contexts/language-context'
 import { useEmpresaActiva } from '@/contexts/empresa-activa-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { esSoloLectura } from '@/lib/resolve-perfil-activo'
+import { firmarUrlsStorage } from '@/lib/storage'
 
 interface Documento {
   id: string
@@ -94,7 +95,12 @@ export default function DocumentosPage() {
 
       const { data } = await query
 
-      if (data) setDocumentos(data as Documento[])
+      if (data) {
+        const docs = data as Documento[]
+        // Bucket privado: firmar las URLs para mostrarlas (caducan en 1h)
+        const urlsFirmadas = await firmarUrlsStorage(docs.map(d => d.url))
+        setDocumentos(docs.map((d, i) => ({ ...d, url: (urlsFirmadas[i] as string) ?? d.url })))
+      }
       setCargando(false)
     }
     cargar()

@@ -4,6 +4,7 @@ import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/l
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { extractInvoiceData, esUrlStorageSegura, type OcrResult } from '@/lib/ocr'
+import { firmarUrlAdmin, carpetaDeUrlStorage } from '@/lib/storage-server'
 
 interface ArchivoBatch {
   url: string
@@ -57,6 +58,11 @@ export async function POST(req: NextRequest) {
         return { nombre: archivo.nombre, resultado: null, error: 'URL de documento no permitida' }
       }
 
+      // El documento debe vivir en la carpeta del perfil activo (bucket privado)
+      if (carpetaDeUrlStorage(archivo.url) !== perfilId) {
+        return { nombre: archivo.nombre, resultado: null, error: 'URL de documento no permitida' }
+      }
+
       const { data: existente } = await supabase
         .from('facturas')
         .select('id')
@@ -69,7 +75,7 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        const resultado = await extractInvoiceData(archivo.url)
+        const resultado = await extractInvoiceData(await firmarUrlAdmin(archivo.url))
         return { nombre: archivo.nombre, resultado }
       } catch (err) {
         const mensaje = err instanceof Error ? err.message : 'Error al procesar'
