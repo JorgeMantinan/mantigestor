@@ -4,6 +4,7 @@ packages:
 allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
+  '@scarf/scarf': false
   '@sentry/cli': true
   core-js: true
   esbuild: true

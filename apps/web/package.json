@@ -49,6 +49,7 @@
     "sharp": "^0.33.0",
     "sonner": "^2.0.8",
     "stripe": "^16.0.0",
+    "swagger-ui-dist": "^5.33.1",
     "tailwind-merge": "^2.5.0",
     "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^7.0.0",
