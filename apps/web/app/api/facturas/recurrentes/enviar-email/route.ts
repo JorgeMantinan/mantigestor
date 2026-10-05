@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { escapeHtml } from '@/lib/escape-html'
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,7 +18,13 @@ export async function POST(req: NextRequest) {
 
     const { email, nombre, contrapartes, mes, anyo } = await req.json()
 
-    if (!email || !contrapartes?.length || !mes || !anyo) {
+    if (typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return badRequest('Email no válido')
+    }
+    if (!Array.isArray(contrapartes) || contrapartes.length === 0 || contrapartes.length > 200) {
+      return badRequest('Faltan campos')
+    }
+    if (typeof mes !== 'number' || mes < 1 || mes > 12 || typeof anyo !== 'number' || anyo < 2000 || anyo > 2100) {
       return badRequest('Faltan campos')
     }
 
@@ -30,11 +37,15 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     const nombreMes = new Date(anyo, mes - 1).toLocaleDateString('es-ES', { month: 'long' })
-    const filasTabla = contrapartes.map((c: string) =>
-      `<tr><td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;">${c}</td></tr>`
-    ).join('')
+    const nombreSeguro = typeof nombre === 'string' && nombre.trim() ? escapeHtml(nombre.trim().slice(0, 100)) : ''
+    const filasTabla = contrapartes
+      .slice(0, 200)
+      .map((c: unknown) =>
+        `<tr><td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;">${escapeHtml(String(c)).slice(0, 200)}</td></tr>`
+      )
+      .join('')
 
-    await resend.emails.send({
+    const { error: sendError } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'MantiGestor <onboarding@resend.dev>',
       to: email,
       subject: `MantiGestor — Revisa tus facturas recurrentes de ${nombreMes}`,
@@ -57,7 +68,7 @@ export async function POST(req: NextRequest) {
                 <tr>
                   <td style="padding:32px;">
                     <h2 style="margin:0 0 20px;font-size:20px;font-weight:600;color:#1a1a1a;">Facturas recurrentes de ${nombreMes}</h2>
-                    <p style="margin:0 0 8px;font-size:15px;color:#374151;line-height:1.6;">Hola${nombre ? ` ${nombre}` : ''},</p>
+                    <p style="margin:0 0 8px;font-size:15px;color:#374151;line-height:1.6;">Hola${nombreSeguro ? ` ${nombreSeguro}` : ''},</p>
                     <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">Se han generado automáticamente las siguientes facturas recurrentes:</p>
                     <!-- Invoice table -->
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;border-collapse:separate;overflow:hidden;margin-bottom:24px;">
@@ -94,6 +105,11 @@ export async function POST(req: NextRequest) {
         </html>
       `,
     })
+
+    if (sendError) {
+      console.error('[recurrentes/enviar-email] Resend error:', sendError)
+      return NextResponse.json({ error: 'No se pudo enviar el email' }, { status: 502 })
+    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {

@@ -1,5 +1,6 @@
 export const DEMO_EMAIL = 'demo@mantigestor.local'
-export const DEMO_PASSWORD = 'demo-mantigestor-2026'
+// La contraseña ya no está en el repo: /api/demo/crear genera una aleatoria
+// en cada creación y la devuelve solo a quien la ha solicitado.
 export const DEMO_NIF = '12345678Z'
 
 export interface DemoPerfil {

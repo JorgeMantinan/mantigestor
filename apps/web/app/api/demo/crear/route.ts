@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { randomBytes } from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
-import { DEMO_EMAIL, DEMO_PASSWORD } from '@/lib/demo-data'
+import { DEMO_EMAIL } from '@/lib/demo-data'
 import { obtenerCasoDemo } from '@/lib/demo/casos'
 import { regenerarModelosPeriodo } from '@/lib/fiscal/modelos-generados'
 import type { Trimestre } from '@/lib/fiscal/generador-modelos'
@@ -29,14 +30,14 @@ async function limpiarDatosDemo(supabase: SupabaseClient, perfilId: string): Pro
 }
 
 /** Devuelve el uid del usuario demo de Supabase Auth (creándolo o restableciendo su contraseña) */
-async function obtenerUsuarioDemo(supabase: SupabaseClient): Promise<string> {
+async function obtenerUsuarioDemo(supabase: SupabaseClient, password: string): Promise<string> {
   for (let page = 1; page <= 20; page++) {
     const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 100 })
     if (error) throw new Error(error.message)
     const existente = data.users.find(u => u.email?.toLowerCase() === DEMO_EMAIL)
     if (existente) {
       const { error: updateError } = await supabase.auth.admin.updateUserById(existente.id, {
-        password: DEMO_PASSWORD,
+        password,
         email_confirm: true,
       })
       if (updateError) throw new Error(updateError.message)
@@ -47,7 +48,7 @@ async function obtenerUsuarioDemo(supabase: SupabaseClient): Promise<string> {
 
   const { data, error } = await supabase.auth.admin.createUser({
     email: DEMO_EMAIL,
-    password: DEMO_PASSWORD,
+    password,
     email_confirm: true,
   })
   if (error || !data.user) throw new Error(error?.message ?? 'No se pudo crear el usuario demo')
@@ -56,7 +57,7 @@ async function obtenerUsuarioDemo(supabase: SupabaseClient): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
-    const { success } = await rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
+    const { success } = await rateLimitByIp(req, { maxRequests: 3, windowMs: 60 * 1000 })
     if (!success) {
       return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
     }
@@ -72,7 +73,10 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = createAdminClient()
-    const perfilId = await obtenerUsuarioDemo(supabase)
+    // Contraseña aleatoria por creación: no vive en el repo y solo se
+    // devuelve a quien ha llamado a este endpoint.
+    const passwordDemo = randomBytes(18).toString('base64url')
+    const perfilId = await obtenerUsuarioDemo(supabase, passwordDemo)
     await limpiarDatosDemo(supabase, perfilId)
 
     const now = new Date().toISOString()
@@ -179,7 +183,7 @@ export async function POST(req: NextRequest) {
       usuario: caso.nombre,
       caso: caso.clave,
       email: DEMO_EMAIL,
-      password: DEMO_PASSWORD,
+      password: passwordDemo,
       modelosGenerados,
     })
   } catch (error) {

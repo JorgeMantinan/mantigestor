@@ -6,7 +6,7 @@ import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
 export async function POST(req: NextRequest) {
   try {
-    const { success } = await rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
+    const { success } = await rateLimitByIp(req, { maxRequests: 5, windowMs: 60 * 1000 })
     if (!success) {
       return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
     }
@@ -68,7 +68,15 @@ export async function POST(req: NextRequest) {
     if (sessionId) {
       try {
         const session = await stripe.checkout.sessions.retrieve(sessionId)
-        subId = (session.subscription as string) ?? null
+        // Solo se acepta una sesión que pertenezca a este usuario
+        const propio =
+          session.metadata?.userId === user.id ||
+          (session.customer_email ?? '').toLowerCase() === (user.email ?? '').toLowerCase()
+        if (propio) {
+          subId = (session.subscription as string) ?? null
+        } else {
+          console.warn('verify-subscription: sessionId de otro usuario, se ignora')
+        }
       } catch (e) {
         console.error('Error retrieving Stripe session:', e)
       }
@@ -92,13 +100,17 @@ export async function POST(req: NextRequest) {
 
     if (subId) {
       const subscription = await stripe.subscriptions.retrieve(subId)
+      // Estado real de Stripe (antes un 'canceled' se guardaba como 'trialing'
+      // y concedía PRO para siempre). Solo estados reconocidos.
+      const estadosValidos = ['active', 'trialing', 'past_due', 'canceled', 'incomplete', 'incomplete_expired', 'unpaid', 'paused']
+      const estadoReal = estadosValidos.includes(subscription.status) ? subscription.status : 'incomplete'
       const record = {
         id: crypto.randomUUID(),
         perfilId: perfilId,
         tier: 'PRO',
         provider: 'stripe',
         providerSubscriptionId: subId,
-        estado: subscription.status === 'active' ? 'active' : 'trialing',
+        estado: estadoReal,
         currentPeriodStart: new Date(subscription.current_period_start * 1000).toISOString(),
         currentPeriodEnd: new Date(subscription.current_period_end * 1000).toISOString(),
       }
@@ -128,7 +140,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Error al guardar la suscripción' }, { status: 500 })
       }
 
-      return NextResponse.json({ tier: 'PRO', estado: 'active' })
+      return NextResponse.json({ tier: 'PRO', estado: estadoReal })
     }
 
     return NextResponse.json({ tier: 'BASIC', estado: 'inactive' })

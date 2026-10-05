@@ -19,7 +19,6 @@ import {
   FileCheck,
 } from 'lucide-react'
 import { CASOS_DEMO } from '@/lib/demo/casos'
-import { DEMO_EMAIL, DEMO_PASSWORD } from '@/lib/demo-data'
 
 const ETIQUETAS_PERFIL_FISCAL: Record<string, string> = {
   autonomo: 'Autónomo',
@@ -88,9 +87,13 @@ export default function DemoInicio() {
         return
       }
       const data = await res.json()
+      if (!data.email || !data.password) {
+        toast.error('La demo no devolvió credenciales válidas, inténtalo de nuevo')
+        return
+      }
       const { error: authError } = await getSupabase().auth.signInWithPassword({
-        email: data.email ?? DEMO_EMAIL,
-        password: data.password ?? DEMO_PASSWORD,
+        email: data.email,
+        password: data.password,
       })
       if (authError) {
         toast.error(`No se pudo iniciar la sesión de demostración: ${authError.message}`)

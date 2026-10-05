@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { success } = await rateLimitByIp(req, { maxRequests: 5, windowMs: 60 * 1000 })
     if (!success) {
@@ -24,30 +25,49 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { facturaId, email, amount, descripcion } = body as {
+    const { facturaId, descripcion } = body as {
       facturaId: string
-      email: string
-      amount: number
-      descripcion: string
+      descripcion?: string
     }
 
-    if (!facturaId || !email || !amount || amount <= 0) {
+    if (!facturaId || typeof facturaId !== 'string') {
       return NextResponse.json({ error: 'Parámetros inválidos' }, { status: 400 })
+    }
+
+    // El importe NUNCA llega del cliente: se deriva en servidor desde la
+    // plantilla de la factura recurrente, comprobando que pertenece al
+    // perfil activo (si no, se ignora el importe y se cobra la cifra real).
+    const { perfilId } = await resolvePerfilActivo(req)
+    const { data: plantilla } = await supabase
+      .from('facturas_recurrentes')
+      .select('id, baseImponible, iva, numero, emisorReceptor')
+      .eq('id', facturaId)
+      .eq('perfilId', perfilId)
+      .maybeSingle()
+
+    if (!plantilla) {
+      return NextResponse.json({ error: 'Factura no encontrada' }, { status: 404 })
+    }
+
+    const importeIva = Math.round(plantilla.baseImponible * (plantilla.iva / 100))
+    const totalCentimos = plantilla.baseImponible + importeIva
+    if (totalCentimos <= 0) {
+      return NextResponse.json({ error: 'Importe inválido' }, { status: 400 })
     }
 
     const { stripe } = await import('@/lib/stripe/server')
 
     const session = await stripe.checkout.sessions.create({
-      customer_email: email,
+      customer_email: user.email ?? undefined,
       mode: 'subscription',
       line_items: [
         {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: descripcion || `Cobro recurrente - ${facturaId}`,
+              name: (descripcion || `Cobro recurrente - ${plantilla.numero}`).slice(0, 200),
             },
-            unit_amount: Math.round(amount * 100),
+            unit_amount: totalCentimos,
             recurring: { interval: 'month' },
           },
           quantity: 1,
