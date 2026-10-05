@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -9,10 +9,6 @@ import { createClient } from '@/lib/supabase/client'
 import type { DatosFiscales } from './calculadoras/types'
 import { LazyCalculator } from './calculadoras/lazy-wrapper'
 import { CalculadoraIrpf } from './calculadoras/calculadora-irpf'
-import { CalculadoraIva } from './calculadoras/calculadora-iva'
-import { CalculadoraReta } from './calculadoras/calculadora-retas'
-import { CalculadoraIs } from './calculadoras/calculadora-is'
-import { CalculadoraPatrimonio } from './calculadoras/calculadora-patrimonio'
 import { PanelPlazos } from './calculadoras/panel-plazos'
 import { PanelMinimos } from './calculadoras/panel-minimos'
 import { PanelResumenAnual } from './calculadoras/panel-resumen-anual'
@@ -20,50 +16,61 @@ import { PanelPackTrimestre } from './calculadoras/panel-pack-trimestre'
 import { PanelPresupuestoAnual } from './calculadoras/panel-presupuesto-anual'
 import { PanelDeduccionesAutonomicas } from './calculadoras/panel-deducciones-autonomicas'
 import { PanelDocumentosFiscales } from './calculadoras/panel-documentos-fiscales'
-import { Calculadora111 } from './calculadoras/calculadora-111'
-import { Calculadora390 } from './calculadoras/calculadora-390'
-import { Calculadora190 } from './calculadoras/calculadora-190'
-import { Calculadora180 } from './calculadoras/calculadora-180'
-import { Calculadora202 } from './calculadoras/calculadora-202'
-import { CalculadoraModelo200 } from './calculadoras/calculadora-200'
-import { CalculadoraModelo720 } from './calculadoras/calculadora-720'
-import { CalculadoraModelo151 } from './calculadoras/calculadora-151'
-import { CalculadoraModelo100 } from './calculadoras/calculadora-100'
-import { CalculadoraModelo131 } from './calculadoras/calculadora-131'
-import { CalculadoraModelo115 } from './calculadoras/calculadora-115'
-import { CalculadoraModelo123 } from './calculadoras/calculadora-123'
-import { CalculadoraModelo347 } from './calculadoras/calculadora-347'
-import { CalculadoraModelo349 } from './calculadoras/calculadora-349'
-import { CalculadoraModelo721 } from './calculadoras/calculadora-721'
-import { CalculadoraModelo714 } from './calculadoras/calculadora-714'
-import { CalculadoraModelo232 } from './calculadoras/calculadora-232'
-import { CalculadoraModelo210 } from './calculadoras/calculadora-210'
-import { CalculadoraModelo220 } from './calculadoras/calculadora-220'
-import { CalculadoraModelo309 } from './calculadoras/calculadora-309'
-import { CalculadoraModelo184 } from './calculadoras/calculadora-184'
-import { CalculadoraModelo296 } from './calculadoras/calculadora-296'
-import { CalculadoraModelo345 } from './calculadoras/calculadora-345'
-import { CalculadoraModelo193 } from './calculadoras/calculadora-193'
-import { CalculadoraModelo369 } from './calculadoras/calculadora-369'
-import { Calculadora303 } from './calculadoras/calculadora-303'
-import { Calculadora130 } from './calculadoras/calculadora-130'
-import { CalculadoraModelo170 } from './calculadoras/calculadora-170'
-import { CalculadoraModelo179 } from './calculadoras/calculadora-179'
-import { CalculadoraModelo600 } from './calculadoras/calculadora-600'
-import { CalculadoraModelo233 } from './calculadoras/calculadora-233'
-import { CalculadoraModelo036 } from './calculadoras/calculadora-036'
-import { CalculadoraModelo145 } from './calculadoras/calculadora-145'
-import { CalculadoraModelo222 } from './calculadoras/calculadora-222'
-import { CalculadoraModelo211 } from './calculadoras/calculadora-211'
-import { CalculadoraModelo143 } from './calculadoras/calculadora-143'
-import { Calculadora182 } from './calculadoras/calculadora-182'
-import { Calculadora189 } from './calculadoras/calculadora-189'
-import { Calculadora194 } from './calculadoras/calculadora-194'
-import { Calculadora216 } from './calculadoras/calculadora-216'
-import { CalculadoraPlusvalia } from './calculadoras/calculadora-plusvalia'
-import { CalculadoraModelo117 } from './calculadoras/calculadora-117'
-import { CalculadoraModelo236 } from './calculadoras/calculadora-236'
-import { CalculadoraModelo282 } from './calculadoras/calculadora-282'
+import dynamic from 'next/dynamic'
+
+// IRPF (secciÃ³n por defecto) y paneles: estÃ¡ticos. El resto de calculadoras
+// y modelos se cargan BAJO DEMANDA (chunks separados): la ruta /fiscal pesaba
+// 1.5 MB porque importaba las ~50 calculadoras de forma estÃ¡tica. Todos estÃ¡n
+// envueltos en <LazyCalculator> (Suspense) en su punto de uso.
+
+const CalculadoraIva = dynamic(() => import('./calculadoras/calculadora-iva').then(m => ({ default: m.CalculadoraIva })), { ssr: false })
+const CalculadoraReta = dynamic(() => import('./calculadoras/calculadora-retas').then(m => ({ default: m.CalculadoraReta })), { ssr: false })
+const CalculadoraIs = dynamic(() => import('./calculadoras/calculadora-is').then(m => ({ default: m.CalculadoraIs })), { ssr: false })
+const CalculadoraPatrimonio = dynamic(() => import('./calculadoras/calculadora-patrimonio').then(m => ({ default: m.CalculadoraPatrimonio })), { ssr: false })
+const Calculadora111 = dynamic(() => import('./calculadoras/calculadora-111').then(m => ({ default: m.Calculadora111 })), { ssr: false })
+const Calculadora390 = dynamic(() => import('./calculadoras/calculadora-390').then(m => ({ default: m.Calculadora390 })), { ssr: false })
+const Calculadora190 = dynamic(() => import('./calculadoras/calculadora-190').then(m => ({ default: m.Calculadora190 })), { ssr: false })
+const Calculadora180 = dynamic(() => import('./calculadoras/calculadora-180').then(m => ({ default: m.Calculadora180 })), { ssr: false })
+const Calculadora202 = dynamic(() => import('./calculadoras/calculadora-202').then(m => ({ default: m.Calculadora202 })), { ssr: false })
+const CalculadoraModelo200 = dynamic(() => import('./calculadoras/calculadora-200').then(m => ({ default: m.CalculadoraModelo200 })), { ssr: false })
+const CalculadoraModelo720 = dynamic(() => import('./calculadoras/calculadora-720').then(m => ({ default: m.CalculadoraModelo720 })), { ssr: false })
+const CalculadoraModelo151 = dynamic(() => import('./calculadoras/calculadora-151').then(m => ({ default: m.CalculadoraModelo151 })), { ssr: false })
+const CalculadoraModelo100 = dynamic(() => import('./calculadoras/calculadora-100').then(m => ({ default: m.CalculadoraModelo100 })), { ssr: false })
+const CalculadoraModelo131 = dynamic(() => import('./calculadoras/calculadora-131').then(m => ({ default: m.CalculadoraModelo131 })), { ssr: false })
+const CalculadoraModelo115 = dynamic(() => import('./calculadoras/calculadora-115').then(m => ({ default: m.CalculadoraModelo115 })), { ssr: false })
+const CalculadoraModelo123 = dynamic(() => import('./calculadoras/calculadora-123').then(m => ({ default: m.CalculadoraModelo123 })), { ssr: false })
+const CalculadoraModelo347 = dynamic(() => import('./calculadoras/calculadora-347').then(m => ({ default: m.CalculadoraModelo347 })), { ssr: false })
+const CalculadoraModelo349 = dynamic(() => import('./calculadoras/calculadora-349').then(m => ({ default: m.CalculadoraModelo349 })), { ssr: false })
+const CalculadoraModelo721 = dynamic(() => import('./calculadoras/calculadora-721').then(m => ({ default: m.CalculadoraModelo721 })), { ssr: false })
+const CalculadoraModelo714 = dynamic(() => import('./calculadoras/calculadora-714').then(m => ({ default: m.CalculadoraModelo714 })), { ssr: false })
+const CalculadoraModelo232 = dynamic(() => import('./calculadoras/calculadora-232').then(m => ({ default: m.CalculadoraModelo232 })), { ssr: false })
+const CalculadoraModelo210 = dynamic(() => import('./calculadoras/calculadora-210').then(m => ({ default: m.CalculadoraModelo210 })), { ssr: false })
+const CalculadoraModelo220 = dynamic(() => import('./calculadoras/calculadora-220').then(m => ({ default: m.CalculadoraModelo220 })), { ssr: false })
+const CalculadoraModelo309 = dynamic(() => import('./calculadoras/calculadora-309').then(m => ({ default: m.CalculadoraModelo309 })), { ssr: false })
+const CalculadoraModelo184 = dynamic(() => import('./calculadoras/calculadora-184').then(m => ({ default: m.CalculadoraModelo184 })), { ssr: false })
+const CalculadoraModelo296 = dynamic(() => import('./calculadoras/calculadora-296').then(m => ({ default: m.CalculadoraModelo296 })), { ssr: false })
+const CalculadoraModelo345 = dynamic(() => import('./calculadoras/calculadora-345').then(m => ({ default: m.CalculadoraModelo345 })), { ssr: false })
+const CalculadoraModelo193 = dynamic(() => import('./calculadoras/calculadora-193').then(m => ({ default: m.CalculadoraModelo193 })), { ssr: false })
+const CalculadoraModelo369 = dynamic(() => import('./calculadoras/calculadora-369').then(m => ({ default: m.CalculadoraModelo369 })), { ssr: false })
+const Calculadora303 = dynamic(() => import('./calculadoras/calculadora-303').then(m => ({ default: m.Calculadora303 })), { ssr: false })
+const Calculadora130 = dynamic(() => import('./calculadoras/calculadora-130').then(m => ({ default: m.Calculadora130 })), { ssr: false })
+const CalculadoraModelo170 = dynamic(() => import('./calculadoras/calculadora-170').then(m => ({ default: m.CalculadoraModelo170 })), { ssr: false })
+const CalculadoraModelo179 = dynamic(() => import('./calculadoras/calculadora-179').then(m => ({ default: m.CalculadoraModelo179 })), { ssr: false })
+const CalculadoraModelo600 = dynamic(() => import('./calculadoras/calculadora-600').then(m => ({ default: m.CalculadoraModelo600 })), { ssr: false })
+const CalculadoraModelo233 = dynamic(() => import('./calculadoras/calculadora-233').then(m => ({ default: m.CalculadoraModelo233 })), { ssr: false })
+const CalculadoraModelo036 = dynamic(() => import('./calculadoras/calculadora-036').then(m => ({ default: m.CalculadoraModelo036 })), { ssr: false })
+const CalculadoraModelo145 = dynamic(() => import('./calculadoras/calculadora-145').then(m => ({ default: m.CalculadoraModelo145 })), { ssr: false })
+const CalculadoraModelo222 = dynamic(() => import('./calculadoras/calculadora-222').then(m => ({ default: m.CalculadoraModelo222 })), { ssr: false })
+const CalculadoraModelo211 = dynamic(() => import('./calculadoras/calculadora-211').then(m => ({ default: m.CalculadoraModelo211 })), { ssr: false })
+const CalculadoraModelo143 = dynamic(() => import('./calculadoras/calculadora-143').then(m => ({ default: m.CalculadoraModelo143 })), { ssr: false })
+const Calculadora182 = dynamic(() => import('./calculadoras/calculadora-182').then(m => ({ default: m.Calculadora182 })), { ssr: false })
+const Calculadora189 = dynamic(() => import('./calculadoras/calculadora-189').then(m => ({ default: m.Calculadora189 })), { ssr: false })
+const Calculadora194 = dynamic(() => import('./calculadoras/calculadora-194').then(m => ({ default: m.Calculadora194 })), { ssr: false })
+const Calculadora216 = dynamic(() => import('./calculadoras/calculadora-216').then(m => ({ default: m.Calculadora216 })), { ssr: false })
+const CalculadoraPlusvalia = dynamic(() => import('./calculadoras/calculadora-plusvalia').then(m => ({ default: m.CalculadoraPlusvalia })), { ssr: false })
+const CalculadoraModelo117 = dynamic(() => import('./calculadoras/calculadora-117').then(m => ({ default: m.CalculadoraModelo117 })), { ssr: false })
+const CalculadoraModelo236 = dynamic(() => import('./calculadoras/calculadora-236').then(m => ({ default: m.CalculadoraModelo236 })), { ssr: false })
+const CalculadoraModelo282 = dynamic(() => import('./calculadoras/calculadora-282').then(m => ({ default: m.CalculadoraModelo282 })), { ssr: false })
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { GUIAS_PERFIL } from '@/lib/fiscal/guias-perfil'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -109,12 +116,12 @@ function PaginaFiscalInner() {
           .single()
         setEsPro(sub?.tier === 'PRO')
       } catch {
-        // sin sesión o sin sub: se mantiene false
+        // sin sesiÃ³n o sin sub: se mantiene false
       }
     })()
   }, [perfilActivoId])
 
-  // Deep-link: permite abrir una calculadora concreta vía ?seccion=modeloXXX
+  // Deep-link: permite abrir una calculadora concreta vÃ­a ?seccion=modeloXXX
   const searchParams = useSearchParams()
   useEffect(() => {
     const seccionParam = searchParams.get('seccion')
@@ -148,12 +155,12 @@ function PaginaFiscalInner() {
           if (bd?.perfilFiscal) {
             setPerfil(bd.perfilFiscal)
             setMostrarWizard(false)
-            // Nota: NO forzamos aquí seccionInicial para no pisar la elección
-            // del usuario si interactúa antes de que resuelva la sincronización
+            // Nota: NO forzamos aquÃ­ seccionInicial para no pisar la elecciÃ³n
+            // del usuario si interactÃºa antes de que resuelva la sincronizaciÃ³n
           }
         }
       } catch {
-        // sin sesión o red caída: seguimos con localStorage
+        // sin sesiÃ³n o red caÃ­da: seguimos con localStorage
       } finally {
         setSincronizado(true)
       }
@@ -205,7 +212,7 @@ function PaginaFiscalInner() {
     try {
       window.localStorage.setItem('perfil-fiscal', p)
     } catch {
-      // almacenamiento bloqueado: solo estado de sesión
+      // almacenamiento bloqueado: solo estado de sesiÃ³n
     }
     void guardarPerfilBd({ perfilFiscal: p, comunidadFiscal: comunidad })
     const config = PERFILES.find(x => x.key === p)
@@ -218,14 +225,14 @@ function PaginaFiscalInner() {
       const resultado = await fetchDatosReales(taxYear)
       setDatosReales(resultado)
     } catch {
-      // silently fail — the user can still type manually
+      // silently fail â€” the user can still type manually
     } finally {
       setCargandoReales(false)
     }
   }, [taxYear])
 
   useEffect(() => {
-    // Auto-cargar datos reales la primera vez que la sesión está lista
+    // Auto-cargar datos reales la primera vez que la sesiÃ³n estÃ¡ lista
     if (datosReales === null) {
       void cargarDatosReales()
     }
@@ -474,7 +481,7 @@ function PaginaFiscalInner() {
           {seccion === 'packTrimestre' && <PanelPackTrimestre taxYear={taxYear} />}
           {seccion === 'presupuestoAnual' && <PanelPresupuestoAnual taxYear={taxYear} />}
           <p className="print:hidden text-xs text-muted-foreground">
-            {t('fiscalPage.ejerce')} {datos.taxYear} · datos en caché de la sesión durante 24 h ·{' '}
+            {t('fiscalPage.ejerce')} {datos.taxYear} Â· datos en cachÃ© de la sesiÃ³n durante 24 h Â·{' '}
             <button type="button" className="underline hover:no-underline" onClick={() => void cargarDatos(comunidad, taxYear, true)}>
               {t('fiscalPage.actualizarAhora')}
             </button>

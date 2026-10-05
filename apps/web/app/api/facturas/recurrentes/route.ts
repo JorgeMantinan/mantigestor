@@ -2,6 +2,19 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, getSupabaseServer, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { z } from 'zod'
+
+const PlantillaRecurrenteSchema = z.object({
+  tipo: z.string().min(1).max(30),
+  numero: z.string().min(1).max(50),
+  emisorReceptor: z.string().min(1).max(200),
+  nifContraparte: z.string().max(20).nullable().optional(),
+  baseImponible: z.number().positive().max(10000000),
+  iva: z.union([z.literal(0), z.literal(4), z.literal(10), z.literal(21)]),
+  diaGeneracion: z.number().int().min(1).max(28),
+  diaEmail: z.number().int().min(1).max(28).nullable().optional(),
+  notas: z.string().max(2000).nullable().optional(),
+})
 
 export async function GET(req: NextRequest) {
   try {
@@ -41,28 +54,12 @@ export async function POST(req: NextRequest) {
 
     const { perfilId } = await resolvePerfilActivo(req)
 
-    const body = await req.json()
-    const { tipo, numero, emisorReceptor, nifContraparte, baseImponible, iva, diaGeneracion, diaEmail, notas } = body
-
-    if (!tipo || !numero || !emisorReceptor || baseImponible == null || !diaGeneracion) {
-      return badRequest('Faltan campos obligatorios')
+    const body = await req.json().catch(() => null)
+    const parsed = PlantillaRecurrenteSchema.safeParse(body)
+    if (!parsed.success) {
+      return badRequest(parsed.error.flatten().fieldErrors)
     }
-
-    if (![21, 10, 4, 0].includes(iva)) {
-      return badRequest('IVA debe ser 0, 4, 10 o 21')
-    }
-
-    if (diaGeneracion < 1 || diaGeneracion > 28) {
-      return badRequest('Día de generación debe ser entre 1 y 28')
-    }
-
-    if (diaEmail != null && (diaEmail < 1 || diaEmail > 28)) {
-      return badRequest('Día de email debe ser entre 1 y 28 o null')
-    }
-
-    if (notas != null && typeof notas !== 'string') {
-      return badRequest('notas debe ser una cadena JSON')
-    }
+    const { tipo, numero, emisorReceptor, nifContraparte, baseImponible, iva, diaGeneracion, diaEmail, notas } = parsed.data
 
     const id = crypto.randomUUID()
     const supabase = await getSupabaseServer(req)

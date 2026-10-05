@@ -1,7 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getAuthenticatedUser, getSupabaseServer, unauthorized, serverError } from '@/lib/api-helpers'
+import { getAuthenticatedUser, getSupabaseServer, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { z } from 'zod'
+
+const ActualizarPlantillaSchema = z.object({
+  activa: z.boolean().optional(),
+  diaGeneracion: z.number().int().min(1).max(28).optional(),
+  diaEmail: z.number().int().min(1).max(28).nullable().optional(),
+  notas: z.string().max(2000).nullable().optional(),
+  tipo: z.string().min(1).max(30).optional(),
+  numero: z.string().min(1).max(50).optional(),
+  emisorReceptor: z.string().min(1).max(200).optional(),
+  nifContraparte: z.string().max(20).nullable().optional(),
+  baseImponible: z.number().min(0).max(1000000000).optional(),
+  iva: z.union([z.literal(0), z.literal(4), z.literal(10), z.literal(21)]).optional(),
+})
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -18,18 +32,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     const { perfilId } = await resolvePerfilActivo(req)
 
-    const body = await req.json()
-    const updates: Record<string, unknown> = {}
-    if (body.activa !== undefined) updates.activa = body.activa
-    if (body.diaGeneracion !== undefined) updates.diaGeneracion = body.diaGeneracion
-    if (body.diaEmail !== undefined) updates.diaEmail = body.diaEmail
-    if (body.notas !== undefined) updates.notas = body.notas
-    if (body.tipo !== undefined) updates.tipo = body.tipo
-    if (body.numero !== undefined) updates.numero = body.numero
-    if (body.emisorReceptor !== undefined) updates.emisorReceptor = body.emisorReceptor
-    if (body.nifContraparte !== undefined) updates.nifContraparte = body.nifContraparte
-    if (body.baseImponible !== undefined) updates.baseImponible = body.baseImponible
-    if (body.iva !== undefined) updates.iva = body.iva
+    const body = await req.json().catch(() => null)
+    const parsed = ActualizarPlantillaSchema.safeParse(body)
+    if (!parsed.success) {
+      return badRequest(parsed.error.flatten().fieldErrors)
+    }
+    const updates = parsed.data
 
     const supabase = await getSupabaseServer(req)
     const { error } = await supabase

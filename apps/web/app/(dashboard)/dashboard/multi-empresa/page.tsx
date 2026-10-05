@@ -52,54 +52,77 @@ export default function MultiEmpresaPage() {
         .single()
 
       const empresas: Empresa[] = (perfil?.empresas as unknown as Empresa[]) ?? []
-
-      if (empresas.length > 0) {
-        const resultados: EmpresaStats[] = []
-        for (const emp of empresas) {
-          const { data: facturas } = await supabase
-            .from('facturas')
-            .select('tipo, total')
-            .eq('perfilId', perfil!.id)
-            .eq('empresaId', emp.id)
-            .gte('fechaEmision', `${anyo}-01-01`)
-            .lte('fechaEmision', `${anyo}-12-31`)
-
-          const ingresos = (facturas ?? []).filter(f => f.tipo === 'ingreso').reduce((s, f) => s + f.total, 0)
-          const gastos = (facturas ?? []).filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.total, 0)
-
-          resultados.push({
-            empresa: emp,
-            ingresos,
-            gastos,
-            facturasCount: (facturas ?? []).length,
-          })
-        }
-        setDatosEmpresas(resultados)
-      }
-
-      const perfilesConsolidados: PerfilConsolidado[] = []
       const perfilesGestionados = personas.filter(p => p.tipo === 'gestiono')
+      const desde = `${anyo}-01-01`
+      const hasta = `${anyo}-12-31`
 
-      for (const p of perfilesGestionados) {
+      if (empresas.length > 0 && perfil) {
+        // 1 consulta batch para todas las empresas (antes: una por empresa)
         const { data: facturas } = await supabase
           .from('facturas')
-          .select('tipo, total')
-          .eq('perfilId', p.perfilId)
-          .gte('fechaEmision', `${anyo}-01-01`)
-          .lte('fechaEmision', `${anyo}-12-31`)
+          .select('empresaId, tipo, total')
+          .eq('perfilId', perfil.id)
+          .in('empresaId', empresas.map(e => e.id))
+          .gte('fechaEmision', desde)
+          .lte('fechaEmision', hasta)
 
-        const ingresos = (facturas ?? []).filter(f => f.tipo === 'ingreso').reduce((s, f) => s + f.total, 0)
-        const gastos = (facturas ?? []).filter(f => f.tipo === 'gasto').reduce((s, f) => s + f.total, 0)
+        const porEmpresa = new Map<string, { ingresos: number; gastos: number; count: number }>()
+        for (const f of facturas ?? []) {
+          if (!f.empresaId) continue
+          let t = porEmpresa.get(f.empresaId)
+          if (!t) {
+            t = { ingresos: 0, gastos: 0, count: 0 }
+            porEmpresa.set(f.empresaId, t)
+          }
+          t.count++
+          if (f.tipo === 'ingreso') t.ingresos += f.total
+          if (f.tipo === 'gasto') t.gastos += f.total
+        }
 
-        perfilesConsolidados.push({
+        setDatosEmpresas(empresas.map(emp => {
+          const t = porEmpresa.get(emp.id)
+          return {
+            empresa: emp,
+            ingresos: t?.ingresos ?? 0,
+            gastos: t?.gastos ?? 0,
+            facturasCount: t?.count ?? 0,
+          }
+        }))
+      }
+
+      // 1 consulta batch para todas las personas gestionadas (antes: una por persona)
+      const { data: facturasPersonas } = perfilesGestionados.length > 0
+        ? await supabase
+            .from('facturas')
+            .select('perfilId, tipo, total')
+            .in('perfilId', perfilesGestionados.map(p => p.perfilId))
+            .gte('fechaEmision', desde)
+            .lte('fechaEmision', hasta)
+        : { data: null as Array<{ perfilId: string; tipo: string; total: number }> | null }
+
+      const porPerfil = new Map<string, { ingresos: number; gastos: number; count: number }>()
+      for (const f of facturasPersonas ?? []) {
+        let t = porPerfil.get(f.perfilId)
+        if (!t) {
+          t = { ingresos: 0, gastos: 0, count: 0 }
+          porPerfil.set(f.perfilId, t)
+        }
+        t.count++
+        if (f.tipo === 'ingreso') t.ingresos += f.total
+        if (f.tipo === 'gasto') t.gastos += f.total
+      }
+
+      const perfilesConsolidados: PerfilConsolidado[] = perfilesGestionados.map(p => {
+        const t = porPerfil.get(p.perfilId)
+        return {
           perfilId: p.perfilId,
           nombre: p.nombre,
           email: p.email,
-          ingresos,
-          gastos,
-          facturasCount: (facturas ?? []).length,
-        })
-      }
+          ingresos: t?.ingresos ?? 0,
+          gastos: t?.gastos ?? 0,
+          facturasCount: t?.count ?? 0,
+        }
+      })
 
       setDatosPersonas(perfilesConsolidados)
       setCargando(false)

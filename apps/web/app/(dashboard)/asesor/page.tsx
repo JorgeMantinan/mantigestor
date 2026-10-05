@@ -36,48 +36,41 @@ export default function AsesorPage() {
       if (!user) { setLoading(false); return }
 
       const resumenes: ClienteResumen[] = []
+      const ids = clientesGestionados.map(p => p.perfilId)
+
+      // Una sola consulta batch para todos los gestionados (antes: una por
+      // persona → N round-trips secuenciales en el navegador)
+      const { data: facturas } = ids.length > 0
+        ? await getSupabase()
+            .from('facturas')
+            .select('perfilId, tipo, total, estado')
+            .in('perfilId', ids)
+        : { data: null as Array<{ perfilId: string; tipo: string; total: number; estado: string }> | null }
+
+      const porPerfil = new Map<string, { ingresos: number; gastos: number; pendientes: number; vencidas: number }>()
+      for (const f of facturas ?? []) {
+        let t = porPerfil.get(f.perfilId)
+        if (!t) {
+          t = { ingresos: 0, gastos: 0, pendientes: 0, vencidas: 0 }
+          porPerfil.set(f.perfilId, t)
+        }
+        if (f.tipo === 'ingreso') t.ingresos += f.total
+        if (f.tipo === 'gasto') t.gastos += f.total
+        if (f.estado === 'pendiente') t.pendientes++
+        if (f.estado === 'vencida') t.vencidas++
+      }
 
       for (const persona of clientesGestionados) {
-        try {
-          const { data: facturas } = await getSupabase()
-            .from('facturas')
-            .select('tipo, baseImponible, iva, total, estado')
-            .eq('perfilId', persona.perfilId)
-
-          if (facturas) {
-            const ingresos = facturas.filter(f => f.tipo === 'ingreso')
-            const gastos = facturas.filter(f => f.tipo === 'gasto')
-            resumenes.push({
-              perfilId: persona.perfilId,
-              nombre: persona.nombre,
-              email: persona.email,
-              totalIngresos: ingresos.reduce((s, f) => s + f.total, 0),
-              totalGastos: gastos.reduce((s, f) => s + f.total, 0),
-              facturasPendientes: facturas.filter(f => f.estado === 'pendiente').length,
-              facturasVencidas: facturas.filter(f => f.estado === 'vencida').length,
-            })
-          } else {
-            resumenes.push({
-              perfilId: persona.perfilId,
-              nombre: persona.nombre,
-              email: persona.email,
-              totalIngresos: 0,
-              totalGastos: 0,
-              facturasPendientes: 0,
-              facturasVencidas: 0,
-            })
-          }
-        } catch {
-          resumenes.push({
-            perfilId: persona.perfilId,
-            nombre: persona.nombre,
-            email: persona.email,
-            totalIngresos: 0,
-            totalGastos: 0,
-            facturasPendientes: 0,
-            facturasVencidas: 0,
-          })
-        }
+        const t = porPerfil.get(persona.perfilId)
+        resumenes.push({
+          perfilId: persona.perfilId,
+          nombre: persona.nombre,
+          email: persona.email,
+          totalIngresos: t?.ingresos ?? 0,
+          totalGastos: t?.gastos ?? 0,
+          facturasPendientes: t?.pendientes ?? 0,
+          facturasVencidas: t?.vencidas ?? 0,
+        })
       }
 
       setClientes(resumenes)

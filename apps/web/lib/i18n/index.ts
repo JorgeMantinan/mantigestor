@@ -1,22 +1,34 @@
 import { es, type DeepTraducciones } from './es'
-import { en } from './en'
-import { ca } from './ca'
-import { gl } from './gl'
-import { eu } from './eu'
 
 export type Idioma = 'es' | 'en' | 'ca' | 'gl' | 'eu'
+export type { DeepTraducciones }
 
-export const traducciones: Record<Idioma, DeepTraducciones> = { es, en, ca, gl, eu }
+// Solo 'es' entra estático en el bundle (fallback y valor por defecto).
+// El resto de idiomas se cargan bajo demanda: ~340 KB menos en el chunk
+// compartido de TODAS las rutas.
+const cargadores: Record<Exclude<Idioma, 'es'>, () => Promise<DeepTraducciones>> = {
+  en: async () => (await import('./en')).en,
+  ca: async () => (await import('./ca')).ca,
+  gl: async () => (await import('./gl')).gl,
+  eu: async () => (await import('./eu')).eu,
+}
 
-export function t(idioma: Idioma, path: string): string {
-  const keys = path.split('.')
-  let result: unknown = traducciones[idioma]
-  for (const key of keys) {
-    if (result && typeof result === 'object' && key in result) {
-      result = (result as Record<string, unknown>)[key]
-    } else {
-      return path
-    }
+const cache: Partial<Record<Idioma, DeepTraducciones>> = { es }
+
+/** Carga las traducciones de un idioma (instantáneo si ya está en caché). */
+export async function cargarTraducciones(idioma: Idioma): Promise<DeepTraducciones> {
+  const yaCargadas = cache[idioma]
+  if (yaCargadas) return yaCargadas
+  try {
+    const paquete = await cargadores[idioma as Exclude<Idioma, 'es'>]()
+    cache[idioma] = paquete
+    return paquete
+  } catch {
+    return es
   }
-  return typeof result === 'string' ? result : path
+}
+
+/** Traducciones disponibles de forma síncrona (fallback a 'es'). */
+export function traduccionesDe(idioma: Idioma): DeepTraducciones {
+  return cache[idioma] ?? es
 }
