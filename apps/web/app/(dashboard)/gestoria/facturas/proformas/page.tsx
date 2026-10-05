@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Plus, FileText, ArrowUpRight, Trash2, Copy, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Send, CheckCircle, XCircle } from 'lucide-react'
+import { Plus, FileText, Trash2, Copy, Search, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, Send, CheckCircle, XCircle } from 'lucide-react'
 import { toast, Toaster } from 'sonner'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import {
@@ -61,7 +61,7 @@ export default function ProformasPage() {
       toast.error(t('facturaProforma.errorCargar'))
     }
     setLoading(false)
-  }, [getSupabase, perfilActivoId])
+  }, [t, getSupabase, perfilActivoId])
 
   useEffect(() => { fetchProformas() }, [fetchProformas])
 

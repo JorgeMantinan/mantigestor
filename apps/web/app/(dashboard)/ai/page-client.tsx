@@ -7,7 +7,7 @@ import { useLanguage } from '@/contexts/language-context'
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { PiggyBank, Send, Sparkles, AlertCircle } from 'lucide-react'
+import { Send, Sparkles, AlertCircle } from 'lucide-react'
 
 interface Mensaje {
   role: 'user' | 'assistant'

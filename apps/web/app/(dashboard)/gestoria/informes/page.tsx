@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,7 +30,7 @@ const formatEuro = (cents: number) => new Intl.NumberFormat('es-ES', { style: 'c
 
 export default function InformesPage() {
   const [facturas, setFacturas] = useState<Factura[]>([])
-  const [cargando, setCargando] = useState(true)
+  const [_cargando, setCargando] = useState(true)
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
   const [tipo, setTipo] = useState('todos')

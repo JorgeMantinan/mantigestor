@@ -113,7 +113,7 @@ export function predecirIngresos(facturas: Factura[], mesesHistorial = 6): Resul
     const mesIdx = (mesActual + 1 + i) % 12
     const anyo = mesActual + 1 + i >= 12 ? anyoActual + 1 : anyoActual
 
-    const ultimos = historial.slice(-(mesesHistorial - i))
+    const _ultimos = historial.slice(-(mesesHistorial - i))
     let ingresoPrevisto: number
 
     if (i === 0) {

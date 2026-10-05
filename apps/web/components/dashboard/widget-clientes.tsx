@@ -51,7 +51,7 @@ export function WidgetClientes({ facturas }: { facturas: Factura[] }) {
 
         {/* Top 3 clientes con barras */}
         <div className="space-y-2">
-          {top3.map((c, i) => {
+          {top3.map((c, _i) => {
             const share = analisis.concentracion > 0 ? Math.round((c.totalFacturado / (analisis.topClientes.reduce((s, cl) => s + cl.totalFacturado, 0) || 1)) * 100) : 0
             return (
               <div key={c.nombre} className="space-y-1">

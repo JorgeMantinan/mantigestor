@@ -1,13 +1,12 @@
 'use client'
 
-import { memo, useState } from 'react'
+import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Building2, User, Trash2, Pencil, Plus } from 'lucide-react'
-import { toast } from 'sonner'
 import { useLanguage } from '@/contexts/language-context'
 
 const CATEGORIAS_GASTO = [

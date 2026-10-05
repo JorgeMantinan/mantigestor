@@ -26,7 +26,7 @@ export interface Resultado180Automatico {
 
 export async function generar180Automatico(
   perfilId: string,
-  anyo: number
+  _anyo: number
 ): Promise<Resultado180Automatico | null> {
   const supabase = createClient()
 

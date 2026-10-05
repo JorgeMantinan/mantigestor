@@ -120,7 +120,7 @@ export function AlertasIVA({ facturas }: { facturas: Factura[] }) {
       const prioridad: Record<string, number> = { alta: 0, media: 1, baja: 2 }
       return (prioridad[a.prioridad] ?? 2) - (prioridad[b.prioridad] ?? 2)
     })
-  }, [facturas])
+  }, [t, facturas])
 
   if (alertas.length === 0) return null
 

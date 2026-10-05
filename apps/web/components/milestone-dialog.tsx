@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { PartyPopper, X } from 'lucide-react'
+import { PartyPopper } from 'lucide-react'
 
 const STORAGE_KEY = 'milestone-100-seen'
 

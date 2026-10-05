@@ -5,10 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import {
-  ArrowDownLeft, ArrowUpRight, Clock, Calendar, TrendingUp,
-  TrendingDown, Wallet, AlertCircle, RefreshCw
-} from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, Clock, Calendar, TrendingUp, Wallet, AlertCircle, RefreshCw } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   ResponsiveContainer, ReferenceLine
@@ -30,7 +27,7 @@ interface Factura {
 const formatMoney = (cents: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
-const DIAS_CORTOS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+const _DIAS_CORTOS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
 function obtenerRangoFechas() {
   const hoy = new Date()

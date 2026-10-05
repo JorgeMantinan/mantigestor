@@ -124,7 +124,7 @@ async function enviarEmailRecordatorioCobro(
   const { Resend } = await import('resend')
   const resend = new Resend(process.env.RESEND_API_KEY)
 
-  const hoyTexto = hoy.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+  const _hoyTexto = hoy.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
   const lista = facturas.map(formatearFactura).join('')
   const totalPendiente = facturas.reduce((s, f) => s + f.total, 0)
   const totalFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(totalPendiente / 100)

@@ -4,15 +4,11 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
-import {
-  Search, Users, ArrowUpRight, Clock, AlertCircle,
-  CheckCircle, Filter, Mail, Download, RefreshCw,
-  Calendar, FileText, TrendingUp, TrendingDown,
-} from 'lucide-react'
+import { Search, Users, ArrowUpRight, Clock, AlertCircle, CheckCircle, Mail, Download, RefreshCw, Calendar, FileText, TrendingUp, TrendingDown } from 'lucide-react'
 import { formatoMoneda } from '@/lib/divisas'
 import type { PersonaDashboard } from '@/app/api/fiscal/asesor/dashboard/route'
 
@@ -25,7 +21,7 @@ export default function DashboardConsolidadoPage() {
   const [busqueda, setBusqueda] = useState('')
   const [filtro, setFiltro] = useState<FiltroEstado>('todos')
   const [orden, setOrden] = useState<'nombre' | 'vencimiento' | 'pendientes'>('nombre')
-  const getSupabase = useCallback(() => createClient(), [])
+  const _getSupabase = useCallback(() => createClient(), [])
 
   const clientesGestionados = personas.filter(p => p.tipo === 'gestiono')
 

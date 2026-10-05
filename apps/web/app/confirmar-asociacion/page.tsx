@@ -19,7 +19,7 @@ export default function ConfirmarAsociacionPage() {
 
 function ConfirmarAsociacion() {
   const searchParams = useSearchParams()
-  const router = useRouter()
+  const _router = useRouter()
   const invitacionId = searchParams.get('invitacion')
   const email = searchParams.get('email')
 

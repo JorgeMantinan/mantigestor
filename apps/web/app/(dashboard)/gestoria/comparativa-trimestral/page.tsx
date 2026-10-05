@@ -61,7 +61,7 @@ export default function ComparativaTrimestralPage() {
   const [trimestre, setTrimestre] = useState(Math.floor(new Date().getMonth() / 3))
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
-  const { t } = useLanguage()
+  const { t: _t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()
 
   useEffect(() => {

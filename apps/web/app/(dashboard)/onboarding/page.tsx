@@ -2,26 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  ChevronRight,
-  ChevronLeft,
-  CheckCircle,
-  Circle,
-  Receipt,
-  FileText,
-  Landmark,
-  Users,
-  Calculator,
-  Home,
-  Wallet,
-  Sparkles,
-  Clipboard,
-} from 'lucide-react'
+import { ChevronRight, ChevronLeft, CheckCircle, Receipt, FileText, Landmark, Users, Calculator, Home, Wallet, Sparkles, Clipboard } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 
 const PASOS = [

@@ -2,7 +2,7 @@
 
 import { generarPDFDeHTML } from './pdf'
 
-const MESES = [
+const _MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ]

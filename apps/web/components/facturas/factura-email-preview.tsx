@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { EmailPreview } from '@/components/email-preview'
-import { obtenerPlantillas, renderPlantilla, type PlantillaEmail } from '@/lib/plantillas-email'
+import { obtenerPlantillas, renderPlantilla } from '@/lib/plantillas-email'
 import { useLanguage } from '@/contexts/language-context'
 
 interface FacturaEmailPreviewProps {

@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Download, Plus, Trash2, Loader2, Database } from 'lucide-react'
+import { Download, Plus, Trash2, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { calcularModelo190, type RendimientoRetencion190 } from '@mantigestor/utils'
 import { BotonPDF } from '@/components/boton-pdf'
@@ -27,7 +27,7 @@ interface Props {
 
 export function Calculadora190({ taxYear }: Props) {
   const [rendimientos, setRendimientos] = useState<RendimientoRetencion190[]>([])
-  const [loading, setLoading] = useState(false)
+  const [_loading, _setLoading] = useState(false)
   const [cargandoNominas, setCargandoNominas] = useState(false)
   const { perfilActivoId } = usePersonaActiva()
 

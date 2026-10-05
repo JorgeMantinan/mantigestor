@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { CategoriaGastoPicker } from '@/components/facturas/categoria-gasto-picker'
 import { VoiceInput } from '@/components/facturas/voice-input'
 import { SelectorMoneda } from '@/components/selector-moneda'
-import { TAGS_PREDEFINIDOS, obtenerColorTag, parsearTags, obtenerNombreTag } from '@/lib/tags'
+import { TAGS_PREDEFINIDOS, obtenerColorTag, obtenerNombreTag } from '@/lib/tags'
 import { MOEDAS, formatoMoneda, obtenerTasaCambio } from '@/lib/divisas'
 import { useLanguage } from '@/contexts/language-context'
 

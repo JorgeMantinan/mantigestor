@@ -70,7 +70,7 @@ export function PersonaSelector() {
     }
   }
 
-  const handleDesasociar = async (pid: string) => {
+  const _handleDesasociar = async (pid: string) => {
     try {
       await fetch(`/api/fiscal/desasociar-persona?perfilId=${pid}`, { method: 'DELETE' })
       if (perfilActivoId === pid) setPerfilActivo(null)

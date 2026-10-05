@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { FechaFiscal } from '@mantigestor/utils'
@@ -45,7 +44,7 @@ export function CalendarioMensual({
   const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
-  const hoy = new Date()
+  const hoy = useMemo(() => new Date(), [])
   const diaActual = hoy.getDate()
   const mesActual = hoy.getMonth()
   const anyoActual = hoy.getFullYear()
@@ -182,7 +181,7 @@ export function CalendarioMensual({
 
       {/* Leyenda */}
       <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-        {Object.entries(COLORES_CATEGORIA).filter(([k]) => k !== 'otros').map(([cat, color]) => (
+        {Object.entries(COLORES_CATEGORIA).filter(([k]) => k !== 'otros').map(([cat, _color]) => (
           <div key={cat} className="flex items-center gap-1">
             <span className={`inline-block h-2 w-2 rounded-full ${
               cat === 'iva' ? 'bg-blue-500'

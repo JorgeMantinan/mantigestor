@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Trash2, Plus, CircleDollarSign, CalendarDays, Wallet, Paperclip, FileText } from 'lucide-react'
-import { type TriggerTipo, type Attachment, type FacturaRecurrente, parseAttachments, serializarNotasConAttachments } from './types-recurrentes'
+import { type TriggerTipo, type Attachment, type FacturaRecurrente, parseAttachments } from './types-recurrentes'
 import { useLanguage } from '@/contexts/language-context'
 
 const TIPOS_IVA = [21, 10, 4, 0] as const

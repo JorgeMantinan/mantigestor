@@ -20,13 +20,13 @@ import { logAccion } from '@/lib/audit-log'
 import { descargarFacturaXML } from '@/lib/factura-xml'
 import { generarFacturaClientePDF, type PlantillaFactura } from '@/lib/factura-cliente-pdf'
 import { TimelineFactura } from '@/components/timeline-factura'
-import { MOEDAS, formatoMoneda, obtenerTasaCambio } from '@/lib/divisas'
+import { MOEDAS, formatoMoneda } from '@/lib/divisas'
 import { parsearTags, serializarTags, obtenerColorTag, obtenerNombreTag } from '@/lib/tags'
 import { obtenerPlantillas, renderPlantilla } from '@/lib/plantillas-email'
 import { calcularDescuento, formatoDescuento } from '@/lib/descuento-factura'
 import { useLanguage } from '@/contexts/language-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
-import { crearRectificativa, obtenerRectificativas, calcularImporteMaximo, esNotaCredito, esNotaDebito, type RectificativaData, type TipoRectificativa } from '@/lib/rectificativa'
+import { crearRectificativa, obtenerRectificativas, calcularImporteMaximo, esNotaCredito, type RectificativaData, type TipoRectificativa } from '@/lib/rectificativa'
 import { obtenerPagos, calcularSaldoPendiente, registrarPago, METODOS_PAGO, type PagoParcial } from '@/lib/pago-parcial'
 import { FacturaHeader } from '@/components/facturas/factura-header'
 import { FacturaForm } from '@/components/facturas/factura-form'
@@ -80,7 +80,7 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
   const [cuerpoEmail, setCuerpoEmail] = useState('')
   const [monedaEdit, setMonedaEdit] = useState('EUR')
   const [tipoCambioEdit, setTipoCambioEdit] = useState(1)
-  const [cargandoTasaEdit, setCargandoTasaEdit] = useState(false)
+  const [cargandoTasaEdit, _setCargandoTasaEdit] = useState(false)
   const [descuentoPorcentajeEdit, setDescuentoPorcentajeEdit] = useState(0)
   const [rectificativaDialogOpen, setRectificativaDialogOpen] = useState(false)
   const [tipoRectificativa, setTipoRectificativa] = useState<TipoRectificativa>('credito')

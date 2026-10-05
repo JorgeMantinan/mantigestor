@@ -23,8 +23,8 @@ export interface Resultado115Automatico {
 
 export async function generar115Automatico(
   perfilId: string,
-  trimestre: 1 | 2 | 3 | 4,
-  anyo: number
+  _trimestre: 1 | 2 | 3 | 4,
+  _anyo: number
 ): Promise<Resultado115Automatico | null> {
   const supabase = createClient()
 

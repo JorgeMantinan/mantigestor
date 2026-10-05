@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Search, Receipt, Home, Users, FileText, Calculator, ArrowRight } from 'lucide-react'
+import { Search, Receipt, Home, Users, ArrowRight } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 
 interface SearchResult {
@@ -54,7 +54,7 @@ export function CommandPalette() {
     setResults(items)
     setSelectedIndex(0)
     setLoading(false)
-  }, [])
+  }, [t])
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {

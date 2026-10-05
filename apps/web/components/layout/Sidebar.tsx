@@ -4,49 +4,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  LayoutDashboard,
-  Receipt,
-  BarChart3,
-  Landmark,
-  FileText,
-  Home,
-  Settings,
-  FileSpreadsheet,
-  PiggyBank,
-  Users,
-  ChevronLeft,
-  ChevronRight,
-  Calculator,
-  Menu,
-  X,
-  FolderOpen,
-  Calendar,
-  Upload,
-  Clock,
-  Repeat,
-  Zap,
-  ListChecks,
-  LayoutGrid,
-  Briefcase,
-  AlertTriangle,
-  Camera,
-  ClipboardList,
-  KeyRound,
-  Bell,
-  Download,
-  History,
-  RefreshCw,
-  BookOpen,
-  HelpCircle,
-  Search,
-  HandCoins,
-} from 'lucide-react'
+import { LayoutDashboard, Receipt, Landmark, FileText, Home, Settings, FileSpreadsheet, PiggyBank, Users, ChevronLeft, ChevronRight, Calculator, Menu, X, FolderOpen, Upload, Clock, Repeat, Zap, ListChecks, AlertTriangle, Camera, ClipboardList, Bell, Download, History, HelpCircle } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { useLanguage } from '@/contexts/language-context'
 import { Badge } from '@/components/ui/badge'
-import { ModuloIndicador } from '@/components/layout/modulo-indicador'
 import { getCalendarioFiscal } from '@mantigestor/utils'
 import { SidebarGroupComponent } from './sidebar-group'
 import { SearchTrigger } from '@/components/search/search-trigger'

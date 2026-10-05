@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Calculator, Plus, Trash2, Home, Database, Loader2 } from 'lucide-react'
+import { Plus, Trash2, Home, Database, Loader2 } from 'lucide-react'
 import { calcularModelo115 } from '@mantigestor/utils'
 import { LabelConAyuda } from './label-con-ayuda'
 import { BotonPDF } from '@/components/boton-pdf'

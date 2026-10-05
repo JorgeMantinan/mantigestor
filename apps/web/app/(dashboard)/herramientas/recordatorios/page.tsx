@@ -15,18 +15,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog'
-import {
-  Plus,
-  Trash2,
-  Pencil,
-  CheckCircle,
-  Clock,
-  AlertTriangle,
-  Calendar,
-  List,
-  ListChecks,
-  Bell,
-} from 'lucide-react'
+import { Plus, Trash2, Pencil, CheckCircle, Clock, AlertTriangle, Calendar, List, ListChecks } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 import {
   listarRecordatorios,
@@ -95,8 +84,11 @@ export default function RecordatoriosPage() {
     setRecordatorios(listarRecordatorios())
   }, [])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- el helper lee localStorage; `recordatorios` es el trigger de recomputación
   const pendientes = useMemo(() => obtenerRecordatoriosPendientes(), [recordatorios])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- el helper lee localStorage; `recordatorios` es el trigger de recomputación
   const vencidos = useMemo(() => obtenerRecordatoriosVencidos(), [recordatorios])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- el helper lee localStorage; `recordatorios` es el trigger de recomputación
   const estaSemana = useMemo(() => obtenerRecordatoriosEstaSemana(), [recordatorios])
 
   const recordatoriosFiltrados = useMemo(() => {
@@ -110,6 +102,7 @@ export default function RecordatoriosPage() {
   const recordatoriosDiaSeleccionado = useMemo(() => {
     if (!diaSeleccionado) return []
     return obtenerRecordatoriosPorFecha(diaSeleccionado)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- el helper lee localStorage; `recordatorios` es el trigger
   }, [diaSeleccionado, recordatorios])
 
   const diasDelMes = useMemo(() => {

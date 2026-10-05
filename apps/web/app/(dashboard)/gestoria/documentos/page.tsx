@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Trash2, ExternalLink, ScanSearch, X } from 'lucide-react'
+import { FileText, Trash2, ExternalLink, ScanSearch } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { OcrBatchResults, type ResultadoOcrLote } from '@/components/ocr-batch-results'
@@ -26,7 +26,7 @@ interface Documento {
   subidoEn: string
 }
 
-const TIPO_LABELS: Record<string, string> = {
+const _TIPO_LABELS: Record<string, string> = {
   factura: 'Factura',
   trimestre: 'Trimestre',
   alquiler: 'Alquiler',

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ChevronLeft, Plus, Trash2, RefreshCw, FileText, Paperclip } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, RefreshCw, FileText } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { generarFacturaClientePDF } from '@/lib/factura-cliente-pdf'
 import { DragDropList } from '@/components/drag-drop-list'
@@ -100,7 +100,7 @@ export default function FacturasRecurrentesPage() {
     setPlantillas(ordered)
     if (perfilRes.data) setPerfil(perfilRes.data as PerfilEmpresa)
     setLoading(false)
-  }, [getSupabase, perfilActivoId])
+  }, [getSupabase, perfilActivoId, loadSavedOrder])
 
   useEffect(() => { fetchPlantillas() }, [fetchPlantillas])
 
@@ -472,7 +472,7 @@ export default function FacturasRecurrentesPage() {
   const formatMoney = (cents: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
-  const nombreMes = (dia: number) => t('facturaRecurrente.diaDeCadaMes').replace('{dia}', String(dia))
+  const _nombreMes = (dia: number) => t('facturaRecurrente.diaDeCadaMes').replace('{dia}', String(dia))
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

@@ -7,10 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import {
-  FileText, Download, Calendar, Receipt, TrendingUp, TrendingDown,
-  PiggyBank, Building2, CheckCircle2, Circle
-} from 'lucide-react'
+import { FileText, Download, Receipt, TrendingUp, TrendingDown, PiggyBank, CheckCircle2, Circle } from 'lucide-react'
 import Link from 'next/link'
 import { calcularPackAnual, packAnualCsv, type PackAnualResult } from '@mantigestor/utils'
 

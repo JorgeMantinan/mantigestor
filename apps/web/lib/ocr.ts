@@ -231,7 +231,7 @@ export function parseTextoTicket(texto: string, tipoPorDefecto: 'ingreso' | 'gas
   const iva = ivaPorcentaje !== null && [0, 4, 10, 21].includes(ivaPorcentaje) ? ivaPorcentaje : null
   const baseFinal = base !== null ? Math.round(base * 100) / 100 : null
   const totalFinal = total !== null ? Math.round(total * 100) / 100 : null
-  const ivaFinal = ivaImporte !== null ? Math.round(ivaImporte * 100) / 100 : null
+  const _ivaFinal = ivaImporte !== null ? Math.round(ivaImporte * 100) / 100 : null
 
   const modelos = sugerirModelos({
     tipo: tipoPorDefecto,

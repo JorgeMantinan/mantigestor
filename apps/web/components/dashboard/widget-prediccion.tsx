@@ -65,7 +65,7 @@ export function WidgetPrediccion({ facturas }: { facturas: Factura[] }) {
     }
 
     return meses
-  }, [facturas, datos])
+  }, [t, facturas, datos])
 
   if (!datos || barras.length === 0 || !datos.predicciones[0]) return null
 

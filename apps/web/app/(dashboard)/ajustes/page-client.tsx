@@ -88,7 +88,7 @@ function PerfilTab() {
   const [idiomaFactura, setIdiomaFactura] = useState<'es' | 'en'>('es')
   const [guardando, setGuardando] = useState(false)
   const [guardadoOk, setGuardadoOk] = useState(false)
-  const [guardandoFirma, setGuardandoFirma] = useState(false)
+  const [_guardandoFirma, _setGuardandoFirma] = useState(false)
   const [cargando, setCargando] = useState(true)
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
@@ -201,6 +201,7 @@ function PerfilTab() {
               <p className="text-xs text-muted-foreground">{t('ajustes.descripcionLogo')}</p>
               {logoBase64 ? (
                 <div className="flex items-center gap-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- preview de contenido de usuario (data:/blob) sin dimensiones fijas */}
                   <img src={logoBase64} alt="Logo de empresa" className="h-16 w-auto rounded border bg-white p-1 object-contain" />
                   <Button variant="ghost" size="sm" className="text-destructive gap-1" onClick={() => setLogoBase64(null)} aria-label="Delete logo">
                     <Trash2 className="h-4 w-4" /> {t('ajustes.eliminarLogo')}
@@ -346,6 +347,7 @@ function FirmaSection({ firma, onFirmaGuardada }: { firma: FirmaDigital | null; 
         {firma ? (
           <div className="space-y-4">
             <div className="rounded-md border bg-white p-4">
+              {/* eslint-disable-next-line @next/next/no-img-element -- preview de contenido de usuario (data:/blob) sin dimensiones fijas */}
               <img src={firma.imagen} alt="Firma digital" className="mx-auto h-auto max-h-32 w-auto" />
             </div>
             <div className="flex items-center justify-between">

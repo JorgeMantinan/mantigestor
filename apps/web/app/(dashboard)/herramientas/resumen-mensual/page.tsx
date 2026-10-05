@@ -4,7 +4,6 @@ import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { Copy, Share2, Check, Calendar, TrendingUp, TrendingDown, Clock } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -24,7 +23,7 @@ function formatEuro(v: number): string {
 }
 
 export default function ResumenMensualPage() {
-  const { t } = useLanguage()
+  const { t: _t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()
   const [mesSeleccionado, setMesSeleccionado] = useState(() => {
     const now = new Date()
@@ -128,7 +127,7 @@ export default function ResumenMensualPage() {
     }
   }, [generarMensaje])
 
-  const ahora = new Date()
+  const ahora = useMemo(() => new Date(), [])
   const opcionesMes = useMemo(() => {
     const opts: string[] = []
     for (let i = 0; i < 12; i++) {
@@ -136,7 +135,7 @@ export default function ResumenMensualPage() {
       opts.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
     }
     return opts
-  }, [])
+  }, [ahora])
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

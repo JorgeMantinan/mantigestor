@@ -15,40 +15,9 @@ import {
   DialogFooter,
   DialogDescription,
 } from '@/components/ui/dialog'
-import {
-  Plus,
-  Trash2,
-  Pencil,
-  Play,
-  Zap,
-  Clock,
-  AlertCircle,
-  CheckCircle,
-  Bell,
-  Mail,
-  Flag,
-  RefreshCw,
-} from 'lucide-react'
+import { Plus, Trash2, Pencil, Play, Zap, Clock, CheckCircle, Bell, Mail, Flag, RefreshCw } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
-import {
-  listarReglas,
-  crearRegla,
-  actualizarRegla,
-  eliminarRegla,
-  toggleActiva,
-  evaluarReglas,
-  registrarEjecucion,
-  listarHistorial,
-  getCondicionLabel,
-  getAccionLabel,
-  type Regla,
-  type TipoCondicion,
-  type TipoAccion,
-  type Condicion,
-  type Accion,
-  type EjecucionHistorial,
-  type FacturaInput,
-} from '@/lib/automatizaciones'
+import { listarReglas, crearRegla, actualizarRegla, eliminarRegla, toggleActiva, registrarEjecucion, listarHistorial, getCondicionLabel, getAccionLabel, type Regla, type TipoCondicion, type TipoAccion, type EjecucionHistorial, type FacturaInput } from '@/lib/automatizaciones'
 
 const TIPOS_CONDICION: TipoCondicion[] = [
   'importe_mayor_que',

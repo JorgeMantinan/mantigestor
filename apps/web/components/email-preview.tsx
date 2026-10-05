@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Pencil, Eye, EyeOff } from 'lucide-react'
+import { Pencil, Eye } from 'lucide-react'
 import { PLACEHOLDER_DESCRIPTIONS, type PlantillaEmail } from '@/lib/plantillas-email'
 
 interface EmailPreviewProps {
@@ -58,7 +58,7 @@ function TextoResaltado({ texto, className }: { texto: string; className?: strin
   )
 }
 
-export function EmailPreview({ plantilla, asuntoRenderizado, cuerpoRenderizado, onAsuntoChange, onCuerpoChange, editable = false }: EmailPreviewProps) {
+export function EmailPreview({ plantilla: _plantilla, asuntoRenderizado, cuerpoRenderizado, onAsuntoChange, onCuerpoChange, editable = false }: EmailPreviewProps) {
   const [editMode, setEditMode] = useState(false)
   const { t } = useLanguage()
 

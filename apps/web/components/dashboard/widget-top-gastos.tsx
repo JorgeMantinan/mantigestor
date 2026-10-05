@@ -44,7 +44,7 @@ export function WidgetTopGastos({ facturas }: { facturas: Factura[] }) {
       total,
       porcentaje: Math.round((total / maximo) * 100),
     }))
-  }, [facturas])
+  }, [t, facturas])
 
   if (topGastos.length === 0) return null
 

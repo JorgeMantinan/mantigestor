@@ -144,7 +144,7 @@ interface GastoAlquiler {
 const formatMoney = (cents: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 
-const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+const _MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 export default function DashboardPage() {
   const [facturas, setFacturas] = useState<Factura[]>([])
@@ -231,7 +231,7 @@ export default function DashboardPage() {
       }
     }
     fetchData()
-  }, [getSupabase, perfilActivoId, selectedYear])
+  }, [getSupabase, perfilActivoId, selectedYear, personas])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -316,7 +316,7 @@ export default function DashboardPage() {
     .filter(f => f.fechaVencimiento)
     .sort((a, b) => a.fechaVencimiento!.localeCompare(b.fechaVencimiento!))[0] ?? null
 
-  const ahora = new Date()
+  const ahora = useMemo(() => new Date(), [])
   const saludo = ahora.getHours() < 14 ? t('dashboard.buenosDias') : ahora.getHours() < 20 ? t('dashboard.buenasTardes') : t('dashboard.buenasNoches')
 
   const sparkIngresos = useMemo(() => {
@@ -328,7 +328,7 @@ export default function DashboardPage() {
       }
     })
     return meses.slice(0, ahora.getMonth() + 1)
-  }, [facturas])
+  }, [facturas, ahora])
 
   const sparkGastos = useMemo(() => {
     const meses: number[] = Array.from({ length: 12 }, () => 0)
@@ -339,7 +339,7 @@ export default function DashboardPage() {
       }
     })
     return meses.slice(0, ahora.getMonth() + 1)
-  }, [facturas])
+  }, [facturas, ahora])
 
   return (
     <div className="space-y-6">

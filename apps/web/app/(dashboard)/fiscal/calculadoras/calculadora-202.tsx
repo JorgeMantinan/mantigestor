@@ -4,13 +4,7 @@ import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { LabelConAyuda } from './label-con-ayuda'
-import {
-  calcularModelo202,
-  TIPOS_GRAVAMEN_IS_2026,
-  ETIQUETA_ENTIDAD_202,
-  type Modalidad202,
-  type Entidad202,
-} from '@mantigestor/utils'
+import { calcularModelo202, ETIQUETA_ENTIDAD_202, type Modalidad202, type Entidad202 } from '@mantigestor/utils'
 import { eur } from './types'
 import { BotonPDF } from '@/components/boton-pdf'
 

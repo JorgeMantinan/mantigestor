@@ -6,16 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import {
-  KeyRound,
-  Upload,
-  CheckCircle,
-  AlertTriangle,
-  Trash2,
-  Clock,
-  Shield,
-  FileText,
-} from 'lucide-react'
+import { KeyRound, Upload, AlertTriangle, Trash2, Clock, Shield } from 'lucide-react'
 import { leerCertificado, esCertificadoValido, type CertificadoInfo } from '@/lib/hacienda-firma'
 
 interface CertificadoAlmacenado {

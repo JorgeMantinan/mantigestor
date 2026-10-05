@@ -17,9 +17,9 @@ export interface CampoValidacion {
   sugerencia?: string
 }
 
-const REGEX_NIF_ES = /^[0-9]{8}[A-Z]$/i
-const REGEX_CIF_ES = /^[A-Z][0-9]{7}[A-Z0-9]$/i
-const REGEX_NIE_ES = /^[XYZ][0-9]{7}[A-Z]$/i
+const _REGEX_NIF_ES = /^[0-9]{8}[A-Z]$/i
+const _REGEX_CIF_ES = /^[A-Z][0-9]{7}[A-Z0-9]$/i
+const _REGEX_NIE_ES = /^[XYZ][0-9]{7}[A-Z]$/i
 const REGEX_NIF_PERSONA_FISICA = /^\d{8}[A-Z]$/i
 const REGEX_NIF_PERSONA_JURIDICA = /^[A-HJ-NP-S]\d{7}[A-J0-9]$/i
 const REGEX_NIE = /^[XYZ]\d{7}[A-Z]$/i

@@ -12,7 +12,6 @@ import { Toaster, toast } from 'sonner'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { Kbd } from '@/components/ui/kbd'
 import { Download } from 'lucide-react'
-import { descargarCsv } from '@/lib/descargar-csv'
 import { descargarExcel } from '@/lib/descargar-excel'
 import { generarNominaPDF } from '@/lib/nomina-pdf'
 import { useLanguage } from '@/contexts/language-context'
@@ -203,12 +202,12 @@ export default function NominasPage() {
 
   const totalBrutoJefe = jefe.reduce((s, n) => s + n.salarioBruto, 0)
   const totalIrpfJefe = jefe.reduce((s, n) => s + Math.round(n.salarioBruto * (n.irpf / 100)), 0)
-  const totalSsJefe = jefe.reduce((s, n) => s + n.seguridadSocial, 0)
+  const _totalSsJefe = jefe.reduce((s, n) => s + n.seguridadSocial, 0)
   const totalNetoJefe = jefe.reduce((s, n) => s + n.neto, 0)
 
   const totalBrutoEmp = empleado.reduce((s, n) => s + n.salarioBruto, 0)
   const totalIrpfEmp = empleado.reduce((s, n) => s + Math.round(n.salarioBruto * (n.irpf / 100)), 0)
-  const totalNetoEmp = empleado.reduce((s, n) => s + n.neto, 0)
+  const _totalNetoEmp = empleado.reduce((s, n) => s + n.neto, 0)
 
   return (
     <>

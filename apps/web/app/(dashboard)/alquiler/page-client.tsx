@@ -11,7 +11,6 @@ import { Toaster, toast } from 'sonner'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { Home, Plus, Search, Download } from 'lucide-react'
 import { PropertyCard } from '@/components/alquiler/property-card'
-import { descargarCsv } from '@/lib/descargar-csv'
 import { descargarExcel } from '@/lib/descargar-excel'
 import { logAccion } from '@/lib/audit-log'
 import { useLanguage } from '@/contexts/language-context'
@@ -141,7 +140,7 @@ export default function AlquilerPage() {
     })
   }, [propiedades, busqueda, ordenCampo, ordenDir])
 
-  const toggleOrden = (campo: OrdenCampo) => {
+  const _toggleOrden = (campo: OrdenCampo) => {
     if (ordenCampo === campo) {
       setOrdenDir(ordenDir === 'asc' ? 'desc' : 'asc')
     } else {

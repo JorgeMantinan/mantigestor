@@ -1,11 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import {
-  ConsultaIrpfSchema,
-  calcularIrpf,
-  calcularCuotaEscala,
-  type EscalaIrpf,
-} from '@mantigestor/utils'
+import { ConsultaIrpfSchema, calcularIrpf, type EscalaIrpf } from '@mantigestor/utils'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { obtenerEscalasIrpf } from '@/lib/fiscal/datos'

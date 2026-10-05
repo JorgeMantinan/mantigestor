@@ -69,16 +69,20 @@ export default function PagosRecurrentesPage() {
   const [mesCalendario, setMesCalendario] = useState(() => new Date().getMonth())
   const [anyoCalendario, setAnyoCalendario] = useState(() => new Date().getFullYear())
 
-  const hoy = new Date()
+  const hoy = useMemo(() => new Date(), [])
 
   useEffect(() => {
     setPagos(listarPagos())
   }, [])
 
   const pagosActivos = useMemo(() => pagos.filter(p => p.activo), [pagos])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- calcularTotalMensual cierra sobre `pagos`
   const totalMensual = useMemo(() => calcularTotalMensual(), [pagos])
-  const pendientes = useMemo(() => obtenerPagosPendientes(hoy), [pagos])
-  const pagadosMes = useMemo(() => obtenerPagosDelMes(hoy).filter(p => estaPagadoEsteMes(p, hoy)), [pagos])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- el helper cierra sobre `pagos`
+  const pendientes = useMemo(() => obtenerPagosPendientes(hoy), [pagos, hoy])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- el helper cierra sobre `pagos`
+  const pagadosMes = useMemo(() => obtenerPagosDelMes(hoy).filter(p => estaPagadoEsteMes(p, hoy)), [pagos, hoy])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- obtenerDiasConPagos cierra sobre `pagos`
   const diasConPagos = useMemo(() => obtenerDiasConPagos(anyoCalendario, mesCalendario), [pagos, anyoCalendario, mesCalendario])
 
   const abrirCrear = () => {

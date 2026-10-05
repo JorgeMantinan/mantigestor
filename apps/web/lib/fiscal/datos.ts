@@ -269,7 +269,7 @@ export async function obtenerDeduccionesAutonomicas(
 
 export async function obtenerProximosPlazosFiscales(
   client: SupabaseClient,
-  hoy: Date,
+  _hoy: Date,
 ): Promise<PlazoFiscalEntrada[]> {
   const { data, error } = await client
     .from('deadlines')

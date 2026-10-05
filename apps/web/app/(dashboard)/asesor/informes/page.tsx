@@ -5,10 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
-import {
-  FileText, Download, Mail, Eye, Calendar, TrendingUp,
-  TrendingDown, AlertTriangle, CheckCircle, BarChart3,
-} from 'lucide-react'
+import { FileText, Download, Calendar, AlertTriangle, CheckCircle, BarChart3 } from 'lucide-react'
 import { formatoMoneda } from '@/lib/divisas'
 import {
   generarDatosInforme,

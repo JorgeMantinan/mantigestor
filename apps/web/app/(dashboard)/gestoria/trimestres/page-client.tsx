@@ -127,7 +127,7 @@ export default function TrimestresPage() {
     } finally {
       setLoading(false)
     }
-  }, [anho, getSupabase, perfilActivoId])
+  }, [t, anho, getSupabase, perfilActivoId])
 
   const cargarModelos = useCallback(async () => {
     try {

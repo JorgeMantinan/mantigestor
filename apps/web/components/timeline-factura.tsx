@@ -51,7 +51,7 @@ const ICON_COLORS: Record<TipoEvento, string> = {
   eliminada: 'text-red-600 dark:text-red-400',
 }
 
-const ETIQUETAS: Record<TipoEvento, string> = {
+const _ETIQUETAS: Record<TipoEvento, string> = {
   creada: 'Creada',
   editada: 'Editada',
   estado_cambiado: 'Estado cambiado',

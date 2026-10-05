@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,7 +18,7 @@ const TRAMOS_IRPF_2026 = [
 ]
 
 // Coeficientes módulos simplificados por actividad (ejemplos)
-const MODULOS_EJEMPLO: Record<string, { beneficioBase: number; moduloMensual: number }> = {
+const _MODULOS_EJEMPLO: Record<string, { beneficioBase: number; moduloMensual: number }> = {
   'restaurante': { beneficioBase: 15000, moduloMensual: 1200 },
   'tienda': { beneficioBase: 12000, moduloMensual: 900 },
   'profesional': { beneficioBase: 18000, moduloMensual: 600 },
@@ -47,16 +47,12 @@ export default function AnalisisRegimenPage() {
   const [gastosModulos, setGastosModulos] = useState('')
   const [cuotaSS, setCuotaSS] = useState('80')
   const [ivaSoportado, setIvaSoportado] = useState('')
-  const [numeroTrabajadores, setNumeroTrabajadores] = useState('0')
-  const [superficieLocal, setSuperficieLocal] = useState('0')
 
   const ingresos = parseFloat(ingresosAnuales) || 0
   const gastosR = parseFloat(gastosReales) || 0
   const gastosM = parseFloat(gastosModulos) || 0
   const cuotaSSNum = parseFloat(cuotaSS) || 80
   const ivaSop = parseFloat(ivaSoportado) || 0
-  const trabajadores = parseInt(numeroTrabajadores) || 0
-  const superficie = parseFloat(superficieLocal) || 0
 
   const resultado = useMemo(() => {
     if (ingresos <= 0) return null
@@ -92,7 +88,7 @@ export default function AnalisisRegimenPage() {
     const excedeLimite = ingresos > limiteModulos
 
     // Verificar actividad compatible con módulos
-    const actividadesModulos = ['restaurante', 'tienda', 'profesional']
+    const _actividadesModulos = ['restaurante', 'tienda', 'profesional']
 
     return {
       baseDirecta,
@@ -113,7 +109,7 @@ export default function AnalisisRegimenPage() {
       excedeLimite,
       cuotaSSAnual,
     }
-  }, [ingresos, gastosR, gastosM, cuotaSSNum, ivaSop, trabajadores, superficie])
+  }, [ingresos, gastosR, gastosM, cuotaSSNum, ivaSop])
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

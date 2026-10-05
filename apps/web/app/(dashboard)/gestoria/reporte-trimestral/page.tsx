@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { useLanguage } from '@/contexts/language-context'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { generarReporteTrimestral, reporteTrimestralCSV, type DatosTrimestre } from '@mantigestor/utils'
 import { Download, FileText } from 'lucide-react'
@@ -19,7 +19,7 @@ export default function ReporteTrimestralPage() {
   const [cargando, setCargando] = useState(false)
   const [datos, setDatos] = useState<DatosTrimestre | null>(null)
 
-  const cargarDatos = async () => {
+  const cargarDatos = useCallback(async () => {
     setCargando(true)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -74,9 +74,9 @@ export default function ReporteTrimestralPage() {
       pagosFraccionados: 0,
     })
     setCargando(false)
-  }
+  }, [anyo, trimestre, perfilActivoId])
 
-  useEffect(() => { void cargarDatos() }, [anyo, trimestre, perfilActivoId])
+  useEffect(() => { void cargarDatos() }, [cargarDatos])
 
   const reporte = useMemo(() => datos ? generarReporteTrimestral(datos) : null, [datos])
 

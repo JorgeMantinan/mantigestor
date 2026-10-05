@@ -8,10 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
-import {
-  FileText, Download, Mail, ChevronLeft, ChevronRight, CheckCircle2, XCircle,
-  Receipt, PiggyBank, Landmark, Users, Building2, AlertTriangle,
-} from 'lucide-react'
+import { FileText, Download, Mail, ChevronLeft, ChevronRight, CheckCircle2, XCircle, Receipt, PiggyBank, Landmark, Building2 } from 'lucide-react'
 import {
   generarReporteAsesoria, exportarReporteAsesoriaPDF,
   type ReporteAsesoria, type FacturaAsesoria, type PerfilDatos,
@@ -25,7 +22,7 @@ const formatPct = (v: number) =>
 
 export function ReporteAsesoriaPageClient() {
   const { perfilActivoId } = usePersonaActiva()
-  const { t } = useLanguage()
+  const { t: _t } = useLanguage()
   const [reporte, setReporte] = useState<ReporteAsesoria | null>(null)
   const [anyo, setAnyo] = useState(new Date().getFullYear())
   const [cargando, setCargando] = useState(true)

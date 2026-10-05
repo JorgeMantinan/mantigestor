@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Bell, Mail, Save, Loader2, Zap, Shield, BellOff } from 'lucide-react'
@@ -72,7 +71,7 @@ export function NotificacionesPageClient() {
       setPreferencias(defaults)
     }
     setCargando(false)
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void cargarPreferencias()

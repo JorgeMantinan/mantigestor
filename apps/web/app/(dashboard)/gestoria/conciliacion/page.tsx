@@ -7,15 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Upload, CheckCircle, AlertCircle, ArrowRight, FileText, Building2, Save, Database } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from '@/contexts/language-context'
-import {
-  parsearExtractoCSV,
-  encontrarCoincidencias,
-  BANCOS,
-  detectarBanco,
-  type BancoId,
-  type Coincidencia,
-  type LineaFactura,
-} from '@/lib/conciliacion-bancaria'
+import { parsearExtractoCSV, encontrarCoincidencias, BANCOS, type BancoId, type Coincidencia, type LineaFactura } from '@/lib/conciliacion-bancaria'
 
 interface MovimientoGuardado {
   id: string
@@ -40,7 +32,7 @@ export default function ConciliacionPage() {
   const [textoOriginal, setTextoOriginal] = useState('')
   const [movimientosGuardados, setMovimientosGuardados] = useState<MovimientoGuardado[]>([])
   const [guardando, setGuardando] = useState(false)
-  const [guardadosIds, setGuardadosIds] = useState<Set<string>>(new Set())
+  const [_guardadosIds, setGuardadosIds] = useState<Set<string>>(new Set())
   const getSupabase = useCallback(() => createClient(), [])
   const { t } = useLanguage()
 

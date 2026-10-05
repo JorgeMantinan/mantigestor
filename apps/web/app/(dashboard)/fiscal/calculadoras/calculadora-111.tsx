@@ -29,7 +29,7 @@ interface Props {
 export function Calculadora111({ taxYear }: Props) {
   const [trimestre, setTrimestre] = useState<1 | 2 | 3 | 4>(1)
   const [rendimientos, setRendimientos] = useState<RendimientoRetencion[]>([])
-  const [pagosAnteriores, setPagosAnteriores] = useState(0)
+  const [pagosAnteriores, _setPagosAnteriores] = useState(0)
   const [cargando, setCargando] = useState(false)
 
   // Form state for adding new entry

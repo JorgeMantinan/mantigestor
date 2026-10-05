@@ -3,8 +3,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Upload, FileText, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Save } from 'lucide-react'
+import { Upload, FileText, TrendingUp, TrendingDown, AlertCircle, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import type { FormatoExtracto } from '@mantigestor/utils'
 import { useLanguage } from '@/contexts/language-context'
@@ -87,7 +86,7 @@ export function ImportarExtractoPageClient() {
     } finally {
       setLoading(false)
     }
-  }, [csvContent, formato])
+  }, [t, csvContent, formato])
 
   const formatEuros = (cents: number) =>
     new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100)

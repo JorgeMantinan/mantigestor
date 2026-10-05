@@ -35,8 +35,9 @@ export default function AsesorPage() {
       const { data: { user } } = await getSupabase().auth.getUser()
       if (!user) { setLoading(false); return }
 
+      const gestionados = personas.filter(p => p.tipo === 'gestiono')
       const resumenes: ClienteResumen[] = []
-      const ids = clientesGestionados.map(p => p.perfilId)
+      const ids = gestionados.map(p => p.perfilId)
 
       // Una sola consulta batch para todos los gestionados (antes: una por
       // persona → N round-trips secuenciales en el navegador)
@@ -60,7 +61,7 @@ export default function AsesorPage() {
         if (f.estado === 'vencida') t.vencidas++
       }
 
-      for (const persona of clientesGestionados) {
+      for (const persona of gestionados) {
         const t = porPerfil.get(persona.perfilId)
         resumenes.push({
           perfilId: persona.perfilId,
@@ -78,7 +79,7 @@ export default function AsesorPage() {
     }
 
     cargarResumenes()
-  }, [clientesGestionados.length])
+  }, [personas, getSupabase])
 
   const filtrados = clientes.filter(c =>
     (c.nombre?.toLowerCase().includes(busqueda.toLowerCase())) ||

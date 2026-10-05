@@ -2,12 +2,11 @@
 
 import { useState, Fragment } from 'react'
 import { useLanguage } from '@/contexts/language-context'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, XCircle, FileText, Plus, AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { validarFactura, type ResultadoValidacion } from '@/lib/validar-documento'
+import { validarFactura } from '@/lib/validar-documento'
 import { ValidacionOcr } from '@/components/validacion-ocr'
 
 interface OcrData {

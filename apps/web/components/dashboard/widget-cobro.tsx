@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Clock, CircleCheck, AlertTriangle, Banknote } from 'lucide-react'
+import { Clock, AlertTriangle, Banknote } from 'lucide-react'
 import { calcularRatioCobro } from '@/lib/ratio-cobro'
 import { useLanguage } from '@/contexts/language-context'
 

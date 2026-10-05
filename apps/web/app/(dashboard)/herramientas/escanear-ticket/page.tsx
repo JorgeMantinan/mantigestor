@@ -8,19 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import {
-  Camera,
-  Upload,
-  CheckCircle,
-  XCircle,
-  RotateCcw,
-  Loader2,
-  FileText,
-  Euro,
-  Calendar,
-  Tag,
-} from 'lucide-react'
+import { Camera, Upload, CheckCircle, RotateCcw, Loader2, FileText, Euro, Calendar, Tag } from 'lucide-react'
 
 interface TicketData {
   fecha: string
@@ -353,6 +341,7 @@ export default function EscanearTicketPage() {
           <CardContent className="space-y-4">
             {imagenCapturada && (
               <div className="rounded-lg overflow-hidden border">
+                {/* eslint-disable-next-line @next/next/no-img-element -- preview de contenido de usuario (data:/blob) sin dimensiones fijas */}
                 <img
                   src={imagenCapturada}
                   alt="Ticket capturado"

@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Receipt, TrendingUp, TrendingDown, Users, ArrowLeft, Building2 } from 'lucide-react'
+import { Users, ArrowLeft, Building2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface Empresa {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,18 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { AlertTriangle, Plus, Pencil, Trash2, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
+import { Plus, Pencil, Trash2, TrendingUp, DollarSign } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from '@/contexts/language-context'
-import {
-  type Presupuesto,
-  obtenerPresupuestos,
-  crearPresupuesto,
-  actualizarPresupuesto,
-  eliminarPresupuesto,
-  compararPresupuestoVsReal,
-  type ResumenCategoria,
-} from '@/lib/presupuestos'
+import { type Presupuesto, obtenerPresupuestos, crearPresupuesto, actualizarPresupuesto, eliminarPresupuesto } from '@/lib/presupuestos'
 import { CATEGORIAS_GASTO } from '@mantigestor/utils'
 
 const formatEuro = (cents: number) =>

@@ -59,9 +59,9 @@ export function FileUpload({
     setSuccess(false)
   }
 
-  const acceptProp = accept
-  const maxSizeMBProp = maxSizeMB
-  const buttonTextProp = buttonText
+  const _acceptProp = accept
+  const _maxSizeMBProp = maxSizeMB
+  const _buttonTextProp = buttonText
 
   function validateFile(selected: File): string | null {
     const ext = '.' + selected.name.split('.').pop()?.toLowerCase()

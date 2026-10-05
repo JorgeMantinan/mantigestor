@@ -196,7 +196,7 @@ function formatoCorrecto(facturas: FacturaInput[]): FactorScore {
   }
 }
 
-export function calcularScoreFiscal(facturas: FacturaInput[], perfil: PerfilInput): ScoreFiscal {
+export function calcularScoreFiscal(facturas: FacturaInput[], _perfil: PerfilInput): ScoreFiscal {
   const factores: FactorScore[] = [
     facturasConNif(facturas),
     facturasRecientes(facturas),

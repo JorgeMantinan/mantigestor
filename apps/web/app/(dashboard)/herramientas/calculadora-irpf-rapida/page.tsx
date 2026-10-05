@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -47,7 +47,7 @@ export default function CalculadoraIRPFRapidaPage() {
   const [salarioBruto, setSalarioBruto] = useState(30000)
   const [reduccionGeneral, setReduccionGeneral] = useState(2000)
   const [otrosGastosDeducibles, setOtrosGastosDeducibles] = useState(0)
-  const { t } = useLanguage()
+  const { t: _t } = useLanguage()
   const [generando, setGenerando] = useState(false)
 
   const resultado = useMemo(() => {

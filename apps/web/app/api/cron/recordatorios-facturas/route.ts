@@ -11,7 +11,7 @@ import { notificarVencimientosProximos } from '@/lib/enviar-push'
  * Crea también notificación in-app.
  */
 
-interface Perfil {
+interface _Perfil {
   id: string
   email: string | null
   nombre: string | null

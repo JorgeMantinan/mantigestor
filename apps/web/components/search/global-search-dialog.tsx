@@ -5,18 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import {
-  Search,
-  Receipt,
-  Home,
-  Users,
-  FileText,
-  Calculator,
-  ArrowRight,
-  Clock,
-  Trash2,
-  LayoutDashboard,
-} from 'lucide-react'
+import { Search, Receipt, Home, Users, ArrowRight, Clock, Trash2, LayoutDashboard } from 'lucide-react'
 
 interface SearchResult {
   id: string
@@ -303,7 +292,7 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
                   <p className="px-2 mb-1 text-xs font-medium text-muted-foreground uppercase">
                     {typeLabel}
                   </p>
-                  {items.map((r, i) => {
+                  {items.map((r, _i) => {
                     const globalIdx = results.indexOf(r)
                     return (
                       <button

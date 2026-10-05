@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { FileSpreadsheet, ArrowRightLeft } from 'lucide-react'
+import { ArrowRightLeft } from 'lucide-react'
 import { SelectorMoneda } from '@/components/selector-moneda'
 import { useLanguage } from '@/contexts/language-context'
 
@@ -26,7 +26,7 @@ const MONEDAS = [
   { value: 'BRL', label: 'Real brasileño (BRL)' },
 ]
 
-const MONEDA_LABELS: Record<string, string> = {
+const _MONEDA_LABELS: Record<string, string> = {
   EUR: 'conversiones.monedaEur',
   USD: 'conversiones.monedaUsd',
   GBP: 'conversiones.monedaGbp',

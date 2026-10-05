@@ -4,19 +4,12 @@ import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CalendarDays, Download, FileText, Repeat, Clock } from 'lucide-react'
-import {
-  eventosVencimientosFacturas,
-  eventosCalendarioFiscal,
-  eventosPagosRecurrentes,
-  descargarICS,
-  type EventoCalendario,
-  type FacturaCalendario,
-} from '@/lib/google-calendar'
+import { eventosVencimientosFacturas, eventosCalendarioFiscal, eventosPagosRecurrentes, descargarICS, type FacturaCalendario } from '@/lib/google-calendar'
 import { listarPagos, type PagoRecurrente } from '@/lib/pagos-recurrentes'
 import { useLanguage } from '@/contexts/language-context'
 import { createClient } from '@/lib/supabase/client'
 
-const MESES = [
+const _MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ]

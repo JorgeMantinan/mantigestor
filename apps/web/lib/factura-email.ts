@@ -176,7 +176,7 @@ export async function enviarFacturaPorEmail(
   facturaId: string,
   email: string,
   factura: FacturaEmailPayload,
-  plantilla: PlantillaFactura = 'clasico',
+  _plantilla: PlantillaFactura = 'clasico',
   asuntoCustom?: string,
   cuerpoCustom?: string
 ): Promise<{ ok: boolean; skipped?: boolean; error?: string }> {

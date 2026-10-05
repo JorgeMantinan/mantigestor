@@ -36,7 +36,7 @@ interface StatsMes {
 }
 
 export default function DeduccionesMesPage() {
-  const { t } = useLanguage()
+  const { t: _t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()
   const [facturas, setFacturas] = useState<FacturaMes[]>([])
   const [cargando, setCargando] = useState(true)
@@ -150,7 +150,7 @@ export default function DeduccionesMesPage() {
     }
   }
 
-  const ahora = new Date()
+  const ahora = useMemo(() => new Date(), [])
   const opcionesMes = useMemo(() => {
     const opts: string[] = []
     for (let i = 0; i < 12; i++) {
@@ -158,7 +158,7 @@ export default function DeduccionesMesPage() {
       opts.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
     }
     return opts
-  }, [])
+  }, [ahora])
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

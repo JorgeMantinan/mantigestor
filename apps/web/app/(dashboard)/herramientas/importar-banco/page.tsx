@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Upload, CheckCircle, AlertCircle, ArrowRight, FileText, Building2, Save, Database, Loader2 } from 'lucide-react'
+import { Upload, CheckCircle, FileText, Building2, Save, Database, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useLanguage } from '@/contexts/language-context'
 import { usePersonaActiva } from '@/contexts/persona-activa-context'
@@ -41,7 +40,7 @@ function formatEuro(v: number): string {
 }
 
 export default function ImportarBancoPage() {
-  const { t } = useLanguage()
+  const { t: _t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()
   const [movimientos, setMovimientos] = useState<MovimientoBancoCSV[]>([])
   const [coincidencias, setCoincidencias] = useState<Coincidencia[]>([])
@@ -49,11 +48,11 @@ export default function ImportarBancoPage() {
   const [cargado, setCargado] = useState(false)
   const [procesando, setProcesando] = useState(false)
   const [guardando, setGuardando] = useState(false)
-  const [bancoDetectado, setBancoDetectado] = useState<BancoFormato>('generico')
+  const [_bancoDetectado, setBancoDetectado] = useState<BancoFormato>('generico')
   const [bancoManual, setBancoManual] = useState<BancoFormato>('generico')
   const [textoOriginal, setTextoOriginal] = useState('')
   const [movimientosGuardados, setMovimientosGuardados] = useState<MovimientoGuardado[]>([])
-  const [reconciliadas, setReconciliadas] = useState<Set<string>>(new Set())
+  const [_reconciliadas, _setReconciliadas] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (!perfilActivoId) return

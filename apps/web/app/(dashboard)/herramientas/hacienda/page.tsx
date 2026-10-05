@@ -6,33 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import {
-  Landmark,
-  Download,
-  ExternalLink,
-  FileSignature,
-  Upload,
-  CheckCircle,
-  Clock,
-  Send,
-  Loader2,
-  AlertTriangle,
-  KeyRound,
-} from 'lucide-react'
-import {
-  exportarModelo303,
-  exportarModelo111,
-  exportarModelo130,
-  exportarModelo100,
-  abrirSedeElectronica,
-  descargarModelo,
-  type Modelo303Data,
-  type Modelo111Data,
-  type Modelo130Data,
-  type Modelo100Data,
-  type ModeloExportResult,
-} from '@/lib/hacienda-export'
-import { firmarDatos, esCertificadoValido, type CertificadoInfo } from '@/lib/hacienda-firma'
+import { Landmark, Download, ExternalLink, FileSignature, Upload, CheckCircle, Clock, Send, Loader2, KeyRound } from 'lucide-react'
+import { exportarModelo303, exportarModelo111, exportarModelo130, exportarModelo100, abrirSedeElectronica, descargarModelo, type ModeloExportResult } from '@/lib/hacienda-export'
+import { firmarDatos, type CertificadoInfo } from '@/lib/hacienda-firma'
 
 type EstadoModelo = 'borrador' | 'listo' | 'firmado' | 'enviado' | 'presentado'
 
