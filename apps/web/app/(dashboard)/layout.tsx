@@ -1,4 +1,7 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { createServerClient } from '@supabase/ssr'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { FiscalRemindersProvider } from '@/components/layout/FiscalRemindersProvider'
@@ -17,11 +20,30 @@ export const metadata: Metadata = {
   description: 'Gestión inteligente para autónomos españoles.',
 }
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Segunda barrera de sesión (el middleware solo hace redirect de UX con un
+  // JWT no verificado): aquí se valida contra Supabase de verdad.
+  const cookieStore = cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name: string) => cookieStore.get(name)?.value,
+        set: () => {},
+        remove: () => {},
+      },
+    }
+  )
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
   return (
     <PersonaActivaProvider>
       <EmpresaActivaProvider>

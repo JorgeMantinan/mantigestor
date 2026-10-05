@@ -1,9 +1,31 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-const RUTAS_PUBLICAS = ['/', '/login', '/register', '/precios', '/sobre-nosotros', '/auth/callback', '/forgot-password', '/reset-password', '/demo', '/api/tipos-cambio', '/api/demo/crear']
+// Páginas públicas (las rutas /api/* no aparecen aquí: cada handler se
+// autentica solo — webhook de Stripe por firma, crons por CRON_SECRET, el
+// resto con getAuthenticatedUser). El middleware solo gobierna PÁGINAS.
+const RUTAS_PUBLICAS = [
+  '/',
+  '/login',
+  '/register',
+  '/precios',
+  '/sobre-nosotros',
+  '/auth/callback',
+  '/forgot-password',
+  '/reset-password',
+  '/demo',
+  '/confirmar-asociacion',
+  '/factura',
+  '/sw.js',
+  '/robots.txt',
+  '/manifest.json',
+  '/site.webmanifest',
+]
+
+// Solo se requiere plan PRO para lo que usa IA (regla del producto):
+// el asistente de IA. Todo lo demás (nóminas, conversiones, trimestres,
+// renta, alquiler...) es BASIC y solo requiere sesión.
 const RUTAS_SOLO_PRO = ['/ai']
-const RUTAS_BASIC_PLUS = ['/gestoria/trimestres', '/gestoria/renta', '/alquiler', '/nominas']
 
 interface CacheEntry {
   tier?: string
@@ -11,6 +33,8 @@ interface CacheEntry {
 }
 const suscripcionCache = new Map<string, CacheEntry>()
 const SUSCRIPCION_TTL_MS = 60_000
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 function decodeJWTPayload(token: string): Record<string, unknown> | null {
   try {
@@ -85,16 +109,28 @@ export async function middleware(req: NextRequest) {
     req.headers.set('x-perfil-activo', perfilActivoId)
   }
 
+  // /api/* fuera del gate de cookies: no hay sesión que verificar aquí.
+  // (Si no, el webhook de Stripe y los crons —que no llevan cookies— se
+  // redirigían a /login y nunca se ejecutarían.)
+  if (ruta.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseKey) {
-    return ruta.startsWith('/_next') ? res : NextResponse.redirect(new URL('/', req.url))
+    // Sin env vars no hay sesión posible; nunca redirigir "/" a sí mismo
+    // (bucle infinito de redirecciones).
+    return ruta.startsWith('/_next') || ruta === '/'
+      ? res
+      : NextResponse.redirect(new URL('/', req.url))
   }
 
   const token = findAccessToken(req.cookies.getAll())
   const payload = token ? decodeJWTPayload(token) : null
-  const userId = payload?.sub ?? null
+  const subCrudo = payload?.sub ?? null
+  const userId = typeof subCrudo === 'string' ? subCrudo : null
 
   if (!userId && !RUTAS_PUBLICAS.some(r => ruta === r || ruta.startsWith(r + '/'))) {
     const url = req.nextUrl.clone()
@@ -103,20 +139,19 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (userId && (RUTAS_SOLO_PRO.some(r => ruta.startsWith(r)) || RUTAS_BASIC_PLUS.some(r => ruta.startsWith(r)))) {
+  // Gate de plan PRO (solo rutas con IA). La verificación real de sesión se
+  // hace en app/(dashboard)/layout.tsx con auth.getUser(); aquí es solo UX.
+  if (userId && RUTAS_SOLO_PRO.some(r => ruta.startsWith(r))) {
     try {
       const perfilId = perfilActivoId ?? userId
+      if (!UUID_REGEX.test(perfilId)) throw new Error('perfilId inválido')
       const now = Date.now()
-      let tier: string | undefined
-      let pagoActivo = false
 
       const cacheKey = `${userId}:${perfilId}`
       const cached = suscripcionCache.get(cacheKey)
+      let tier: string | undefined
       if (cached && cached.expiraEn > now) {
-        tier = 'BASIC'
-        if (cached.tier) {
-          tier = cached.tier
-        }
+        tier = cached.tier
       } else {
         const queryUrl = `${supabaseUrl}/rest/v1/suscripciones?perfilId=eq.${perfilId}&estado=in.(active,trialing)&order=currentPeriodStart.desc&limit=1`
         const qres = await fetch(queryUrl, {
@@ -124,22 +159,14 @@ export async function middleware(req: NextRequest) {
         })
         const data: { tier?: string }[] = qres.ok ? await qres.json() : []
         tier = data[0]?.tier
-        pagoActivo = data.length > 0
         suscripcionCache.set(cacheKey, { tier, expiraEn: now + SUSCRIPCION_TTL_MS })
       }
 
-      const esPro = tier === 'PRO'
-      const esBasic = tier === 'BASIC' || !pagoActivo
-      const esBasicPlus = esBasic || esPro
-
-      if (RUTAS_SOLO_PRO.some(r => ruta.startsWith(r)) && !esPro) {
+      if (tier !== 'PRO') {
         return NextResponse.redirect(new URL('/precios?requiere=pro', req.url))
       }
-      if (RUTAS_BASIC_PLUS.some(r => ruta.startsWith(r)) && !esBasicPlus) {
-        return NextResponse.redirect(new URL('/precios?requiere=basic', req.url))
-      }
     } catch {
-      // degradación graceful
+      // degradación graceful (el gate de la API de IA es la barrera real)
     }
   }
 
@@ -147,5 +174,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)']
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 }
