@@ -6,7 +6,7 @@
 - **UI:** shadcn/ui (Style Luma, BaseColor Zinc, Theme Yellow hsl(47 95% 50%), Chart Emerald)
 - **Font:** Roboto (Google Fonts), **Icons:** Lucide
 - **DB:** Prisma 5 + PostgreSQL (Supabase)
-- **Auth:** Supabase Auth (email, Google OAuth, Azure/Outlook OAuth)
+- **Auth:** Supabase Auth (email, Google OAuth)
 - **Pagos:** Stripe + PayPal
 - **IA:** Claude API (Anthropic)
 - **Background:** Trigger.dev
@@ -39,13 +39,13 @@
 | `/dashboard` | `(dashboard)` | middleware: requiere auth |
 | `/precios` | `(dashboard)` | pública (landing) |
 | `/gestoria/facturas` | `(dashboard)` | requiere auth |
-| `/gestoria/trimestres` | `(dashboard)` | requiere auth + tier basic+ |
-| `/gestoria/renta` | `(dashboard)` | requiere auth + tier basic+ |
-| `/alquiler` | `(dashboard)` | requiere auth + tier basic+ |
-| `/nominas` | `(dashboard)` | requiere auth + tier pro |
+| `/gestoria/trimestres` | `(dashboard)` | requiere auth (BASIC) |
+| `/gestoria/renta` | `(dashboard)` | requiere auth (BASIC) |
+| `/alquiler` | `(dashboard)` | requiere auth (BASIC) |
+| `/nominas` | `(dashboard)` | requiere auth (BASIC, sin IA) |
 | `/alumnos` | `(dashboard)` | requiere auth |
-| `/ai` | `(dashboard)` | requiere auth + tier pro |
-| `/conversiones` | `(dashboard)` | requiere auth + tier pro |
+| `/ai` | `(dashboard)` | requiere auth + tier pro (IA) |
+| `/conversiones` | `(dashboard)` | requiere auth (BASIC, sin IA) |
 | `/ajustes` | `(dashboard)` | requiere auth |
 
 ## Modelo de datos (Prisma)
@@ -60,6 +60,16 @@
 - **BASIC** (free): facturas (10/mes), trimestres (auto), alumnos (10), alquiler, documentos (50MB)
 - **PRO** ($15/mes): facturas ilimitadas, nóminas, alumnos ilimitados, AI, documentos (5GB), conversiones
 - **Gratuito inicial:** periodo de prueba de 30 días PRO completo
+
+## Seguridad (auditoría 2026-10-02)
+- **Storage PRIVADO**: buckets `documentos` y `backups` con `public=false`; policies por carpeta usando `perfiles_accesibles(auth.uid())` (dueño + gestores, cualquier rol). **NUNCA usar `getPublicUrl` para servir archivos**: firmar con `lib/storage.ts` (cliente, `firmarUrlStorage`/`firmarUrlsStorage`) o `lib/storage-server.ts` (servidor, `firmarUrlAdmin`). Las APIs que leen documentos comprueban `carpetaDeUrlStorage(url) === perfilId`.
+- **RPC protegidas**: `crear_asociacion_segura` exige que el perfil pertenezca al llamante Y una invitación pendiente de ese gestor para su email (el enlace de invitación ES la confirmación del gestionado); `REVOKE ... FROM PUBLIC, anon` en las3 RPC (`20261002_seguridad_auditoria/migration.sql`).
+- **Gate PRO = lo que usa IA** (regla del producto): el middleware solo protege `/ai`; las APIs `/api/ai/chat`, `/api/facturas/parsear-voz` y `fiscal/clasificar-documento` comprueban `tier==='PRO'` en servidor. Todo lo demás (nóminas, conversiones, trimestres, renta, alquiler) es BASIC.
+- **Cron**: usar SIEMPRE `verificarCron(req)` de `lib/cron-auth.ts` (timing-safe, acepta Bearer o `x-cron-secret`, deniega si falta `CRON_SECRET`). `/api/*` está FUERA del gate de cookies del middleware (webhook de Stripe y crons no llevan cookies).
+- **Emails**: el HTML se construye SIEMPRE en servidor con `escapeHtml` de `lib/escape-html.ts`; nunca aceptar `htmlBody` del cliente. Comprobar siempre el `{error}` de `resend.emails.send`.
+- **Cabeceras**: CSP + HSTS + Permissions-Policy en `next.config.js` (revisar tras desplegar: login, Google, Stripe).
+- **Demo**: `/api/demo/crear` genera la contraseña en runtime (no vive en el repo), rate limit 3/min, opera solo sobre la cuenta demo.
+- **ESLint**: `next/typescript` activo con reglas en **warn** (`no-explicit-any`, `no-unused-vars`).
 
 ## Best Practices (obligatorio seguirlas SIEMPRE)
 
@@ -112,7 +122,7 @@
 - Comando: `pnpm --filter=utils test`
 - Tests web (multi-persona): `apps/web/__tests__/multi-persona/` (19 tests: resolve-perfil-activo, asociar-persona, desasociar-persona, mis-personas)
 - Comando: `pnpm --filter=web test`
-- Tests E2E: `apps/web/e2e/` (6 archivos Playwright: auth, navigation, public-pages, conversiones, visual)
+- Tests E2E: `apps/web/e2e/` (14 specs Playwright: auth, navigation, public-pages, conversiones, visual)
 - Coverage configurado en vitest.config.ts raíz
 
 ## Deploy (Vercel)
@@ -141,7 +151,7 @@ git add -A; git commit -m "msg"; git push origin master  # Deploy a Vercel
 
 ## Enlaces Supabase
 - Google OAuth: configurado ✅
-- Azure/Outlook OAuth: pendiente ⏳
+- Azure/Outlook OAuth: no se usa (botón eliminado de login/registro; solo Google)
 - Todas las credenciales en `.env.local` raíz ✅
 
 ## Estado del proyecto

@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     const supabase = createAdminClient()
 
     // First, try to find a factura with this token as tokenCliente
-    let { data: invoices, error } = await supabase
+    const { data: invoices, error } = await supabase
       .from('facturas')
       .select('id, numero, tipo, emisorReceptor, nifContraparte, fechaEmision, fechaVencimiento, baseImponible, iva, total, estado, notas, tokenCliente')
       .eq('tokenCliente', token)
