@@ -2,6 +2,17 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { createServerClient } from '@supabase/ssr'
+import { z } from 'zod'
+
+const PushSubscriptionSchema = z.object({
+  subscription: z.object({
+    endpoint: z.string().url().max(2048),
+    keys: z.object({
+      p256dh: z.string().min(10).max(512),
+      auth: z.string().min(10).max(256),
+    }),
+  }),
+})
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,14 +27,12 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const body = await req.json()
-    const { subscription } = body as {
-      subscription?: { endpoint?: string; keys?: { p256dh?: string; auth?: string } }
-    }
-
-    if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+    const body = await req.json().catch(() => null)
+    const parsed = PushSubscriptionSchema.safeParse(body)
+    if (!parsed.success) {
       return badRequest(new Error('Datos de suscripción inválidos'))
     }
+    const { subscription } = parsed.data
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

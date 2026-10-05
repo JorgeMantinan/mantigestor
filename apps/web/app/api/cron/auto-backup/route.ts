@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
@@ -76,10 +77,9 @@ function facturasToCsv(facturas: Factura[]): string {
 }
 
 export async function GET(req: NextRequest) {
-  const cronSecret = req.headers.get('x-cron-secret')
-  if (cronSecret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+    if (!verificarCron(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
   const supabase = createAdminClient()
 

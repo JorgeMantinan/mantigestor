@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getCalendarioFiscal } from '@mantigestor/utils'
 
@@ -55,11 +56,9 @@ function cumplePreferenciaEmail(
 }
 
 export async function GET(req: NextRequest) {
-  // Verificar token de cron
-  const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+    if (!verificarCron(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
   const supabase = createAdminClient()
 

@@ -16,7 +16,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { gestorUserId, perfilId } = body as { gestorUserId?: string; perfilId?: string }
 
-    if (!gestorUserId || !perfilId) {
+    if (
+      !gestorUserId || typeof gestorUserId !== 'string' || gestorUserId.length > 100 ||
+      !perfilId || typeof perfilId !== 'string' || perfilId.length > 100
+    ) {
       return badRequest(new Error('gestorUserId y perfilId requeridos'))
     }
 

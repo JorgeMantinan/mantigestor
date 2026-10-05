@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getAuthenticatedUser, unauthorized, serverError } from '@/lib/api-helpers'
+import { getAuthenticatedUser, unauthorized, serverError, badRequest } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { createServerClient } from '@supabase/ssr'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { z } from 'zod'
 
 export interface PreferenciaNotificacion {
   id: string
@@ -13,8 +14,18 @@ export interface PreferenciaNotificacion {
   activo: boolean
 }
 
-const CATEGORIAS = ['iva', 'irpf', 'retenciones', 'renta', 'todos'] as const
-const CANALES = ['in_app', 'email'] as const
+const PreferenciasSchema = z.object({
+  preferencias: z
+    .array(
+      z.object({
+        canal: z.enum(['in_app', 'email']),
+        categoria: z.string().min(1).max(50),
+        diasAntelacion: z.number().int().min(1).max(30),
+        activo: z.boolean(),
+      })
+    )
+    .max(50),
+})
 
 function getSupabase(req: NextRequest) {
   return createServerClient(
@@ -70,31 +81,16 @@ export async function PUT(req: NextRequest) {
 
     const { perfilId } = await resolvePerfilActivo(req)
 
-    const body = await req.json()
-    const { preferencias } = body as {
-      preferencias: Array<{
-        canal: string
-        categoria: string
-        diasAntelacion: number
-        activo: boolean
-      }>
-    }
-
-    if (!Array.isArray(preferencias)) {
-      return NextResponse.json({ error: 'preferencias debe ser un array' }, { status: 400 })
+    const body = await req.json().catch(() => null)
+    const parsed = PreferenciasSchema.safeParse(body)
+    if (!parsed.success) {
+      return badRequest(parsed.error.flatten().fieldErrors)
     }
 
     const supabase = getSupabase(req)
 
-    // Validar y limpiar
-    const limpias = preferencias.filter(p =>
-      CANALES.includes(p.canal as typeof CANALES[number]) &&
-      CATEGORIAS.includes(p.categoria as typeof CATEGORIAS[number]) &&
-      typeof p.diasAntelacion === 'number' &&
-      p.diasAntelacion >= 1 &&
-      p.diasAntelacion <= 30 &&
-      typeof p.activo === 'boolean'
-    )
+    // Validadas por Zod (tipos, rangos y máximo de entradas)
+    const limpias = parsed.data.preferencias
 
     // Eliminar existentes y reinsertar
     await supabase

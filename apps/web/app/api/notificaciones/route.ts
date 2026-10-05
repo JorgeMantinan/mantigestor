@@ -41,6 +41,10 @@ export async function POST(req: NextRequest) {
       return badRequest(new Error('tipo y contenido deben ser strings'))
     }
 
+    if (tipo.length === 0 || tipo.length > 50 || contenido.length > 2000) {
+      return badRequest(new Error('tipo (máx. 50) o contenido (máx. 2000) demasiado largos'))
+    }
+
     const { data, error } = await supabase
       .from('notificaciones')
       .insert({ id: crypto.randomUUID(), perfilId, tipo, contenido, creadoEn: new Date().toISOString() })

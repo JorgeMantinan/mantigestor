@@ -33,8 +33,14 @@ export async function POST(req: NextRequest) {
     const body: unknown = await req.json()
     const { email, nombre } = body as { email?: string; nombre?: string }
 
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
+    if (
+      !email || typeof email !== 'string' || email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
       return badRequest('Email inválido')
+    }
+    if (nombre !== undefined && (typeof nombre !== 'string' || nombre.length > 100)) {
+      return badRequest('Nombre inválido')
     }
 
     const resultado = await createReferral(req, user.id, user.email ?? '', email, nombre)

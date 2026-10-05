@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { Resend } from 'resend'
 import { regenerarModelosPeriodo } from '@/lib/fiscal/modelos-generados'
@@ -45,16 +46,8 @@ function getTrimestreCerrado(fecha: Date = new Date()): { trimestre: Trimestre; 
   }
 }
 
-function autorizado(req: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET
-  if (!secret) return false
-  const bearer = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
-  const header = req.headers.get('x-cron-secret')
-  return bearer === secret || header === secret
-}
-
 export async function GET(req: NextRequest) {
-  if (!autorizado(req)) {
+  if (!verificarCron(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

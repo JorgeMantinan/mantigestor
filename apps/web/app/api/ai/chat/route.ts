@@ -73,6 +73,23 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Gate PRO: el asistente IA consume la API key de Anthropic
+    // (regla del producto: lo que usa IA va en PRO).
+    const { data: sub } = await supabase
+      .from('suscripciones')
+      .select('tier, estado')
+      .eq('perfilId', perfilId)
+      .in('estado', ['active', 'trialing'])
+      .order('currentPeriodStart', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (!sub || sub.tier !== 'PRO') {
+      return NextResponse.json(
+        { error: 'El asistente de IA requiere Plan Pro', requierePro: true },
+        { status: 403 }
+      )
+    }
+
     await supabase.from('chat_historial').insert({
       id: crypto.randomUUID(),
       perfilId,
