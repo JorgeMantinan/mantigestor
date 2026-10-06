@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@/lib/supabase/server'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
-import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { resolvePerfilActivo, esSoloLectura } from '@/lib/resolve-perfil-activo'
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,7 +21,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    const { perfilId } = await resolvePerfilActivo(req)
+    const { perfilId, rol } = await resolvePerfilActivo(req)
+    // Escritura bloqueada para perfiles en modo solo lectura (visualizador)
+    if (esSoloLectura(rol)) {
+      return NextResponse.json({ error: 'El perfil está en modo solo lectura' }, { status: 403 })
+    }
 
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json({
@@ -63,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     let subId: string | null = null
 
-    const { stripe } = await import('@/lib/stripe/server')
+    const { stripe, esPlanPro } = await import('@/lib/stripe/server')
 
     if (sessionId) {
       try {
@@ -100,6 +104,14 @@ export async function POST(req: NextRequest) {
 
     if (subId) {
       const subscription = await stripe.subscriptions.retrieve(subId)
+
+      // Solo el plan PRO otorga tier PRO: el fallback por email también puede
+      // encontrar un cobro recurrente (barato) — no debe conceder PRO.
+      if (!esPlanPro(subscription)) {
+        console.warn('verify-subscription: suscripción que no corresponde al plan PRO, se ignora:', subId)
+        return NextResponse.json({ tier: 'BASIC', estado: 'inactive' })
+      }
+
       // Estado real de Stripe (antes un 'canceled' se guardaba como 'trialing'
       // y concedía PRO para siempre). Solo estados reconocidos.
       const estadosValidos = ['active', 'trialing', 'past_due', 'canceled', 'incomplete', 'incomplete_expired', 'unpaid', 'paused']

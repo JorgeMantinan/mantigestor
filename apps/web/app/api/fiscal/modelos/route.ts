@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
-import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { resolvePerfilActivo, esSoloLectura } from '@/lib/resolve-perfil-activo'
 import { createServerClient } from '@supabase/ssr'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { ModelosPeriodoSchema } from '@mantigestor/utils'
@@ -80,7 +80,11 @@ export async function POST(req: NextRequest) {
     const parsed = ModelosPeriodoSchema.safeParse(body)
     if (!parsed.success) return badRequest(parsed.error.flatten().fieldErrors)
 
-    const { perfilId, error } = await resolvePerfilActivo(req)
+    const { perfilId, error, rol } = await resolvePerfilActivo(req)
+    // Escritura bloqueada para perfiles en modo solo lectura (visualizador)
+    if (esSoloLectura(rol)) {
+      return NextResponse.json({ error: 'El perfil está en modo solo lectura' }, { status: 403 })
+    }
     if (error) return badRequest({ perfil: [error] })
 
     const supabase = clienteServer(req)

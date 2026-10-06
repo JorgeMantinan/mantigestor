@@ -76,7 +76,7 @@ export async function generarReporteGastosPDF(reporte: ReporteGastos): Promise<v
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           ${catsOrdenadas.map(([cat, importe]) => `
             <div style="display:flex;justify-content:space-between;padding:8px 12px;background:#f9fafb;border-radius:6px">
-              <span style="font-size:12px;text-transform:capitalize">${cat.replace(/-/g, ' ')}</span>
+              <span style="font-size:12px;text-transform:capitalize">${escapeHtml(cat.replace(/-/g, ' '))}</span>
               <span style="font-size:12px;font-weight:600">${formatEuro(importe)}</span>
             </div>
           `).join('')}

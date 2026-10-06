@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, getSupabaseServer, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
-import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { resolvePerfilActivo, esSoloLectura } from '@/lib/resolve-perfil-activo'
 import { z } from 'zod'
 
 const PlantillaRecurrenteSchema = z.object({
@@ -52,7 +52,11 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { perfilId } = await resolvePerfilActivo(req)
+    const { perfilId, rol } = await resolvePerfilActivo(req)
+    // Escritura bloqueada para perfiles en modo solo lectura (visualizador)
+    if (esSoloLectura(rol)) {
+      return NextResponse.json({ error: 'El perfil está en modo solo lectura' }, { status: 403 })
+    }
 
     const body = await req.json().catch(() => null)
     const parsed = PlantillaRecurrenteSchema.safeParse(body)

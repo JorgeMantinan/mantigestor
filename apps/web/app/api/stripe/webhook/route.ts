@@ -10,7 +10,7 @@ function getSupabaseAdmin() {
 
 export async function POST(req: Request) {
   try {
-    const { stripe } = await import('@/lib/stripe/server')
+    const { stripe, esPlanPro } = await import('@/lib/stripe/server')
     const body = await req.text()
     const signature = req.headers.get('stripe-signature')
 
@@ -32,6 +32,15 @@ export async function POST(req: Request) {
         const subscriptionId = session.subscription as string
 
         if (userId && subscriptionId) {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+
+          // Solo el plan PRO otorga tier PRO: un cobro recurrente (que usa el
+          // mismo metadata.userId) no debe materializarse como suscripción PRO
+          if (!esPlanPro(subscription)) {
+            console.warn('Webhook: suscripción que no corresponde al plan PRO, se ignora:', subscriptionId)
+            break
+          }
+
           const existing = await getSupabaseAdmin()
             .from('suscripciones')
             .select('id')
@@ -39,8 +48,6 @@ export async function POST(req: Request) {
             .maybeSingle()
 
           if (!existing.data) {
-            const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-
             // Resolve auth userId → perfilId
             const { data: perfil } = await getSupabaseAdmin()
               .from('perfiles')

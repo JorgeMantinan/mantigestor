@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
-import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { resolvePerfilActivo, esSoloLectura } from '@/lib/resolve-perfil-activo'
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +24,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    const { perfilId } = await resolvePerfilActivo(req)
+    const { perfilId, rol } = await resolvePerfilActivo(req)
+    // Escritura bloqueada para perfiles en modo solo lectura (visualizador)
+    if (esSoloLectura(rol)) {
+      return NextResponse.json({ error: 'El perfil está en modo solo lectura' }, { status: 403 })
+    }
 
     const { data: suscripcion, error: subError } = await supabase
       .from('suscripciones')

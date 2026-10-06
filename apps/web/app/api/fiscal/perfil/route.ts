@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { z } from 'zod'
 import { getAuthenticatedUser, unauthorized, serverError, badRequest } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
-import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { resolvePerfilActivo, esSoloLectura } from '@/lib/resolve-perfil-activo'
 
 const PerfilFiscalSchema = z.object({
   comunidadFiscal: z.string().max(80).nullable().optional(),
@@ -93,7 +93,11 @@ export async function PUT(req: NextRequest) {
     const parsed = PerfilFiscalSchema.safeParse(body)
     if (!parsed.success) return badRequest('Datos de perfil fiscal inválidos')
 
-    const { perfilId, esPropio } = await resolvePerfilActivo(req)
+    const { perfilId, esPropio, rol } = await resolvePerfilActivo(req)
+    // Escritura bloqueada para perfiles en modo solo lectura (visualizador)
+    if (esSoloLectura(rol)) {
+      return NextResponse.json({ error: 'El perfil está en modo solo lectura' }, { status: 403 })
+    }
 
     const supabase = supabaseDeReq(req)
     // Comprobar si existe la fila (insert vs update). En modo gestor se

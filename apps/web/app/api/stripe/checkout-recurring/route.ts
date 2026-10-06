@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
-import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { resolvePerfilActivo, esSoloLectura } from '@/lib/resolve-perfil-activo'
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,7 +37,11 @@ export async function POST(req: NextRequest) {
     // El importe NUNCA llega del cliente: se deriva en servidor desde la
     // plantilla de la factura recurrente, comprobando que pertenece al
     // perfil activo (si no, se ignora el importe y se cobra la cifra real).
-    const { perfilId } = await resolvePerfilActivo(req)
+    const { perfilId, rol } = await resolvePerfilActivo(req)
+    // Escritura bloqueada para perfiles en modo solo lectura (visualizador)
+    if (esSoloLectura(rol)) {
+      return NextResponse.json({ error: 'El perfil está en modo solo lectura' }, { status: 403 })
+    }
     const { data: plantilla } = await supabase
       .from('facturas_recurrentes')
       .select('id, baseImponible, iva, numero, emisorReceptor')
@@ -76,9 +80,9 @@ export async function POST(req: NextRequest) {
       payment_method_types: ['card', 'paypal', 'sepa_debit'],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/gestoria/facturas?cobro=success`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/gestoria/facturas/recurrentes?cobro=cancelled`,
-      metadata: { userId: user.id, facturaId },
+      metadata: { userId: user.id, facturaId, tipo: 'cobro_factura' },
       subscription_data: {
-        metadata: { userId: user.id, facturaId },
+        metadata: { userId: user.id, facturaId, tipo: 'cobro_factura' },
       },
     })
 

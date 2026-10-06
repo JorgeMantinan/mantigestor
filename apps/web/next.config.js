@@ -13,6 +13,9 @@ const csp = [
   "frame-ancestors 'none'",
   "form-action 'self'",
   `script-src 'self' 'unsafe-inline'${esProduccion ? '' : " 'unsafe-eval'"} https://js.stripe.com`,
+  // Mata cualquier handler inline (onerror=...): el XSS de los generadores de
+  // PDF usa innerHTML con datos de terceros y el escape no es la única defensa.
+  "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.supabase.co https://js.stripe.com https://api.qrserver.com",
   "font-src 'self' data:",

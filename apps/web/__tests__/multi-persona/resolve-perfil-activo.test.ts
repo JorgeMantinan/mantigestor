@@ -54,7 +54,7 @@ describe('resolvePerfilActivo', () => {
 
     const result = await resolvePerfilActivo(req())
 
-    expect(result).toEqual({ perfilId: 'perfil-own', esPropio: true })
+    expect(result).toEqual({ perfilId: 'perfil-own', esPropio: true, rol: 'propietario' })
     expect(result.error).toBeUndefined()
   })
 
@@ -66,7 +66,7 @@ describe('resolvePerfilActivo', () => {
       req({ 'x-perfil-activo': 'perfil-own' })
     )
 
-    expect(result).toEqual({ perfilId: 'perfil-own', esPropio: true })
+    expect(result).toEqual({ perfilId: 'perfil-own', esPropio: true, rol: 'propietario' })
   })
 
   it('returns associated perfilId when user is gestor', async () => {
@@ -79,7 +79,20 @@ describe('resolvePerfilActivo', () => {
       req({ 'x-perfil-activo': 'perfil-other' })
     )
 
-    expect(result).toEqual({ perfilId: 'perfil-other', esPropio: false })
+    expect(result).toEqual({ perfilId: 'perfil-other', esPropio: false, rol: 'gestor' })
+  })
+
+  it('returns visualizador rol (solo lectura) cuando el usuario es visualizador', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+    fromHandler = vi.fn()
+      .mockReturnValueOnce(perfilQuery({ data: { id: 'perfil-own' } }))
+      .mockReturnValueOnce(asociacionQuery({ data: { rol: 'visualizador' } }))
+
+    const result = await resolvePerfilActivo(
+      req({ 'x-perfil-activo': 'perfil-other' })
+    )
+
+    expect(result).toEqual({ perfilId: 'perfil-other', esPropio: false, rol: 'visualizador' })
   })
 
   it('returns own perfilId with error when user has no access to requested perfil', async () => {
@@ -95,6 +108,7 @@ describe('resolvePerfilActivo', () => {
     expect(result).toEqual({
       perfilId: 'perfil-own',
       esPropio: true,
+      rol: 'propietario',
       error: 'No tienes acceso a este perfil',
     })
   })
@@ -104,6 +118,6 @@ describe('resolvePerfilActivo', () => {
 
     const result = await resolvePerfilActivo(req())
 
-    expect(result).toEqual({ perfilId: '', esPropio: false, error: 'No autorizado' })
+    expect(result).toEqual({ perfilId: '', esPropio: false, rol: 'propietario', error: 'No autorizado' })
   })
 })

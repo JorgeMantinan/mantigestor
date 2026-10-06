@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { FacturaSchema } from '@mantigestor/utils'
 import { getAuthenticatedUser, unauthorized, notFound, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
-import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { resolvePerfilActivo, esSoloLectura } from '@/lib/resolve-perfil-activo'
 import { registrarAccion } from '@/lib/audit-log'
 import { regenerarModelosDeFecha } from '@/lib/fiscal/modelos-generados'
 
@@ -65,7 +65,11 @@ export async function PUT(
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { perfilId } = await resolvePerfilActivo(req)
+    const { perfilId, rol } = await resolvePerfilActivo(req)
+    // Escritura bloqueada para perfiles en modo solo lectura (visualizador)
+    if (esSoloLectura(rol)) {
+      return NextResponse.json({ error: 'El perfil está en modo solo lectura' }, { status: 403 })
+    }
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -171,7 +175,11 @@ export async function DELETE(
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { perfilId } = await resolvePerfilActivo(req)
+    const { perfilId, rol } = await resolvePerfilActivo(req)
+    // Escritura bloqueada para perfiles en modo solo lectura (visualizador)
+    if (esSoloLectura(rol)) {
+      return NextResponse.json({ error: 'El perfil está en modo solo lectura' }, { status: 403 })
+    }
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

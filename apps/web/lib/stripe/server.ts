@@ -23,3 +23,18 @@ export const stripe = new Proxy({} as Stripe, {
 })
 
 export const PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID ?? ''
+
+type SuscripcionConItems = {
+  items?: { data?: Array<{ price?: { id?: string | null } | null } | null> | null } | null
+}
+
+/**
+ * ¿La suscripción corresponde al plan PRO? Sin esta comprobación, CUALQUIER
+ * suscripción de Stripe (p.ej. un cobro recurrente de unos céntimos, que usa
+ * el mismo metadata.userId) se materializaba como tier:'PRO' en la BD.
+ * Si falta STRIPE_PRO_PRICE_ID, falla cerrado (nunca concede PRO).
+ */
+export function esPlanPro(subscription: SuscripcionConItems): boolean {
+  if (!PRO_PRICE_ID) return false
+  return subscription.items?.data?.some((item) => item?.price?.id === PRO_PRICE_ID) ?? false
+}

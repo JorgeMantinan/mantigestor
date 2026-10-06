@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { escapeHtml } from '@/lib/escape-html'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -138,18 +139,18 @@ export default function ProformasPage() {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px">
           <div>
             <h1 style="font-size:28px;font-weight:800;margin:0;color:#1a1a1a">PROFORMA</h1>
-            <p style="font-size:14px;color:#6b7280;margin:4px 0 0 0">Nº ${proforma.numero}</p>
+            <p style="font-size:14px;color:#6b7280;margin:4px 0 0 0">Nº ${escapeHtml(String(proforma.numero))}</p>
           </div>
           <div style="text-align:right">
-            <p style="font-size:14px;color:#6b7280;margin:0">Estado: <strong>${proforma.estado.toUpperCase()}</strong></p>
+            <p style="font-size:14px;color:#6b7280;margin:0">Estado: <strong>${escapeHtml(String(proforma.estado.toUpperCase()))}</strong></p>
             ${proforma.fechaVencimiento ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">Válido hasta: ${new Date(proforma.fechaVencimiento).toLocaleDateString('es-ES')}</p>` : ''}
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
           <div style="background:#f9fafb;border-radius:8px;padding:16px">
             <p style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;margin:0 0 8px 0">Cliente</p>
-            <p style="font-size:14px;font-weight:600;margin:0">${proforma.emisorReceptor}</p>
-            ${proforma.nifContraparte ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">NIF: ${proforma.nifContraparte}</p>` : ''}
+            <p style="font-size:14px;font-weight:600;margin:0">${escapeHtml(String(proforma.emisorReceptor))}</p>
+            ${proforma.nifContraparte ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0 0">NIF: ${escapeHtml(String(proforma.nifContraparte))}</p>` : ''}
           </div>
           <div style="background:#f9fafb;border-radius:8px;padding:16px">
             <p style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;margin:0 0 8px 0">Fecha</p>
@@ -167,7 +168,7 @@ export default function ProformasPage() {
           </thead>
           <tbody>
             <tr style="border-bottom:1px solid #e5e7eb">
-              <td style="padding:12px 16px;font-size:13px">Servicio — ${proforma.emisorReceptor}</td>
+              <td style="padding:12px 16px;font-size:13px">Servicio — ${escapeHtml(String(proforma.emisorReceptor))}</td>
               <td style="padding:12px 16px;text-align:right;font-size:13px">${formatMoney(proforma.baseImponible)}</td>
               <td style="padding:12px 16px;text-align:right;font-size:13px">${proforma.iva}%</td>
               <td style="padding:12px 16px;text-align:right;font-size:13px;font-weight:600">${formatMoney(proforma.total)}</td>
@@ -180,7 +181,7 @@ export default function ProformasPage() {
             </tr>
           </tfoot>
         </table>
-        ${proforma.notas ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px"><p style="font-size:12px;margin:0;color:#1e40af"><strong>Notas:</strong> ${proforma.notas}</p></div>` : ''}
+        ${proforma.notas ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin-bottom:24px"><p style="font-size:12px;margin:0;color:#1e40af"><strong>Notas:</strong> ${escapeHtml(String(proforma.notas))}</p></div>` : ''}
         <div style="margin-top:48px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:10px;color:#9ca3af;text-align:center">
           <p style="margin:0">Documento generado por MantiGestor</p>
         </div>

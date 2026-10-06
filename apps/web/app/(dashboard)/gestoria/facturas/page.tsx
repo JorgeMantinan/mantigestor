@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { escapeHtml } from '@/lib/escape-html'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -278,12 +279,12 @@ export default function FacturasPage() {
       `<tr>
         <td style="padding:6px;border-bottom:1px solid #e5e7eb">${new Date(v.fechaEmision).toLocaleDateString('es-ES')}</td>
         <td style="padding:6px;border-bottom:1px solid #e5e7eb">${v.tipo === 'ingreso' ? 'Ingreso' : 'Gasto'}</td>
-        <td style="padding:6px;border-bottom:1px solid #e5e7eb">${v.numero}</td>
-        <td style="padding:6px;border-bottom:1px solid #e5e7eb">${v.emisorReceptor}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb">${escapeHtml(String(v.numero))}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb">${escapeHtml(String(v.emisorReceptor))}</td>
         <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right">${formatMoney(v.baseImponible, v.moneda)}</td>
         <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right">${v.iva}%</td>
         <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold">${formatMoney(v.total, v.moneda)}</td>
-        <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center">${v.estado}</td>
+        <td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center">${escapeHtml(String(v.estado))}</td>
       </tr>`
     ).join('')
     const html = `

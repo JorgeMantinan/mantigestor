@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { escapeHtml } from '@/lib/escape-html'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -326,7 +327,7 @@ export default function NominasPage() {
                   </tr></thead>
                   <tbody>${visibles.map((n, i) => `
                     <tr style="border-bottom:1px solid #e5e7eb;${i % 2 ? 'background:#f9fafb' : ''}">
-                      <td style="padding:8px 12px;font-size:12px">${n.empleada}</td>
+                      <td style="padding:8px 12px;font-size:12px">${escapeHtml(String(n.empleada))}</td>
                       <td style="padding:8px 12px;font-size:12px">${n.rol === 'jefe' ? 'Jefe' : 'Empleada'}</td>
                       <td style="padding:8px 12px;font-size:12px;text-align:center">${n.mes}/${n.anyo}</td>
                       <td style="padding:8px 12px;font-size:12px;text-align:right">${formatEuro(n.salarioBruto)}</td>

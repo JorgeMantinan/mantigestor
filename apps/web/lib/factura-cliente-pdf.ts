@@ -398,7 +398,7 @@ function htmlMinimalista(f: FacturaPDF): string {
       ${htmlFirma(f.firmaBase64)}
       <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:32px">
         <div style="font-size:9px;color:#ccc;letter-spacing:1px">
-          <p style="margin:0">${empresa.toUpperCase()} · ${escapeHtml(String(nifEmpresa))}</p>
+          <p style="margin:0">${escapeHtml(String(empresa.toUpperCase()))} · ${escapeHtml(String(nifEmpresa))}</p>
         </div>
         ${f.qrUrl ? `<div>${htmlQR(f.qrUrl, f.idioma)}</div>` : ''}
       </div>

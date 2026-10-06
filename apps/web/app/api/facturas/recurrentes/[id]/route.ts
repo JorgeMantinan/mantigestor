@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getAuthenticatedUser, getSupabaseServer, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
-import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { resolvePerfilActivo, esSoloLectura } from '@/lib/resolve-perfil-activo'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { z } from 'zod'
 
@@ -30,7 +30,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { perfilId } = await resolvePerfilActivo(req)
+    const { perfilId, rol } = await resolvePerfilActivo(req)
+    // Escritura bloqueada para perfiles en modo solo lectura (visualizador)
+    if (esSoloLectura(rol)) {
+      return NextResponse.json({ error: 'El perfil está en modo solo lectura' }, { status: 403 })
+    }
 
     const body = await req.json().catch(() => null)
     const parsed = ActualizarPlantillaSchema.safeParse(body)
@@ -66,7 +70,11 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { perfilId } = await resolvePerfilActivo(req)
+    const { perfilId, rol } = await resolvePerfilActivo(req)
+    // Escritura bloqueada para perfiles en modo solo lectura (visualizador)
+    if (esSoloLectura(rol)) {
+      return NextResponse.json({ error: 'El perfil está en modo solo lectura' }, { status: 403 })
+    }
 
     const supabase = await getSupabaseServer(req)
     const { error } = await supabase

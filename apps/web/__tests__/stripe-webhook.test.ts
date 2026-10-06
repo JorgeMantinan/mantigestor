@@ -5,12 +5,16 @@ import { POST } from '@/app/api/stripe/webhook/route'
 const constructEvent = vi.fn()
 const subscriptionsRetrieve = vi.fn()
 
-vi.mock('@/lib/stripe/server', () => ({
-  stripe: {
-    webhooks: { constructEvent: (...args: unknown[]) => constructEvent(...args) },
-    subscriptions: { retrieve: (...args: unknown[]) => subscriptionsRetrieve(...args) },
-  },
-}))
+vi.mock('@/lib/stripe/server', async (importOriginal) => {
+  const original = (await importOriginal()) as Record<string, unknown>
+  return {
+    ...original,
+    stripe: {
+      webhooks: { constructEvent: (...args: unknown[]) => constructEvent(...args) },
+      subscriptions: { retrieve: (...args: unknown[]) => subscriptionsRetrieve(...args) },
+    },
+  }
+})
 
 let fromHandler: (tabla: string) => unknown
 
@@ -43,7 +47,14 @@ describe('POST /api/stripe/webhook', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'service-test'
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test'
+    process.env.STRIPE_PRO_PRICE_ID = 'price_pro_test'
   })
+
+  const suscripcionPro = {
+    current_period_start: 1700000000,
+    current_period_end: 1703000000,
+    items: { data: [{ price: { id: 'price_pro_test' } }] },
+  }
 
   it('devuelve 400 si falta la cabecera stripe-signature', async () => {
     const res = await POST(request('{}', false))
@@ -71,10 +82,7 @@ describe('POST /api/stripe/webhook', () => {
         },
       },
     })
-    subscriptionsRetrieve.mockReturnValue({
-      current_period_start: 1700000000,
-      current_period_end: 1703000000,
-    })
+    subscriptionsRetrieve.mockReturnValue(suscripcionPro)
 
     const insert = vi.fn().mockResolvedValue({ error: null })
     fromHandler = vi
@@ -95,11 +103,32 @@ describe('POST /api/stripe/webhook', () => {
     expect(payload.providerSubscriptionId).toBe('sub_123')
   })
 
+  it('una suscripción que NO es el plan PRO no se materializa (evasión de pago)', async () => {
+    constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: { metadata: { userId: 'user-1' }, subscription: 'sub_cobro_barato' } },
+    })
+    // Cobro recurrente: price distinto al PRO
+    subscriptionsRetrieve.mockReturnValue({
+      current_period_start: 1700000000,
+      current_period_end: 1703000000,
+      items: { data: [{ price: { id: 'price_cobro_50' } }] },
+    })
+    const insert = vi.fn()
+    fromHandler = vi.fn().mockReturnValueOnce({ ...cadena({ data: null }), insert })
+
+    const res = await POST(request('{}'))
+
+    expect(res.status).toBe(200)
+    expect(insert).not.toHaveBeenCalled()
+  })
+
   it('es idempotente: si la suscripción ya existe no inserta de nuevo', async () => {
     constructEvent.mockReturnValue({
       type: 'checkout.session.completed',
       data: { object: { metadata: { userId: 'user-1' }, subscription: 'sub_123' } },
     })
+    subscriptionsRetrieve.mockReturnValue(suscripcionPro)
     const insert = vi.fn()
     fromHandler = vi.fn().mockReturnValueOnce({ ...cadena({ data: { id: 'sub-existente' } }), insert })
 
@@ -107,7 +136,6 @@ describe('POST /api/stripe/webhook', () => {
 
     expect(res.status).toBe(200)
     expect(insert).not.toHaveBeenCalled()
-    expect(subscriptionsRetrieve).not.toHaveBeenCalled()
   })
 
   it('un error de base de datos NO hace fallar el webhook (Stripe exige 200)', async () => {
