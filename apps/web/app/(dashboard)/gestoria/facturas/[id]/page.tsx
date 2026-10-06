@@ -52,6 +52,7 @@ interface Factura {
   tipoCambio?: number
   descuentoPorcentaje?: number
   pagosParciales?: string | null
+  tokenCliente?: string | null
 }
 
 export default function FacturaDetailPage({ params }: { params: { id: string } }) {
@@ -463,7 +464,9 @@ export default function FacturaDetailPage({ params }: { params: { id: string } }
             pagosParciales: pagosParciales.length > 0 ? pagosParciales : undefined,
             logoBase64: perfil?.logoBase64 ?? undefined,
             firmaBase64: perfil?.firmaBase64 ?? undefined,
-            qrUrl: `${window.location.origin}/factura?token=${factura.id}`,
+            // tokenCliente real (el id no es un token público: expondría
+            // facturas por enumeración). Trigger de BD lo garantiza en inserts
+            qrUrl: `${window.location.origin}/factura?token=${factura.tokenCliente ?? ''}`,
             idioma: (perfil?.idiomaFactura as 'es' | 'en') ?? 'es',
           }, plantilla)
         }}

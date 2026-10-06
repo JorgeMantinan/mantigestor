@@ -96,6 +96,9 @@
 - Stripe server.ts: import dinámico `await import()` dentro del handler, no `import` estático a nivel de módulo
 - Nunca exponer datos de otros usuarios por confiar en IDs del body
 - Zod schemas en `packages/utils/src/validaciones/` deben reflejar EXACTAMENTE los campos de la BD
+- Rate limit: clave `ip:ruta:max:ventana` (por ruta y config, no un bucket global compartido); helper `celdaCsv()` (`lib/csv-seguro.ts`) para todo export CSV (anti-fórmulas)
+- `facturas.tokenCliente` lo genera un **trigger de BD** (migración `20261007_token_cliente_qr`, reutiliza el token del mismo cliente+tipo) — el QR/portal NUNCA debe usar el `id` como token público
+- Al cerrar sesión o expirar: `purgarDatosPrivados()` (`lib/purgar-datos.ts`) — caches SW, localStorage privado, sessionStorage y cookie de perfil activo
 
 ### UX / Frontend
 - Botones con `disabled={loadingState}` + texto alternativo mientras carga
