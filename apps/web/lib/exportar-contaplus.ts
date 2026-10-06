@@ -1,3 +1,5 @@
+import { celdaCsv } from './csv-seguro'
+
 export function exportarContaplus(facturas: Array<{
   fechaEmision: string
   numero: string
@@ -10,7 +12,7 @@ export function exportarContaplus(facturas: Array<{
 }>): string {
   const header = 'Fecha;Tipo;Numero;NIF;Cliente;Base;IVA;Total;Categoria'
   const rows = facturas.map(f =>
-    `${f.fechaEmision};FAC;${f.numero};${f.nifContraparte || ''};${f.emisorReceptor};${(f.baseImponible / 100).toFixed(2)};${(f.iva / 100).toFixed(2)};${(f.total / 100).toFixed(2)};${f.categoriaGasto || ''}`
+    `${celdaCsv(f.fechaEmision)};FAC;${celdaCsv(f.numero)};${celdaCsv(f.nifContraparte ?? '')};${celdaCsv(f.emisorReceptor)};${(f.baseImponible / 100).toFixed(2)};${(f.iva / 100).toFixed(2)};${(f.total / 100).toFixed(2)};${celdaCsv(f.categoriaGasto ?? '')}`
   )
   return [header, ...rows].join('\n')
 }
@@ -28,7 +30,7 @@ export function exportarSage(facturas: Array<{
     const fecha = f.fechaEmision.split('-').reverse().join('/')
     const base = f.baseImponible / 100
     const total = f.total / 100
-    return `${fecha};${f.numero};${f.emisorReceptor};${base.toFixed(2)};${total.toFixed(2)};${f.emisorReceptor} - ${f.numero}`
+    return `${fecha};${celdaCsv(f.numero)};${celdaCsv(f.emisorReceptor)};${base.toFixed(2)};${total.toFixed(2)};${celdaCsv(`${f.emisorReceptor} - ${f.numero}`)}`
   })
   return [header, ...rows].join('\n')
 }

@@ -21,41 +21,24 @@ import { LanguageSwitcher } from '@/components/language-switcher'
 import { LogOut, User, Settings, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { SearchTrigger } from '@/components/search/search-trigger'
+import { purgarDatosPrivados } from '@/lib/purgar-datos'
 
 export function Header() {
   const { user } = useAuth()
   const { t } = useLanguage()
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-
-    // Purgar TODO dato privado cacheado en el navegador (equipo compartido):
-    // Cache Storage del service worker, localStorage (facturas, chat, offline,
-    // fiscal...) y sessionStorage. Solo se conservan preferencias inertes.
     try {
-      await Promise.all((await caches.keys()).map(k => caches.delete(k)))
-    } catch {}
-    try {
-      const conservar = new Set([
-        'idioma',
-        'theme',
-        'onboarding_dismissed',
-        'mantigestor_onboarding_completado',
-        'milestone-100-seen',
-      ])
-      const borrar: string[] = []
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i)
-        if (k && !conservar.has(k)) borrar.push(k)
-      }
-      borrar.forEach(k => localStorage.removeItem(k))
-    } catch {}
-    try {
-      sessionStorage.clear()
-    } catch {}
-
-    window.location.href = '/login'
+      const supabase = createClient()
+      await supabase.auth.signOut()
+    } catch (e) {
+      console.error('Error al cerrar sesión:', e)
+    } finally {
+      // Purgar SIEMPRE (aunque signOut falle): Cache Storage, localStorage,
+      // sessionStorage y cookie de perfil activo. Solo preferencias inertes.
+      await purgarDatosPrivados()
+      window.location.href = '/login'
+    }
   }
 
   return (

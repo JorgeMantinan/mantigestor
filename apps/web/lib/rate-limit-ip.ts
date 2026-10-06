@@ -39,5 +39,15 @@ export async function rateLimitByIp(
     ip = req.headers.get('x-real-ip') ?? undefined
   }
 
-  return rateLimit(`ip:${ip ?? 'unknown'}`, config)
+  // Clave por ruta Y por configuración: antes TODAS las rutas compartían un
+  // único contador por IP, así que los límites "por ruta" no existían de facto
+  // (30 llamadas agotaban la cuota global e impactaban a Stripe/demo/etc).
+  let ruta = 'global'
+  try {
+    ruta = new URL(req.url).pathname
+  } catch {
+    // URL no parseable: mantener la clave 'global'
+  }
+
+  return rateLimit(`ip:${ip ?? 'unknown'}:${ruta}:${config.maxRequests}:${config.windowMs}`, config)
 }

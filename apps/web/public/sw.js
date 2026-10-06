@@ -24,10 +24,16 @@ self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
 
-  // Datos privados: NUNCA en caché. Red directa para /api/* y para
-  // cualquier destino externo (Supabase REST, etc.) — si no, las
-  // respuestas privadas sobreviven al logout en Cache Storage.
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
+  // Datos privados: NUNCA en caché. Red directa para /api/*, para los
+  // payloads RSC (Flight, con datos del usuario) y para cualquier destino
+  // externo (Supabase REST, etc.) — si no, las respuestas privadas
+  // sobreviven al logout en Cache Storage.
+  if (
+    url.origin !== self.location.origin ||
+    url.pathname.startsWith('/api/') ||
+    request.headers.has('next-router-state-tree') ||
+    request.headers.has('rsc')
+  ) {
     return
   }
 
