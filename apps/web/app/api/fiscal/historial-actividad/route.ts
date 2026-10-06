@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server'
 import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
+import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { createServerClient } from '@supabase/ssr'
 import type { NextRequest } from 'next/server'
 
 export async function GET(req: NextRequest) {
+  const { success } = await rateLimitByIp(req)
+  if (!success) {
+    return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
+  }
+
   const { perfilId, error } = await resolvePerfilActivo(req)
   if (error || !perfilId) {
     return NextResponse.json({ error: error ?? 'No autorizado' }, { status: 401 })

@@ -36,9 +36,15 @@ export async function firmarUrlStorage(
   const partes = parsearUrlStorage(url)
   if (!partes) return url
   try {
+    // Solo PDF e imágenes se previsualizan; el resto se sirve como descarga
+    // (un html/svg activo no debe poder ejecutarse en el origen de Storage)
+    const esPreview = /\.(pdf|png|jpe?g|webp|gif)$/i.test(partes.ruta)
+    const opciones = esPreview
+      ? undefined
+      : { download: partes.ruta.split('/').pop() ?? true }
     const { data } = await createClient()
       .storage.from(partes.bucket)
-      .createSignedUrl(partes.ruta, expiracion)
+      .createSignedUrl(partes.ruta, expiracion, opciones)
     return data?.signedUrl ?? url
   } catch {
     return url

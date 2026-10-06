@@ -43,6 +43,9 @@ export default function ApiDocsPageClient() {
         layout: 'BaseLayout',
         // Envía las cookies de sesión en "Try it out" (la API autentica por cookie)
         withCredentials: true,
+        // Sin badge de validador externo: la CSP bloquea validator.swagger.io
+        // y no aporta nada (el spec es local)
+        validatorUrl: null,
       })
     }
 

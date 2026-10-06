@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
 
     const BodySchema = z.object({
       email: z.string().email(),
-      nombre: z.string().optional(),
-      nif: z.string().optional(),
+      nombre: z.string().max(100).optional(),
+      nif: z.string().max(20).optional(),
       rol: z.enum(['gestor', 'visualizador']).default('gestor'),
     })
 
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
         const emailResult = await resend.emails.send({
           from: 'MantiGestor <onboarding@resend.dev>',
           to: email,
-          subject: `${escapeHtml(user.email ?? '')} quiere asociarse contigo en MantiGestor`,
+          subject: `${(user.email ?? '').replace(/[\r\n]+/g, '')} quiere asociarse contigo en MantiGestor`,
           html: `
             <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px">
               <h2 style="color:#1a1a1a;margin-bottom:8px">Solicitud de asociación en MantiGestor</h2>

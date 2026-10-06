@@ -96,16 +96,33 @@ function RegisterForm() {
       }
 
       if (!invitacionPendiente && emailFinal) {
-        // Buscar por email
-        const { data: inv } = await getSupabase()
+        // Preferir SIEMPRE la invitación de gestión: un referido más reciente
+        // no debe tapar una gestión pendiente (la gestión es la que crea rol)
+        const { data: invGestion } = await getSupabase()
           .from('invitaciones_pendientes')
           .select('id, invitadoPorUserId, tipo')
           .eq('email', emailFinal)
           .eq('aceptada', false)
+          .eq('tipo', 'gestion')
           .order('createdAt', { ascending: false })
           .limit(1)
           .maybeSingle()
-        invitacionPendiente = inv
+
+        if (invGestion) {
+          invitacionPendiente = invGestion
+        } else {
+          // Si no, una invitación de referido (solo se marca aceptada, sin rol)
+          const { data: invReferido } = await getSupabase()
+            .from('invitaciones_pendientes')
+            .select('id, invitadoPorUserId, tipo')
+            .eq('email', emailFinal)
+            .eq('aceptada', false)
+            .eq('tipo', 'referido')
+            .order('createdAt', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          invitacionPendiente = invReferido
+        }
       }
 
       if (invitacionPendiente) {

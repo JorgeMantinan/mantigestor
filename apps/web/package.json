@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint --dir app --dir components --dir lib --dir hooks --dir contexts --dir __tests__ --dir e2e --file middleware.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "postinstall": "node scripts/copy-swagger.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.0",

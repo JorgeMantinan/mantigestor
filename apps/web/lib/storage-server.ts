@@ -47,9 +47,16 @@ export async function firmarUrlAdmin(
   const partes = parsearUrlStorage(url)
   if (!partes) return url
   try {
+    // Solo PDF e imágenes se previsualizan en el navegador; el resto
+    // (html, svg, txt...) se sirve como descarga: un fichero activo no
+    // puede ejecutarse en el origen de Storage
+    const esPreview = /\.(pdf|png|jpe?g|webp|gif)$/i.test(partes.ruta)
+    const opciones = esPreview
+      ? undefined
+      : { download: partes.ruta.split('/').pop() ?? true }
     const { data } = await createAdminClient()
       .storage.from(partes.bucket)
-      .createSignedUrl(partes.ruta, expiracion)
+      .createSignedUrl(partes.ruta, expiracion, opciones)
     return data?.signedUrl ?? url
   } catch {
     return url

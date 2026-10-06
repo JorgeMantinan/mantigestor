@@ -102,7 +102,7 @@ export async function GET(req: NextRequest) {
               <li>${backup.documentos.length} documentos</li>
               <li>${backup.suscripciones.length} suscripciones</li>
             </ul>
-            <p><a href="${urlData.signedUrl}">Descargar backup →</a></p>
+            <p><a href="${escapeHtml(urlData.signedUrl)}">Descargar backup →</a></p>
           `,
         })
         if (sendError) console.error('[cron:backup-semanal] error de Resend:', sendError)

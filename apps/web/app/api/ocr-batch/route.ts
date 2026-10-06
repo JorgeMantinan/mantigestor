@@ -69,7 +69,9 @@ export async function POST(req: NextRequest) {
         .from('facturas')
         .select('id')
         .eq('perfilId', perfilId)
-        .ilike('emisorReceptor', `%${archivo.nombre.replace(/\.[^/.]+$/, '')}%`)
+        // escapar %, _ y \ del nombre: si no, el comodín ILIKE puede cruzarse
+        // con otras facturas del mismo perfil y detectar "duplicados" falsos
+        .ilike('emisorReceptor', `%${archivo.nombre.replace(/\.[^/.]+$/, '').replace(/[\\%_]/g, '\\$&')}%`)
         .limit(1)
 
       if (existente && existente.length > 0) {

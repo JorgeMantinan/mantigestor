@@ -80,7 +80,7 @@ export function PersonaActivaProvider({ children }: { children: ReactNode }) {
   const setPerfilActivo = useCallback((perfilId: string | null) => {
     // Guardar en cookie para que middleware lo lea
     if (perfilId) {
-      document.cookie = `perfilActivoId=${perfilId}; path=/; max-age=31536000; SameSite=Lax`
+      document.cookie = `perfilActivoId=${perfilId}; path=/; max-age=31536000; SameSite=Lax; Secure`
     } else {
       document.cookie = 'perfilActivoId=; path=/; max-age=0'
     }

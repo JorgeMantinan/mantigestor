@@ -200,6 +200,10 @@ export async function GET(req: NextRequest) {
           }
         }
       }
+    } catch (e) {
+      // Un perfil con error no debe tumbar el mapConcurrente entero
+      // (antes era try/finally: la excepción abortaba todos los perfiles)
+      console.error(`Error generando facturas recurrentes para perfil ${perfilId}:`, e)
     } finally {
       releaseLock(perfilId)
     }

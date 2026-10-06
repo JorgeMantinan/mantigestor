@@ -5,7 +5,9 @@ import type { NextRequest } from 'next/server'
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams, origin } = new URL(req.url)
+    // origin de la petición normalizada por Next (no el header Host crudo)
+    const searchParams = req.nextUrl.searchParams
+    const origin = req.nextUrl.origin
     const code = searchParams.get('code')
     // next debe ser una ruta interna (sin open redirect: //host o @host)
     const nextParam = searchParams.get('next') ?? '/dashboard'
@@ -93,7 +95,7 @@ export async function GET(req: NextRequest) {
     return response
   } catch (err) {
     console.error('Auth callback error:', err)
-    const origin = new URL(req.url).origin
+    const origin = req.nextUrl.origin
     return NextResponse.redirect(`${origin}/login?error=auth_error`)
   }
 }

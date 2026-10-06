@@ -167,7 +167,7 @@ export async function GET(req: NextRequest) {
 function formatearVencimiento(v: VencimientoProximo): string {
   const fecha = v.fechaLimite.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
   const cuando = v.diffDias === 0 ? 'HOY' : 'MAÑANA'
-  return `<li><strong>${cuando}</strong> — ${v.descripcion} (vence el ${fecha})</li>`
+  return `<li><strong>${cuando}</strong> — ${escapeHtml(v.descripcion)} (vence el ${fecha})</li>`
 }
 
 async function enviarEmailVencimientos(
