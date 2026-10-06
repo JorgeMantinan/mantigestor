@@ -69,6 +69,8 @@
 - **Cabeceras**: CSP + HSTS + Permissions-Policy en `next.config.js` (revisar tras desplegar: login, Google, Stripe).
 - **Demo**: `/api/demo/crear` genera la contraseña en runtime (no vive en el repo), rate limit 3/min, opera solo sobre la cuenta demo.
 - **ESLint**: `next/typescript` activo con reglas en **warn** (`no-explicit-any`, `no-unused-vars`).
+- **RLS blanket**: TODAS las tablas públicas tienen RLS (migración `20261006_rls_datos_fiscales`, alerta Supabase `rls_disabled_in_public`); las13 tablas de referencia fiscal tienen policy de lectura `auth.uid() IS NOT NULL` y `anon` sin grants de SELECT/TRUNCATE. Auditar con `scripts/rls-audit.ts`.
+- **Ejecutar SQL con `DO $$`**: NO usar `prisma db execute` (rompe dollar-quotes/P1014) → `scripts/run-sql-pg.ts` (driver pg, multi-sentencia real).
 
 ## Best Practices (obligatorio seguirlas SIEMPRE)
 
@@ -144,6 +146,8 @@ pnpm --filter=web test   # Tests vitest web (56)
 pnpm --filter=utils test # Tests vitest utils (fiscal,383)
 pnpm --filter=database exec -- dotenv -e ../../.env.local -- prisma db execute --file prisma/migrations/20260825_multi_persona.sql  # Migración multi-persona
 pnpm db:push          # Push schema a Supabase
+pnpm --filter=database exec -- dotenv -e ../../.env.local -- tsx scripts/run-sql-pg.ts prisma/migrations/<x>/migration.sql  # Ejecutar SQL multi-sentencia (DO $$)
+pnpm --filter=database exec -- dotenv -e ../../.env.local -- tsx scripts/rls-audit.ts  # Auditar RLS de todas las tablas
 pnpm db:generate      # Regenerar Prisma client
 pnpm typecheck        # TypeScript check global
 pnpm --filter=web lint    # Lint web
