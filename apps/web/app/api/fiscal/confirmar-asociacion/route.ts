@@ -134,20 +134,10 @@ export async function POST(req: NextRequest) {
       })
 
       if (fnError) {
+        // Sin fallback: el INSERT directo está bloqueado por RLS a propósito
+        // (la creación de vínculos exige la RPC con invitación).
         console.error('Error creating association via RPC:', JSON.stringify(fnError))
-        const { error: asocError } = await supabase
-          .from('perfil_asociado')
-          .insert({
-            id: crypto.randomUUID(),
-            ownerUserId: invitacion.invitadoPorUserId,
-            perfilId: miPerfil.id,
-            rol: invitacion.rol ?? 'gestor',
-          })
-
-        if (asocError) {
-          console.error('Fallback insert also failed:', JSON.stringify(asocError))
-          return NextResponse.json({ error: 'Error al crear la asociación.' }, { status: 500 })
-        }
+        return NextResponse.json({ error: 'Error al crear la asociación.' }, { status: 500 })
       }
     }
 
