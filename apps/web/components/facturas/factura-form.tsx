@@ -44,7 +44,7 @@ interface FacturaFormProps {
   onTagsChange: (v: string[]) => void
   mostrarTagsDropdown: boolean
   onToggleTagsDropdown: () => void
-  tagsDropdownRef: React.RefObject<HTMLDivElement>
+  tagsDropdownRef: React.RefObject<HTMLDivElement | null>
   nuevoTagCustom: string
   onNuevoTagCustomChange: (v: string) => void
   onAddCustomTag: () => void

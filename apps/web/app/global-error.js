@@ -1,18 +1,8 @@
 'use client'
 
-import * as Sentry from '@sentry/nextjs'
 import { isChunkLoadError, tryChunkReload } from '@/lib/chunk-error'
 
-function reportError(error) {
-  const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN
-  if (!dsn || process.env.NODE_ENV !== 'production') return
-  Sentry.init({ dsn, tracesSampleRate: 0.1, integrations: [] })
-  void Sentry.captureException(error)
-}
-
 export default function GlobalError({ error, reset }) {
-  reportError(error)
-
   const esErrorChunk = isChunkLoadError(error)
 
   if (esErrorChunk) {

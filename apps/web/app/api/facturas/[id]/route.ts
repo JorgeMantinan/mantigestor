@@ -9,8 +9,9 @@ import { regenerarModelosDeFecha } from '@/lib/fiscal/modelos-generados'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  segmento: { params: Promise<{ id: string }> }
 ) {
+  const params = await segmento.params
   try {
     const { success } = await rateLimitByIp(req)
     if (!success) {
@@ -52,8 +53,9 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  segmento: { params: Promise<{ id: string }> }
 ) {
+  const params = await segmento.params
   try {
     const { success } = await rateLimitByIp(req)
     if (!success) {
@@ -162,8 +164,9 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  segmento: { params: Promise<{ id: string }> }
 ) {
+  const params = await segmento.params
   try {
     const { success } = await rateLimitByIp(req)
     if (!success) {

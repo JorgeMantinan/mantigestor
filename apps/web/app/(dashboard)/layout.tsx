@@ -10,9 +10,7 @@ import { PersonaActivaProvider } from '@/contexts/persona-activa-context'
 import { EmpresaActivaProvider } from '@/contexts/empresa-activa-context'
 import { GestionandoBanner } from '@/components/layout/gestionando-banner'
 import { ContextualChat } from '@/components/ai/contextual-chat'
-import dynamic from 'next/dynamic'
-
-const MilestoneProvider = dynamic(() => import('@/components/milestone-provider').then(m => m.MilestoneProvider), { ssr: false })
+import { MilestoneProvider } from '@/components/milestone-provider'
 
 export const metadata: Metadata = {
   title: 'Panel - MantiGestor',
@@ -26,7 +24,7 @@ export default async function DashboardLayout({
 }) {
   // Segunda barrera de sesión (el middleware solo hace redirect de UX con un
   // JWT no verificado): aquí se valida contra Supabase de verdad.
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

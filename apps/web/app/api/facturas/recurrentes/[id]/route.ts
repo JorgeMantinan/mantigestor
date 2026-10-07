@@ -17,7 +17,8 @@ const ActualizarPlantillaSchema = z.object({
   iva: z.union([z.literal(0), z.literal(4), z.literal(10), z.literal(21)]).optional(),
 })
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, segmento: { params: Promise<{ id: string }> }) {
+  const params = await segmento.params
   try {
     const { success } = await rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
     if (!success) {
@@ -57,7 +58,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, segmento: { params: Promise<{ id: string }> }) {
+  const params = await segmento.params
   try {
     const { success } = await rateLimitByIp(req, { maxRequests: 10, windowMs: 60 * 1000 })
     if (!success) {

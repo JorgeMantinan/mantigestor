@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, use } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { FileText, ChevronDown, ChevronUp } from 'lucide-react'
@@ -25,7 +25,8 @@ const formatEuro = (cents: number) =>
 
 type FiltroEstado = 'todas' | 'pendiente' | 'pagada'
 
-export default function FacturaPublicaPage({ searchParams }: { searchParams: { token?: string } }) {
+export default function FacturaPublicaPage(props: { searchParams: Promise<{ token?: string }> }) {
+  const searchParams = use(props.searchParams)
   const [facturas, setFacturas] = useState<FacturaPublica[]>([])
   const [, setTokenCliente] = useState<string | null>(null)
   const [error, setError] = useState('')

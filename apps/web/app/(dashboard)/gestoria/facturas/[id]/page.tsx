@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -55,7 +55,8 @@ interface Factura {
   tokenCliente?: string | null
 }
 
-export default function FacturaDetailPage({ params }: { params: { id: string } }) {
+export default function FacturaDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params)
   const router = useRouter()
   const { t } = useLanguage()
   const { perfilActivoId } = usePersonaActiva()

@@ -1,5 +1,3 @@
-const { withSentryConfig } = require('@sentry/nextjs')
-
 const esProduccion = process.env.NODE_ENV === 'production'
 
 // Content-Security-Policy: bloquea scripts/frames/conexiones a dominios
@@ -19,7 +17,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.supabase.co https://js.stripe.com https://api.qrserver.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://m.stripe.network https://api.frankfurter.dev https://*.ingest.sentry.io https://*.sentry.io",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://m.stripe.network https://api.frankfurter.dev",
   "frame-src 'self' blob: https://js.stripe.com https://hooks.stripe.com https://m.stripe.network",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
@@ -31,6 +29,8 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  // Nunca publicar source maps del navegador (expone el código fuente)
+  productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [
       {
@@ -78,8 +78,4 @@ const nextConfig = {
   },
 }
 
-module.exports = withSentryConfig(nextConfig, {
-  silent: true,
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-})
+module.exports = nextConfig
