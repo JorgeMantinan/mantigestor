@@ -22,6 +22,7 @@ export function verificarCron(req: NextRequest): boolean {
   const normalizar = (s: string) => s.trim().replace(/^"(.*)"$/, '$1')
 
   const secret = process.env.CRON_SECRET ? normalizar(process.env.CRON_SECRET) : undefined
+  console.log('[cron-auth] CRON_SECRET:', secret ? `presente(len=${secret.length})` : 'AUSENTE')
   if (!secret) return false
 
   const authHeader = req.headers.get('authorization')
