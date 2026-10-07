@@ -22,8 +22,10 @@ export function verificarCron(req: NextRequest): boolean {
   const normalizar = (s: string) => s.trim().replace(/^"(.*)"$/, '$1')
 
   const secret = process.env.CRON_SECRET ? normalizar(process.env.CRON_SECRET) : undefined
-  console.log('[cron-auth] CRON_SECRET:', secret ? `presente(len=${secret.length})` : 'AUSENTE')
-  if (!secret) return false
+  if (!secret) {
+    console.log('[cron-auth] denegado: CRON_SECRET no definida')
+    return false
+  }
 
   const authHeader = req.headers.get('authorization')
   const headerSecreto = req.headers.get('x-cron-secret')
@@ -35,6 +37,7 @@ export function verificarCron(req: NextRequest): boolean {
     candidato = headerSecreto
   }
 
-  if (!candidato) return false
-  return compararSecretos(normalizar(candidato), secret)
+  const ok = candidato ? compararSecretos(normalizar(candidato), secret) : false
+  if (!ok) console.log('[cron-auth] denegado:', candidato ? 'secreto no coincide' : 'sin cabecera de auth')
+  return ok
 }
