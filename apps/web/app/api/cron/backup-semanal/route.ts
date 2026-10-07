@@ -33,6 +33,13 @@ interface BackupData {
   notificaciones: unknown[]
 }
 
+// Direcciones de prueba/dominios no enrutables: enviarles rebotaría y daña la
+// reputación del remitente (Resend marca el dominio). El backup en storage sí
+// se crea; solo se omite el email.
+function esEmailEnviable(email: string): boolean {
+  return !/\.(test|local|invalid|example)$/i.test(email.trim())
+}
+
 export async function GET(req: NextRequest) {
     if (!verificarCron(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -89,11 +96,17 @@ export async function GET(req: NextRequest) {
       // Bucket privado: URL firmada válida 7 días
       const { data: urlData } = await supabase.storage.from('backups').createSignedUrl(path, 604800)
 
-      if (resend && perfil.email && urlData?.signedUrl) {
+      if (resend && perfil.email && esEmailEnviable(perfil.email) && urlData?.signedUrl) {
         const { error: sendError } = await resend.emails.send({
-          from: 'MantiGestor <noreply@mantigestor.com>',
+          from: process.env.EMAIL_FROM || 'MantiGestor <onboarding@resend.dev>',
           to: perfil.email,
           subject: `Backup semanal MantiGestor — ${fecha}`,
+          attachments: [
+            {
+              filename: `backup-mantigestor-${fecha}.json`,
+              content: Buffer.from(json, 'utf8').toString('base64'),
+            },
+          ],
           html: `
             <p>Hola ${escapeHtml(perfil.nombre ?? '')},</p>
             <p>Tu backup semanal de MantiGestor está disponible:</p>

@@ -162,6 +162,12 @@ git add -A; git commit -m "msg"; git push origin master  # Deploy a Vercel
 - Azure/Outlook OAuth: no se usa (botón eliminado de login/registro; solo Google)
 - Todas las credenciales en `.env.local` raíz ✅
 
+## Crons y email (Vercel / Resend)
+- **`vercel.json` DEBE vivir en `apps/web/`** (dentro del Root Directory): si está en la raíz del repo Vercel NO lo lee y **ningún cron se registra** (así estuvo hasta 2026-10-07:9 crons muertos desde septiembre → verificar tras cambios: `vercel logs <url> --since 12h`)
+- `CRON_SECRET` está guardado **con comillas** en Vercel y sin ellas en runtime: `verificarCron` normaliza ambos lados (sin eso, las llamadas manuales dan 401). Llamada manual: `curl -H "Authorization: Bearer <valor sin comillas>" <site>/api/cron/<ruta>`
+- **Resend sin dominio verificado**: solo puede enviar desde `onboarding@resend.dev` y **solo al email de la cuenta Resend** (`jorgemantinanmontero@gmail.com`). Cualquier email a otros destinatarios → 403 hasta verificar un dominio en resend.com/domains (añadir después `EMAIL_FROM` en Vercel). Los crons usan `EMAIL_FROM || onboarding@resend.dev`
+- Backups por usuario (JSON: facturas/documentos/suscripciones/notificaciones): `auto-backup` (diario 03:00 → CSV al bucket privado `backups` + notificación) y `backup-semanal` (dom 02:00 → JSON al bucket + **adjunto por email**; omite destinatarios `.test`/`.local`)
+
 ## Estado del proyecto
 - **77 páginas +54 rutas API, 0 errores de build.** Prácticamente todo el MVP implementado.
 - Stripe integrado (checkout, portal, webhook) — opcional, si faltan env vars muestra "Próximamente"

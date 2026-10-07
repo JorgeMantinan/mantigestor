@@ -1,4 +1,4 @@
-﻿import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { escapeHtml } from '@/lib/escape-html'
 import { mapConcurrente } from '@/lib/concurrency'
 import { verificarCron } from '@/lib/cron-auth'
@@ -151,7 +151,7 @@ async function enviarEmailFacturas(
   const totalFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(totalPendiente / 100)
 
   const { error: sendError } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || 'MantiGestor <noreply@mantigestor.vercel.app>',
+    from: process.env.EMAIL_FROM || 'MantiGestor <onboarding@resend.dev>',
     to: email,
     subject: `MantiGestor — Facturas con cobro próximo (${hoyTexto})`,
     html: `

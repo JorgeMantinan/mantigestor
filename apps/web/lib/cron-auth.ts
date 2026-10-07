@@ -17,7 +17,11 @@ function compararSecretos(a: string, b: string): boolean {
  * - Comparación timing-safe.
  */
 export function verificarCron(req: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET
+  // normaliza comillas: dotenv local y Vercel guardan el secreto con distintas
+  // comillas ("abc" vs abc) — sin esto, la verificación manual da 401
+  const normalizar = (s: string) => s.trim().replace(/^"(.*)"$/, '$1')
+
+  const secret = process.env.CRON_SECRET ? normalizar(process.env.CRON_SECRET) : undefined
   if (!secret) return false
 
   const authHeader = req.headers.get('authorization')
@@ -31,5 +35,5 @@ export function verificarCron(req: NextRequest): boolean {
   }
 
   if (!candidato) return false
-  return compararSecretos(candidato, secret)
+  return compararSecretos(normalizar(candidato), secret)
 }

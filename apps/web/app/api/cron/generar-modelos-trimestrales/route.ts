@@ -1,4 +1,4 @@
-﻿import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { escapeHtml } from '@/lib/escape-html'
 import { mapConcurrente } from '@/lib/concurrency'
 import { verificarCron } from '@/lib/cron-auth'
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
 
       if (resend && perfil.email && regenerado) {
         const { error: sendError } = await resend.emails.send({
-          from: 'MantiGestor <noreply@mantigestor.com>',
+          from: 'MantiGestor <onboarding@resend.dev>',
           to: perfil.email,
           subject: `Tus modelos fiscales ${label} ${year} están listos`,
           html: `

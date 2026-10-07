@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
 
       const csv = facturasToCsv(facturas as Factura[])
       const hoy = new Date().toISOString().slice(0, 10)
-      const contenido = `backup_csv_${hoy}:${csv.length}_chars:${facturas.length}_facturas`
+      const contenido = `Copia de seguridad diaria (${hoy}): ${facturas.length} facturas`
 
       // Evitar duplicar si ya se creó backup hoy
       const { data: yaExiste } = await supabase
@@ -122,6 +122,19 @@ export async function GET(req: NextRequest) {
         .limit(1)
 
       if (yaExiste && yaExiste.length > 0) return
+
+      // Guardar el CSV en el bucket privado (antes se generaba y se descartaba)
+      const { error: uploadError } = await supabase.storage
+        .from('backups')
+        .upload(`backups/${perfil.id}/auto-backup-${hoy}.csv`, csv, {
+          contentType: 'text/csv;charset=utf-8',
+          upsert: true,
+        })
+
+      if (uploadError) {
+        console.error(`Error subiendo auto-backup para ${perfil.id}:`, uploadError.message)
+        return
+      }
 
       await supabase.from('notificaciones').insert({
         id: crypto.randomUUID(),

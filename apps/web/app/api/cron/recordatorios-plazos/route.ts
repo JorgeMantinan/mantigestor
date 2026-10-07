@@ -1,4 +1,4 @@
-﻿import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { escapeHtml } from '@/lib/escape-html'
 import { mapConcurrente } from '@/lib/concurrency'
 import { verificarCron } from '@/lib/cron-auth'
@@ -186,7 +186,7 @@ async function enviarEmailVencimientos(
   const lista = vencimientos.map(formatearVencimiento).join('')
 
   const { error: sendError } = await resend.emails.send({
-    from: process.env.EMAIL_FROM || 'MantiGestor <noreply@mantigestor.vercel.app>',
+    from: process.env.EMAIL_FROM || 'MantiGestor <onboarding@resend.dev>',
     to: email,
     subject: `MantiGestor — Vencimientos fiscales próximos (${hoyTexto})`,
     html: `
