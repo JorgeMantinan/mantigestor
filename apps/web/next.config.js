@@ -1,28 +1,5 @@
-const esProduccion = process.env.NODE_ENV === 'production'
-
-// Content-Security-Policy: bloquea scripts/frames/conexiones a dominios
-// ajenos. 'unsafe-inline' sigue haciendo falta por los scripts inline de
-// Next.js (sin él se rompería el runtime); en dev se añade 'unsafe-eval'
-// (webpack).
-const csp = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  `script-src 'self' 'unsafe-inline'${esProduccion ? '' : " 'unsafe-eval'"} https://js.stripe.com`,
-  // Mata cualquier handler inline (onerror=...): el XSS de los generadores de
-  // PDF usa innerHTML con datos de terceros y el escape no es la única defensa.
-  "script-src-attr 'none'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.supabase.co https://js.stripe.com",
-  "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://m.stripe.network https://api.frankfurter.dev",
-  "frame-src 'self' blob: https://js.stripe.com https://hooks.stripe.com https://m.stripe.network",
-  "worker-src 'self' blob:",
-  "manifest-src 'self'",
-  ...(esProduccion ? ['upgrade-insecure-requests'] : []),
-].join('; ')
+// La Content-Security-Policy (con nonce) se genera por petición en
+// middleware.ts — no puede vivir aquí porque el nonce cambia en cada request.
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -69,7 +46,6 @@ const nextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-XSS-Protection', value: '0' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Content-Security-Policy', value: csp },
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
           { key: 'Permissions-Policy', value: 'camera=(self), microphone=(self), geolocation=(), payment=(self), usb=(), browsing-topics=()' },
         ],

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { createServerClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -213,11 +214,15 @@ export default async function LandingPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  // Nonce de la CSP (generado en middleware): sin él, el navegador bloquearía
+  // este script inline en producción (sin 'unsafe-inline' en script-src)
+  const nonce = (await headers()).get('x-nonce') ?? undefined
 
   return (
     <div className="flex min-h-screen flex-col">
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
       />
       <header className="border-b">

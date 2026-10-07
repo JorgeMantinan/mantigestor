@@ -38,7 +38,7 @@ export default function Error({
         <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
           <AlertCircle className="h-12 w-12 text-destructive" aria-hidden="true" />
           <h2 className="text-xl font-semibold">Algo salió mal</h2>
-          <p className="text-sm text-muted-foreground">{error.message}</p>
+          <p className="text-sm text-muted-foreground">{error.digest ? `Ref: ${error.digest}` : 'Se ha producido un error inesperado.'}</p>
           <Button onClick={reset}>Intentar de nuevo</Button>
         </CardContent>
       </Card>

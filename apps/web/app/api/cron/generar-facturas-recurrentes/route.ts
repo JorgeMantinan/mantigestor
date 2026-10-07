@@ -3,7 +3,7 @@ import { escapeHtml } from '@/lib/escape-html'
 import { mapConcurrente } from '@/lib/concurrency'
 import { verificarCron } from '@/lib/cron-auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { acquireLock, releaseLock } from '@/lib/recurring-invoice-lock'
+import { tomarLockCron, liberarLockCron } from '@/lib/cron-lock'
 
 
 export const maxDuration = 300
@@ -95,10 +95,12 @@ export async function GET(req: NextRequest) {
     porPerfil.set(p.perfilId, arr)
   }
 
-  // Concurrencia acotada entre perfiles (el lock sigue siendo por perfil,
-  // así que no hay solape; antes todo era secuencial)
+  // Concurrencia acotada entre perfiles. El lock es ahora DISTRIBUTIDO
+  // (tabla cron_locks): en Vercel cada lambda tiene su propio Map y el
+  // in-memory no impedía solapes entre instancias.
   await mapConcurrente(Array.from(porPerfil), 5, async ([perfilId, templates]) => {
-    if (!acquireLock(perfilId)) {
+    const claveLock = `recurrentes:${perfilId}`
+    if (!(await tomarLockCron(supabase, claveLock))) {
       return
     }
 
@@ -205,7 +207,7 @@ export async function GET(req: NextRequest) {
       // (antes era try/finally: la excepción abortaba todos los perfiles)
       console.error(`Error generando facturas recurrentes para perfil ${perfilId}:`, e)
     } finally {
-      releaseLock(perfilId)
+      await liberarLockCron(supabase, claveLock)
     }
   })
 

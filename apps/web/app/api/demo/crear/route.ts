@@ -57,9 +57,23 @@ async function obtenerUsuarioDemo(supabase: SupabaseClient, password: string): P
 
 export async function POST(req: NextRequest) {
   try {
-    const { success } = await rateLimitByIp(req, { maxRequests: 3, windowMs: 60 * 1000 })
+    //3 regeneraciones por5 minutos y por IP: con el límite anterior (3/min)
+    // un script podía vaciar y resembrar la demo ~180 veces/hora
+    const { success } = await rateLimitByIp(req, { maxRequests: 3, windowMs: 5 * 60 * 1000 })
     if (!success) {
       return NextResponse.json({ error: 'Demasiadas peticiones' }, { status: 429 })
+    }
+
+    // Same-origin: si el navegador envía Origin, debe coincidir con el host.
+    // Bloquea llamadas desde otras páginas (formularios/JS embebido) sin
+    // romper las peticiones directas (curl no envía Origin).
+    const origin = req.headers.get('origin')
+    const host = req.headers.get('host')
+    if (origin && host) {
+      const origenHost = origin.replace(/^https?:\/\//, '')
+      if (origenHost !== host) {
+        return NextResponse.json({ error: 'Origen no permitido' }, { status: 403 })
+      }
     }
 
     const body = (await req.json().catch(() => ({}))) as { caso?: string }

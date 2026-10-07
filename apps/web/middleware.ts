@@ -1,6 +1,34 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// CSP con nonce por petición (M10): sin 'unsafe-inline' en script-src.
+// Next extrae el nonce del header Content-Security-Policy de la PETICIÓN y lo
+// aplica a sus scripts (bundles, bootstrap, inline); 'strict-dynamic' cubre los
+// scripts inyectados en runtime (next/script, swagger, stripe). Por eso las
+// páginas se fuerzan a render dinámico en app/layout.tsx — un HTML pre-renderizado
+// no llevaría nonce y quedaría bloqueado.
+function generarCSP(nonce: string): string {
+  const esDev = process.env.NODE_ENV === 'development'
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${esDev ? " 'unsafe-eval'" : ''} https://js.stripe.com`,
+    // Mata cualquier handler inline (onerror=...): el nonce no protege los handlers
+    "script-src-attr 'none'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https://*.supabase.co https://js.stripe.com",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://m.stripe.network https://api.frankfurter.dev",
+    "frame-src 'self' blob: https://js.stripe.com https://hooks.stripe.com https://m.stripe.network",
+    "worker-src 'self' blob:",
+    "manifest-src 'self'",
+    ...(esDev ? [] : ['upgrade-insecure-requests']),
+  ].join('; ')
+}
+
 // Páginas públicas (las rutas /api/* no aparecen aquí: cada handler se
 // autentica solo — webhook de Stripe por firma, crons por CRON_SECRET, el
 // resto con getAuthenticatedUser). El middleware solo gobierna PÁGINAS.
@@ -100,7 +128,6 @@ function findAccessToken(cookies: ReturnType<NextRequest['cookies']['getAll']>):
 }
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
   const ruta = req.nextUrl.pathname
 
   // Pasar perfilActivoId como header para server components y API routes
@@ -113,11 +140,21 @@ export async function middleware(req: NextRequest) {
     req.headers.set('x-perfil-activo', perfilActivoId)
   }
 
+  // Nonce + CSP: se pasan en la petición (Next los lee para firmar sus
+  // scripts) y en la respuesta (el navegador los aplica al documento)
+  const nonce = btoa(crypto.randomUUID())
+  const csp = generarCSP(nonce)
+  const requestHeaders = new Headers(req.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('Content-Security-Policy', csp)
+  const res = NextResponse.next({ request: { headers: requestHeaders } })
+  res.headers.set('Content-Security-Policy', csp)
+
   // /api/* fuera del gate de cookies: no hay sesión que verificar aquí.
   // (Si no, el webhook de Stripe y los crons —que no llevan cookies— se
   // redirigían a /login y nunca se ejecutarían.)
   if (ruta.startsWith('/api/')) {
-    return NextResponse.next()
+    return res
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

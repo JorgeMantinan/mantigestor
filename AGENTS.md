@@ -97,9 +97,12 @@
 - Nunca exponer datos de otros usuarios por confiar en IDs del body
 - Zod schemas en `packages/utils/src/validaciones/` deben reflejar EXACTAMENTE los campos de la BD
 - Rate limit: clave `ip:ruta:max:ventana` (por ruta y config, no un bucket global compartido); helper `celdaCsv()` (`lib/csv-seguro.ts`) para todo export CSV (anti-fórmulas)
+- **CSP con nonce por petición** en `middleware.ts` (sin `unsafe-inline` en script-src, con `strict-dynamic`): el layout raíz exporta `dynamic='force-dynamic'` — **NO pre-renderizar páginas** (un HTML de build no lleva el nonce y todos sus scripts quedarían bloqueados; verificar con `node e2e/csp-prod-check.mjs <url>` contra `next start`, debe dar0 violaciones). El script de next-themes recibe el nonce por props (`<Providers nonce>`), el JSON-LD con `nonce={nonce}`; los `<script>` inyectados en runtime (next/script, swagger, stripe) están cubiertos por `strict-dynamic`
+- `/api/docs` exige sesión (el spec completo de rutas no es público); el Swagger UI del dashboard manda cookies
 - `facturas.tokenCliente` lo genera un **trigger de BD** (migración `20261007_token_cliente_qr`, reutiliza el token del mismo cliente+tipo) — el QR/portal NUNCA debe usar el `id` como token público
 - `perfil_asociado` INSERT: policy `insert_solo_vinculo_propietario` (owner=perfil=auth.uid, rol propietario) — gestor/visualizador SOLO vía `crear_asociacion_segura`; el INSERT directo con `rol:'gestor'` es bypeable-posterior imposible (auditado en vivo2026-10-07)
 - `facturas` tiene `UNIQUE(perfilId, numero)` (migración `20261007_facturas_numero_unico`) — el POST reintenta con el siguiente número en23505; `perfiles.userId` lo protege el trigger `proteger_user_id_perfil`
+- Lock de crons **distribuido**: tabla `cron_locks` + RPC `tomar_lock`/`liberar_lock` (solo `service_role`, migración `20261007_cron_locks`) — el Map in-memory no protege entre lambdas de Vercel; `lib/cron-lock.ts` es fail-open (el UNIQUE de facturas es la última línea)
 - Al cerrar sesión o expirar: `purgarDatosPrivados()` (`lib/purgar-datos.ts`) — caches SW, localStorage privado, sessionStorage y cookie de perfil activo
 
 ### UX / Frontend

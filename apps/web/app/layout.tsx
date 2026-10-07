@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { headers } from 'next/headers'
 import { Roboto } from 'next/font/google'
 import { Providers } from '@/components/providers'
 import '@/styles/globals.css'
@@ -9,6 +10,11 @@ const roboto = Roboto({
   variable: '--font-roboto',
   display: 'swap',
 })
+
+// La CSP con nonce (middleware) exige render dinámico: un HTML pre-renderizado
+// en build no llevaría el nonce de la petición y todos sus scripts quedarían
+// bloqueados. Aplica a todas las rutas hijas (inheritencia de segmento).
+export const dynamic = 'force-dynamic'
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -40,15 +46,18 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Nonce de la CSP para el script inline de next-themes (ThemeProvider no
+  // lo firma Next automáticamente porque lo emite JSX, no el runtime)
+  const nonce = (await headers()).get('x-nonce') ?? undefined
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${roboto.variable} font-sans antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
   )
