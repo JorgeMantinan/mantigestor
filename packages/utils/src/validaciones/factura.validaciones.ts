@@ -37,8 +37,9 @@ export const FacturaSchema = z.object({
   notasPrivadas: z.string().max(5000).optional().nullable(),
   deducible: z.boolean().optional().nullable(),
   tags: z.string().max(500).optional().nullable(),
-  pdfUrl: z.string().max(2048).optional().nullable(),
-  tokenCliente: z.string().max(128).optional().nullable(),
+  // sin tokenCliente: el token de portal lo genera SOLO la BD (trigger);
+  // aceptarlo aquí permitiría fijar/reciclar el bearer del portal público
+  pdfUrl: z.string().url().max(2048).optional().nullable(),
   moneda: z.string().length(3).optional(),
   tipoCambio: z.number().min(0).max(1000).optional(),
   pagosParciales: z.string().max(20000).optional().nullable(),

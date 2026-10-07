@@ -109,27 +109,29 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
       return
     }
 
-    const term = `%${q}%`
+    // Escapar comodines ILIKE (\ % _) y neutralizar metacaracteres de
+    // PostgREST (, ( )) que reescribirían la estructura del .or(...)
+    const terminoSeguro = `%${q.replace(/[\\%_]/g, '\\$&').replace(/[,()]/g, ' ').trim()}%`
     const [facturas, propiedades, nominas] = await Promise.all([
       supabase
         .from('facturas')
         .select('id, numero, emisorReceptor, nifContraparte')
         .eq('perfilId', user.id)
         .or(
-          `numero.ilike.${term},emisorReceptor.ilike.${term},nifContraparte.ilike.${term}`
+          `numero.ilike.${terminoSeguro},emisorReceptor.ilike.${terminoSeguro},nifContraparte.ilike.${terminoSeguro}`
         )
         .limit(5),
       supabase
         .from('propiedades_alquiler')
         .select('id, direccion, inquilinoNombre')
         .eq('perfilId', user.id)
-        .or(`direccion.ilike.${term},inquilinoNombre.ilike.${term}`)
+        .or(`direccion.ilike.${terminoSeguro},inquilinoNombre.ilike.${terminoSeguro}`)
         .limit(5),
       supabase
         .from('nominas')
         .select('id, empleada, mes, anyo')
         .eq('perfilId', user.id)
-        .ilike('empleada', term)
+        .ilike('empleada', terminoSeguro)
         .limit(5),
     ])
 

@@ -49,6 +49,11 @@ export async function POST(req: NextRequest) {
       return badRequest(new Error('tipo (máx. 50) o contenido (máx. 2000) demasiado largos'))
     }
 
+    // charset del tipo: sin espacios, HTML ni caracteres raros (spoof de tipos)
+    if (!/^[a-z0-9_-]{1,50}$/.test(tipo)) {
+      return badRequest(new Error('tipo no válido'))
+    }
+
     const { data, error } = await supabase
       .from('notificaciones')
       .insert({ id: crypto.randomUUID(), perfilId, tipo, contenido, creadoEn: new Date().toISOString() })

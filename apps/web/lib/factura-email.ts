@@ -50,54 +50,6 @@ function htmlFirma(firmaBase64?: string): string {
   `
 }
 
-function htmlEmailBody(f: FacturaEmailPayload): string {
-  const esGasto = f.tipo === 'gasto'
-  const titulo = esGasto ? 'Factura Recibida' : 'Factura Emitida'
-  const empresa = f.empresaNombre || 'Mi Empresa'
-  const direccion = f.empresaDireccion || ''
-  const nifEmpresa = f.empresaNif || ''
-
-  return `
-    <div style="font-family:system-ui,-apple-system,sans-serif;color:#1a1a1a;max-width:600px;margin:0 auto;padding:20px">
-      <div style="background:linear-gradient(135deg,#eab308 0%,#f59e0b 100%);border-radius:12px;padding:24px;margin-bottom:24px">
-        <h1 style="font-size:22px;font-weight:800;margin:0;color:#000">${titulo}</h1>
-        <p style="font-size:13px;color:#1a1a1a;margin:4px 0 0 0">Nº ${escapeHtml(String(f.numero))}</p>
-      </div>
-      <div style="margin-bottom:20px">
-        <p style="font-size:14px;color:#555;margin:0 0 4px 0"><strong>Contraparte:</strong> ${escapeHtml(String(f.emisorReceptor))}${f.nifContraparte ? ` (${escapeHtml(String(f.nifContraparte))})` : ''}</p>
-        <p style="font-size:14px;color:#555;margin:0 0 4px 0"><strong>Fecha:</strong> ${new Date(f.fechaEmision).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-      </div>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;border-radius:8px;overflow:hidden">
-        <thead>
-          <tr style="background:#1a1a1a;color:white">
-            <th style="padding:10px 14px;text-align:left;font-size:12px">Concepto</th>
-            <th style="padding:10px 14px;text-align:right;font-size:12px">Base</th>
-            <th style="padding:10px 14px;text-align:right;font-size:12px">IVA</th>
-            <th style="padding:10px 14px;text-align:right;font-size:12px">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="padding:10px 14px;font-size:13px;border-bottom:1px solid #eee">${esGasto ? 'Gasto' : 'Servicio'}</td>
-            <td style="padding:10px 14px;text-align:right;font-size:13px;border-bottom:1px solid #eee">${formatEuro(f.baseImponible)}</td>
-            <td style="padding:10px 14px;text-align:right;font-size:13px;border-bottom:1px solid #eee">${f.iva}%</td>
-            <td style="padding:10px 14px;text-align:right;font-size:13px;font-weight:700;border-bottom:1px solid #eee">${formatEuro(f.total)}</td>
-          </tr>
-        </tbody>
-      </table>
-      <div style="background:#eab308;border-radius:8px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <span style="font-size:14px;font-weight:600;color:#000">TOTAL</span>
-        <span style="font-size:22px;font-weight:800;color:#000">${formatEuro(f.total)}</span>
-      </div>
-      ${f.notas ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;margin-bottom:20px"><p style="font-size:12px;margin:0;color:#92400e"><strong>Notas:</strong> ${escapeHtml(String(f.notas))}</p></div>` : ''}
-      <p style="font-size:12px;color:#999;text-align:center;margin-top:24px">
-        Adjunto encontrarás el PDF de esta factura.<br/>
-        ${escapeHtml(String(empresa))} · ${escapeHtml(String(direccion))}${nifEmpresa ? ` · NIF ${escapeHtml(String(nifEmpresa))}` : ''}
-      </p>
-    </div>
-  `
-}
-
 function pdfHTML(f: FacturaEmailPayload): string {
   const esGasto = f.tipo === 'gasto'
   const titulo = esGasto ? 'FACTURA RECIBIDA' : 'FACTURA EMITIDA'
@@ -181,8 +133,6 @@ export async function enviarFacturaPorEmail(
   asuntoCustom?: string,
   cuerpoCustom?: string
 ): Promise<{ ok: boolean; skipped?: boolean; error?: string }> {
-  const htmlBody = htmlEmailBody(factura)
-
   let pdfBase64: string | undefined
   try {
     pdfBase64 = await generarPDFBlob(factura)
@@ -196,7 +146,6 @@ export async function enviarFacturaPorEmail(
     body: JSON.stringify({
       facturaId,
       email,
-      htmlBody,
       pdfBase64,
       numero: factura.numero,
       empresaNombre: factura.empresaNombre || 'Mi Empresa',

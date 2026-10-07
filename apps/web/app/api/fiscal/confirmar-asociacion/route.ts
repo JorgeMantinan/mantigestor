@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
-import crypto from 'crypto'
 
 // GET: obtener info del invitador (sin auth requirement)
 // Usa service_role porque la invitación puede consultarse sin sesión

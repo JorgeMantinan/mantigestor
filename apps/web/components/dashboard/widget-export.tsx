@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Download, FileSpreadsheet, FileText, Archive } from 'lucide-react'
 import { exportarTodoZIP, type ExportData } from '@/lib/exportar-zip'
+import { celdaCsv } from '@/lib/csv-seguro'
 import { useLanguage } from '@/contexts/language-context'
 
 export function WidgetExport() {
@@ -44,9 +45,9 @@ export function WidgetExport() {
     if (rows.length === 0) return ''
     const headers = Object.keys(rows[0]!)
     const lines = rows.map(r =>
-      headers.map(h => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(';')
+      headers.map(h => celdaCsv(r[h])).join(';')
     )
-    return '\uFEFF' + headers.join(';') + '\n' + lines.join('\n')
+    return '﻿' + headers.join(';') + '\n' + lines.join('\n')
   }
 
   const descargarCsv = async () => {

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getAuthenticatedUser, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
+import { getAuthenticatedUser, getSupabaseServer, unauthorized, badRequest, serverError } from '@/lib/api-helpers'
 import { rateLimitByIp } from '@/lib/rate-limit-ip'
+import { resolvePerfilActivo } from '@/lib/resolve-perfil-activo'
 import { escapeHtml } from '@/lib/escape-html'
 
 export async function POST(req: NextRequest) {
@@ -16,17 +17,36 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return unauthorized()
 
-    const { email, nombre, contrapartes, mes, anyo } = await req.json()
+    const { perfilId } = await resolvePerfilActivo(req)
 
-    if (typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return badRequest('Email no válido')
+    // TODO derivado en servidor: antes el body traía destinatario, nombre y
+    // contrapartes a voluntad → cualquier autenticado usaba la ruta como
+    // email relay de spam desde el dominio de la plataforma (5/min).
+    const supabase = await getSupabaseServer(req)
+    const hoyDia = new Date().getDate()
+    const [perfilRes, recRes] = await Promise.all([
+      supabase.from('perfiles').select('email, nombre').eq('id', perfilId).maybeSingle(),
+      supabase
+        .from('facturas_recurrentes')
+        .select('emisorReceptor')
+        .eq('perfilId', perfilId)
+        .eq('activa', true)
+        .eq('diaEmail', hoyDia)
+        .limit(200),
+    ])
+
+    const destinatario = perfilRes.data?.email
+    if (!destinatario) return badRequest('El perfil no tiene email configurado')
+
+    const contrapartes = [...new Set((recRes.data ?? []).map(r => String(r.emisorReceptor)).filter(Boolean))]
+    if (contrapartes.length === 0) {
+      return NextResponse.json({ ok: true, skipped: true })
     }
-    if (!Array.isArray(contrapartes) || contrapartes.length === 0 || contrapartes.length > 200) {
-      return badRequest('Faltan campos')
-    }
-    if (typeof mes !== 'number' || mes < 1 || mes > 12 || typeof anyo !== 'number' || anyo < 2000 || anyo > 2100) {
-      return badRequest('Faltan campos')
-    }
+
+    const nombre = perfilRes.data?.nombre
+    const ahora = new Date()
+    const mes = ahora.getMonth() + 1
+    const anyo = ahora.getFullYear()
 
     if (!process.env.RESEND_API_KEY) {
       // Sin API key: silencioso, no es error crítico
@@ -40,14 +60,14 @@ export async function POST(req: NextRequest) {
     const nombreSeguro = typeof nombre === 'string' && nombre.trim() ? escapeHtml(nombre.trim().slice(0, 100)) : ''
     const filasTabla = contrapartes
       .slice(0, 200)
-      .map((c: unknown) =>
+      .map((c) =>
         `<tr><td style="padding:10px 14px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;">${escapeHtml(String(c)).slice(0, 200)}</td></tr>`
       )
       .join('')
 
     const { error: sendError } = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'MantiGestor <onboarding@resend.dev>',
-      to: email,
+      to: destinatario,
       subject: `MantiGestor — Revisa tus facturas recurrentes de ${nombreMes}`,
       html: `
         <!DOCTYPE html>

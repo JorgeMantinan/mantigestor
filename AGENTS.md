@@ -2,14 +2,14 @@
 
 ## Stack
 - **Monorepo:** Turborepo + pnpm
-- **Web:** Next.js 14 App Router, TypeScript strict, Tailwind CSS
+- **Web:** Next.js 15 App Router, React 19, TypeScript strict, Tailwind CSS
 - **UI:** shadcn/ui (Style Luma, BaseColor Zinc, Theme Yellow hsl(47 95% 50%), Chart Emerald)
 - **Font:** Roboto (Google Fonts), **Icons:** Lucide
 - **DB:** Prisma 5 + PostgreSQL (Supabase)
 - **Auth:** Supabase Auth (email, Google OAuth)
 - **Pagos:** Stripe + PayPal
 - **IA:** Claude API (Anthropic)
-- **Background:** Trigger.dev
+- **Background:** Trigger.dev **no se usa** (0 referencias en el repo; los jobs son crons de Vercel)
 - **Tests:** Vitest (unit), Playwright (E2E)
 - **Mobile:** Expo (separate, no iniciado)
 
@@ -83,7 +83,7 @@
 
 ### API Routes
 - `try/catch` alrededor de TODO el handler, nunca exceptions sin capturar
-- Rate limiting en51/54 rutas (30/min default, 10/min AI chat, 5/min Stripe, 3/min demo); las sin rate limit: 9 crons (`CRON_SECRET`), `stripe/webhook` (firma) y `docs` (público inofensivo)
+- Rate limiting en44/54 rutas (30/min default, 10/min AI chat, 5/min Stripe, 3/min demo); sin rate limit: 9 crons (`CRON_SECRET`) y `stripe/webhook` (firma)
 - Auth check (`getAuthenticatedUser`) antes de procesar cualquier dato
 - **NUNCA** confiar en `perfilId` del body — usar `user.id` de la sesión
 - Validar input con Zod antes de tocar la BD
@@ -98,6 +98,8 @@
 - Zod schemas en `packages/utils/src/validaciones/` deben reflejar EXACTAMENTE los campos de la BD
 - Rate limit: clave `ip:ruta:max:ventana` (por ruta y config, no un bucket global compartido); helper `celdaCsv()` (`lib/csv-seguro.ts`) para todo export CSV (anti-fórmulas)
 - `facturas.tokenCliente` lo genera un **trigger de BD** (migración `20261007_token_cliente_qr`, reutiliza el token del mismo cliente+tipo) — el QR/portal NUNCA debe usar el `id` como token público
+- `perfil_asociado` INSERT: policy `insert_solo_vinculo_propietario` (owner=perfil=auth.uid, rol propietario) — gestor/visualizador SOLO vía `crear_asociacion_segura`; el INSERT directo con `rol:'gestor'` es bypeable-posterior imposible (auditado en vivo2026-10-07)
+- `facturas` tiene `UNIQUE(perfilId, numero)` (migración `20261007_facturas_numero_unico`) — el POST reintenta con el siguiente número en23505; `perfiles.userId` lo protege el trigger `proteger_user_id_perfil`
 - Al cerrar sesión o expirar: `purgarDatosPrivados()` (`lib/purgar-datos.ts`) — caches SW, localStorage privado, sessionStorage y cookie de perfil activo
 
 ### UX / Frontend
@@ -177,7 +179,7 @@ git add -A; git commit -m "msg"; git push origin master  # Deploy a Vercel
 - Loading/Error states en todas las rutas
 - Tasas de cambio en tiempo real (Frankfurter API + fallback hardcoded)
 - SEO metadata en layouts y root page
-- Rate limiting en51/54 API routes (in-memory, Upstash opcional; crons con `CRON_SECRET`)
+- Rate limiting en44/54 API routes (in-memory, Upstash opcional;9 crons con `CRON_SECRET` y1 webhook con firma)
 - Middleware con graceful fallback si faltan NEXT_PUBLIC_SUPABASE_URL/KEY
 - **Deploy en Vercel funcional** (Root Directory: apps/web)
 - **Todos los inserts corregidos**: id explícito con `crypto.randomUUID()` en todas las tablas Prisma-managed

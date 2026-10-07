@@ -40,7 +40,7 @@ export async function purgarDatosPrivados(): Promise<void> {
   }
 
   try {
-    document.cookie = 'perfilActivoId=; path=/; max-age=0'
+    document.cookie = 'perfilActivoId=; path=/; max-age=0; Secure; SameSite=Lax'
   } catch {
     // entorno sin document
   }

@@ -1,4 +1,5 @@
 import JSZip from 'jszip'
+import { celdaCsv } from './csv-seguro'
 
 export interface ExportData {
   facturas: Record<string, unknown>[]
@@ -17,9 +18,9 @@ export async function exportarTodoZIP(data: ExportData): Promise<void> {
     if (rows.length === 0) return ''
     const headers = Object.keys(rows[0]!)
     const lines = rows.map(r =>
-      headers.map(h => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(';')
+      headers.map(h => celdaCsv(r[h])).join(';')
     )
-    return '\uFEFF' + headers.join(';') + '\n' + lines.join('\n')
+    return '﻿' + headers.join(';') + '\n' + lines.join('\n')
   }
 
   zip.file('facturas.csv', toCsv(data.facturas))

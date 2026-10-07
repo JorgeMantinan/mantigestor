@@ -59,6 +59,11 @@ export async function POST(req: NextRequest) {
       if (typeof pdfBase64 !== 'string' || pdfBase64.length > 14_000_000) {
         return badRequest('PDF demasiado grande')
       }
+      // Magic bytes: base64 de '%PDF-' — el adjunto debe ser un PDF real,
+      // no HTML/EXE con nombre .pdf (phishing con la reputación de la plataforma)
+      if (!pdfBase64.startsWith('JVBERi')) {
+        return badRequest('El adjunto debe ser un PDF válido')
+      }
       attachments.push({
         filename: `factura-${factura.numero ?? numero ?? ''}.pdf`,
         content: pdfBase64,

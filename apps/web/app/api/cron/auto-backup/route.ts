@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { verificarCron } from '@/lib/cron-auth'
 import { mapConcurrente } from '@/lib/concurrency'
+import { celdaCsv } from '@/lib/csv-seguro'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
@@ -38,15 +39,6 @@ interface Factura {
   createdAt: string
 }
 
-function escapeCsvField(field: string | null | undefined): string {
-  if (field == null) return ''
-  const str = String(field)
-  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-    return `"${str.replace(/"/g, '""')}"`
-  }
-  return str
-}
-
 function formatCentsToEur(cents: number): string {
   return (cents / 100).toFixed(2)
 }
@@ -60,19 +52,19 @@ function facturasToCsv(facturas: Factura[]): string {
   ]
 
   const rows = facturas.map(f => [
-    escapeCsvField(f.numero),
-    escapeCsvField(f.tipo),
-    escapeCsvField(f.emisorReceptor),
-    escapeCsvField(f.nifContraparte),
+    celdaCsv(f.numero),
+    celdaCsv(f.tipo),
+    celdaCsv(f.emisorReceptor),
+    celdaCsv(f.nifContraparte),
     f.fechaEmision?.slice(0, 10) ?? '',
     f.fechaVencimiento?.slice(0, 10) ?? '',
     formatCentsToEur(f.baseImponible),
     f.iva,
     formatCentsToEur(f.total),
-    escapeCsvField(f.estado),
-    escapeCsvField(f.categoriaGasto),
-    escapeCsvField(f.notas),
-    escapeCsvField(f.pdfUrl),
+    celdaCsv(f.estado),
+    celdaCsv(f.categoriaGasto),
+    celdaCsv(f.notas),
+    celdaCsv(f.pdfUrl),
     f.createdAt?.slice(0, 10) ?? '',
   ].join(','))
 

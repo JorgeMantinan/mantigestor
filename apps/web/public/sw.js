@@ -38,10 +38,19 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.mode === 'navigate') {
+    // Solo se cachean las rutas públicas: el HTML de rutas privadas
+    // (dashboard/gestoria) sobreviviría en Cache Storage si el purge no
+    // corriera, exponiendo datos de la sesión anterior sin red.
+    const RUTAS_PUBLICAS = [
+      '/', '/login', '/register', '/precios', '/sobre-nosotros',
+      '/forgot-password', '/reset-password', '/demo',
+      '/confirmar-asociacion', '/factura',
+    ]
+    const esPublica = RUTAS_PUBLICAS.indexOf(url.pathname) !== -1
     event.respondWith(
       fetch(request)
         .then((response) => {
-          if (response.ok) {
+          if (response.ok && esPublica) {
             const clone = response.clone()
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
           }

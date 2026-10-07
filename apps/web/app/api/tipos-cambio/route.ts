@@ -47,8 +47,12 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const base = (searchParams.get('base') ?? 'EUR').toUpperCase()
-    const pedidas = searchParams.get('simbolos')?.split(',').map(s => s.trim().toUpperCase()).filter(Boolean) ?? []
+    // Allowlist estricta:3 letras por símbolo — si no, el input se inyecta
+    // en la URL de salida de Frankfurter (p.ej. ?base=EUR%26other=1)
+    const baseBruto = (searchParams.get('base') ?? 'EUR').toUpperCase()
+    const base = /^[A-Z]{3}$/.test(baseBruto) ? baseBruto : 'EUR'
+    const pedidas = searchParams.get('simbolos')?.split(',').map(s => s.trim().toUpperCase())
+      .filter(s => /^[A-Z]{3}$/.test(s)) ?? []
     const simbolos = pedidas.length > 0
       ? pedidas
       : ['USD', 'GBP', 'CHF', 'CAD', 'AUD', 'JPY', 'MXN', 'ARS', 'COP', 'BRL']

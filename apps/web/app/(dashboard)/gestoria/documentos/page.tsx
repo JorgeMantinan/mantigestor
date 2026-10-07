@@ -261,7 +261,7 @@ export default function DocumentosPage() {
                     </p>
                   </div>
                   <div className="flex gap-1">
-                    <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                    <a href={/^https:\/\//i.test(doc.url) ? doc.url : '#'} target="_blank" rel="noopener noreferrer">
                       <Button variant="ghost" size="sm">
                         <ExternalLink className="h-3 w-3" />
                       </Button>

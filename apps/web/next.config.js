@@ -15,7 +15,7 @@ const csp = [
   // PDF usa innerHTML con datos de terceros y el escape no es la única defensa.
   "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.supabase.co https://js.stripe.com https://api.qrserver.com",
+  "img-src 'self' data: blob: https://*.supabase.co https://js.stripe.com",
   "font-src 'self' data:",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://m.stripe.network https://api.frankfurter.dev",
   "frame-src 'self' blob: https://js.stripe.com https://hooks.stripe.com https://m.stripe.network",

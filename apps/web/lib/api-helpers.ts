@@ -40,11 +40,19 @@ export function notFound(mensaje = 'No encontrado') {
 }
 
 export function badRequest(error: unknown) {
-  const mensaje = error instanceof Error ? error.message : 'Solicitud inválida'
+  const mensaje = typeof error === 'string'
+    ? error
+    : error instanceof Error ? error.message : 'Solicitud inválida'
   return NextResponse.json({ error: mensaje }, { status: 400 })
 }
 
 export function serverError(error: unknown) {
-  console.error(error)
+  // Solo message: los PostgrestError traen `details` con valores de fila
+  // (emails, NIFs) que no deben acabar en los logs de Vercel
+  if (error && typeof error === 'object' && 'message' in error) {
+    console.error(String((error as { message: unknown }).message))
+  } else {
+    console.error(error)
+  }
   return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
 }

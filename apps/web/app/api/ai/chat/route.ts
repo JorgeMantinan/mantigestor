@@ -8,7 +8,7 @@ import { z } from 'zod'
 
 export const maxDuration = 120
 const ChatMessageSchema = z.object({
-  mensaje: z.string().min(1, 'Mensaje requerido'),
+  mensaje: z.string().min(1, 'Mensaje requerido').max(4000, 'Mensaje demasiado largo'),
   historial: z.array(z.object({
     role: z.string(),
     content: z.string(),

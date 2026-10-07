@@ -4,9 +4,25 @@ import { rateLimitByIp } from '@/lib/rate-limit-ip'
 import { createServerClient } from '@supabase/ssr'
 import { z } from 'zod'
 
+// Solo endpoints de proveedores push reales: el servidor hace POST a este
+// endpoint, así que un URL arbitrario sería SSRF (p.ej. IP internas de Vercel)
+function endpointPushPermitido(url: string): boolean {
+  try {
+    const u = new URL(url)
+    if (u.protocol !== 'https:') return false
+    return (
+      u.hostname === 'fcm.googleapis.com' ||
+      u.hostname === 'updates.push.services.mozilla.com' ||
+      /\.web\.push\.apple\.com$/.test(u.hostname)
+    )
+  } catch {
+    return false
+  }
+}
+
 const PushSubscriptionSchema = z.object({
   subscription: z.object({
-    endpoint: z.string().url().max(2048),
+    endpoint: z.string().url().max(2048).refine(endpointPushPermitido, 'Endpoint push no permitido'),
     keys: z.object({
       p256dh: z.string().min(10).max(512),
       auth: z.string().min(10).max(256),

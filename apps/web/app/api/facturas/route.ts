@@ -35,8 +35,8 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const tipo = searchParams.get('tipo')
-    const page = parseInt(searchParams.get('page') ?? '1', 10)
-    const limit = parseInt(searchParams.get('limit') ?? '20', 10)
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10) || 20))
 
     let query = supabase
       .from('facturas')
@@ -101,15 +101,44 @@ export async function POST(req: NextRequest) {
     const parsed = FacturaSchema.safeParse(body)
     if (!parsed.success) return badRequest(parsed.error.flatten().fieldErrors)
 
-    const { data, error } = await supabase.from('facturas').insert({
+    const datosInsert = {
       id: crypto.randomUUID(),
       perfilId,
       ...parsed.data,
       fechaEmision: parsed.data.fechaEmision.toISOString(),
       createdAt: new Date().toISOString(),
-    }).select().single()
+    }
 
-    if (error) throw error
+    // Reintento ante23505 (UNIQUE perfilId+numero): si otro cliente/cron se
+    // coló con el mismo número, se pide el siguiente al servidor y reintenta
+    let data: { id: string; numero: string; tipo: string; emisorReceptor: string; fechaEmision: string } | null = null
+    let error: { code?: string } | null = null
+    let numero = String(parsed.data.numero)
+    for (let intento = 0; intento < 3; intento++) {
+      const res = await supabase
+        .from('facturas')
+        .insert({ ...datosInsert, numero })
+        .select()
+        .single()
+      data = res.data
+      error = res.error
+      if (!error) break
+      if (error.code !== '23505') break
+      const prefijo = numero.replace(/\d+$/, '').replace(/[\\%_]/g, '\\$&')
+      const { data: ultima } = await supabase
+        .from('facturas')
+        .select('numero')
+        .eq('perfilId', perfilId)
+        .like('numero', `${prefijo}%`)
+        .order('numero', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      const maximo = parseInt(String(ultima?.numero ?? '').replace(prefijo, ''), 10) || 0
+      numero = `${prefijo}${String(maximo + 1).padStart(3, '0')}`
+      datosInsert.id = crypto.randomUUID()
+    }
+
+    if (error || !data) throw error
 
     await registrarAccion(req, perfilId, 'factura', data.id, 'crear', {
       numero: data.numero,

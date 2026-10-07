@@ -1,5 +1,6 @@
 'use client'
 import { escapeHtml } from './escape-html'
+import QRCode from 'qrcode'
 
 import { generarPDFDeHTML } from '@/lib/pdf'
 import { type PagoParcial, calcularSaldoPendiente } from '@/lib/pago-parcial'
@@ -36,6 +37,7 @@ interface FacturaPDF {
   logoBase64?: string
   firmaBase64?: string
   qrUrl?: string
+  qrDataUrl?: string | null
   idioma?: IdiomaPDF
 }
 
@@ -152,11 +154,11 @@ function htmlFirma(firmaBase64?: string): string {
   `
 }
 
-function htmlQR(qrUrl: string, idioma?: IdiomaPDF): string {
+function htmlQR(qrDataUrl: string, idioma?: IdiomaPDF): string {
   const t = obtenerTextosPDF(idioma)
   return `
     <div style="text-align:center;margin-top:16px">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrUrl)}" alt="QR factura" style="width:100px;height:100px" />
+      <img src="${qrDataUrl}" alt="QR factura" style="width:100px;height:100px" />
       <p style="font-size:8px;color:#9ca3af;margin:4px 0 0 0">${t.scan_para_ver}</p>
     </div>
   `
@@ -239,7 +241,7 @@ function htmlClasico(f: FacturaPDF): string {
           <p style="margin:0">${escapeHtml(String(empresa))} · ${escapeHtml(String(direccion))} · ${t.nif} ${escapeHtml(String(nifEmpresa))}</p>
           <p style="margin:4px 0 0 0">${t.documento_generado_por}</p>
         </div>
-        ${f.qrUrl ? `<div>${htmlQR(f.qrUrl, f.idioma)}</div>` : ''}
+        ${f.qrDataUrl ? `<div>${htmlQR(f.qrDataUrl, f.idioma)}</div>` : ''}
       </div>
     </div>
   `
@@ -321,7 +323,7 @@ function htmlModerno(f: FacturaPDF): string {
             <p style="margin:0">${escapeHtml(String(empresa))} · ${escapeHtml(String(direccion))} · ${t.nif} ${escapeHtml(String(nifEmpresa))}</p>
             <p style="margin:4px 0 0 0">${t.documento_generado_por}</p>
           </div>
-          ${f.qrUrl ? `<div>${htmlQR(f.qrUrl, f.idioma)}</div>` : ''}
+          ${f.qrDataUrl ? `<div>${htmlQR(f.qrDataUrl, f.idioma)}</div>` : ''}
         </div>
       </div>
     </div>
@@ -400,7 +402,7 @@ function htmlMinimalista(f: FacturaPDF): string {
         <div style="font-size:9px;color:#ccc;letter-spacing:1px">
           <p style="margin:0">${escapeHtml(String(empresa.toUpperCase()))} · ${escapeHtml(String(nifEmpresa))}</p>
         </div>
-        ${f.qrUrl ? `<div>${htmlQR(f.qrUrl, f.idioma)}</div>` : ''}
+        ${f.qrDataUrl ? `<div>${htmlQR(f.qrDataUrl, f.idioma)}</div>` : ''}
       </div>
     </div>
   `
@@ -424,10 +426,16 @@ export async function generarFacturaClientePDF(
   empresas: EmpresaDatos[] = []
 ): Promise<void> {
   const { logoBase64, firmaBase64 } = resolverLogoFirmaEmpresa(factura, empresas)
+  // QR generado en local (antes: api.qrserver.com — enviaba el token del
+  // portal a un tercero). Solo se genera si la factura tiene qrUrl.
+  const qrDataUrl = factura.qrUrl
+    ? await QRCode.toDataURL(factura.qrUrl, { margin: 1, width: 150 })
+    : null
   const facturaResuelta: FacturaPDF = {
     ...factura,
     logoBase64: logoBase64 ?? factura.logoBase64,
     firmaBase64: firmaBase64 ?? factura.firmaBase64,
+    qrDataUrl,
   }
   const htmlFn = plantillas[plantilla] ?? htmlClasico
   const html = htmlFn(facturaResuelta)

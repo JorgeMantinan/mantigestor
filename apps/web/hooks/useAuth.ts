@@ -16,6 +16,11 @@ export function useAuth() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user)
       setCargando(false)
+      if (!user) {
+        // Sesión ya caducada al abrir la app: el listener nunca vio una sesión
+        // previa, así que purgamos igualmente los datos cacheados
+        void purgarDatosPrivados()
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(

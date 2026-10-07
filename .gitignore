@@ -13,3 +13,7 @@ test-results/
 .vercel
 .env*
 *.traineddata
+*.pem
+*.key
+*.p12
+*.pfx

@@ -105,6 +105,10 @@ export async function middleware(req: NextRequest) {
 
   // Pasar perfilActivoId como header para server components y API routes
   const perfilActivoId = req.cookies.get('perfilActivoId')?.value
+  // Borrar SIEMPRE la cabecera que llegue del cliente: sin cookie no debe
+  // viajar un x-perfil-activo manipulado (las APIs lo revalidan igualmente,
+  // pero no hace falta dejarlo pasar)
+  req.headers.delete('x-perfil-activo')
   if (perfilActivoId) {
     req.headers.set('x-perfil-activo', perfilActivoId)
   }
