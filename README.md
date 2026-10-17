@@ -1,102 +1,133 @@
 # MantiGestor
 
-> **Gestión inteligente para autónomos con IA** — facturas, fiscalidad, nóminas y alquileres en una sola app.
+Webapp de gestión para autónomos españoles: facturas, modelos fiscales, nóminas, alquileres y documentos en una sola aplicación, con OCR de facturas por IA y cálculo automático de declaraciones. SaaS con planes BASIC (gratuito) y PRO de pago. Desplegada en producción y accesible con registro.
 
-**🌐 Demo en producción:** [mantigestor.vercel.app](https://mantigestor.vercel.app) · **🎯 Estado:** desplegada y accesible con registro
-
----
-
-## Qué es
-
-SaaS para autónomos españoles que resuelve lo que normalmente se hace en Excel y con un gestoría: emitir facturas, controlar IVA e IRPF, preparar declaraciones, gestionar nóminas y llevar el control de alquileres.
-
-El diferencial es la **IA aplicada a un dominio regulado (fiscalidad española)**: fotografías una factura o ticket y la IA extrae los datos (incluso manuscritos), y la app calcula los modelos fiscales con avisos de vencimiento.
-
-**Usuario objetivo:** autónomo sin conocimientos contables, en España.
-
-## Funcionalidades
+## Características
 
 | Área | Qué hace |
 |---|---|
-| 🧾 **Facturas con IA** | OCR + extracción automática de datos desde foto (Tesseract) + Claude para normalizar campos y validar. Lectura de PDF e imágenes. |
-| 📊 **Fiscalidad** | Modelos 303, 130, 111, 100, 347, 349, 190, 200, plusvalía municipal y más de 30 modelos. Cálculo automático y alertas de vencimiento con guía paso a paso. |
-| 👥 **Nóminas y retenciones** | Generación de nóminas y cálculo de retenciones de IRPF. |
-| 🏠 **Alquileres** | Inquilinos, cobros, gastos deducibles y control de propiedades. |
-| 📁 **Documentos** | Almacenamiento, organización y backup automático en la nube. Exportación a PDF/Excel/ZIP. |
-| 🧮 **Escaneo de tickets** | Captura con la cámara del móvil para gastos deductibles. |
-| 👤 **Multi-persona** | Varios perfiles (cónyuge, familiares) desde una única cuenta. |
-| 💳 **Suscripciones** | Plan Básico gratuito y plan PRO con pago recurrente (Stripe + PayPal). |
-| 🔔 **Notificaciones** | Web Push y email transaccional (Resend). |
+| Facturas con IA | OCR (Tesseract.js) + Claude para extraer y validar datos desde foto o PDF; facturas emitidas y recibidas |
+| Fiscalidad | Más de 40 modelos y calculadoras (303, 130, 111, 100, 347, 349, 190, 200, plusvalía municipal, etc.) con cálculo automático, guías y export PDF |
+| Recordatorios | Avisos de vencimientos fiscales y de facturas (in-app y email vía Resend), cron diario |
+| Nóminas y retenciones | Cálculo de retenciones de IRPF (plan BASIC, sin IA) |
+| Alquileres | Inquilinos, cobros y gastos deducibles |
+| Documentos | Subida con dropzone, buckets privados de Supabase con URLs firmadas, backup automático diario/semanal |
+| Multi-persona | Gestión de otras personas (cónyuge, familiares) desde una cuenta, con invitación por email |
+| Suscripciones | Planes BASIC y PRO con Stripe (checkout, portal, webhook); PayPal como proveedor adicional |
+| Conversiones | Conversión de documentos (plan BASIC, sin IA) |
 
-## Stack técnico
+## Stack
 
 | Capa | Tecnología |
 |---|---|
-| Frontend | **Next.js (App Router) + React + TypeScript**, Tailwind CSS, Radix UI, React Hook Form + **Zod**, Recharts |
-| Backend / API | Next.js Server Actions y Route Handlers |
-| Datos | **PostgreSQL (Supabase)** + **Prisma** (migraciones y cliente tipado) |
-| Auth | Supabase Auth (SSR cookies, sesiones con encriptación) |
-| IA | **Anthropic SDK (Claude)** + Tesseract.js (OCR) |
-| Pagos | Stripe + PayPal |
-| Email / Push | Resend, Web Push (VAPID), IMAP (lectura de bandeja) |
-| Seguridad y calidad | Rate limiting distribuido (Upstash Redis), Sentry, validación Zod en la frontera |
-| Tareas programadas | Trigger.dev |
-| Monorepo | **Turborepo + pnpm workspaces** (`apps/web`, `packages/database`, `packages/types`, `packages/utils`) |
-| Testing | **Vitest** (unitario) + **Playwright** (e2e) |
-| Despliegue | Vercel (producción), variables de entorno por entorno |
+| Frontend | Next.js 15 (App Router) + React 19 + TypeScript estricto, Tailwind CSS, shadcn/ui, Lucide |
+| Backend | Next.js Route Handlers + Server Actions, validación con Zod |
+| Datos | PostgreSQL (Supabase) + Prisma 5 |
+| Auth | Supabase Auth (email y Google OAuth) |
+| IA | Anthropic Claude API (OCR de facturas, clasificación, chat) |
+| Pagos | Stripe (+ PayPal como proveedor de suscripción) |
+| Email / Push | Resend, Web Push (VAPID) |
+| Rate limiting | In-memory (Upstash Redis opcional) |
+| Tareas programadas | Crons de Vercel (Trigger.dev no se usa) |
+| Monorepo | Turborepo + pnpm workspaces |
+| Testing | Vitest (unit) + Playwright (E2E) |
 
-## Arquitectura
+## Estructura
 
 ```
 mantigestor/
 ├── apps/
 │   └── web/               Next.js: app router, api routes, e2e (Playwright)
 ├── packages/
-│   ├── database/          Prisma schema, migraciones y seeds
+│   ├── database/          Prisma schema, migraciones, scripts (RLS, SQL multi-sentencia)
 │   ├── types/             Tipos y DTOs compartidos (TypeScript estricto)
-│   └── utils/             Utilidades puras compartidas
-├── e2e/                   Tests end-to-end con Playwright
+│   └── utils/             Utilidades puras: fiscal, validaciones (Zod), formateadores, suscripción
 ├── turbo.json             Pipeline: dev · build · lint · typecheck · test
-└── vitest.config.ts       Configuración de tests unitarios
+└── vitest.config.ts       Configuración de tests unitarios (utils + types)
 ```
 
-**Decisiones de diseño:**
-- *Monorepo*: `types` y `utils` compartidos entre app y tests — sin duplicar modelos de dominio.
-- *Zod en la frontera*: toda entrada de usuario/IA se valida antes de tocar la base de datos (fiscalidad = cero datos corruptos).
-- *RLS y claves separadas*: `anon_key` en cliente, `service_role` solo en servidor.
-- *IA con validación*: la IA propone, el código valida. El resultado de un OCR nunca se persiste sin pasar por el esquema Zod.
+## Requisitos
 
-## Cómo se construyó
-
-Desarrollado de extremo a extremo (diseño, arquitectura, código, tests y despliegue) por **Jorge Mantiñán Montero**, usando IA como acelerador de desarrollo. Las decisiones técnicas —modelo de datos, esquema fiscal, seguridad, flujos de pago— y la revisión del código generado son propias. Ver `AGENTS.md` para el flujo de trabajo con agentes de IA.
+- Node.js >= 20
+- pnpm 11
+- Proyecto Supabase (base de datos PostgreSQL)
+- Clave de API de Anthropic (Claude)
+- Cuentas de Stripe y/o PayPal (opcionales; sin ellas la app muestra "Próximamente")
 
 ## Puesta en marcha
 
 ```bash
 pnpm install
-cp .env.example .env.local       # rellena Supabase, Anthropic, Stripe, etc.
-pnpm db:push                     # sincroniza el esquema Prisma
-pnpm dev                         # turbo dev → http://localhost:3000
-pnpm test                        # tests unitarios (Vitest)
-pnpm test:e2e                    # tests end-to-end (Playwright)
-pnpm lint && pnpm typecheck      # calidad
+cp .env.example .env.local    # rellena Supabase, Anthropic, Stripe, etc.
+pnpm db:push                  # sincroniza el esquema Prisma con Supabase
+pnpm dev                      # turbo dev → http://localhost:3000
 ```
 
-## Roadmap
+Comandos útiles:
 
-- [ ] Modo offline progresivo para facturación sin conexión
-- [ ] Firma digital de facturas y remisión a TicketBAI/Facturación VER*
-- [ ] Alertas de vencimiento por WhatsApp
-- [ ] Exportación contable directa a modelos AEAT desde el navegador
+```bash
+pnpm --filter=web build       # build de producción de la web
+pnpm db:generate              # regenerar el cliente Prisma
+pnpm typecheck                # TypeScript check global
+pnpm --filter=web lint        # lint de la web
+```
+
+Para ejecutar SQL multi-sentencia (migraciones con `DO $$`), usar el script `run-sql-pg.ts` de `packages/database` (no `prisma db execute`):
+
+```bash
+pnpm --filter=database exec -- dotenv -e ../../.env.local -- tsx scripts/run-sql-pg.ts prisma/migrations/<x>/migration.sql
+```
+
+## Tests
+
+```bash
+pnpm --filter=utils test      # tests unitarios de utils (fiscal, validaciones): 383 tests
+pnpm --filter=web test        # tests unitarios de la web: 56 tests
+pnpm test                     # todos (turbo)
+pnpm test:e2e                 # E2E con Playwright (14 specs: auth, navigation, fiscal, etc.)
+pnpm test:e2e:ui              # E2E en modo interactivo
+```
+
+Coverage:
+
+- Utils + types: configurado en `vitest.config.ts` raíz (umbrales 80/80/75)
+- Web: `pnpm --filter=web exec vitest run --coverage` (sin umbrales)
+
+## Variables de entorno
+
+Definidas en `.env.example` (copiar a `.env.local` en la raíz):
+
+| Grupo | Variables |
+|---|---|
+| Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
+| Base de datos | `DATABASE_URL`, `DIRECT_URL` |
+| IA (Claude) | `ANTHROPIC_API_KEY` |
+| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRO_PRICE_ID` |
+| Web Push (VAPID) | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` |
+| App | `NEXT_PUBLIC_APP_URL` |
+| Upstash (opcional) | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` |
+
+Además, el código usa (no están en `.env.example`): `RESEND_API_KEY` y `EMAIL_FROM` (emails transaccionales; si falta `RESEND_API_KEY` los envíos se omiten sin romper el flujo) y `CRON_SECRET` (autenticación de los crons de Vercel).
+
+## Despliegue
+
+- Repositorio: `github.com/JorgeMantinan/mantigestor`
+- Vercel en producción, auto-deploy en cada push a `master`
+- Root Directory en Vercel: `apps/web` (configurado en el Dashboard)
+- Build Command: `cd ../.. && npx turbo build --filter=web`; Output: `.next`; Install: `cd ../.. && pnpm install`
+- `vercel.json` (crons) vive en `apps/web/`, no en la raíz
+- Variables de entorno configuradas en Vercel (Production)
+
+## Estado
+
+- Funciona en producción: 77 páginas + 54 rutas API, build sin errores; MVP prácticamente completo
+- Multi-persona, OCR con IA, modelos fiscales con export PDF, backups automáticos y recordatorios implementados
+- Stripe integrado (checkout, portal, webhook); es opcional: sin variables, la sección de pagos muestra "Próximamente"
+- Resend sin dominio verificado solo puede enviar al email de la propia cuenta Resend
+- Pendientes declarados: modo offline, firma digital / TicketBAI, alertas por WhatsApp, exportación contable directa a AEAT; app móvil Expo no iniciada
 
 ## Licencia
 
-Código visible bajo **[PolyForm Noncommercial 1.0.0](LICENSE)**: puedes verlo, clonarlo, estudiarlo y
-usarlo para fines personales, de aprendizaje o de investigación. **Cualquier uso comercial (venderlo,
-ofrecerlo como servicio, incorporarlo a un producto de pago) requiere mi autorización expresa.**
+Código visible bajo [PolyForm Noncommercial 1.0.0](LICENSE): uso personal, de aprendizaje o investigación permitido; cualquier uso comercial requiere autorización expresa. © 2026 Jorge Mantiñán Montero.
 
-© 2026 Jorge Mantiñán Montero — contacto a través de [LinkedIn](https://www.linkedin.com/in/jorge-manti%C3%B1%C3%A1n-montero/).
-
----
-
-<p align="center"><sub>Proyecto personal · España · 2026 — Los datos fiscales calculados son orientativos y no sustituyen a un asesor fiscal.</sub></p>
+Los datos fiscales calculados son orientativos y no sustituyen a un asesor fiscal.
